@@ -30,7 +30,7 @@ Decided 2026-10-26: a **guided workspace**, direction A in the [prototype](https
   - "Run your business": Products and marketing, Orders, Planning for help.
 
   On a phone, the menu becomes one scrollable row above the content. A bottom tab bar, like the prototype's phone screen, is still an option.
-- **Before the workspace:** sign up or log in, then the intake questions one at a time. The prototype shows this flow.
+- **Getting started:** sign up, then answer the intake questions one at a time, inside the workspace. Returning owners log in to Today.
 - **Today is the home page.** It shows setup progress, the next step, and everything waiting for the owner's OK.
 - **AI works inside each screen,** drafting and explaining where the owner already is. There's no separate chat window.
 - **Every step says who did it.**
@@ -146,12 +146,14 @@ src/
     (auth)/             sign up and log in
     api/auth/           Better Auth endpoints
   components/
+    intake/             intake wizard, answer choices, business switcher
   data/
     source-packs/       official sources by place
   db/                   schema (including account tables), client
   lib/
     ai/                 model-agnostic layer (the only place that talks to models)
     auth/               account config, session check, form rules
+    intake/             intake answers, AI suggestions and their offline stand-in
     data/               owner-scoped data access
     research/           source pack schema, citation verification
     rules/              stock, checklist order, hiring math (plain code, unit-tested)
@@ -167,7 +169,7 @@ drizzle/                migrations
 |---|---|---|---|
 | 0 | Project setup, database schema, AI layer, rules, federal sources, app layout | Must | Done |
 | 1 | Accounts: sign up, log in, and each owner sees only their own businesses | Must | Built; password reset and email verification wait on an email service |
-| 2 | Intake: the business profile questions, one at a time, as in the prototype | Must | |
+| 2 | Intake: the business profile questions, one at a time, as in the prototype | Must | Built: AI can pre-fill answers from a description; owners can edit answers and switch between businesses |
 | 3 | Research engine, requirements view, gaps, streaming calls, state source packs | Must | |
 | 4 | Structure and path, checklist | Must | |
 | 5 | Product → marketing | Must | |

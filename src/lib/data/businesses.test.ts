@@ -9,13 +9,14 @@ function profile(name: string): BusinessProfile {
   return {
     name,
     description: "",
-    location: { state: null, county: null, city: null },
-    owners: { count: 1, notes: "" },
-    offerings: [],
-    channels: [],
+    location: { state: "OH", county: "", city: "" },
+    owners: { count: 1 },
+    offeringKinds: ["food"],
+    firstItems: "",
+    channels: ["markets"],
     premises: null,
-    startupBudgetUsd: null,
-    hiringPlans: "",
+    startupBudget: null,
+    hiringPlans: null,
   };
 }
 
@@ -41,13 +42,22 @@ describe("business data access", () => {
   it("won't return another owner's business by id", async () => {
     const theirs = await createBusinessForOwner(db, "owner-b", { profile: profile("B's shop") });
 
-    expect(await getBusinessForOwner(db, "owner-a", theirs.id)).toBeNull();
-    expect((await getBusinessForOwner(db, "owner-b", theirs.id))?.profile.name).toBe("B's shop");
+    expect(await getBusinessForOwner(db, "owner-a", theirs!.id)).toBeNull();
+    expect((await getBusinessForOwner(db, "owner-b", theirs!.id))?.profile.name).toBe("B's shop");
   });
 
   it("marks demo businesses when asked", async () => {
     const demo = await createBusinessForOwner(db, "owner-a", { profile: profile("Demo"), isDemo: true });
-    expect(demo.isDemo).toBe(true);
+    expect(demo?.isDemo).toBe(true);
+  });
+
+  it("stops at the owner's limit, even for creates at the same time", async () => {
+    const results = await Promise.all(
+      Array.from({ length: 5 }, (_, i) => createBusinessForOwner(db, "owner-a", { profile: profile(`Shop ${i}`) }, 3)),
+    );
+    expect(results.filter(Boolean)).toHaveLength(3);
+    expect(await listBusinessesForOwner(db, "owner-a")).toHaveLength(3);
+    expect(await createBusinessForOwner(db, "owner-b", { profile: profile("B's shop") }, 3)).not.toBeNull();
   });
 
   it("deletes an owner's businesses with their account", async () => {

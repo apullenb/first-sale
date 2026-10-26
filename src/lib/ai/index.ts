@@ -1,3 +1,4 @@
+export { registerMockFixture } from "./providers/mock";
 export { getModel, MUSE_DEFAULTS } from "./registry";
 export { generateObject, StructuredOutputError } from "./structured";
 export { AIProviderError } from "./types";

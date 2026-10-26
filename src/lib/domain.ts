@@ -21,25 +21,40 @@ export const SELLING_CHANNELS = [
   "wholesale",
 ] as const;
 
-export const PREMISES = ["home", "rented_space", "shared_kitchen", "market_stall", "online_only"] as const;
+export const PREMISES = ["home", "rented_space", "shared_kitchen", "online_only", "unsure"] as const;
+export const OFFERING_KINDS = ["food", "handmade", "resale", "services", "other"] as const;
+export const BUDGET_RANGES = ["under_1k", "1k_5k", "5k_25k", "over_25k", "unsure"] as const;
+export const HIRING_PLANS = ["not_now", "first_year", "right_away"] as const;
+export const MAX_OWNERS = 10;
+export const MAX_BUSINESSES_PER_OWNER = 20;
 
-// Filled in step by step during intake, so most fields can still be empty.
+const text = (max: number) => z.string().trim().max(max);
+
+// Pick-many answers: at least one, each option once
+const picks = <T extends readonly [string, ...string[]]>(options: T) =>
+  z
+    .array(z.enum(options))
+    .min(1)
+    .max(options.length)
+    .refine((list) => new Set(list).size === list.length, "Each option can be picked once");
+
+// What intake saves. The state, owners, kinds and channels drive requirements, so they're required.
 export const businessProfileSchema = z.object({
-  name: z.string(),
-  description: z.string(),
+  // Null until the owner picks a name
+  name: text(100).min(1).nullable(),
+  description: text(1000),
   location: z.object({
-    state: z.enum(US_STATE_CODES).nullable(),
-    county: z.string().nullable(),
-    city: z.string().nullable(),
+    state: z.enum(US_STATE_CODES),
+    county: text(100),
+    city: text(100),
   }),
-  owners: z.object({ count: z.number().int().min(1), notes: z.string() }),
-  offerings: z.array(
-    z.object({ name: z.string(), kind: z.enum(["product", "service"]), notes: z.string() }),
-  ),
-  channels: z.array(z.enum(SELLING_CHANNELS)),
+  owners: z.object({ count: z.number().int().min(1).max(MAX_OWNERS) }),
+  offeringKinds: picks(OFFERING_KINDS),
+  firstItems: text(300),
+  channels: picks(SELLING_CHANNELS),
   premises: z.enum(PREMISES).nullable(),
-  startupBudgetUsd: z.number().nonnegative().nullable(),
-  hiringPlans: z.string(),
+  startupBudget: z.enum(BUDGET_RANGES).nullable(),
+  hiringPlans: z.enum(HIRING_PLANS).nullable(),
 });
 export type BusinessProfile = z.infer<typeof businessProfileSchema>;
 

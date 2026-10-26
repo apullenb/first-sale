@@ -16,7 +16,9 @@ npm run db:migrate
 npm run dev
 ```
 
-Open http://localhost:3000 and create an account. Without an AI key the app uses a mock model. There are no built-in sample businesses; once intake is built, demo businesses are created through the app.
+Open http://localhost:3000, create an account and answer the intake questions. Without an AI key the app uses a mock model; AI suggestions then come from simple keyword matching. There are no built-in sample businesses: create demo businesses through the intake like any other.
+
+AI suggestions are limited to 10 an hour and 50 a day per owner, and 500 a day across everyone (`AI_DAILY_LIMIT`), to cap cost.
 
 The local database is PGlite in `.pglite/`, and only one process can use it at a time. Stop `npm run dev` before running `db:migrate`. If `db:migrate` fails with "already exists", your local `.pglite/` predates the current migrations: delete it and run `db:migrate` again.
 

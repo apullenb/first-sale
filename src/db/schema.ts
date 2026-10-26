@@ -33,6 +33,22 @@ const businessId = () =>
 
 export * from "./auth-schema";
 
+// One row per AI suggestion request, for per-owner usage limits
+export const aiRequests = pgTable(
+  "ai_requests",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    index("ai_requests_user_created_idx").on(table.userId, table.createdAt),
+    index("ai_requests_created_idx").on(table.createdAt),
+  ],
+);
+
 export const businesses = pgTable(
   "businesses",
   {

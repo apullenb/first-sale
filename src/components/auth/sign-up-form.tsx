@@ -71,7 +71,7 @@ export function SignUpForm() {
     }
     // Full page load so no kept screen holds this form's state; replace keeps it out of Back
     setValues(EMPTY);
-    window.location.replace("/");
+    window.location.replace("/business/new");
   }
 
   return (

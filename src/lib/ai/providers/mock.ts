@@ -14,8 +14,17 @@ export function createMockProvider(respond: MockResponder = defaultResponder): M
   };
 }
 
+const fixtures = new Map<string, MockResponder>();
+
+// Offline answers for structured calls, keyed by schema name, so features work without an API key
+export function registerMockFixture(schemaName: string, respond: MockResponder): void {
+  fixtures.set(schemaName, respond);
+}
+
 function defaultResponder(request: CompletionRequest): string {
   if (request.responseFormat) {
+    const fixture = fixtures.get(request.responseFormat.name);
+    if (fixture) return fixture(request);
     throw new Error(
       `No mock fixture for "${request.responseFormat.name}". Set AI_PROVIDER in .env.local or pass a responder.`,
     );
