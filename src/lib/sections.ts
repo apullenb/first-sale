@@ -6,66 +6,71 @@ export interface Section {
   href: string;
   title: string;
   group: SectionGroup;
+  // Position in the formation journey; run-your-business sections have none
+  step: number | null;
   milestone: number;
   summary: string;
 }
+
+export const HOME = { href: "/", title: "Today" } as const;
 
 export const SECTIONS: Section[] = [
   {
     href: "/business",
     title: "Your business",
     group: "Start your business",
-    milestone: 1,
+    step: 1,
+    milestone: 2,
     summary: "Questions about where you are, who owns it, what you sell, how you sell it, and your budget.",
   },
   {
     href: "/requirements",
     title: "Requirements",
     group: "Start your business",
-    milestone: 2,
+    step: 2,
+    milestone: 3,
     summary:
       "Registrations, licenses, and permits that apply to you, each linked to an official source or marked for you to verify.",
   },
   {
-    href: "/options",
-    title: "Business structure",
+    href: "/structure",
+    title: "Structure and path",
     group: "Start your business",
-    milestone: 3,
-    summary: "Sole proprietorship, partnership, LLC, and registered business names (DBAs), compared for your situation.",
-  },
-  {
-    href: "/decision",
-    title: "Your path",
-    group: "Start your business",
-    milestone: 3,
-    summary: "A suggested path with its reasoning, tradeoffs, open questions, and when to talk to a professional.",
+    step: 3,
+    milestone: 4,
+    summary:
+      "Sole proprietorship, partnership, LLC, and DBA compared for your situation, with a suggested path, its reasons, and when to talk to a professional.",
   },
   {
     href: "/checklist",
     title: "Checklist",
     group: "Start your business",
-    milestone: 3,
+    step: 4,
+    milestone: 4,
     summary: "Steps in order, with where to go, what to bring, and fees. Track what's done and keep your confirmations.",
   },
   {
     href: "/products",
-    title: "Products & marketing",
+    title: "Products and marketing",
     group: "Run your business",
-    milestone: 4,
+    step: null,
+    milestone: 5,
     summary: "Add a product and get a draft listing and social post. Nothing goes out until you approve it.",
   },
   {
     href: "/orders",
     title: "Orders",
     group: "Run your business",
-    milestone: 5,
+    step: null,
+    milestone: 6,
     summary: "Orders update stock by fixed rules. AI drafts the customer reply and flags anything missing.",
   },
   {
     href: "/planning-for-help",
     title: "Planning for help",
     group: "Run your business",
-    milestone: 6,
+    step: null,
+    milestone: 7,
     summary: "What hiring help would cost each month, the sales needed to cover it, and a draft role description.",
   },
 ];

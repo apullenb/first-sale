@@ -12,13 +12,12 @@ Requires Node 24 (`nvm use`).
 npm install
 cp .env.example .env.local
 npm run db:push
-npm run db:seed
 npm run dev
 ```
 
-Open http://localhost:3000. Without an API key the app uses a mock model.
+Open http://localhost:3000. Without an API key the app uses a mock model. There are no built-in sample businesses; once intake is built, demo businesses are created through the app.
 
-The local database is PGlite in `.pglite/`, and only one process can use it at a time. Stop `npm run dev` before running `db:push` or `db:seed`.
+The local database is PGlite in `.pglite/`, and only one process can use it at a time. Stop `npm run dev` before running `db:push`.
 
 ## AI models
 
@@ -39,4 +38,3 @@ The app works with any OpenAI-compatible model. Set `AI_PROVIDER` in `.env.local
 | `npm run typecheck` | Runs TypeScript checks |
 | `npm run lint` | Runs ESLint |
 | `npm run db:push` | Creates or updates tables (local PGlite, or `DATABASE_URL`) |
-| `npm run db:seed` | Loads the three demo businesses |

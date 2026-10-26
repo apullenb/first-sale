@@ -65,3 +65,4 @@ export const FULFILLMENT_METHODS = ["pickup", "shipping", "delivery"] as const;
 export const ORDER_STATUSES = ["new", "confirmed", "needs_review", "fulfilled", "cancelled"] as const;
 // Who did each step, shown on every order's timeline
 export const ACTORS = ["rule", "ai", "owner"] as const;
+export type Actor = (typeof ACTORS)[number];

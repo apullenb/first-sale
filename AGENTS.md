@@ -15,4 +15,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Requirements shown to owners must pass `verifyCitations`; anything else is "Needs verification".
 - Nothing is filed, published or sent without owner approval. Sample orders are labeled DEMO.
 - US only for now (federal, state, county, city).
+- Each owner sees only their own businesses.
+- No seed scripts or built-in sample businesses; demo businesses are created through the app.
+- UI follows the guided-workspace direction in PLAN.md (UI direction). Use the theme colors in `globals.css` and `ActorChip` for AI / Rules / You labels.
 - Comments: 1–2 short lines, only when needed, no history.

@@ -18,6 +18,29 @@ It's built for a daughter who wants to open a bakery, two brothers who make wood
   - AI writes drafts and explanations.
   - Nothing is filed, published or sent without the owner.
 - **Every requirement shows its source.** If no official source backs it, it's labeled "Needs verification."
+- **Owners sign up and log in.** Each owner sees only their own businesses.
+- **No built-in sample businesses.** Demo businesses are created through the app, like any other.
+
+## UI direction
+
+Decided 2026-10-26: a **guided workspace**, direction A in the [prototype](https://claude.ai/artifact/Ps9Q3mDxgBJaDw1f77CTjD). The alternative was chat-first. The prototype is private; share it from its Share menu before sending the link to teammates.
+
+- **Layout.** A left menu holds Today, then two groups:
+  - "Start your business": Your business, Requirements, Structure and path, Checklist.
+  - "Run your business": Products and marketing, Orders, Planning for help.
+
+  On a phone, the menu becomes one scrollable row above the content. A bottom tab bar, like the prototype's phone screen, is still an option.
+- **Before the workspace:** sign up or log in, then the intake questions one at a time. The prototype shows this flow.
+- **Today is the home page.** It shows setup progress, the next step, and everything waiting for the owner's OK.
+- **AI works inside each screen,** drafting and explaining where the owner already is. There's no separate chat window.
+- **Every step says who did it.**
+  - Small labels mark each one as **AI** (drafts), **Rules** (stock, money, steps) or **You** (approvals).
+  - Drafts stay drafts until the owner approves them, and anything flagged must be decided first.
+- **Every requirement carries a label.** It's either "Official source" (green) or "Needs verification" (amber), with who to call and what to ask.
+- **Look.**
+  - Colors: a light warm gray background, white cards and a deep green accent. Amber marks things to check, and blue marks AI drafts.
+  - Fonts: Bricolage Grotesque for headings, Figtree for text.
+  - Tap targets are at least 44 px, and it's light mode only for now.
 
 ## What changed from the first draft
 
@@ -53,13 +76,13 @@ It's built for a daughter who wants to open a bakery, two brothers who make wood
 - The model always reasons, so `reasoning_effort: "none"` is rejected.
 - `response_format` with `json_schema` is supported.
 - Images go in user messages as `image_url` parts.
-- Long requests that don't stream can time out with HTTP 504, so stream the research calls (milestone 2).
+- Long requests that don't stream can time out with HTTP 504, so stream the research calls (milestone 3).
 - The API is a public preview for US developers.
 
 ## Research engine
 
 1. **Source packs** (`src/data/source-packs/`). A hand-picked list of official pages for each place, plus the domains the app may read.
-   - The federal pack (IRS, SBA) is in. Its links were confirmed working on 2026-10-26, but each page still needs a content read in milestone 2.
+   - The federal pack (IRS, SBA) is in. Its links were confirmed working on 2026-10-26, but each page still needs a content read in milestone 3.
    - The state, county and city packs for the demo places come next. This takes the longest, and a non-coder can do it.
 2. **Retrieve.** The app fetches the pack's pages itself and extracts the text. A search API limited to the pack's domains could be added later to find more pages.
 3. **Extract.** The model reads the fetched pages and the business profile, and returns requirements that point to source ids.
@@ -74,8 +97,8 @@ It's built for a daughter who wants to open a bakery, two brothers who make wood
 |---|---|---|
 | Understand the business | `/business` | A saved business profile |
 | Research requirements | `/requirements` | Requirements with sources, plus gaps to verify |
-| Explain formation options | `/options` | A plain-language comparison: sole proprietorship, partnership, LLC, DBA |
-| Support a decision | `/decision` | A suggested path with reasoning and tradeoffs, plus when to see a professional |
+| Explain formation options | `/structure` | A plain-language comparison: sole proprietorship, partnership, LLC, DBA |
+| Support a decision | `/structure` | A suggested path with reasoning and tradeoffs, plus when to see a professional |
 | Build the checklist | `/checklist` | Steps in order, where to complete each one, what to prepare, fees |
 | Guide completion | `/checklist` | Progress, uploaded confirmations, next steps |
 
@@ -120,9 +143,8 @@ src/
   app/                  routes: one per stage and workflow
   components/
   data/
-    personas.ts         three demo businesses
     source-packs/       official sources by place
-  db/                   schema, client, seed
+  db/                   schema, client
   lib/
     ai/                 model-agnostic layer (the only place that talks to models)
     research/           source pack schema, citation verification
@@ -135,23 +157,26 @@ src/
 
 | # | Milestone | Priority | Status |
 |---|---|---|---|
-| 0 | Project setup, database schema, demo businesses, AI layer, rules, federal sources | Must | Done |
-| 1 | Business profile questions (a form first, with chat help) | Must | |
-| 2 | Research engine, requirements view, gaps, streaming calls, state source packs | Must | |
-| 3 | Options, decision, checklist | Must | |
-| 4 | Product → marketing | Must | |
-| 5 | Order → customer reply | Must | |
-| 6 | Planning for help | Must | |
-| 7 | Completion: uploads, help chat on each task | Should | |
-| 8 | The other two demo businesses polished end to end | Should | |
-| 9 | One-page shop, turning a pasted DM into an order, Spanish | Stretch | |
-| 10 | Evals, saved demo results, video, README | Must — save the last ~20% of your time | |
+| 0 | Project setup, database schema, AI layer, rules, federal sources, app layout | Must | Done |
+| 1 | Accounts: sign up, log in, and each owner sees only their own businesses | Must | |
+| 2 | Intake: the business profile questions, one at a time, as in the prototype | Must | |
+| 3 | Research engine, requirements view, gaps, streaming calls, state source packs | Must | |
+| 4 | Structure and path, checklist | Must | |
+| 5 | Product → marketing | Must | |
+| 6 | Order → customer reply | Must | |
+| 7 | Planning for help | Must | |
+| 8 | Completion: uploads, help chat on each task | Should | |
+| 9 | Your demo businesses polished end to end | Should | |
+| 10 | One-page shop, turning a pasted DM into an order, Spanish | Stretch | |
+| 11 | Evals, saved demo results, video, README | Must — save the last ~20% of your time | |
 
-**For a 48-hour event:** do the bakery only, run research from saved results, keep milestones 1–6 simple, and skip uploads.
+**Today** fills in as milestones land: setup progress and the next step from milestone 4, then drafts and orders from milestones 5 and 6.
+
+**For a 48-hour event:** do one demo business only, run research from saved results, keep milestones 1–7 simple, and skip uploads.
 
 ## Credibility
 
-- **Hand-checked requirement lists:** 10–15 per demo business, built while making the source packs.
+- **Hand-checked requirement lists:** 10–15 for each demo business, built while making the source packs.
   - The eval runs the same list against whichever model is configured. Report two numbers: requirements found, and requirements invented.
   - Citation validity is 100%, because code checks every citation.
 - **Draft checks:** marketing drafts are graded for claims the owner didn't provide.
@@ -160,16 +185,16 @@ src/
 ## Three-minute demo
 
 1. **0:00** – The story.
-2. **0:20** – Bakery: profile → requirements with sources and one flagged gap → structure options → checklist.
-3. **1:30** – A 15-second switch to the woodworking shop (partnership questions) and the boutique (zoning, resale certificate).
-4. **1:50** – Photo → listing, with a "gluten-free?" flag; the owner edits and approves.
-5. **2:20** – A demo order arrives: stock goes from 12 to 10, a reply is drafted, and a missing pickup date is flagged.
+2. **0:20** – Sign up, then intake → requirements with sources and one flagged gap → structure options → checklist.
+3. **1:30** – A 15-second switch to a second demo business, to show the requirements and path change.
+4. **1:50** – Photo → listing, with a flagged claim; the owner edits and approves.
+5. **2:20** – A demo order arrives: stock goes down, a reply is drafted, and a missing detail is flagged.
 6. **2:45** – Planning for help: 15 hrs/week at $18/hr is about $1,170 a month, or about $2,925 in sales at a 40% margin → role description → "someone's first job."
 
 ## Open decisions
 
 1. Hackathon timeline and team size.
-2. Which states and cities the demo supports (where the three people live).
-3. Real names and products, or the generic demo businesses.
+2. Which states and cities the demo supports.
+3. How owners sign in: email and password, an emailed sign-in link, or Google, and which auth service or library handles it.
 4. Repo visibility for submission. It's private for now.
 5. Whether the rules require every AI call, including eval graders, to use Muse.
