@@ -132,7 +132,8 @@ Decided 2026-10-26: a **guided workspace**, direction A in the [prototype](https
 | Layer | Choice |
 |---|---|
 | App | Next.js 16 (App Router) with TypeScript and Tailwind 4 |
-| Data | Postgres through Drizzle. Locally it uses PGlite (no install needed); in production, set `DATABASE_URL` to a hosted Postgres. |
+| Data | Postgres through Drizzle, with migrations in `drizzle/`. Locally it uses PGlite (no install needed); in production, set `DATABASE_URL` to a hosted Postgres. |
+| Accounts | Better Auth with email and password, stored in our own database. Decided 2026-10-26. |
 | Validation | zod 4, which also produces the JSON Schemas sent to models |
 | Tests | Vitest |
 | Hosting | Vercel |
@@ -140,17 +141,24 @@ Decided 2026-10-26: a **guided workspace**, direction A in the [prototype](https
 
 ```
 src/
-  app/                  routes: one per stage and workflow
+  app/
+    (app)/              signed-in pages: one per stage and workflow
+    (auth)/             sign up and log in
+    api/auth/           Better Auth endpoints
   components/
   data/
     source-packs/       official sources by place
-  db/                   schema, client
+  db/                   schema (including account tables), client
   lib/
     ai/                 model-agnostic layer (the only place that talks to models)
+    auth/               account config, session check, form rules
+    data/               owner-scoped data access
     research/           source pack schema, citation verification
     rules/              stock, checklist order, hiring math (plain code, unit-tested)
     domain.ts           shared schemas and enums
     sections.ts         navigation
+  test/                 in-memory database for tests
+drizzle/                migrations
 ```
 
 ## Build order
@@ -158,7 +166,7 @@ src/
 | # | Milestone | Priority | Status |
 |---|---|---|---|
 | 0 | Project setup, database schema, AI layer, rules, federal sources, app layout | Must | Done |
-| 1 | Accounts: sign up, log in, and each owner sees only their own businesses | Must | |
+| 1 | Accounts: sign up, log in, and each owner sees only their own businesses | Must | Built; password reset and email verification wait on an email service |
 | 2 | Intake: the business profile questions, one at a time, as in the prototype | Must | |
 | 3 | Research engine, requirements view, gaps, streaming calls, state source packs | Must | |
 | 4 | Structure and path, checklist | Must | |
@@ -180,7 +188,7 @@ src/
   - The eval runs the same list against whichever model is configured. Report two numbers: requirements found, and requirements invented.
   - Citation validity is 100%, because code checks every citation.
 - **Draft checks:** marketing drafts are graded for claims the owner didn't provide.
-- **Unit tests:** stock, checklist order and hiring math are already tested.
+- **Unit tests:** stock, checklist order and hiring math are already tested, along with accounts (password hashing, wrong passwords, duplicate emails) and owner-only data access.
 
 ## Three-minute demo
 
@@ -195,6 +203,6 @@ src/
 
 1. Hackathon timeline and team size.
 2. Which states and cities the demo supports.
-3. How owners sign in: email and password, an emailed sign-in link, or Google, and which auth service or library handles it.
-4. Repo visibility for submission. It's private for now.
-5. Whether the rules require every AI call, including eval graders, to use Muse.
+3. Repo visibility for submission. It's private for now.
+4. Whether the rules require every AI call, including eval graders, to use Muse.
+5. Which email service sends password resets and verification emails, and whether a hackathon demo needs them.

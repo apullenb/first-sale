@@ -11,13 +11,38 @@ Requires Node 24 (`nvm use`).
 ```bash
 npm install
 cp .env.example .env.local
-npm run db:push
+# Put a secret in BETTER_AUTH_SECRET: openssl rand -base64 32
+npm run db:migrate
 npm run dev
 ```
 
-Open http://localhost:3000. Without an API key the app uses a mock model. There are no built-in sample businesses; once intake is built, demo businesses are created through the app.
+Open http://localhost:3000 and create an account. Without an AI key the app uses a mock model. There are no built-in sample businesses; once intake is built, demo businesses are created through the app.
 
-The local database is PGlite in `.pglite/`, and only one process can use it at a time. Stop `npm run dev` before running `db:push`.
+The local database is PGlite in `.pglite/`, and only one process can use it at a time. Stop `npm run dev` before running `db:migrate`. If `db:migrate` fails with "already exists", your local `.pglite/` predates the current migrations: delete it and run `db:migrate` again.
+
+Sign-in only accepts requests from `BETTER_AUTH_URL`, so run the app on that address (port 3000 by default).
+
+## Accounts
+
+Owners sign up and log in with an email and password, handled by [Better Auth](https://www.better-auth.com) in our own database:
+- Passwords are hashed with scrypt.
+- Sessions live in the `sessions` table, behind an httpOnly cookie.
+- Signed-out visitors are sent to `/login`.
+
+Each owner sees only their own businesses. Pages read data through `src/lib/data/my-businesses.ts`, which takes the owner from the verified session.
+
+Sign-up and log-in attempts are rate-limited in production, with counts kept in the database.
+
+Not built yet: password reset and email verification. Both need an email-sending service.
+
+## Deploying (Vercel)
+
+1. Create a hosted Postgres database and set `DATABASE_URL`. The app refuses to start on Vercel without it.
+2. Set `BETTER_AUTH_SECRET` (`openssl rand -base64 32`) and `BETTER_AUTH_URL` (the production address).
+3. Run `DATABASE_URL=… npm run db:migrate` against the production database before the first deploy and after each schema change.
+4. Each preview's deployment URL and branch URL are trusted for sign-in automatically (`VERCEL_URL`, `VERCEL_BRANCH_URL`). List custom preview domains in `BETTER_AUTH_TRUSTED_ORIGINS`, comma-separated.
+
+Rate limiting keys on the visitor's IP from `X-Real-IP`, which Vercel sets. On a host that doesn't overwrite that header, visitors can fake it, so configure trusted proxies there. The limit is 3 sign-in or sign-up tries per 10 seconds per IP, so a room of people on one Wi-Fi network may need to pause between sign-ups.
 
 ## AI models
 
@@ -34,7 +59,8 @@ The app works with any OpenAI-compatible model. Set `AI_PROVIDER` in `.env.local
 | Script | Does |
 |---|---|
 | `npm run dev` | Starts the dev server |
-| `npm test` | Runs unit tests |
+| `npm test` | Runs unit tests (each database test gets its own in-memory Postgres) |
 | `npm run typecheck` | Runs TypeScript checks |
 | `npm run lint` | Runs ESLint |
-| `npm run db:push` | Creates or updates tables (local PGlite, or `DATABASE_URL`) |
+| `npm run db:generate` | Writes a new migration in `drizzle/` after a schema change |
+| `npm run db:migrate` | Applies migrations (local PGlite, or `DATABASE_URL`) |

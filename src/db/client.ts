@@ -7,6 +7,8 @@ export const PGLITE_DIR = "./.pglite";
 // Hosted Postgres when DATABASE_URL is set, otherwise local PGlite (no install needed).
 function createDb() {
   const url = process.env.DATABASE_URL;
+  // A deployed app must never fall back to a throwaway local database
+  if (!url && process.env.VERCEL) throw new Error("DATABASE_URL is not set.");
   return url ? drizzlePostgres(url, { schema }) : drizzlePglite(PGLITE_DIR, { schema });
 }
 

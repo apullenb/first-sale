@@ -16,6 +16,8 @@
   --color-rule-tint: #ecebe6;
   --color-check: #7a4b00;
   --color-check-tint: #fdf1d6;
+  --color-field: #d5d3cc;
+  --color-danger: #a3302b;
 }
 
 @theme inline {
