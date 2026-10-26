@@ -7,3 +7,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Project rules
+
+- AI drafts, rules calculate, the owner approves. Money, stock, order status and task order live in `src/lib/rules` as plain, tested code — never model output.
+- Talk to models only through `src/lib/ai` (`getModel`, `generateObject`). No vendor SDKs elsewhere: the hackathon requires Meta Muse, and the app must run on any OpenAI-compatible model.
+- Requirements shown to owners must pass `verifyCitations`; anything else is "Needs verification".
+- Nothing is filed, published or sent without owner approval. Sample orders are labeled DEMO.
+- US only for now (federal, state, county, city).
+- Comments: 1–2 short lines, only when needed, no history.

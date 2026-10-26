@@ -1,0 +1,55 @@
+{
+  "jurisdiction": { "level": "federal", "state": null, "name": "United States" },
+  "allowedHosts": ["irs.gov", "sba.gov"],
+  "sources": [
+    {
+      "id": "irs-ein",
+      "title": "IRS: Get an employer identification number",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+      "topics": ["employer_id", "tax_registration"],
+      "lastChecked": "2026-10-26"
+    },
+    {
+      "id": "irs-business-structures",
+      "title": "IRS: Business structures",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+      "topics": ["business_structure"],
+      "lastChecked": "2026-10-26"
+    },
+    {
+      "id": "sba-business-structure",
+      "title": "SBA: Choose a business structure",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+      "topics": ["business_structure"],
+      "lastChecked": "2026-10-26"
+    },
+    {
+      "id": "sba-business-name",
+      "title": "SBA: Choose your business name",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+      "topics": ["name_registration"],
+      "lastChecked": "2026-10-26"
+    },
+    {
+      "id": "sba-licenses-permits",
+      "title": "SBA: Apply for licenses and permits",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",
+      "topics": ["licenses_permits"],
+      "lastChecked": "2026-10-26"
+    },
+    {
+      "id": "sba-tax-ids",
+      "title": "SBA: Get federal and state tax ID numbers",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+      "topics": ["tax_registration", "employer_id"],
+      "lastChecked": "2026-10-26"
+    },
+    {
+      "id": "sba-hire-employees",
+      "title": "SBA: Hire and manage employees",
+      "url": "https://www.sba.gov/counseling/manage-your-business/#hire-and-manage",
+      "topics": ["employment"],
+      "lastChecked": "2026-10-26"
+    }
+  ]
+}
