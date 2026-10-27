@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { businesses, users } from "@/db/schema";
 import type { BusinessProfile } from "@/lib/domain";
 import { createTestDb } from "@/test/db";
-import { createBusinessForOwner, getBusinessForOwner, listBusinessesForOwner } from "./businesses";
+import { createBusinessForOwner, getBusinessForOwner, updateBusinessProfileForOwner } from "./businesses";
 
 function profile(name: string): BusinessProfile {
   return {
@@ -31,19 +31,21 @@ beforeEach(async () => {
 });
 
 describe("business data access", () => {
-  it("lists only the owner's own businesses", async () => {
+  it("returns only the owner's own business", async () => {
+    await createBusinessForOwner(db, "owner-b", { profile: profile("B's shop") });
+    expect(await getBusinessForOwner(db, "owner-a")).toBeNull();
+
+    await createBusinessForOwner(db, "owner-a", { profile: profile("A's bakery") });
+    expect((await getBusinessForOwner(db, "owner-a"))?.profile.name).toBe("A's bakery");
+  });
+
+  it("updates only the owner's own business", async () => {
     await createBusinessForOwner(db, "owner-a", { profile: profile("A's bakery") });
     await createBusinessForOwner(db, "owner-b", { profile: profile("B's shop") });
 
-    const mine = await listBusinessesForOwner(db, "owner-a");
-    expect(mine.map((b) => b.profile.name)).toEqual(["A's bakery"]);
-  });
-
-  it("won't return another owner's business by id", async () => {
-    const theirs = await createBusinessForOwner(db, "owner-b", { profile: profile("B's shop") });
-
-    expect(await getBusinessForOwner(db, "owner-a", theirs!.id)).toBeNull();
-    expect((await getBusinessForOwner(db, "owner-b", theirs!.id))?.profile.name).toBe("B's shop");
+    await updateBusinessProfileForOwner(db, "owner-a", profile("A's new name"));
+    expect((await getBusinessForOwner(db, "owner-a"))?.profile.name).toBe("A's new name");
+    expect((await getBusinessForOwner(db, "owner-b"))?.profile.name).toBe("B's shop");
   });
 
   it("marks demo businesses when asked", async () => {
@@ -51,13 +53,13 @@ describe("business data access", () => {
     expect(demo?.isDemo).toBe(true);
   });
 
-  it("stops at the owner's limit, even for creates at the same time", async () => {
+  it("refuses a second business, even for creates at the same time", async () => {
     const results = await Promise.all(
-      Array.from({ length: 5 }, (_, i) => createBusinessForOwner(db, "owner-a", { profile: profile(`Shop ${i}`) }, 3)),
+      Array.from({ length: 5 }, (_, i) => createBusinessForOwner(db, "owner-a", { profile: profile(`Shop ${i}`) })),
     );
-    expect(results.filter(Boolean)).toHaveLength(3);
-    expect(await listBusinessesForOwner(db, "owner-a")).toHaveLength(3);
-    expect(await createBusinessForOwner(db, "owner-b", { profile: profile("B's shop") }, 3)).not.toBeNull();
+    expect(results.filter(Boolean)).toHaveLength(1);
+    expect(await db.select().from(businesses).where(eq(businesses.ownerId, "owner-a"))).toHaveLength(1);
+    expect(await createBusinessForOwner(db, "owner-b", { profile: profile("B's shop") })).not.toBeNull();
   });
 
   it("deletes an owner's businesses with their account", async () => {

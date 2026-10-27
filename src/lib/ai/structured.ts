@@ -9,6 +9,8 @@ export interface GenerateObjectOptions<T> {
   maxOutputTokens?: number;
   // Extra attempts after a reply fails validation
   maxRepairs?: number;
+  stream?: boolean;
+  timeoutMs?: number;
 }
 
 export class StructuredOutputError extends Error {
@@ -48,6 +50,8 @@ export async function generateObject<T>(
       effort: options.effort,
       maxOutputTokens: options.maxOutputTokens,
       responseFormat: { name: options.name, schema: jsonSchema },
+      stream: options.stream,
+      timeoutMs: options.timeoutMs,
     });
 
     if (result.finishReason === "length") {

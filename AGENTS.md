@@ -16,7 +16,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Requirements shown to owners must pass `verifyCitations`; anything else is "Needs verification".
 - Nothing is filed, published or sent without owner approval. Sample orders are labeled DEMO.
 - US only for now (federal, state, county, city).
-- Each owner sees only their own businesses. Pages, actions and route handlers read data through `src/lib/data/my-businesses.ts`, which takes the owner from `getCurrentUser()`; the `*ForOwner` functions are for those wrappers and tests. A layout's session check doesn't protect its pages, so every data read must go through these wrappers.
+- Each owner has one business and sees only their own. Pages, actions and route handlers read data through `src/lib/data/my-business.ts`, which takes the owner from `getCurrentUser()`; the `*ForOwner` functions are for those wrappers and tests. A layout's session check doesn't protect its pages, so every data read must go through these wrappers.
 - After sign-in, sign-up or log-out, do a full page load (`window.location`), not a client route change: Cache Components keeps old screens mounted with their state.
 - Anything that reads the session must sit inside a `<Suspense>` boundary (Cache Components is on).
 - Schema changes need a migration: `npm run db:generate`, then commit the file in `drizzle/`.

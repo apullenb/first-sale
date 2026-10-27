@@ -18,8 +18,8 @@ It's built for a daughter who wants to open a bakery, two brothers who make wood
   - AI writes drafts and explanations.
   - Nothing is filed, published or sent without the owner.
 - **Every requirement shows its source.** If no official source backs it, it's labeled "Needs verification."
-- **Owners sign up and log in.** Each owner sees only their own businesses.
-- **No built-in sample businesses.** Demo businesses are created through the app, like any other.
+- **Owners sign up and log in.** Each owner has one business and sees only their own.
+- **No built-in sample businesses.** Demo businesses are created through the app, like any other, each with its own account.
 
 ## UI direction
 
@@ -76,20 +76,21 @@ Decided 2026-10-26: a **guided workspace**, direction A in the [prototype](https
 - The model always reasons, so `reasoning_effort: "none"` is rejected.
 - `response_format` with `json_schema` is supported.
 - Images go in user messages as `image_url` parts.
-- Long requests that don't stream can time out with HTTP 504, so stream the research calls (milestone 3).
+- Long requests that don't stream can time out with HTTP 504, so the research call streams.
 - The API is a public preview for US developers.
 
 ## Research engine
 
 1. **Source packs** (`src/data/source-packs/`). A hand-picked list of official pages for each place, plus the domains the app may read.
-   - The federal pack (IRS, SBA) is in. Its links were confirmed working on 2026-10-26, but each page still needs a content read in milestone 3.
+   - The federal pack (IRS, SBA) is in: nine sources, several of them sections of one SBA page. Their content was read on 2026-10-26.
    - The state, county and city packs for the demo places come next. This takes the longest, and a non-coder can do it.
-2. **Retrieve.** The app fetches the pack's pages itself and extracts the text. A search API limited to the pack's domains could be added later to find more pages.
-3. **Extract.** The model reads the fetched pages and the business profile, and returns requirements that point to source ids.
+2. **Retrieve.** The app fetches the pack's pages itself and extracts the text, one section when a link has a `#` anchor. A search API limited to the pack's domains could be added later to find more pages.
+3. **Extract.** The model reads the fetched pages and the business profile, and returns requirements that point to source ids, each with a word-for-word quote. It also lists state and local requirements no page covers, with who to call and what to ask.
 4. **Verify in code** (`verifyCitations`). A requirement counts as sourced only if it cites pages the app actually fetched, from approved domains. Anything else gets "Needs verification," plus who to call and what to ask.
-   - Fees and deadlines the model quotes must appear in the fetched page's text. Otherwise they're dropped and the requirement is marked "Needs verification."
+   - The quote must appear in a cited page's text, and any fee or deadline inside that quote. Otherwise fees and deadlines are dropped and the requirement is marked "Needs verification."
+   - A state, county or city requirement needs a page from that government. General federal guidance alone leaves it "Needs verification."
    - The app records the page's final URL after redirects, and refuses redirects to unapproved domains.
-5. **Snapshot.** Results are saved per place and business type, with the date checked. The demo runs from saved results, and a "Re-check sources" button runs live.
+5. **Snapshot.** Results are saved per business, with the date checked and the answers they ran on, so the page can say when the answers have changed since. The demo runs from saved results, and a "Re-check sources" button runs live.
 
 ## Stages
 
@@ -146,7 +147,7 @@ src/
     (auth)/             sign up and log in
     api/auth/           Better Auth endpoints
   components/
-    intake/             intake wizard, answer choices, business switcher
+    intake/             intake wizard, answer choices
   data/
     source-packs/       official sources by place
   db/                   schema (including account tables), client
@@ -155,7 +156,7 @@ src/
     auth/               account config, session check, form rules
     intake/             intake answers, AI suggestions and their offline stand-in
     data/               owner-scoped data access
-    research/           source pack schema, citation verification
+    research/           source packs, page reading, the research run, citation checks
     rules/              stock, checklist order, hiring math (plain code, unit-tested)
     domain.ts           shared schemas and enums
     sections.ts         navigation
@@ -168,9 +169,9 @@ drizzle/                migrations
 | # | Milestone | Priority | Status |
 |---|---|---|---|
 | 0 | Project setup, database schema, AI layer, rules, federal sources, app layout | Must | Done |
-| 1 | Accounts: sign up, log in, and each owner sees only their own businesses | Must | Built; password reset and email verification wait on an email service |
-| 2 | Intake: the business profile questions, one at a time, as in the prototype | Must | Built: AI can pre-fill answers from a description; owners can edit answers and switch between businesses |
-| 3 | Research engine, requirements view, gaps, streaming calls, state source packs | Must | |
+| 1 | Accounts: sign up, log in, and each owner sees only their own business | Must | Built; password reset and email verification wait on an email service |
+| 2 | Intake: the business profile questions, one at a time, as in the prototype | Must | Built: AI can pre-fill answers from a description; owners can edit their answers. One business per owner. |
+| 3 | Research engine, requirements view, gaps, streaming calls, state source packs | Must | Built on the federal pack: live page reads, checked citations, who to call for gaps, saved results with "Re-check sources." State, county and city packs wait on the demo places. |
 | 4 | Structure and path, checklist | Must | |
 | 5 | Product → marketing | Must | |
 | 6 | Order → customer reply | Must | |
@@ -196,7 +197,7 @@ drizzle/                migrations
 
 1. **0:00** – The story.
 2. **0:20** – Sign up, then intake → requirements with sources and one flagged gap → structure options → checklist.
-3. **1:30** – A 15-second switch to a second demo business, to show the requirements and path change.
+3. **1:30** – A 15-second look at a second demo business, logged in as its owner, to show the requirements and path change.
 4. **1:50** – Photo → listing, with a flagged claim; the owner edits and approves.
 5. **2:20** – A demo order arrives: stock goes down, a reply is drafted, and a missing detail is flagged.
 6. **2:45** – Planning for help: 15 hrs/week at $18/hr is about $1,170 a month, or about $2,925 in sales at a 40% margin → role description → "someone's first job."

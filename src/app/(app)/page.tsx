@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { ActorLegend } from "@/components/how-it-works";
-import { getCurrentBusiness } from "@/lib/data/my-businesses";
+import { getMyBusiness } from "@/lib/data/my-business";
 import { displayName, profileToAnswers, summarize } from "@/lib/intake/answers";
 
 export default function Today() {
@@ -26,7 +26,7 @@ export default function Today() {
 }
 
 async function CurrentBusiness() {
-  const business = await getCurrentBusiness();
+  const business = await getMyBusiness();
 
   if (!business) {
     return (

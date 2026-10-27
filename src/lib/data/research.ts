@@ -1,0 +1,110 @@
+import "server-only";
+import { asc, eq } from "drizzle-orm";
+import type { Db } from "@/db/client";
+import { businesses, requirements, researchSnapshots, sources } from "@/db/schema";
+import type { ResearchResult } from "@/lib/research/requirements";
+
+// Owner-scoped like businesses.ts: the business is always looked up by its owner.
+
+export type ResearchSnapshot = typeof researchSnapshots.$inferSelect & {
+  sources: (typeof sources.$inferSelect)[];
+  requirements: (typeof requirements.$inferSelect)[];
+};
+
+// One snapshot read, so a save landing midway can't mix two runs
+export async function getResearchForOwner(db: Db, ownerId: string): Promise<ResearchSnapshot | null> {
+  return db.transaction(
+    async (tx) => {
+      const [row] = await tx
+        .select({ snapshot: researchSnapshots })
+        .from(researchSnapshots)
+        .innerJoin(businesses, eq(businesses.id, researchSnapshots.businessId))
+        .where(eq(businesses.ownerId, ownerId))
+        .limit(1);
+      if (!row) return null;
+
+      const businessId = row.snapshot.businessId;
+      const sourceRows = await tx.select().from(sources).where(eq(sources.businessId, businessId));
+      const requirementRows = await tx
+        .select()
+        .from(requirements)
+        .where(eq(requirements.businessId, businessId))
+        .orderBy(asc(requirements.position));
+      return { ...row.snapshot, sources: sourceRows, requirements: requirementRows };
+    },
+    { isolationLevel: "repeatable read", accessMode: "read only" },
+  );
+}
+
+// Replaces the owner's last results in one go, unless a run that started later already saved.
+// False when the owner has no business.
+export async function saveResearchForOwner(
+  db: Db,
+  ownerId: string,
+  research: ResearchResult,
+  profileKey: string,
+): Promise<boolean> {
+  return db.transaction(async (tx) => {
+    const [business] = await tx
+      .select({ id: businesses.id })
+      .from(businesses)
+      .where(eq(businesses.ownerId, ownerId))
+      .for("update");
+    if (!business) return false;
+
+    const [saved] = await tx
+      .select({ checkedAt: researchSnapshots.checkedAt })
+      .from(researchSnapshots)
+      .where(eq(researchSnapshots.businessId, business.id));
+    if (saved && saved.checkedAt > research.checkedAt) return true;
+
+    await tx.delete(requirements).where(eq(requirements.businessId, business.id));
+    await tx.delete(sources).where(eq(sources.businessId, business.id));
+
+    const snapshot = {
+      checkedAt: research.checkedAt,
+      profileKey,
+      model: research.model,
+      unreadSources: research.unread.map(({ id, title, url, reason }) => ({ key: id, title, url, reason })),
+    };
+    await tx
+      .insert(researchSnapshots)
+      .values({ businessId: business.id, ...snapshot })
+      .onConflictDoUpdate({ target: researchSnapshots.businessId, set: snapshot });
+
+    if (research.pages.length) {
+      await tx.insert(sources).values(
+        research.pages.map((page) => ({
+          businessId: business.id,
+          key: page.id,
+          url: page.url,
+          title: page.title,
+          level: page.level,
+          retrievedAt: new Date(page.retrievedAt),
+        })),
+      );
+    }
+    if (research.requirements.length) {
+      await tx.insert(requirements).values(
+        research.requirements.map((requirement, position) => ({
+          businessId: business.id,
+          title: requirement.title,
+          whyItApplies: requirement.whyItApplies,
+          level: requirement.level,
+          sourceIds: requirement.sourceIds,
+          evidence: requirement.evidence,
+          feeCents: requirement.feeUsd === null ? null : Math.round(requirement.feeUsd * 100),
+          deadline: requirement.deadline,
+          needsProfessional: requirement.needsProfessional,
+          whoToCall: requirement.whoToCall,
+          whatToAsk: requirement.whatToAsk,
+          verification: requirement.verification,
+          problems: requirement.problems,
+          position,
+          checkedAt: research.checkedAt,
+        })),
+      );
+    }
+    return true;
+  });
+}

@@ -22,6 +22,9 @@ export interface CompletionRequest {
   effort?: Effort;
   maxOutputTokens?: number;
   responseFormat?: JsonSchemaFormat;
+  // For long calls: some APIs time out requests that don't stream
+  stream?: boolean;
+  timeoutMs?: number;
 }
 
 export interface CompletionResult {

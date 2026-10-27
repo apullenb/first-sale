@@ -15,6 +15,20 @@
       "when": 1793047391331,
       "tag": "0001_ai_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793048819092,
+      "tag": "0002_one_business_per_owner",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793049236115,
+      "tag": "0003_research_snapshots",
+      "breakpoints": true
     }
   ]
 }

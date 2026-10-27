@@ -15,6 +15,12 @@ describe("source packs", () => {
     },
   );
 
+  // Requirements cite sources by id across every pack read for a business
+  it("uses each source id once across all packs", () => {
+    const ids = SOURCE_PACKS.flatMap((pack) => pack.sources.map((source) => source.id));
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
   it.each(["", "gov", "IRS.gov", "https://irs.gov", "irs.gov/"])("rejects allowed host %j", (host) => {
     expect(sourcePackSchema.safeParse({ ...federal, allowedHosts: [host] }).success).toBe(false);
   });

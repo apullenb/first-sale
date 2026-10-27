@@ -60,15 +60,31 @@ export const businesses = pgTable(
     profile: jsonb("profile").$type<BusinessProfile>().notNull(),
     createdAt: createdAt(),
   },
-  (table) => [index("businesses_owner_id_idx").on(table.ownerId)],
+  // One business per owner
+  (table) => [uniqueIndex("businesses_owner_id_idx").on(table.ownerId)],
 );
 
-// Pages the research step actually fetched; requirements cite these ids
+// The last research run for a business: when it ran, for which answers, and pages it couldn't read
+export const researchSnapshots = pgTable("research_snapshots", {
+  businessId: text("business_id")
+    .primaryKey()
+    .references(() => businesses.id, { onDelete: "cascade" }),
+  checkedAt: timestamp("checked_at", { withTimezone: true }).notNull(),
+  // Hash of the profile it ran on, to spot answers changed since
+  profileKey: text("profile_key").notNull(),
+  model: text("model").notNull(),
+  unreadSources: jsonb("unread_sources").$type<{ key: string; title: string; url: string; reason: string }[]>().notNull(),
+});
+
+// Pages the research step actually fetched; requirements cite their keys
 export const sources = pgTable(
   "sources",
   {
     id: id(),
     businessId: businessId(),
+    // Source id from the source pack
+    key: text("key").notNull(),
+    // Final URL after redirects
     url: text("url").notNull(),
     title: text("title").notNull(),
     level: text("level", { enum: JURISDICTION_LEVELS }).notNull(),
@@ -86,10 +102,16 @@ export const requirements = pgTable(
     whyItApplies: text("why_it_applies").notNull(),
     level: text("level", { enum: JURISDICTION_LEVELS }).notNull(),
     sourceIds: jsonb("source_ids").$type<string[]>().notNull(),
+    evidence: text("evidence"),
     feeCents: integer("fee_cents"),
+    deadline: text("deadline"),
     needsProfessional: boolean("needs_professional").notNull().default(false),
+    whoToCall: text("who_to_call").notNull().default(""),
+    whatToAsk: jsonb("what_to_ask").$type<string[]>().notNull().default([]),
     verification: text("verification", { enum: VERIFICATION_STATES }).notNull(),
     problems: jsonb("problems").$type<string[]>().notNull().default([]),
+    // Order the model listed them in
+    position: integer("position").notNull().default(0),
     checkedAt: timestamp("checked_at", { withTimezone: true }).notNull(),
   },
   (table) => [index("requirements_business_id_idx").on(table.businessId)],

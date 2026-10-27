@@ -46,7 +46,7 @@ const WHY: Record<StepId, string> = {
   money: "Your budget shapes which costs come first. Hiring plans add employer steps to your checklist later.",
 };
 
-type Props = { mode: "create" } | { mode: "edit"; businessId: string; initial: IntakeAnswers };
+type Props = { mode: "create" } | { mode: "edit"; initial: IntakeAnswers };
 
 const INPUT = "min-h-12 rounded-lg border border-field bg-surface px-3 py-2.5 text-base";
 const PRIMARY = "min-h-12 rounded-lg bg-accent px-5 font-bold text-white hover:bg-accent-ink disabled:opacity-60";
@@ -193,17 +193,10 @@ export function IntakeWizard(props: Props) {
     }
     setSaving(true);
     setSaveError(null);
-    let createdId: string | null = null;
     try {
       const profile = answersToProfile(answers);
-      if (editing) {
-        const result = await updateBusinessAction(props.businessId, profile);
-        if (!result.ok) throw new Error(result.message);
-      } else {
-        const result = await createBusinessAction(profile);
-        if (!result.ok) throw new Error(result.message);
-        createdId = result.value.id;
-      }
+      const result = editing ? await updateBusinessAction(profile) : await createBusinessAction(profile);
+      if (!result.ok) throw new Error(result.message);
     } catch (error) {
       const message = error instanceof Error && !(error instanceof TypeError) ? error.message : "";
       setSaveError(message || "Couldn’t reach First Sale. Check your connection and try again.");
@@ -222,7 +215,7 @@ export function IntakeWizard(props: Props) {
       }
       setFromReview(false);
       setSaving(false);
-      router.push(createdId ? `/business?welcome=${createdId}` : "/business");
+      router.push(editing ? "/business" : "/business?welcome=1");
     });
   }
 

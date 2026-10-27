@@ -16,11 +16,11 @@ npm run db:migrate
 npm run dev
 ```
 
-Open http://localhost:3000, create an account and answer the intake questions. Without an AI key the app uses a mock model; AI suggestions then come from simple keyword matching. There are no built-in sample businesses: create demo businesses through the intake like any other.
+Open http://localhost:3000, create an account and answer the intake questions. Without an AI key the app uses a mock model; AI suggestions then come from simple keyword matching. There are no built-in sample businesses: create each demo business through the intake like any other, one per account.
 
-AI suggestions are limited to 10 an hour and 50 a day per owner, and 500 a day across everyone (`AI_DAILY_LIMIT`), to cap cost.
+AI requests (intake suggestions and requirements research) are limited to 10 an hour and 50 a day per owner, and 500 a day across everyone (`AI_DAILY_LIMIT`), to cap cost.
 
-The local database is PGlite in `.pglite/`, and only one process can use it at a time. Stop `npm run dev` before running `db:migrate`. If `db:migrate` fails with "already exists", your local `.pglite/` predates the current migrations: delete it and run `db:migrate` again.
+The local database is PGlite in `.pglite/`, and only one process can use it at a time. Stop `npm run dev` before running `db:migrate`. If `db:migrate` fails with "already exists", or with "is duplicated" (an account made more than one business before the one-per-owner rule), your local `.pglite/` predates the current migrations: delete it and run `db:migrate` again.
 
 Sign-in only accepts requests from `BETTER_AUTH_URL`, so run the app on that address (port 3000 by default).
 
@@ -31,7 +31,7 @@ Owners sign up and log in with an email and password, handled by [Better Auth](h
 - Sessions live in the `sessions` table, behind an httpOnly cookie.
 - Signed-out visitors are sent to `/login`.
 
-Each owner sees only their own businesses. Pages read data through `src/lib/data/my-businesses.ts`, which takes the owner from the verified session.
+Each owner has one business and sees only their own. Pages read data through `src/lib/data/my-business.ts`, which takes the owner from the verified session.
 
 Sign-up and log-in attempts are rate-limited in production, with counts kept in the database.
 
@@ -45,6 +45,15 @@ Not built yet: password reset and email verification. Both need an email-sending
 4. Each preview's deployment URL and branch URL are trusted for sign-in automatically (`VERCEL_URL`, `VERCEL_BRANCH_URL`). List custom preview domains in `BETTER_AUTH_TRUSTED_ORIGINS`, comma-separated.
 
 Rate limiting keys on the visitor's IP from `X-Real-IP`, which Vercel sets. On a host that doesn't overwrite that header, visitors can fake it, so configure trusted proxies there. The limit is 3 sign-in or sign-up tries per 10 seconds per IP, so a room of people on one Wi-Fi network may need to pause between sign-ups.
+
+## Requirements research
+
+"Find my requirements" on the Requirements page reads the official pages listed in `src/data/source-packs/` (federal for now), asks the model which requirements apply, then checks every one in code:
+- Its quote must appear word for word on a page it cites.
+- Fees and deadlines must appear inside that quote, or they're dropped.
+- State and local requirements need a page from that government.
+
+Anything that fails is shown as "Needs verification," with who to call and what to ask. Results are saved, and "Re-check sources" runs it again. Reading the pages needs an internet connection, even with the mock model.
 
 ## AI models
 

@@ -31,6 +31,20 @@
       "lastChecked": "2026-10-26"
     },
     {
+      "id": "sba-register-business",
+      "title": "SBA: Register your business",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#register-business",
+      "topics": ["name_registration", "business_structure"],
+      "lastChecked": "2026-10-26"
+    },
+    {
+      "id": "sba-business-location",
+      "title": "SBA: Pick your business location",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+      "topics": ["zoning", "licenses_permits"],
+      "lastChecked": "2026-10-26"
+    },
+    {
       "id": "sba-licenses-permits",
       "title": "SBA: Apply for licenses and permits",
       "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",

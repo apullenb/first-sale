@@ -26,7 +26,6 @@ export const OFFERING_KINDS = ["food", "handmade", "resale", "services", "other"
 export const BUDGET_RANGES = ["under_1k", "1k_5k", "5k_25k", "over_25k", "unsure"] as const;
 export const HIRING_PLANS = ["not_now", "first_year", "right_away"] as const;
 export const MAX_OWNERS = 10;
-export const MAX_BUSINESSES_PER_OWNER = 20;
 
 const text = (max: number) => z.string().trim().max(max);
 
@@ -60,13 +59,18 @@ export type BusinessProfile = z.infer<typeof businessProfileSchema>;
 
 // Shape the research step asks the model for; sourceIds point at retrieved sources.
 export const requirementDraftSchema = z.object({
-  title: z.string(),
-  whyItApplies: z.string(),
+  title: z.string().min(1).max(200),
+  whyItApplies: z.string().max(1000),
   level: z.enum(JURISDICTION_LEVELS),
-  sourceIds: z.array(z.string()),
-  // Kept only if the amount appears in a fetched page's text
+  sourceIds: z.array(z.string()).max(5),
+  // Word for word from a cited page; checked in code
+  evidence: z.string().max(600).nullable(),
+  // Fee and deadline are kept only if they appear in a cited page's text
   feeUsd: z.number().nonnegative().nullable(),
+  deadline: z.string().max(200).nullable(),
   needsProfessional: z.boolean(),
+  whoToCall: z.string().max(200),
+  whatToAsk: z.array(z.string().max(300)).max(6),
 });
 export type RequirementDraft = z.infer<typeof requirementDraftSchema>;
 

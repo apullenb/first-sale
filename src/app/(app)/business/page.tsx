@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { BusinessHeading } from "@/components/intake/business-heading";
-import { SwitchBusinessButton } from "@/components/intake/switch-business-button";
-import { getCurrentBusiness, listMyBusinesses } from "@/lib/data/my-businesses";
+import { getMyBusiness } from "@/lib/data/my-business";
 import type { BusinessProfile } from "@/lib/domain";
 import { displayName, profileToAnswers, summarize } from "@/lib/intake/answers";
 import { sectionMetadata } from "@/lib/sections";
@@ -20,7 +19,7 @@ export default function BusinessPage({ searchParams }: PageProps<"/business">) {
 const PRIMARY_LINK = "flex min-h-12 w-fit items-center rounded-lg bg-accent px-5 font-bold text-white hover:bg-accent-ink";
 
 async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/business">["searchParams"] }) {
-  const [{ welcome }, businesses, current] = await Promise.all([searchParams, listMyBusinesses(), getCurrentBusiness()]);
+  const [{ welcome }, current] = await Promise.all([searchParams, getMyBusiness()]);
 
   if (!current) {
     return (
@@ -38,18 +37,15 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
     );
   }
 
-  const others = businesses.filter((business) => business.id !== current.id);
-
   return (
     <div className="flex max-w-3xl flex-col gap-6">
       <div className="flex flex-col gap-1.5">
         <p className="text-sm font-semibold text-accent-ink">Start your business · Step 1</p>
-        <BusinessHeading businessId={current.id} focusOnMount={welcome === current.id}>{displayName(current.profile)}</BusinessHeading>
+        <BusinessHeading focusOnMount={welcome === "1"}>{displayName(current.profile)}</BusinessHeading>
         <p className="text-lg text-muted">Your answers shape your requirements, your structure and your checklist.</p>
       </div>
 
-      {/* Only for the business just created, not whichever is current */}
-      {welcome === current.id && current.profile ? <Welcome profile={current.profile} /> : null}
+      {welcome === "1" && current.profile ? <Welcome profile={current.profile} /> : null}
 
       {current.profile ? (
         <section aria-labelledby="answers-heading" className="flex flex-col gap-3">
@@ -79,29 +75,11 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
         </section>
       )}
 
-      <section aria-labelledby="businesses-heading" className="flex flex-col gap-3">
-        <h2 id="businesses-heading" className="font-display text-xl font-bold">
-          Your businesses
-        </h2>
-        {others.length ? (
-          <ul className="rounded-2xl bg-surface px-5 ring-1 ring-ink/5">
-            {others.map((business) => {
-              const name = displayName(business.profile);
-              return (
-                <li key={business.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-rule-tint py-3 last:border-b-0">
-                  <span className="font-semibold">{name}</span>
-                  <SwitchBusinessButton businessId={business.id} name={name} />
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="text-muted">This is your only business so far.</p>
-        )}
-        <Link href="/business/new" className="w-fit font-semibold text-accent-ink underline underline-offset-4">
-          Add another business
+      {current.profile ? (
+        <Link href="/requirements" className={PRIMARY_LINK}>
+          See your requirements
         </Link>
-      </section>
+      ) : null}
     </div>
   );
 }

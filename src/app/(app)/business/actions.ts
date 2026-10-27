@@ -5,20 +5,15 @@ import { getDb } from "@/db/client";
 import { getModel } from "@/lib/ai";
 import { getCurrentUser } from "@/lib/auth/server";
 import { takeAiRequest } from "@/lib/data/ai-quota";
-import {
-  createMyBusiness,
-  getMyBusiness,
-  rememberCurrentBusiness,
-  updateMyBusinessProfile,
-} from "@/lib/data/my-businesses";
-import { businessProfileSchema, MAX_BUSINESSES_PER_OWNER } from "@/lib/domain";
+import { createMyBusiness, updateMyBusinessProfile } from "@/lib/data/my-business";
+import { businessProfileSchema } from "@/lib/domain";
 import { DESCRIPTION_MAX_LENGTH, suggestIntakeAnswers } from "@/lib/intake/suggest";
 import type { IntakeSuggestion } from "@/lib/intake/suggestion-schema";
 
 export type ActionResult<T = null> = { ok: true; value: T } | { ok: false; message: string };
 
 const INVALID_PROFILE = "Some answers are missing or too long. Check them and try again.";
-const NOT_FOUND = "That business wasn’t found.";
+const NO_BUSINESS = "Your business wasn’t found. Reload the page and try again.";
 
 export async function suggestAnswersAction(description: unknown): Promise<ActionResult<IntakeSuggestion>> {
   const user = await getCurrentUser();
@@ -43,31 +38,21 @@ export async function suggestAnswersAction(description: unknown): Promise<Action
   }
 }
 
-export async function createBusinessAction(profile: unknown): Promise<ActionResult<{ id: string }>> {
+export async function createBusinessAction(profile: unknown): Promise<ActionResult> {
   const parsed = businessProfileSchema.safeParse(profile);
   if (!parsed.success) return { ok: false, message: INVALID_PROFILE };
   const business = await createMyBusiness({ profile: parsed.data });
-  if (!business) return { ok: false, message: `You can have up to ${MAX_BUSINESSES_PER_OWNER} businesses.` };
-  await rememberCurrentBusiness(business.id);
-  refresh();
-  return { ok: true, value: { id: business.id } };
-}
-
-export async function updateBusinessAction(businessId: unknown, profile: unknown): Promise<ActionResult> {
-  const parsed = businessProfileSchema.safeParse(profile);
-  if (typeof businessId !== "string" || !parsed.success) return { ok: false, message: INVALID_PROFILE };
-
-  const updated = await updateMyBusinessProfile(businessId, parsed.data);
-  if (!updated) return { ok: false, message: NOT_FOUND };
+  if (!business) return { ok: false, message: "You already have a business. Edit its answers from Your business." };
   refresh();
   return { ok: true, value: null };
 }
 
-export async function switchBusinessAction(businessId: unknown): Promise<ActionResult> {
-  if (typeof businessId !== "string" || !(await getMyBusiness(businessId))) {
-    return { ok: false, message: NOT_FOUND };
-  }
-  await rememberCurrentBusiness(businessId);
+export async function updateBusinessAction(profile: unknown): Promise<ActionResult> {
+  const parsed = businessProfileSchema.safeParse(profile);
+  if (!parsed.success) return { ok: false, message: INVALID_PROFILE };
+
+  const updated = await updateMyBusinessProfile(parsed.data);
+  if (!updated) return { ok: false, message: NO_BUSINESS };
   refresh();
   return { ok: true, value: null };
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import type { RequirementDraft } from "@/lib/domain";
 import { isAllowedHost } from "./source-pack";
-import { verifyCitations } from "./verify";
+import { verifyCitations, verifyRequirements } from "./verify";
 
 const retrieved = [
   { id: "irs-ein", url: "https://www.irs.gov/ein", retrievedAt: "2026-10-26T00:00:00Z" },
@@ -42,5 +43,214 @@ describe("isAllowedHost", () => {
     expect(isAllowedHost("https://irs.gov.example.com/x", allowedHosts)).toBe(false);
     expect(isAllowedHost("http://www.irs.gov/x", allowedHosts)).toBe(false);
     expect(isAllowedHost("not a url", allowedHosts)).toBe(false);
+  });
+});
+
+describe("verifyRequirements", () => {
+  const pages = [
+    {
+      id: "irs-ein",
+      url: "https://www.irs.gov/ein",
+      retrievedAt: "2026-10-26T00:00:00Z",
+      level: "federal" as const,
+      text: "Use this tool to get an EIN directly from the IRS in minutes for free.\nYou never have to pay a fee for an EIN.",
+    },
+    {
+      id: "sos",
+      url: "https://www.sos.example.gov/llc",
+      retrievedAt: "2026-10-26T00:00:00Z",
+      level: "state" as const,
+      text: "The filing fee for Articles of Organization is $99.\nFile your annual report within 30 days of the anniversary.",
+    },
+  ];
+  const hosts = ["irs.gov", "sos.example.gov"];
+  const draft = (overrides: Partial<RequirementDraft>): RequirementDraft => ({
+    title: "Get an EIN",
+    whyItApplies: "",
+    level: "federal",
+    sourceIds: ["irs-ein"],
+    evidence: "Use this tool to get an EIN directly from the IRS in minutes for free.",
+    feeUsd: null,
+    deadline: null,
+    needsProfessional: false,
+    whoToCall: "the IRS",
+    whatToAsk: [],
+    ...overrides,
+  });
+
+  it("marks a requirement sourced when its quote is on a cited page", () => {
+    const [result] = verifyRequirements([draft({ feeUsd: 0 })], pages, hosts);
+    expect(result).toMatchObject({ verification: "sourced", problems: [], feeUsd: 0 });
+  });
+
+  it("matches quotes despite case and spacing, and joins pieces around an ellipsis", () => {
+    const [result] = verifyRequirements([draft({ evidence: "use this TOOL to get an EIN …  in minutes for free." })], pages, hosts);
+    expect(result.verification).toBe("sourced");
+  });
+
+  it("treats curly and straight apostrophes as the same", () => {
+    const page = { ...pages[0], text: "It’s free to apply for an EIN, and you should do it right after you register." };
+    const [result] = verifyRequirements([draft({ evidence: "It's free to apply for an EIN" })], [page], hosts);
+    expect(result.verification).toBe("sourced");
+  });
+
+  it("flags a quote that isn't on the cited page", () => {
+    const [result] = verifyRequirements([draft({ evidence: "An EIN costs $50 and takes a week." })], pages, hosts);
+    expect(result).toMatchObject({ verification: "needs_verification", problems: ["Quote not found on the cited pages"] });
+  });
+
+  it("flags a quote that's too short to prove anything", () => {
+    const [result] = verifyRequirements([draft({ evidence: "for free." })], pages, hosts);
+    expect(result.verification).toBe("needs_verification");
+  });
+
+  const sos = {
+    level: "state" as const,
+    sourceIds: ["sos"],
+    evidence: "The filing fee for Articles of Organization is $99. File your annual report within 30 days of the anniversary.",
+  };
+
+  it("keeps fees and deadlines in the quote, and drops ones that aren't", () => {
+    const [kept] = verifyRequirements([draft({ ...sos, feeUsd: 99, deadline: "within 30 days" })], pages, hosts);
+    expect(kept).toMatchObject({ verification: "sourced", feeUsd: 99, deadline: "within 30 days" });
+
+    const [dropped] = verifyRequirements([draft({ ...sos, feeUsd: 9, deadline: "within 60 days" })], pages, hosts);
+    expect(dropped).toMatchObject({
+      verification: "needs_verification",
+      feeUsd: null,
+      deadline: null,
+      problems: ["Fee not found in the quote", "Deadline not found in the quote"],
+    });
+  });
+
+  it("needs the fee inside the quote, not just somewhere on the page", () => {
+    const [result] = verifyRequirements(
+      [draft({ ...sos, evidence: "File your annual report within 30 days of the anniversary.", feeUsd: 99 })],
+      pages,
+      hosts,
+    );
+    expect(result).toMatchObject({ feeUsd: null, problems: ["Fee not found in the quote"] });
+  });
+
+  it("doesn't call it free because \"free\" appears elsewhere on the page", () => {
+    const page = { ...pages[0], text: "Call our toll-free line.\nAn EIN application takes about 15 minutes online." };
+    const [result] = verifyRequirements(
+      [draft({ evidence: "An EIN application takes about 15 minutes online.", feeUsd: 0 })],
+      [page],
+      hosts,
+    );
+    expect(result).toMatchObject({ feeUsd: null, verification: "needs_verification" });
+  });
+
+  it("accepts a fee followed by a comma", () => {
+    const page = { ...pages[1], text: "The fee is $50, payable online when you file." };
+    const [result] = verifyRequirements(
+      [draft({ level: "state", sourceIds: ["sos"], evidence: "The fee is $50, payable online when you file.", feeUsd: 50 })],
+      [page],
+      hosts,
+    );
+    expect(result).toMatchObject({ feeUsd: 50, verification: "sourced" });
+  });
+
+  it.each([
+    ["a word inside another word", "File your report now and keep a copy so you know what you sent.", "now"],
+    ["part of a larger number", "Renew your permit within 130 days of the notice from the county.", "30 days"],
+  ])("won't match a deadline that's %s", (_name, text, deadline) => {
+    const page = { ...pages[1], text };
+    const [result] = verifyRequirements([draft({ level: "state", sourceIds: ["sos"], evidence: text, deadline })], [page], hosts);
+    expect(result.deadline).toBeNull();
+  });
+
+  it.each([
+    ["$990", "The filing fee is $990 for each business.", "The filing fee is $99", 99, null],
+    ["$5.50", "The filing fee is $5.50 per copy you order.", "The filing fee is $5", 5, null],
+    ["$1,000", "The filing fee is $1,000 for corporations.", "The filing fee is $1", 1, null],
+    ["130 days", "Renew within 130 days of opening the business.", "30 days of opening the business", null, "30 days"],
+  ])("won't take a quote cut off partway through %s", (_name, text, evidence, feeUsd, deadline) => {
+    const page = { ...pages[1], text };
+    const [result] = verifyRequirements([draft({ level: "state", sourceIds: ["sos"], evidence, feeUsd, deadline })], [page], hosts);
+    expect(result).toMatchObject({ verification: "needs_verification", feeUsd: null, deadline: null });
+  });
+
+  it("doesn't read \"toll-free\" in a quote as no fee", () => {
+    const text = "Register with the state for a fee. See our toll-free number for help.";
+    const [result] = verifyRequirements(
+      [draft({ level: "state", sourceIds: ["sos"], evidence: text, feeUsd: 0 })],
+      [{ ...pages[1], text }],
+      hosts,
+    );
+    expect(result.feeUsd).toBeNull();
+  });
+
+  it("won't take a fee from the text an ellipsis skips", () => {
+    const text = "The filing fee for corporations is $990. Sole proprietors pay $50 when they register with the county clerk office.";
+    const evidence = "The filing fee for corporations ... when they register with the county clerk office";
+    const [result] = verifyRequirements(
+      [draft({ level: "state", sourceIds: ["sos"], evidence, feeUsd: 50 })],
+      [{ ...pages[1], text }],
+      hosts,
+    );
+    expect(result).toMatchObject({ feeUsd: null, verification: "needs_verification" });
+  });
+
+  it("doesn't read free help as a free filing", () => {
+    const text = "SBA resource partners offer free business counseling to help you register your business.";
+    const [result] = verifyRequirements(
+      [draft({ level: "state", sourceIds: ["sos"], evidence: text, feeUsd: 0 })],
+      [{ ...pages[1], text }],
+      hosts,
+    );
+    expect(result.feeUsd).toBeNull();
+  });
+
+  it("accepts a quote that starts or ends with an ellipsis", () => {
+    const text = "Employers must file Form 941 within 30 days of the end of each quarter.";
+    const [result] = verifyRequirements(
+      [draft({ level: "state", sourceIds: ["sos"], evidence: "...file Form 941 within 30 days of the end of each quarter...", deadline: "within 30 days" })],
+      [{ ...pages[1], text }],
+      hosts,
+    );
+    expect(result).toMatchObject({ verification: "sourced", deadline: "within 30 days" });
+  });
+
+  it("accepts a quote of a page that has its own ellipsis", () => {
+    const text = "Bring two forms of ID... and your lease or deed to the county office.";
+    const [result] = verifyRequirements([draft({ level: "state", sourceIds: ["sos"], evidence: text })], [{ ...pages[1], text }], hosts);
+    expect(result.verification).toBe("sourced");
+  });
+
+  it("won't stitch far-apart or tiny pieces together with an ellipsis", () => {
+    const page = {
+      ...pages[0],
+      text: `Most businesses need to register with their state government. ${"Other guidance. ".repeat(30)}You'll need a federal license if you sell alcohol.`,
+    };
+    const far = draft({ evidence: "Most businesses need to register with ... a federal license if you sell alcohol." });
+    const tiny = draft({ evidence: "Most businesses need ... a federal license" });
+    for (const result of verifyRequirements([far, tiny], [page], hosts)) {
+      expect(result.problems).toContain("Quote not found on the cited pages");
+    }
+  });
+
+  it("doesn't take $990 or $9.90 for a $99 fee", () => {
+    const page = { ...pages[1], text: "Fees: $990 for corporations, $9.90 per copy." };
+    const [result] = verifyRequirements(
+      [draft({ level: "state", sourceIds: ["sos"], evidence: "Fees: $990 for corporations, $9.90 per copy.", feeUsd: 99 })],
+      [page],
+      hosts,
+    );
+    expect(result.feeUsd).toBeNull();
+  });
+
+  it("won't count federal guidance as a source for a state requirement", () => {
+    const [result] = verifyRequirements([draft({ level: "state" })], pages, hosts);
+    expect(result).toMatchObject({
+      verification: "needs_verification",
+      problems: ["Only federal pages were cited for a state requirement"],
+    });
+  });
+
+  it("drops fees from requirements with no source, without inventing problems", () => {
+    const [result] = verifyRequirements([draft({ sourceIds: [], evidence: null, feeUsd: 25, level: "city" })], pages, hosts);
+    expect(result).toMatchObject({ verification: "needs_verification", feeUsd: null, problems: ["No source cited"] });
   });
 });
