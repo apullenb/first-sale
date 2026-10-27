@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   // PGlite loads its WebAssembly files from disk, which breaks when bundled
   serverExternalPackages: ["@electric-sql/pglite"],
+  experimental: {
+    // Room for a 4 MB document upload plus the form's own overhead
+    serverActions: { bodySizeLimit: "4.5mb" },
+  },
   async headers() {
     return [
       {
@@ -17,6 +21,25 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         ],
+      },
+      {
+        // Owners' files never run scripts on this site; later rules win
+        source: "/documents/:id/file",
+        headers: [{ key: "Content-Security-Policy", value: "sandbox; frame-ancestors 'none'" }],
+      },
+      {
+        source: "/photos/:id/file",
+        headers: [{ key: "Content-Security-Policy", value: "sandbox; frame-ancestors 'none'" }],
+      },
+      {
+        source: "/photos/:id/versions/:versionId/file",
+        headers: [{ key: "Content-Security-Policy", value: "sandbox; frame-ancestors 'none'" }],
+      },
+      {
+        // Viewing in the browser: its PDF viewer doesn't run in a sandboxed page. Files are checked by their first bytes.
+        source: "/documents/:id/file",
+        has: [{ type: "query", key: "view", value: "1" }],
+        headers: [{ key: "Content-Security-Policy", value: "frame-ancestors 'none'" }],
       },
     ];
   },

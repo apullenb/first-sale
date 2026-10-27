@@ -1,0 +1,1 @@
+ALTER TABLE "checklist_tasks" ADD COLUMN "simulated" boolean DEFAULT false NOT NULL;

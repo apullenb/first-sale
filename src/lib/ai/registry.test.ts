@@ -10,7 +10,15 @@ describe("getModel", () => {
     const model = getModel({ AI_PROVIDER: "muse", MUSE_API_KEY: "k" });
     expect(model.name).toBe("Meta Muse");
     expect(model.model).toBe(MUSE_DEFAULTS.model);
-    expect(model.capabilities).toEqual({ vision: true, jsonSchema: true, reasoningEffort: true });
+    expect(model.capabilities).toEqual({
+      vision: true,
+      pdf: true,
+      jsonSchema: true,
+      reasoningEffort: true,
+      webSearch: true,
+    });
+    expect(model.simulated).toBe(false);
+    expect(model.webSearch).toBeTypeOf("function");
   });
 
   it("requires a Muse API key", () => {
@@ -46,7 +54,54 @@ describe("getModel", () => {
       AI_MODEL: "some-model",
       AI_VISION: "true",
     });
-    expect(model.capabilities).toEqual({ vision: true, jsonSchema: true, reasoningEffort: false });
+    expect(model.capabilities).toEqual({
+      vision: true,
+      pdf: false,
+      jsonSchema: true,
+      reasoningEffort: false,
+      webSearch: false,
+    });
+    expect(model.webSearch).toBeUndefined();
+  });
+
+  it("turns on PDFs, web search and reasoning effort from env, and JSON Schema off", () => {
+    const model = getModel({
+      AI_PROVIDER: "openai-compatible",
+      AI_BASE_URL: "https://llm.example.test/v1",
+      AI_API_KEY: "k",
+      AI_MODEL: "some-model",
+      AI_PDF: "true",
+      AI_WEB_SEARCH: "true",
+      AI_REASONING_EFFORT: "true",
+      AI_JSON_SCHEMA: "false",
+    });
+    expect(model.capabilities).toEqual({
+      vision: false,
+      pdf: true,
+      jsonSchema: false,
+      reasoningEffort: true,
+      webSearch: true,
+    });
+    expect(model.webSearch).toBeTypeOf("function");
+  });
+
+  it("only treats the exact string \"true\" as on", () => {
+    const model = getModel({
+      AI_PROVIDER: "openai-compatible",
+      AI_BASE_URL: "https://llm.example.test/v1",
+      AI_API_KEY: "k",
+      AI_MODEL: "some-model",
+      AI_PDF: "yes",
+      AI_WEB_SEARCH: "1",
+    });
+    expect(model.capabilities).toMatchObject({ pdf: false, webSearch: false });
+  });
+
+  it("uses the mock as a simulated model with no web search", () => {
+    const model = getModel({});
+    expect(model.simulated).toBe(true);
+    expect(model.capabilities).toMatchObject({ pdf: false, webSearch: false });
+    expect(model.webSearch).toBeUndefined();
   });
 
   it("rejects unknown providers", () => {

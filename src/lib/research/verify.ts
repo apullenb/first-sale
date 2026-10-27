@@ -43,7 +43,8 @@ export interface ReadPage extends RetrievedSource {
   text: string;
 }
 
-export type VerifiedRequirement = Verified<RequirementDraft>;
+// confirmedBy: the page the quote was found on, when it's sourced
+export type VerifiedRequirement = Verified<RequirementDraft> & { confirmedBy?: string[] };
 
 // verifyCitations, then: the quote must be on a cited page, any fee or deadline inside that quote,
 // and a state or local requirement needs a page from that level, not just general federal guidance.
@@ -57,13 +58,23 @@ export function verifyRequirements(
   return verifyCitations(drafts, pages, allowedHosts).map((claim) => {
     const problems = [...claim.problems];
     const cited = claim.sourceIds.flatMap((id) => byId.get(id) ?? []);
-    const quoted = claim.evidence ? findQuote(cited.map((page) => normalize(page.text)), claim.evidence) : null;
+    // The quote must come from a page of the same government as the requirement
+    let quoted: Quoted | null = null;
+    let quotedFrom: string | null = null;
+    for (const page of cited.filter((each) => each.level === claim.level)) {
+      quoted = claim.evidence ? findQuote([normalize(page.text)], claim.evidence) : null;
+      if (quoted) {
+        quotedFrom = page.id;
+        break;
+      }
+    }
 
     if (cited.length > 0) {
       if (!cited.some((page) => page.level === claim.level)) {
         problems.push(`Only ${cited[0].level} pages were cited for a ${claim.level} requirement`);
+      } else if (!quoted) {
+        problems.push("Quote not found on the cited pages");
       }
-      if (!quoted) problems.push("Quote not found on the cited pages");
     }
 
     let feeUsd = claim.feeUsd;
@@ -77,12 +88,14 @@ export function verifyRequirements(
       deadline = null;
     }
 
+    const sourced = problems.length === 0;
     return {
       ...claim,
       feeUsd,
       deadline,
-      verification: problems.length === 0 ? "sourced" : "needs_verification",
+      verification: sourced ? "sourced" : "needs_verification",
       problems,
+      confirmedBy: sourced && quotedFrom ? [quotedFrom] : [],
     };
   });
 }
@@ -193,4 +206,14 @@ function normalize(text: string): string {
     .replace(/\s+/g, " ")
     .toLowerCase()
     .trim();
+}
+
+// Page number where an excerpt appears word for word (ignoring case, spacing and curly quotes), or null
+export function pageWithExcerpt(pages: readonly { number: number; text: string }[], excerpt: string): number | null {
+  const want = normalize(excerpt).replace(/^(?:\.\.\.\s*)+|(?:\s*\.\.\.)+$/g, "");
+  if (want.length < 8) return null;
+  for (const page of pages) {
+    if (wholeIndex(normalize(page.text), want) !== -1) return page.number;
+  }
+  return null;
 }

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { textPdf } from "@/test/pdf";
 import { fetchOfficialPage, retrieveSources, type SourceToRead } from "./retrieve";
 
 const hosts = ["sba.gov"];
@@ -60,7 +61,17 @@ describe("fetchOfficialPage", () => {
 
 describe("retrieveSources", () => {
   const html = `<main><h2 id="a">Section A</h2><p>About A.</p><h2 id="b">Section B</h2><p>About B.</p></main>`;
-  const source = (id: string, url: string): SourceToRead => ({ id, title: id, url, level: "federal", allowedHosts: hosts });
+  const source = (id: string, url: string, overrides: Partial<SourceToRead> = {}): SourceToRead => ({
+    id,
+    title: id,
+    url,
+    level: "federal",
+    allowedHosts: hosts,
+    government: "Small Business Administration",
+    discovered: false,
+    ...overrides,
+  });
+  const read = { government: "Small Business Administration", discovered: false };
 
   it("reads a page once for several sections, keeping each section's link", async () => {
     const fetchImpl = vi.fn().mockImplementation(async () => page(html));
@@ -75,8 +86,8 @@ describe("retrieveSources", () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(unread).toEqual([]);
     expect(pages).toEqual([
-      { id: "a", title: "a", url: "https://www.sba.gov/launch/#a", level: "federal", text: "Section A\nAbout A.", retrievedAt: now.toISOString() },
-      { id: "b", title: "b", url: "https://www.sba.gov/launch/#b", level: "federal", text: "Section B\nAbout B.", retrievedAt: now.toISOString() },
+      { id: "a", title: "a", url: "https://www.sba.gov/launch/#a", level: "federal", ...read, text: "Section A\nAbout A.", retrievedAt: now.toISOString() },
+      { id: "b", title: "b", url: "https://www.sba.gov/launch/#b", level: "federal", ...read, text: "Section B\nAbout B.", retrievedAt: now.toISOString() },
     ]);
   });
 
@@ -92,5 +103,36 @@ describe("retrieveSources", () => {
     const { pages, unread } = await retrieveSources([source("a", "https://www.sba.gov/x")], fetchImpl);
     expect(pages).toEqual([]);
     expect(unread).toEqual([{ id: "a", title: "a", url: "https://www.sba.gov/x", reason: "The site answered with error 503" }]);
+  });
+
+  it("keeps a found page's government and level, and that it was discovered", async () => {
+    const fetchImpl = vi.fn().mockImplementation(async () => page("<main><p>City business licenses.</p></main>"));
+    const { pages } = await retrieveSources(
+      [source("city-license-1", "https://www.columbus.gov/license", { level: "city", allowedHosts: ["columbus.gov"], government: "City of Columbus", discovered: true })],
+      fetchImpl,
+    );
+    expect(pages[0]).toMatchObject({ level: "city", government: "City of Columbus", discovered: true, text: "City business licenses." });
+  });
+
+  it("reads the text of an official PDF, even one sent as a generic file", async () => {
+    const pdf = await textPdf([["Home occupation permit", "The permit fee is $25."]]);
+    const fetchImpl = vi.fn().mockResolvedValue(new Response(pdf, { headers: { "Content-Type": "application/octet-stream" } }));
+    const { pages, unread } = await retrieveSources([source("permit", "https://www.sba.gov/permit.pdf")], fetchImpl);
+    expect(unread).toEqual([]);
+    expect(pages[0]).toMatchObject({ url: "https://www.sba.gov/permit.pdf", text: "Home occupation permit\nThe permit fee is $25." });
+    expect(fetchImpl.mock.calls[0][1].headers.Accept).toBe("text/html, application/pdf");
+  });
+
+  it("counts a file that claims to be a PDF but isn't as unread", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(new Response("<html>nope</html>", { headers: { "Content-Type": "application/pdf" } }));
+    const { pages, unread } = await retrieveSources([source("fake", "https://www.sba.gov/fake.pdf")], fetchImpl);
+    expect(pages).toEqual([]);
+    expect(unread[0].reason).toBe("The file isn’t a PDF");
+  });
+
+  it("counts a PDF with no text as unread", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(new Response(await textPdf([[]]), { headers: { "Content-Type": "application/pdf" } }));
+    const { unread } = await retrieveSources([source("scan", "https://www.sba.gov/scan.pdf")], fetchImpl);
+    expect(unread[0].reason).toBe("The page had no readable text");
   });
 });

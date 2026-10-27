@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { RequirementDraft } from "@/lib/domain";
 import { isAllowedHost } from "./source-pack";
-import { verifyCitations, verifyRequirements } from "./verify";
+import { pageWithExcerpt, verifyCitations, verifyRequirements } from "./verify";
 
 const retrieved = [
   { id: "irs-ein", url: "https://www.irs.gov/ein", retrievedAt: "2026-10-26T00:00:00Z" },
@@ -65,9 +65,12 @@ describe("verifyRequirements", () => {
   ];
   const hosts = ["irs.gov", "sos.example.gov"];
   const draft = (overrides: Partial<RequirementDraft>): RequirementDraft => ({
+    key: "ein",
     title: "Get an EIN",
+    topic: "tax_registration",
     whyItApplies: "",
     level: "federal",
+    agency: "Internal Revenue Service",
     sourceIds: ["irs-ein"],
     evidence: "Use this tool to get an EIN directly from the IRS in minutes for free.",
     feeUsd: null,
@@ -75,6 +78,9 @@ describe("verifyRequirements", () => {
     needsProfessional: false,
     whoToCall: "the IRS",
     whatToAsk: [],
+    gather: [],
+    doneWhen: "",
+    dependsOn: [],
     ...overrides,
   });
 
@@ -252,5 +258,67 @@ describe("verifyRequirements", () => {
   it("drops fees from requirements with no source, without inventing problems", () => {
     const [result] = verifyRequirements([draft({ sourceIds: [], evidence: null, feeUsd: 25, level: "city" })], pages, hosts);
     expect(result).toMatchObject({ verification: "needs_verification", feeUsd: null, problems: ["No source cited"] });
+  });
+});
+
+describe("pageWithExcerpt", () => {
+  const pages = [
+    { number: 1, text: "Applicant information\nName of business:" },
+    { number: 2, text: "Sign and date this form. It’s required for every applicant." },
+  ];
+
+  it("finds the page an excerpt is on, ignoring case, spacing and curly quotes", () => {
+    expect(pageWithExcerpt(pages, "it's   REQUIRED for every applicant")).toBe(2);
+    expect(pageWithExcerpt(pages, "...Name of business:")).toBe(1);
+  });
+
+  it("returns null for text that isn't on any page, or is too short to mean anything", () => {
+    expect(pageWithExcerpt(pages, "Not on this form at all")).toBeNull();
+    expect(pageWithExcerpt(pages, "Sign")).toBeNull();
+  });
+});
+
+describe("verifyRequirements: the quote's government", () => {
+  const pages = [
+    { id: "irs", url: "https://www.irs.gov/ein", retrievedAt: "2026-10-26T00:00:00Z", level: "federal" as const, text: "You never have to pay a fee for an EIN." },
+    { id: "ohio", url: "https://www.ohiosos.gov/llc", retrievedAt: "2026-10-26T00:00:00Z", level: "state" as const, text: "File your articles online with the Secretary of State." },
+  ];
+  const hosts = ["irs.gov", "ohiosos.gov"];
+  const base: RequirementDraft = {
+    key: "llc",
+    title: "Form an LLC",
+    topic: "structure",
+    whyItApplies: "",
+    level: "state",
+    agency: "Ohio Secretary of State",
+    sourceIds: ["irs", "ohio"],
+    evidence: "You never have to pay a fee for an EIN.",
+    feeUsd: null,
+    deadline: null,
+    needsProfessional: false,
+    whoToCall: "",
+    whatToAsk: [],
+    gather: [],
+    doneWhen: "",
+    dependsOn: [],
+  };
+
+  it("doesn't count a quote from another government's page", () => {
+    const [result] = verifyRequirements([base], pages, hosts);
+    expect(result.verification).toBe("needs_verification");
+    expect(result.confirmedBy).toEqual([]);
+  });
+
+  it("names the page the quote was found on", () => {
+    const [result] = verifyRequirements([{ ...base, evidence: "File your articles online with the Secretary of State." }], pages, hosts);
+    expect(result).toMatchObject({ verification: "sourced", confirmedBy: ["ohio"] });
+  });
+});
+
+describe("isAllowedHost ports", () => {
+  it("refuses any port but the standard one", () => {
+    expect(isAllowedHost("https://www.irs.gov/ein", ["irs.gov"])).toBe(true);
+    expect(isAllowedHost("https://www.irs.gov:443/ein", ["irs.gov"])).toBe(true);
+    expect(isAllowedHost("https://intranet.irs.gov:8443/", ["irs.gov"])).toBe(false);
   });
 });

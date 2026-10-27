@@ -19,10 +19,12 @@
     "drizzle-orm": "^0.45.4",
     "next": "16.4.3",
     "node-html-parser": "9.0.4",
+    "pdf-lib": "1.17.1",
     "postgres": "^3.4.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "^0.0.1",
+    "unpdf": "1.8.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {

@@ -27,7 +27,7 @@ Decided 2026-10-26: a **guided workspace**, direction A in the [prototype](https
 
 - **Layout.** A left menu holds Today, then two groups:
   - "Start your business": Your business, Requirements, Structure and path, Checklist.
-  - "Run your business": Products and marketing, Orders, Planning for help.
+  - "Run your business": Product photos, Products and marketing, Orders, Planning for help. Product photos sits first for now; the owner asked for it "under website creation", which doesn't exist yet.
 
   On a phone, the menu becomes one scrollable row above the content. A bottom tab bar, like the prototype's phone screen, is still an option.
 - **Getting started:** sign up, then answer the intake questions one at a time, inside the workspace. Returning owners log in to Today.
@@ -46,6 +46,7 @@ Decided 2026-10-26: a **guided workspace**, direction A in the [prototype](https
 
 - **Removed Claude-specific features:** server-side web search, the citations API, and model-specific prompt caching.
   - The app now fetches official pages itself and checks citations in its own code.
+  - Search uses Muse's own web search tool only to find addresses. The app still reads each page and checks it.
   - That works with any model, and the check is stricter, because the app knows exactly which pages it read.
 - **Added a provider layer.** It supports Meta Muse, any OpenAI-compatible endpoint, and a mock model for tests and offline demos.
 - **Structured output works with every model.**
@@ -63,6 +64,7 @@ Decided 2026-10-26: a **guided workspace**, direction A in the [prototype](https
 | Mock provider | Needs no key or network. Used by tests and saved demo data. |
 | `getModel()` | Picks the provider from the environment: `AI_PROVIDER=muse`, `openai-compatible` or `mock`. |
 | `generateObject()` | Converts a zod schema to JSON Schema and validates the reply. Retries once with the validation error, and rejects replies cut off by the token limit. |
+| `ImageModel` (`src/lib/ai/image-types.ts`) | Optional image editing, separate from `ModelProvider`. `getImageModel()` returns Muse Image for `muse`, a labeled practice preview for `mock`, and null otherwise. |
 
 **Rules for feature code**
 - Call `getModel()` and `generateObject()`. Never import a vendor SDK.
@@ -71,26 +73,52 @@ Decided 2026-10-26: a **guided workspace**, direction A in the [prototype](https
 - Production never falls back to the mock model.
 - Switching models is an environment change, and evals run on whichever model is configured.
 
-**Notes on Muse,** from Meta's docs as of 2026-10-26:
+**Notes on Muse,** from Meta's docs (dev.meta.ai) as of 2026-10-27:
+- The app uses the developer Model API, not the consumer Meta AI app. The models are `muse-spark-1.1` to `1.3` and `muse-wonder-1.0`, and the app uses `muse-spark-1.3`.
 - Chat Completions is OpenAI-compatible.
 - The model always reasons, so `reasoning_effort: "none"` is rejected.
 - `response_format` with `json_schema` is supported.
-- Images go in user messages as `image_url` parts.
-- Long requests that don't stream can time out with HTTP 504, so the research call streams.
-- The API is a public preview for US developers.
+- Input:
+  - Images go in user messages as `image_url` parts.
+  - PDFs go as `file` parts, which Meta turns into text plus page images (50 pages of images, 100 of text, 50 MB inline).
+- Web search ("search grounding") is a `web_search` tool on the Responses API only, not Chat Completions. Requests can return the raw results (`include: ["web_search_call.results"]`), and the app sends `store: false`.
+- Standard-mode models don't train on content. `-contributor` models may.
+- `muse-image-1.0` edits images through `/v1/images/edits`, taking a JSON `images` array of data URLs.
+  - Size sets only the aspect ratio.
+  - It costs $0.01 per returned image, and there's no idempotency key.
+  - Its own image and web search are on by default; the app turns them off with `tool_enablement`.
+- Long requests that don't stream can time out with HTTP 504, so long calls stream.
 
 ## Research engine
 
-1. **Source packs** (`src/data/source-packs/`). A hand-picked list of official pages for each place, plus the domains the app may read.
+1. **Source packs** (`src/data/source-packs/`). A hand-picked list of official pages, plus the domains the app may read.
    - The federal pack (IRS, SBA) is in: nine sources, several of them sections of one SBA page. Their content was read on 2026-10-26.
-   - The state, county and city packs for the demo places come next. This takes the longest, and a non-coder can do it.
-2. **Retrieve.** The app fetches the pack's pages itself and extracts the text, one section when a link has a `#` anchor. A search API limited to the pack's domains could be added later to find more pages.
-3. **Extract.** The model reads the fetched pages and the business profile, and returns requirements that point to source ids, each with a word-for-word quote. It also lists state and local requirements no page covers, with who to call and what to ask.
-4. **Verify in code** (`verifyCitations`). A requirement counts as sourced only if it cites pages the app actually fetched, from approved domains. Anything else gets "Needs verification," plus who to call and what to ask.
+2. **Search** (`src/lib/research/discover.ts`). Muse web search finds state, county and city pages, one narrow question per topic.
+   - Topics: name registration, LLC formation, sales tax, cottage food, employer registration, county license, county health, city license, home business, zoning.
+   - A page counts only if it's on CISA's official .gov registry and the registry says it belongs to the owner's own state, county or city (`official-sites.ts`). The registry, not the model, decides each page's level.
+   - Topics with nothing official found become open questions, never "no requirement."
+3. **Retrieve.** The app fetches every page itself, HTML or PDF, and extracts the text, one section when a link has a `#` anchor.
+4. **Extract.** The model reads the fetched pages and the business profile. It returns requirements that point to source ids, each with a word-for-word quote, a topic, the responsible agency, what to gather, what done looks like, and its prerequisites. It also returns its assumptions and open questions. Page text is evidence, never instructions.
+5. **Verify in code** (`verifyRequirements`). A requirement counts as sourced only if it cites pages the app actually fetched, from approved domains.
    - The quote must appear in a cited page's text, and any fee or deadline inside that quote. Otherwise fees and deadlines are dropped and the requirement is marked "Needs verification."
-   - A state, county or city requirement needs a page from that government. General federal guidance alone leaves it "Needs verification."
+   - A state, county or city requirement needs a page from that government.
    - The app records the page's final URL after redirects, and refuses redirects to unapproved domains.
-5. **Snapshot.** Results are saved per business, with the date checked and the answers they ran on, so the page can say when the answers have changed since. The demo runs from saved results, and a "Re-check sources" button runs live.
+6. **Plan** (`src/lib/rules/plan.ts`). Code turns the checked requirements into ordered steps.
+   - Prerequisites the model named are kept only if they point to a real step and don't create a loop.
+   - Re-checks reuse step keys, so progress carries over.
+   - Consequential changes wait for the owner's review.
+7. **Snapshot.** Results are saved per business, with the date checked, the answers they ran on, and whether it was practice mode, so the page can say when the answers have changed since.
+
+## Paperwork companion
+
+- **Documents** (`documents` table) hold uploads (PDF, PNG, JPEG or WebP, up to 4 MB, checked by their first bytes), pasted form text, official PDFs fetched from .gov links, and generated documents.
+- **Reading:** code reads PDF text and fill-in fields (`pdf.ts`). The model transcribes photos and scans, and marks unclear parts instead of guessing.
+- **Explaining:** every explanation quotes the form, and the quote is checked against the form's text. Researched guidance comes from the linked plan step and is labeled separately.
+- **Drafting:** the model only matches blanks to confirmed facts (the business profile and `business_details`). Code fills in the values. Signatures, ID numbers and sworn statements are always left for the owner.
+- **Owner review:** the owner confirms each answer. Typed answers can be saved to business details only when the owner ticks that.
+- **Prepared copies:** only confirmed answers go into a filled copy (fillable PDFs) or an answer sheet. Both say "Not filed."
+- **Business plan:** drafted from the owner's answers and plan. Numbers the owner didn't give are flagged, and missing facts become [bracketed] placeholders. The owner edits and approves it, which saves a PDF to the library.
+- **Workflow registry** (`src/lib/workflows.ts`): every long job, who does it (AI or rules), its time limit, and which plan topics offer it. `workflow_runs` records each run, so a reload shows one still running or one that was cut off.
 
 ## Stages
 
@@ -110,6 +138,9 @@ Decided 2026-10-26: a **guided workspace**, direction A in the [prototype](https
 
 ## AI workflows
 
+- **Product photos (`/photos`)**
+  - The photo is checked first, edited from the original, compared with it by AI, then approved by the owner.
+  - Approved photos form the product library. They aren't linked to `products` rows yet.
 - **Product → marketing (`/products`)**
   - The owner enters the photo, materials, price and quantity.
   - AI drafts a listing and a social post from those facts only. Claims like "gluten-free" are flagged for the owner to confirm, never added.
@@ -148,16 +179,24 @@ src/
     api/auth/           Better Auth endpoints
   components/
     intake/             intake wizard, answer choices
+    plan/               startup plan review, step status, structure decision
+    documents/          document library, paperwork companion, business plan
+    photos/             product photo upload, looks, comparison, review
   data/
     source-packs/       official sources by place
+    dotgov/             CISA's .gov registry snapshot (who owns each .gov site)
   db/                   schema (including account tables), client
   lib/
     ai/                 model-agnostic layer (the only place that talks to models)
     auth/               account config, session check, form rules
     intake/             intake answers, AI suggestions and their offline stand-in
     data/               owner-scoped data access
-    research/           source packs, page reading, the research run, citation checks
-    rules/              stock, checklist order, hiring math (plain code, unit-tested)
+    research/           source packs, search, .gov ownership, page reading, the research run, citation checks
+    documents/          upload checks, PDF reading and filling, companion, business plan, PDF writer
+    photos/             photo checks, edit instructions, product-photo rules
+    rules/              stock, checklist order, startup plan, hiring math (plain code, unit-tested)
+    details.ts          business details forms ask for, and the owner's decisions
+    workflows.ts        registry of long jobs: who does them and their time limits
     domain.ts           shared schemas and enums
     sections.ts         navigation
   test/                 in-memory database for tests
@@ -171,12 +210,12 @@ drizzle/                migrations
 | 0 | Project setup, database schema, AI layer, rules, federal sources, app layout | Must | Done |
 | 1 | Accounts: sign up, log in, and each owner sees only their own business | Must | Built; password reset and email verification wait on an email service |
 | 2 | Intake: the business profile questions, one at a time, as in the prototype | Must | Built: AI can pre-fill answers from a description; owners can edit their answers. One business per owner. |
-| 3 | Research engine, requirements view, gaps, streaming calls, state source packs | Must | Built on the federal pack: live page reads, checked citations, who to call for gaps, saved results with "Re-check sources." State, county and city packs wait on the demo places. |
-| 4 | Structure and path, checklist | Must | |
-| 5 | Product → marketing | Must | |
+| 3 | Research engine, requirements view, gaps, streaming calls, state source packs | Must | Built: federal pack plus Muse web search for state, county and city pages, filtered by the .gov registry; checked citations; assumptions and open questions. Live Muse search is untested until there's an API key. |
+| 4 | Structure and path, checklist | Must | Startup plan built: ordered steps, a review for re-check changes, progress, a structure decision on its step, a PDF copy. The structure comparison page isn't built. |
+| 5 | Product → marketing | Must | Product photos built (Muse Image editing from the owner's own photo, with an AI comparison and the owner's approval). Listings and posts not built. |
 | 6 | Order → customer reply | Must | |
 | 7 | Planning for help | Must | |
-| 8 | Completion: uploads, help chat on each task | Should | |
+| 8 | Completion: uploads, help chat on each task | Should | Paperwork companion built: uploads, explanations, questions, drafted answers, filled copies and answer sheets, a business plan, and a document library tied to plan steps. |
 | 9 | Your demo businesses polished end to end | Should | |
 | 10 | One-page shop, turning a pasted DM into an order, Spanish | Stretch | |
 | 11 | Evals, saved demo results, video, README | Must — save the last ~20% of your time | |
@@ -209,3 +248,4 @@ drizzle/                migrations
 3. Repo visibility for submission. It's private for now.
 4. Whether the rules require every AI call, including eval graders, to use Muse.
 5. Which email service sends password resets and verification emails, and whether a hackathon demo needs them.
+6. Which generated legal documents to offer beyond prepared forms. An LLC operating agreement, for example, is a contract, so it isn't generated until decided.

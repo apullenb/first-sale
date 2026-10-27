@@ -1,5 +1,6 @@
 import { LocalDate } from "@/components/local-date";
 import type { requirements, sources } from "@/db/schema";
+import { formatFee } from "@/lib/documents/startup-plan";
 
 type Requirement = typeof requirements.$inferSelect;
 type Source = typeof sources.$inferSelect;
@@ -9,12 +10,7 @@ const LEVELS = { federal: "Federal", state: "State", county: "County", city: "Ci
 export function RequirementCard({ requirement, sources }: { requirement: Requirement; sources: Source[] }) {
   const sourced = requirement.verification === "sourced";
   const cited = requirement.sourceIds.flatMap((key) => sources.find((source) => source.key === key) ?? []);
-  const fee =
-    requirement.feeCents === null
-      ? null
-      : requirement.feeCents === 0
-        ? "Free"
-        : `$${(requirement.feeCents / 100).toLocaleString("en-US", { minimumFractionDigits: requirement.feeCents % 100 ? 2 : 0 })}`;
+  const fee = requirement.feeCents === null ? null : formatFee(requirement.feeCents);
 
   return (
     <article className="flex flex-col gap-2 rounded-2xl bg-surface px-4 py-4 ring-1 ring-ink/5 sm:px-5">
@@ -22,6 +18,11 @@ export function RequirementCard({ requirement, sources }: { requirement: Require
         <div className="flex min-w-0 flex-1 basis-72 flex-col gap-1">
           <h3 className="text-[17px] font-bold leading-snug">{requirement.title}</h3>
           <p className="text-rule">{requirement.whyItApplies}</p>
+          {requirement.agency ? (
+            <p className="text-sm text-rule">
+              <span className="font-semibold">Who handles it:</span> {requirement.agency}
+            </p>
+          ) : null}
           {requirement.needsProfessional ? (
             <p className="text-sm text-muted">A lawyer or accountant can help you with this one.</p>
           ) : null}
@@ -86,18 +87,19 @@ export function SourceLinks({ sources }: { sources: Source[] }) {
   return (
     <ul className="flex flex-col gap-1">
       {sources.map((source) => (
-        <li key={source.id}>
+        <li key={source.id} className="flex flex-col">
           <a href={source.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-accent-ink underline underline-offset-2">
             {source.title}
             <span className="sr-only"> (opens in a new tab)</span>
           </a>
+          {source.government ? <span className="text-muted">{source.government}</span> : null}
         </li>
       ))}
     </ul>
   );
 }
 
-function StatusChip({ sourced }: { sourced: boolean }) {
+export function StatusChip({ sourced }: { sourced: boolean }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[13px] font-semibold ${

@@ -11,6 +11,7 @@ export interface GenerateObjectOptions<T> {
   maxRepairs?: number;
   stream?: boolean;
   timeoutMs?: number;
+  userKey?: string;
 }
 
 export class StructuredOutputError extends Error {
@@ -52,6 +53,7 @@ export async function generateObject<T>(
       responseFormat: { name: options.name, schema: jsonSchema },
       stream: options.stream,
       timeoutMs: options.timeoutMs,
+      userKey: options.userKey,
     });
 
     if (result.finishReason === "length") {

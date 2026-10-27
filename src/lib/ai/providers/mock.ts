@@ -7,7 +7,9 @@ export function createMockProvider(respond: MockResponder = defaultResponder): M
   return {
     name: "Mock",
     model: "mock",
-    capabilities: { vision: true, jsonSchema: true, reasoningEffort: true },
+    // Can't read images, PDFs or the web: features say so instead of pretending
+    capabilities: { vision: false, pdf: false, jsonSchema: true, reasoningEffort: true, webSearch: false },
+    simulated: true,
     async complete(request) {
       return { text: respond(request), finishReason: "stop", usage: null };
     },

@@ -3,21 +3,11 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { businesses, users } from "@/db/schema";
 import type { BusinessProfile } from "@/lib/domain";
 import { createTestDb } from "@/test/db";
+import { testProfile } from "@/test/fixtures";
 import { createBusinessForOwner, getBusinessForOwner, updateBusinessProfileForOwner } from "./businesses";
 
 function profile(name: string): BusinessProfile {
-  return {
-    name,
-    description: "",
-    location: { state: "OH", county: "", city: "" },
-    owners: { count: 1 },
-    offeringKinds: ["food"],
-    firstItems: "",
-    channels: ["markets"],
-    premises: null,
-    startupBudget: null,
-    hiringPlans: null,
-  };
+  return testProfile({ name });
 }
 
 let db: Awaited<ReturnType<typeof createTestDb>>;

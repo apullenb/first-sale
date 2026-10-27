@@ -41,9 +41,33 @@ export function keywordSuggestions(description: string): IntakeSuggestion {
     owners = "others";
   } else if (has([" i ", " my ", " me "])) owners = "me";
 
+  // Only stated stages; "not registered yet" isn't a registration
+  let stage: IntakeSuggestion["stage"] = null;
+  const notRegistered = has(["not registered", "not yet registered", "haven t registered", "never registered", "get registered", "getting registered", "be registered", "unregistered"]);
+  const registered = [" i registered", " we registered", "already registered", "registered my", "registered our", "registered an", "registered the", "is registered", "formed an llc", "formed my llc", "formed our llc", "have an llc", "set up an llc"];
+  if (!notRegistered && has(registered)) {
+    stage = "registered";
+  } else if (has(["already sell", "been selling", "started selling", "currently selling", "already sold", "ve sold"])) {
+    stage = "selling_informally";
+  } else if (has(["want to start", "plan to start", "planning to start", "hoping to start", "like to start", "thinking about starting", "haven t started", "just an idea"])) {
+    stage = "idea";
+  }
+
+  let registeredAs: IntakeSuggestion["registeredAs"] = null;
+  if (stage === "registered") {
+    if (has([" llc "])) registeredAs = "llc";
+    else if (has(["corporation", " corp ", " inc ", "incorporated"])) registeredAs = "corporation";
+    else if (has(["partnership"])) registeredAs = "partnership";
+    else if (has(["sole proprietor"])) registeredAs = "sole_proprietorship";
+  }
+
+  let shipsOrders: IntakeSuggestion["shipsOrders"] = null;
+  if (has(["won t ship", "not ship", "don t ship", "no shipping"])) shipsOrders = "no";
+  else if (has([" ship", "mail order", "by mail", "mail them", "mail it"])) shipsOrders = "yes";
+
   // Longest names first, so "west virginia" isn't read as "virginia"
   const byLength = [...US_STATE_CODES].sort((a, b) => STATE_NAMES[b].length - STATE_NAMES[a].length);
   const state = byLength.find((code) => t.includes(` ${STATE_NAMES[code].toLowerCase()} `)) ?? null;
 
-  return { state, owners, offeringKinds, channels, premises };
+  return { state, owners, stage, registeredAs, offeringKinds, channels, shipsOrders, premises };
 }

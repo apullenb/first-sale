@@ -29,6 +29,27 @@
       "when": 1793049236115,
       "tag": "0003_research_snapshots",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793113529076,
+      "tag": "0004_plan_documents_details",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793115576042,
+      "tag": "0005_product_photos",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793116912502,
+      "tag": "0006_plan_step_practice_flag",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,270 @@
+import type { JurisdictionLevel, PlanTopic, RequirementDraft, TaskStatus, VerificationState } from "@/lib/domain";
+import { orderTasks } from "./checklist";
+
+// Plain code: AI drafts each requirement, these rules turn checked requirements into ordered steps.
+
+export interface PlanLink {
+  title: string;
+  url: string;
+  // Owner of the site in the .gov registry
+  government: string;
+  // The page backs this step: its quote was found on it
+  confirms: boolean;
+}
+
+export interface PlanTaskDraft {
+  key: string;
+  title: string;
+  topic: PlanTopic;
+  level: JurisdictionLevel;
+  why: string;
+  agency: string;
+  links: PlanLink[];
+  prepare: string[];
+  feeCents: number | null;
+  // When the page showing the fee was read
+  feeCheckedAt: string | null;
+  deadline: string | null;
+  needsProfessional: boolean;
+  verification: VerificationState;
+  uncertainty: string[];
+  whoToCall: string;
+  whatToAsk: string[];
+  doneWhen: string;
+  prerequisites: string[];
+  // Built from practice-mode results; missing on plans saved before this was tracked
+  simulated?: boolean;
+}
+
+type CheckedRequirement = RequirementDraft & { verification: VerificationState; problems: string[]; confirmedBy?: string[] };
+
+export interface ReadSource {
+  id: string;
+  title: string;
+  url: string;
+  government: string;
+  retrievedAt: string;
+}
+
+export function slugKey(text: string): string {
+  return (
+    text
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40)
+      .replace(/-+$/, "") || "step"
+  );
+}
+
+// Ordered steps, prerequisites first. Unknown or circular prerequisites are dropped, never guessed.
+export function buildPlan(
+  requirements: readonly CheckedRequirement[],
+  sources: readonly ReadSource[],
+  simulated = false,
+): PlanTaskDraft[] {
+  const byId = new Map(sources.map((source) => [source.id, source]));
+  const keyFor = new Map<string, string>();
+  const used = new Set<string>();
+  const keys = requirements.map((requirement) => {
+    const base = slugKey(requirement.key || requirement.title);
+    let key = base;
+    for (let n = 2; used.has(key); n++) key = `${base}-${n}`;
+    used.add(key);
+    if (!keyFor.has(slugKey(requirement.key))) keyFor.set(slugKey(requirement.key), key);
+    return key;
+  });
+
+  const drafts = requirements.map((requirement, index): PlanTaskDraft => {
+    const cited = requirement.sourceIds.flatMap((id) => byId.get(id) ?? []);
+    const sourced = requirement.verification === "sourced";
+    const uncertainty: string[] = [];
+    if (!sourced) {
+      uncertainty.push(
+        cited.length > 0
+          ? "The official page we found doesn’t confirm the details of this step."
+          : "We didn’t find an official page for this yet. That doesn’t mean it doesn’t apply.",
+      );
+    }
+    if (requirement.needsProfessional) uncertainty.push("A lawyer or accountant can help you decide how this applies to you.");
+
+    return {
+      key: keys[index],
+      title: requirement.title,
+      topic: requirement.topic,
+      level: requirement.level,
+      why: requirement.whyItApplies,
+      agency: requirement.agency,
+      links: cited.map((source) => ({
+        title: source.title,
+        url: source.url,
+        government: source.government,
+        // Only the page the quote was actually found on
+        confirms: sourced && (requirement.confirmedBy ? requirement.confirmedBy.includes(source.id) : true),
+      })),
+      prepare: requirement.gather,
+      feeCents: requirement.feeUsd === null ? null : Math.round(requirement.feeUsd * 100),
+      feeCheckedAt: requirement.feeUsd === null ? null : latest(cited.map((source) => source.retrievedAt)),
+      deadline: requirement.deadline,
+      needsProfessional: requirement.needsProfessional,
+      verification: requirement.verification,
+      uncertainty,
+      whoToCall: requirement.whoToCall,
+      whatToAsk: requirement.whatToAsk,
+      doneWhen: requirement.doneWhen,
+      prerequisites: [],
+      simulated,
+    };
+  });
+
+  // Keep each prerequisite only if it names another step and doesn't close a loop
+  drafts.forEach((draft, index) => {
+    for (const wanted of requirements[index].dependsOn) {
+      const key = keyFor.get(slugKey(wanted));
+      if (!key || key === draft.key || draft.prerequisites.includes(key)) continue;
+      if (!reaches(drafts, key, draft.key)) draft.prerequisites.push(key);
+    }
+  });
+
+  const byKey = new Map(drafts.map((draft) => [draft.key, draft]));
+  return orderTasks(drafts.map((draft) => ({ id: draft.key, prerequisites: draft.prerequisites }))).map((node) => byKey.get(node.id)!);
+}
+
+// True when `from` already depends on `to`, directly or through other steps
+function reaches(drafts: readonly { key: string; prerequisites: readonly string[] }[], from: string, to: string): boolean {
+  const byKey = new Map(drafts.map((draft) => [draft.key, draft]));
+  const seen = new Set<string>();
+  const stack = [from];
+  while (stack.length) {
+    const key = stack.pop()!;
+    if (key === to) return true;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    stack.push(...(byKey.get(key)?.prerequisites ?? []));
+  }
+  return false;
+}
+
+function latest(dates: readonly string[]): string | null {
+  return dates.length ? dates.reduce((a, b) => (a > b ? a : b)) : null;
+}
+
+// Steps that wait on this one
+export function followingSteps<T extends { key: string; prerequisites: readonly string[] }>(tasks: readonly T[], key: string): T[] {
+  return tasks.filter((task) => task.prerequisites.includes(key));
+}
+
+export interface CurrentTask extends PlanTaskDraft {
+  id: string;
+  status: TaskStatus;
+  retired: boolean;
+}
+
+export type PlanChange =
+  | { kind: "added"; key: string; title: string }
+  | { kind: "removed"; key: string; title: string; done: boolean }
+  | { kind: "changed"; key: string; title: string; what: string[] };
+
+// What a new plan would change that the owner should see. Rewording alone isn't a change.
+export function diffPlan(current: readonly CurrentTask[], proposed: readonly PlanTaskDraft[]): PlanChange[] {
+  const live = current.filter((task) => !task.retired);
+  const now = new Map(live.map((task) => [task.key, task]));
+  const next = new Map(proposed.map((task) => [task.key, task]));
+  const changes: PlanChange[] = [];
+
+  for (const task of proposed) {
+    const before = now.get(task.key);
+    if (!before) {
+      changes.push({ kind: "added", key: task.key, title: task.title });
+      continue;
+    }
+    const what = changedParts(before, task);
+    if (what.length) changes.push({ kind: "changed", key: task.key, title: task.title, what });
+  }
+  for (const task of live) {
+    if (!next.has(task.key)) changes.push({ kind: "removed", key: task.key, title: task.title, done: task.status === "done" });
+  }
+  return changes;
+}
+
+function changedParts(before: PlanTaskDraft, after: PlanTaskDraft): string[] {
+  const same = (a: readonly string[], b: readonly string[]) => a.length === b.length && a.every((x) => b.includes(x));
+  const what: string[] = [];
+  if (before.feeCents !== after.feeCents) what.push("Fee");
+  if (before.deadline !== after.deadline) what.push("Deadline");
+  if (before.verification !== after.verification) what.push("Whether an official page confirms it");
+  if (!same(before.links.map((link) => link.url), after.links.map((link) => link.url))) what.push("Official links");
+  if (!same(before.prerequisites, after.prerequisites)) what.push("Steps to finish first");
+  if (before.level !== after.level || before.topic !== after.topic) what.push("Which government it comes from");
+  if (Boolean(before.simulated) !== Boolean(after.simulated)) what.push(after.simulated ? "Now from practice mode" : "Checked for real, not in practice mode");
+  return what;
+}
+
+export interface PlanWrite {
+  // Rows to insert or update, in plan order; `id` is set for rows that exist
+  upserts: (PlanTaskDraft & { id: string | null; position: number; retired: boolean })[];
+  deleteIds: string[];
+}
+
+// Applies the accepted changes. Done steps keep their status; a done step dropped from the plan is kept as retired.
+export function applyPlan(
+  current: readonly CurrentTask[],
+  proposed: readonly PlanTaskDraft[],
+  accepted: ReadonlySet<string>,
+): PlanWrite {
+  const changes = new Map(diffPlan(current, proposed).map((change) => [change.key, change]));
+  const byKey = new Map(current.map((task) => [task.key, task]));
+  const upserts: PlanWrite["upserts"] = [];
+  const deleteIds: string[] = [];
+  const placed = new Set<string>();
+
+  for (const task of proposed) {
+    const before = byKey.get(task.key);
+    const change = changes.get(task.key);
+    const take = !change || accepted.has(task.key);
+    if (before && !take) {
+      upserts.push({ ...strip(before), id: before.id, position: upserts.length, retired: before.retired });
+    } else if (before) {
+      upserts.push({ ...task, id: before.id, position: upserts.length, retired: false });
+    } else if (take) {
+      upserts.push({ ...task, id: null, position: upserts.length, retired: false });
+    }
+    placed.add(task.key);
+  }
+
+  for (const task of current) {
+    if (placed.has(task.key)) continue;
+    const removing = changes.has(task.key) && accepted.has(task.key);
+    if (!removing) {
+      upserts.push({ ...strip(task), id: task.id, position: upserts.length, retired: task.retired });
+    } else if (task.status === "done") {
+      upserts.push({ ...strip(task), id: task.id, position: upserts.length, retired: true });
+    } else {
+      deleteIds.push(task.id);
+    }
+  }
+  // Taking some changes and not others can pair old and new prerequisites into a loop
+  return { upserts: withoutLoops(upserts), deleteIds };
+}
+
+// Keeps each prerequisite only if it names a step in the list and doesn't close a loop, earlier steps first
+function withoutLoops<T extends { key: string; prerequisites: string[] }>(tasks: readonly T[]): T[] {
+  const keys = new Set(tasks.map((task) => task.key));
+  const kept = tasks.map((task) => ({ ...task, prerequisites: [] as string[] }));
+  tasks.forEach((task, index) => {
+    for (const key of task.prerequisites) {
+      if (!keys.has(key) || key === task.key || kept[index].prerequisites.includes(key)) continue;
+      if (!reaches(kept, key, task.key)) kept[index].prerequisites.push(key);
+    }
+  });
+  return kept;
+}
+
+function strip(task: CurrentTask): PlanTaskDraft {
+  const draft: Partial<CurrentTask> = { ...task };
+  delete draft.id;
+  delete draft.status;
+  delete draft.retired;
+  return draft as PlanTaskDraft;
+}

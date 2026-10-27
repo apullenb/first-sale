@@ -1,5 +1,6 @@
 import type { JurisdictionLevel } from "@/lib/domain";
-import { pageText } from "./page-text";
+import { pdfText } from "@/lib/documents/pdf";
+import { MAX_SOURCE_CHARS, pageText } from "./page-text";
 import { isAllowedHost } from "./source-pack";
 import type { RetrievedSource } from "./verify";
 
@@ -14,11 +15,17 @@ export interface SourceToRead {
   url: string;
   level: JurisdictionLevel;
   allowedHosts: readonly string[];
+  // Owner of the site in the .gov registry
+  government: string;
+  // Found by search rather than listed in a source pack
+  discovered: boolean;
 }
 
 export interface RetrievedPage extends RetrievedSource {
   title: string;
   level: JurisdictionLevel;
+  government: string;
+  discovered: boolean;
   text: string;
 }
 
@@ -29,7 +36,10 @@ export interface UnreadSource {
   reason: string;
 }
 
-type Fetched = { ok: true; finalUrl: string; html: string } | { ok: false; reason: string };
+export type Fetched =
+  | { ok: true; finalUrl: string; html: string; pdf?: undefined }
+  | { ok: true; finalUrl: string; pdf: Uint8Array; html?: undefined }
+  | { ok: false; reason: string };
 
 // Reads each page once, even when several sources are sections of it
 export async function retrieveSources(
@@ -42,7 +52,7 @@ export async function retrieveSources(
     sources.map(async (source) => {
       const { page, fragment } = splitFragment(source.url);
       const key = `${page} ${source.allowedHosts.join(",")}`;
-      if (!fetches.has(key)) fetches.set(key, fetchOfficialPage(page, source.allowedHosts, fetchImpl));
+      if (!fetches.has(key)) fetches.set(key, fetchOfficialPage(page, source.allowedHosts, fetchImpl, { pdf: true }));
       return { source, fragment, fetched: await fetches.get(key)! };
     }),
   );
@@ -54,7 +64,7 @@ export async function retrieveSources(
       unread.push({ id: source.id, title: source.title, url: source.url, reason: fetched.reason });
       continue;
     }
-    const { text } = pageText(fetched.html, fragment);
+    const text = fetched.pdf ? await readPdfSource(fetched.pdf) : pageText(fetched.html, fragment).text;
     if (!text) {
       const reason = text === null ? "The linked section isn’t on the page anymore" : "The page had no readable text";
       unread.push({ id: source.id, title: source.title, url: source.url, reason });
@@ -63,8 +73,10 @@ export async function retrieveSources(
     pages.push({
       id: source.id,
       title: source.title,
-      url: fragment ? `${fetched.finalUrl}#${fragment}` : fetched.finalUrl,
+      url: fragment && !fetched.pdf ? `${fetched.finalUrl}#${fragment}` : fetched.finalUrl,
       level: source.level,
+      government: source.government,
+      discovered: source.discovered,
       text,
       retrievedAt: now.toISOString(),
     });
@@ -72,12 +84,22 @@ export async function retrieveSources(
   return { pages, unread };
 }
 
-// Follows redirects by hand, so every hop must stay on an approved host
+async function readPdfSource(bytes: Uint8Array): Promise<string> {
+  try {
+    return await pdfText(bytes, MAX_SOURCE_CHARS);
+  } catch {
+    return "";
+  }
+}
+
+// Follows redirects by hand, so every hop must stay on an approved host. PDFs only when asked for.
 export async function fetchOfficialPage(
   url: string,
   allowedHosts: readonly string[],
   fetchImpl: typeof fetch = fetch,
+  options: { pdf?: boolean; html?: boolean; maxBytes?: number } = {},
 ): Promise<Fetched> {
+  const wantHtml = options.html ?? true;
   let current = url;
   // One time limit for the whole page, redirects and body included
   const signal = AbortSignal.timeout(TIMEOUT_MS);
@@ -90,7 +112,7 @@ export async function fetchOfficialPage(
     try {
       response = await fetchImpl(current, {
         redirect: "manual",
-        headers: { "User-Agent": USER_AGENT, Accept: "text/html" },
+        headers: { "User-Agent": USER_AGENT, Accept: options.pdf ? "text/html, application/pdf" : "text/html" },
         signal,
       });
     } catch {
@@ -109,14 +131,24 @@ export async function fetchOfficialPage(
       await response.body?.cancel();
       return { ok: false, reason: `The site answered with error ${response.status}` };
     }
-    if (!/text\/html|application\/xhtml\+xml/i.test(response.headers.get("content-type") ?? "")) {
+    const type = response.headers.get("content-type") ?? "";
+    const isHtml = wantHtml && /text\/html|application\/xhtml\+xml/i.test(type);
+    // Some sites send PDFs as generic binary files; the first bytes are checked below
+    const isPdf = Boolean(options.pdf) && !isHtml && /application\/(pdf|x-pdf|octet-stream)/i.test(type);
+    if (!isHtml && !isPdf) {
       await response.body?.cancel();
-      return { ok: false, reason: "The link isn’t a web page" };
+      return { ok: false, reason: options.pdf && !wantHtml ? "The link isn’t a PDF form" : "The link isn’t a web page" };
     }
 
     try {
-      const html = await readCapped(response, MAX_BYTES);
-      return html === null ? { ok: false, reason: "The page is too large" } : { ok: true, finalUrl: current, html };
+      const body = await readCapped(response, options.maxBytes ?? MAX_BYTES);
+      if (body === null) return { ok: false, reason: isPdf ? "The file is too large" : "The page is too large" };
+      if (isPdf) {
+        // Checked by its first bytes, not just the header the site sent
+        if (new TextDecoder().decode(body.slice(0, 5)) !== "%PDF-") return { ok: false, reason: "The file isn’t a PDF" };
+        return { ok: true, finalUrl: current, pdf: body };
+      }
+      return { ok: true, finalUrl: current, html: new TextDecoder().decode(body) };
     } catch {
       return { ok: false, reason: "Couldn’t read the page" };
     }
@@ -124,8 +156,8 @@ export async function fetchOfficialPage(
   return { ok: false, reason: "Too many redirects" };
 }
 
-async function readCapped(response: Response, maxBytes: number): Promise<string | null> {
-  if (!response.body) return "";
+async function readCapped(response: Response, maxBytes: number): Promise<Uint8Array | null> {
+  if (!response.body) return new Uint8Array();
   const reader = response.body.getReader();
   const chunks: Uint8Array[] = [];
   let size = 0;
@@ -139,7 +171,7 @@ async function readCapped(response: Response, maxBytes: number): Promise<string 
     }
     chunks.push(value);
   }
-  return new TextDecoder().decode(Buffer.concat(chunks));
+  return new Uint8Array(Buffer.concat(chunks));
 }
 
 function splitFragment(url: string): { page: string; fragment: string } {

@@ -3,6 +3,7 @@ import { asc, eq } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { businesses, requirements, researchSnapshots, sources } from "@/db/schema";
 import type { ResearchResult } from "@/lib/research/requirements";
+import { proposePlan } from "./plan";
 
 // Owner-scoped like businesses.ts: the business is always looked up by its owner.
 
@@ -65,7 +66,13 @@ export async function saveResearchForOwner(
       checkedAt: research.checkedAt,
       profileKey,
       model: research.model,
+      simulated: research.simulated,
+      searched: research.searched,
       unreadSources: research.unread.map(({ id, title, url, reason }) => ({ key: id, title, url, reason })),
+      assumptions: research.assumptions,
+      openQuestions: research.openQuestions,
+      planProposal: research.plan,
+      planReviewedAt: null,
     };
     await tx
       .insert(researchSnapshots)
@@ -80,6 +87,8 @@ export async function saveResearchForOwner(
           url: page.url,
           title: page.title,
           level: page.level,
+          government: page.government,
+          discovered: page.discovered,
           retrievedAt: new Date(page.retrievedAt),
         })),
       );
@@ -88,9 +97,12 @@ export async function saveResearchForOwner(
       await tx.insert(requirements).values(
         research.requirements.map((requirement, position) => ({
           businessId: business.id,
+          key: requirement.key,
           title: requirement.title,
+          topic: requirement.topic,
           whyItApplies: requirement.whyItApplies,
           level: requirement.level,
+          agency: requirement.agency,
           sourceIds: requirement.sourceIds,
           evidence: requirement.evidence,
           feeCents: requirement.feeUsd === null ? null : Math.round(requirement.feeUsd * 100),
@@ -98,6 +110,9 @@ export async function saveResearchForOwner(
           needsProfessional: requirement.needsProfessional,
           whoToCall: requirement.whoToCall,
           whatToAsk: requirement.whatToAsk,
+          gather: requirement.gather,
+          doneWhen: requirement.doneWhen,
+          dependsOn: requirement.dependsOn,
           verification: requirement.verification,
           problems: requirement.problems,
           position,
@@ -105,6 +120,7 @@ export async function saveResearchForOwner(
         })),
       );
     }
+    await proposePlan(tx, business.id, research.plan, research.checkedAt);
     return true;
   });
 }

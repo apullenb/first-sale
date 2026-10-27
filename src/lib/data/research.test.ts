@@ -1,49 +1,41 @@
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
-import { requirements, sources, users } from "@/db/schema";
-import type { BusinessProfile } from "@/lib/domain";
+import { checklistTasks, requirements, sources, users } from "@/db/schema";
 import type { ResearchResult } from "@/lib/research/requirements";
+import { buildPlan } from "@/lib/rules/plan";
 import { createTestDb } from "@/test/db";
+import { retrievedPage, testProfile, verifiedRequirement } from "@/test/fixtures";
 import { createBusinessForOwner } from "./businesses";
 import { getResearchForOwner, saveResearchForOwner } from "./research";
 
-const profile: BusinessProfile = {
-  name: null,
-  description: "",
-  location: { state: "OH", county: "", city: "" },
-  owners: { count: 1 },
-  offeringKinds: ["food"],
-  firstItems: "",
-  channels: ["markets"],
-  premises: null,
-  startupBudget: null,
-  hiringPlans: null,
-};
+const profile = testProfile({ name: null });
 
 function research(title: string, checkedAt = new Date("2026-10-26T15:00:00Z")): ResearchResult {
+  const pages = [retrievedPage({ text: "…", retrievedAt: checkedAt.toISOString() })];
+  const reqs = [
+    verifiedRequirement({
+      key: "ein",
+      title,
+      sourceIds: ["irs-ein"],
+      evidence: "Quote",
+      feeUsd: 12.5,
+      whatToAsk: ["Q?"],
+      gather: ["Your address"],
+      doneWhen: "You have it",
+      verification: "sourced",
+    }),
+  ];
   return {
     checkedAt,
     model: "Mock",
-    pages: [
-      { id: "irs-ein", title: "IRS: EIN", url: "https://www.irs.gov/ein", level: "federal", text: "…", retrievedAt: checkedAt.toISOString() },
-    ],
+    simulated: true,
+    searched: false,
+    pages,
     unread: [{ id: "sba-x", title: "SBA: X", url: "https://www.sba.gov/x", reason: "The site answered with error 503" }],
-    requirements: [
-      {
-        title,
-        whyItApplies: "Why",
-        level: "federal",
-        sourceIds: ["irs-ein"],
-        evidence: "Quote",
-        feeUsd: 12.5,
-        deadline: null,
-        needsProfessional: false,
-        whoToCall: "the IRS",
-        whatToAsk: ["Q?"],
-        verification: "sourced",
-        problems: [],
-      },
-    ],
+    requirements: reqs,
+    assumptions: ["You bake at home"],
+    openQuestions: [{ question: "Which county?", whoToCall: "the county" }],
+    plan: buildPlan(reqs, pages),
   };
 }
 
@@ -66,10 +58,45 @@ describe("research data access", () => {
     expect(saved).toMatchObject({
       profileKey: "key-1",
       model: "Mock",
+      simulated: true,
+      searched: false,
+      assumptions: ["You bake at home"],
+      openQuestions: [{ question: "Which county?", whoToCall: "the county" }],
       unreadSources: [{ key: "sba-x", reason: "The site answered with error 503" }],
-      sources: [{ key: "irs-ein", url: "https://www.irs.gov/ein", level: "federal" }],
-      requirements: [{ title: "Get an EIN", feeCents: 1250, sourceIds: ["irs-ein"], whatToAsk: ["Q?"], position: 0 }],
+      sources: [
+        {
+          key: "irs-ein",
+          url: "https://www.irs.gov/ein",
+          level: "federal",
+          government: "Internal Revenue Service (Department of the Treasury)",
+          discovered: false,
+        },
+      ],
+      requirements: [
+        {
+          key: "ein",
+          title: "Get an EIN",
+          topic: "tax_registration",
+          agency: "Internal Revenue Service",
+          feeCents: 1250,
+          sourceIds: ["irs-ein"],
+          whatToAsk: ["Q?"],
+          gather: ["Your address"],
+          doneWhen: "You have it",
+          position: 0,
+        },
+      ],
     });
+  });
+
+  it("stores the plan proposal and applies the first plan straight away", async () => {
+    await saveResearchForOwner(db, "owner-a", research("Get an EIN"), "key-1");
+
+    const saved = await getResearchForOwner(db, "owner-a");
+    expect(saved?.planProposal?.map((step) => step.key)).toEqual(["ein"]);
+    expect(saved?.planReviewedAt?.toISOString()).toBe("2026-10-26T15:00:00.000Z");
+    const steps = await db.select().from(checklistTasks);
+    expect(steps).toMatchObject([{ key: "ein", title: "Get an EIN", feeCents: 1250, status: "todo" }]);
   });
 
   it("replaces the last results instead of adding to them", async () => {
@@ -101,5 +128,6 @@ describe("research data access", () => {
     await db.delete(users).where(eq(users.id, "owner-a"));
     expect(await db.select().from(requirements)).toHaveLength(0);
     expect(await db.select().from(sources)).toHaveLength(0);
+    expect(await db.select().from(checklistTasks)).toHaveLength(0);
   });
 });

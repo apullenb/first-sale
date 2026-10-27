@@ -43,6 +43,7 @@ export function isAllowedHost(url: string, allowedHosts: readonly string[]): boo
   } catch {
     return false;
   }
-  if (parsed.protocol !== "https:") return false;
+  // Standard https only: no other ports on an approved host
+  if (parsed.protocol !== "https:" || parsed.port !== "") return false;
   return allowedHosts.some((host) => parsed.hostname === host || parsed.hostname.endsWith(`.${host}`));
 }

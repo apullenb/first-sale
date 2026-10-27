@@ -1,3 +1,5 @@
+import { createContext, useContext, useId } from "react";
+
 // Toggle buttons for intake answers: chips for pick-many, cards for pick-one.
 
 function CheckIcon() {
@@ -51,7 +53,9 @@ export function ChoiceCards<T extends string>({
   onSelect,
   labelledBy,
   describedBy,
-}: ChoiceProps<T> & { selected: T | ""; onSelect: (value: T) => void }) {
+  descriptions,
+}: ChoiceProps<T> & { selected: T | ""; onSelect: (value: T) => void; descriptions?: Partial<Record<T, string>> }) {
+  const uid = useId();
   return (
     <div
       role="group"
@@ -61,16 +65,28 @@ export function ChoiceCards<T extends string>({
     >
       {options.map(([value, label]) => {
         const on = selected === value;
+        const description = descriptions?.[value];
         return (
           <button
             key={value}
             type="button"
             aria-pressed={on}
             onClick={() => onSelect(value)}
+            aria-labelledby={description ? `${uid}-${value}` : undefined}
+            aria-describedby={description ? `${uid}-${value}-about` : undefined}
             className={`flex min-h-16 items-center gap-2 rounded-xl border-2 px-4 py-3 text-left font-semibold ${on ? ON : OFF}`}
           >
             {on ? <CheckIcon /> : null}
-            {label}
+            {description ? (
+              <span className="flex flex-col gap-0.5">
+                <span id={`${uid}-${value}`}>{label}</span>
+                <span id={`${uid}-${value}-about`} className="text-sm font-normal text-rule">
+                  {description}
+                </span>
+              </span>
+            ) : (
+              label
+            )}
           </button>
         );
       })}
@@ -78,6 +94,14 @@ export function ChoiceCards<T extends string>({
   );
 }
 
+// True when the suggestions came from practice-mode word matching rather than AI
+export const PracticeSuggestions = createContext(false);
+
 export function AiSuggestionBadge() {
-  return <span className="rounded-full bg-ai-tint px-2.5 py-0.5 text-[13px] font-bold text-ai">AI suggestion</span>;
+  const practice = useContext(PracticeSuggestions);
+  return (
+    <span className="rounded-full bg-ai-tint px-2.5 py-0.5 text-[13px] font-bold text-ai">
+      {practice ? "Practice suggestion" : "AI suggestion"}
+    </span>
+  );
 }
