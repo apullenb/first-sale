@@ -1,8 +1,10 @@
 import "server-only";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { businesses, checklistTasks, documents } from "@/db/schema";
 import type { DocumentOrigin, GeneratedKind } from "@/lib/domain";
+import type { DocumentRole } from "@/lib/documents/library";
+import type { FormVerification } from "@/lib/documents/official-forms";
 import type { DocumentContent, DocumentGuide, DocumentQuestion, DraftAnswers, GeneratedContent } from "@/lib/documents/types";
 
 // Owner-scoped like businesses.ts. File bytes are only read by getDocumentFileForOwner.
@@ -24,9 +26,21 @@ export interface NewDocument {
   fromDocumentId?: string | null;
   content: DocumentContent;
   draft?: GeneratedContent | null;
+  answers?: DraftAnswers;
+  role?: DocumentRole | null;
+  // A new version of this document; the new row joins its family
+  versionOf?: string | null;
+  formKey?: string | null;
+  verification?: FormVerification | null;
+  factsUsed?: Record<string, string> | null;
+  obtainedAt?: Date | null;
+  requestKey?: string | null;
 }
 
-export type CreateOutcome = { ok: true; id: string } | { ok: false; reason: "no_business" | "too_many" | "too_large" | "bad_task" };
+// `existed`: the request key matched a document already made, so nothing new was saved
+export type CreateOutcome =
+  | { ok: true; id: string; existed?: boolean }
+  | { ok: false; reason: "no_business" | "too_many" | "too_large" | "bad_task" | "bad_version" };
 
 const summary = {
   id: documents.id,
@@ -47,6 +61,14 @@ const summary = {
   draft: documents.draft,
   createdAt: documents.createdAt,
   updatedAt: documents.updatedAt,
+  role: documents.role,
+  familyId: documents.familyId,
+  version: documents.version,
+  formKey: documents.formKey,
+  verification: documents.verification,
+  factsUsed: documents.factsUsed,
+  obtainedAt: documents.obtainedAt,
+  requestKey: documents.requestKey,
   hasFile: sql<boolean>`${documents.data} is not null`,
 };
 
@@ -87,6 +109,28 @@ export async function createDocumentForOwner(db: Db, ownerId: string, input: New
   return db.transaction(async (tx) => {
     const [business] = await tx.select({ id: businesses.id }).from(businesses).where(eq(businesses.ownerId, ownerId)).for("update");
     if (!business) return { ok: false, reason: "no_business" };
+    if (input.requestKey) {
+      const [made] = await tx
+        .select({ id: documents.id })
+        .from(documents)
+        .where(and(eq(documents.businessId, business.id), eq(documents.requestKey, input.requestKey)));
+      if (made) return { ok: true, id: made.id, existed: true };
+    }
+    let familyId: string | null = null;
+    let version = 1;
+    if (input.versionOf) {
+      const [base] = await tx
+        .select({ id: documents.id, familyId: documents.familyId })
+        .from(documents)
+        .where(and(eq(documents.businessId, business.id), eq(documents.id, input.versionOf)));
+      if (!base) return { ok: false, reason: "bad_version" };
+      familyId = base.familyId ?? base.id;
+      const [{ top }] = await tx
+        .select({ top: sql<number>`coalesce(max(${documents.version}), 1)`.mapWith(Number) })
+        .from(documents)
+        .where(and(eq(documents.businessId, business.id), or(eq(documents.id, familyId), eq(documents.familyId, familyId))));
+      version = top + 1;
+    }
     if (input.taskId) {
       const [task] = await tx
         .select({ id: checklistTasks.id })
@@ -121,6 +165,15 @@ export async function createDocumentForOwner(db: Db, ownerId: string, input: New
         fromDocumentId: input.fromDocumentId ?? null,
         content: input.content,
         draft: input.draft ?? null,
+        answers: input.answers ?? {},
+        role: input.role ?? null,
+        familyId,
+        version,
+        formKey: input.formKey ?? null,
+        verification: input.verification ?? null,
+        factsUsed: input.factsUsed ?? null,
+        obtainedAt: input.obtainedAt ?? null,
+        requestKey: input.requestKey ?? null,
         createdAt: now,
         updatedAt: now,
       });
@@ -139,6 +192,7 @@ export interface DocumentPatch {
   data?: Uint8Array;
   mimeType?: string;
   sha256?: string;
+  factsUsed?: Record<string, string> | null;
 }
 
 export async function updateDocumentForOwner(db: Db, ownerId: string, id: string, patch: DocumentPatch, now = new Date()): Promise<boolean> {

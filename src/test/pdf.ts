@@ -63,3 +63,42 @@ export async function fillableForm(): Promise<Uint8Array<ArrayBuffer>> {
 
   return new Uint8Array(await doc.save());
 }
+
+// Shaped like IRS Form SS-4: its title and revision line, and blanks with the real form's field names
+export async function ss4LikeForm(revision = "Rev. December 2025"): Promise<Uint8Array<ArrayBuffer>> {
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const form = doc.getForm();
+  const page = doc.addPage([612, 792]);
+  page.drawText(`Form SS-4 (${revision})`, { x: 40, y: 760, size: 10, font });
+  page.drawText("Application for Employer Identification Number", { x: 150, y: 760, size: 12, font });
+  const lines: [string, string][] = [
+    ["f1_2[0]", "1 Legal name of entity (or individual) for whom the EIN is being requested"],
+    ["f1_3[0]", "2 Trade name of business (if different from name on line 1)"],
+    ["Line4ReadOrder[0].f1_5[0]", "4a Mailing address (room, apt., suite no. and street, or P.O. box)"],
+    ["Line4ReadOrder[0].f1_6[0]", "4b City, state, and ZIP code (if foreign, see instructions)"],
+    ["f1_7[0]", "5a Street address (if different) (Don't enter a P.O. box.)"],
+    ["f1_8[0]", "5b City, state, and ZIP code (if foreign, see instructions)"],
+    ["f1_9[0]", "6 County and state where principal business is located"],
+    ["f1_10[0]", "7a Name of responsible party"],
+    ["f1_11[0]", "7b SSN, ITIN, or EIN"],
+    ["f1_12[0]", "8b If 8a is Yes, enter the number of LLC members"],
+    ["f1_31[0]", "11 Date business started or acquired (month, day, year)"],
+    ["f1_38[0]", "17 Indicate principal line of merchandise sold"],
+  ];
+  lines.forEach(([name, label], index) => {
+    const y = 720 - index * 40;
+    page.drawText(label, { x: 40, y: y + 14, size: 8, font });
+    form.createTextField(`topmostSubform[0].Page1[0].${name}`).addToPage(page, { x: 40, y, width: 400, height: 12, font });
+  });
+  for (const [name, label, y] of [
+    ["c1_1[0]", "8a LLC Yes", 230],
+    ["c1_1[1]", "8a LLC No", 215],
+    ["c1_3[0]", "Sole proprietor (SSN)", 200],
+    ["c1_3[2]", "Partnership", 185],
+  ] as const) {
+    form.createCheckBox(`topmostSubform[0].Page1[0].${name}`).addToPage(page, { x: 450, y, width: 10, height: 10 });
+    page.drawText(label, { x: 465, y, size: 8, font });
+  }
+  return new Uint8Array(await doc.save());
+}

@@ -2,13 +2,14 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ActorChip } from "@/components/actor-chip";
 import { AddFormPanel, type AddMode } from "@/components/documents/add-form-panel";
-import { DocumentList } from "@/components/documents/document-list";
 import { HowDocumentsAreHandled } from "@/components/documents/how-handled";
 import { formatBytes } from "@/components/documents/labels";
+import { LibraryList } from "@/components/documents/library-list";
 import { LocalDate } from "@/components/local-date";
 import { CARD, EYEBROW, PAGE_TITLE, PRIMARY_LINK, SECONDARY_LINK, SECTION_TITLE } from "@/components/styles";
 import { DOCUMENT_LIMITS, type StoredDocument } from "@/lib/data/documents";
-import { getMyBusiness, getMyPlan, listMyDocuments } from "@/lib/data/my-business";
+import { getMyBusiness, getMyDetails, getMyPlan, listMyDocuments } from "@/lib/data/my-business";
+import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
 import { ACCEPTED_TYPES, MAX_PASTE_CHARS, MAX_UPLOAD_BYTES } from "@/lib/documents/upload";
 import { sectionMetadata } from "@/lib/sections";
 
@@ -25,8 +26,7 @@ export default function DocumentsPage({ searchParams }: { searchParams: SearchPa
         <p className={EYEBROW}>Start your business · Step 5</p>
         <h1 className={PAGE_TITLE}>Documents</h1>
         <p className="text-lg text-muted">
-          Forms you’re working on, with help understanding and filling them in, plus your business plan and the
-          documents First Sale prepared for you.
+          Official forms, your drafted and reviewed answers, receipts and approvals, kept by plan step. Originals are never changed.
         </p>
       </div>
       <Suspense fallback={<p className="text-muted">Loading your documents…</p>}>
@@ -37,10 +37,8 @@ export default function DocumentsPage({ searchParams }: { searchParams: SearchPa
   );
 }
 
-const FORM_ORIGINS = new Set(["upload", "paste", "official_form"]);
-
 async function Library({ searchParams }: { searchParams: SearchParams }) {
-  const [params, business, documents, plan] = await Promise.all([searchParams, getMyBusiness(), listMyDocuments(), getMyPlan()]);
+  const [params, business, documents, plan, details] = await Promise.all([searchParams, getMyBusiness(), listMyDocuments(), getMyPlan(), getMyDetails()]);
 
   if (!business) {
     return (
@@ -54,14 +52,14 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
   }
 
   const steps = (plan?.steps ?? []).map((step) => ({ id: step.id, title: step.title }));
-  const stepTitles = new Map([...(plan?.steps ?? []), ...(plan?.retired ?? [])].map((step) => [step.id, step.title]));
+  const allSteps = [...(plan?.steps ?? []), ...(plan?.retired ?? [])].map((step) => ({ id: step.id, title: step.title }));
   const requestedStep = typeof params.step === "string" ? params.step : null;
   const initialStep = requestedStep && steps.some((step) => step.id === requestedStep) ? requestedStep : null;
   const initialMode: AddMode = params.add === "paste" || params.add === "official" ? params.add : "upload";
 
-  const forms = documents.filter((doc) => FORM_ORIGINS.has(doc.origin));
-  const prepared = documents.filter((doc) => doc.origin === "generated");
-  const businessPlan = prepared.find((doc) => doc.generatedKind === "business_plan") ?? null;
+  const businessPlan = documents.find((doc) => doc.generatedKind === "business_plan") ?? null;
+  const facts = business.profile ? autofillFacts(business.profile, details) : [];
+  const outdated = new Map(documents.map((doc) => [doc.id, outdatedFacts(doc.factsUsed, facts)]));
   const usedBytes = documents.reduce((total, doc) => total + doc.byteSize, 0);
 
   return (
@@ -77,23 +75,9 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
         maxPasteChars={MAX_PASTE_CHARS}
       />
 
-      <DocumentList
-        id="forms-heading"
-        heading="Forms you’re working on"
-        empty="No forms yet. Add one above to get help understanding it and drafting answers."
-        documents={forms}
-        stepTitles={stepTitles}
-      />
+      <LibraryList documents={documents} steps={allSteps} outdated={outdated} />
 
       <BusinessPlanCard plan={businessPlan} />
-
-      <DocumentList
-        id="prepared-heading"
-        heading="Documents First Sale prepared"
-        empty="Nothing yet. Filled copies, answer sheets, your startup plan and your approved business plan appear here."
-        documents={prepared}
-        stepTitles={stepTitles}
-      />
 
       <p className="text-sm text-muted">
         Your library holds up to {DOCUMENT_LIMITS.count} documents and {formatBytes(DOCUMENT_LIMITS.totalBytes)} in all.

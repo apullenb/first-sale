@@ -8,7 +8,7 @@ import type { PlanChange } from "@/lib/rules/plan";
 const KIND = { added: "New step", removed: "No longer in the plan", changed: "Changed" } as const;
 
 // The owner picks which changes from a re-check to take; done steps are never lost
-export function ReviewChanges({ checkedAt, changes }: { checkedAt: string; changes: PlanChange[] }) {
+export function ReviewChanges({ checkedAt, changes, from = "recheck" }: { checkedAt: string; changes: PlanChange[]; from?: "recheck" | "replan" }) {
   const uid = useId();
   // Removing a step deletes it, so removals start unticked
   const [accepted, setAccepted] = useState<Set<string>>(
@@ -34,7 +34,7 @@ export function ReviewChanges({ checkedAt, changes }: { checkedAt: string; chang
   return (
     <section aria-labelledby={`${uid}-title`} className="flex flex-col gap-3 rounded-2xl bg-ai-tint p-5 ring-1 ring-ai/15">
       <h2 id={`${uid}-title`} className="font-display text-xl font-bold text-ai-ink">
-        Your requirements were re-checked. Review the changes.
+        {from === "replan" ? "Your decisions changed. Review the changes to your plan." : "Your requirements were re-checked. Review the changes."}
       </h2>
       <p className="text-ai-ink">Pick the changes to make to your plan. Steps you’ve finished stay finished either way.</p>
       <ul className="flex flex-col gap-2">
@@ -59,7 +59,7 @@ export function ReviewChanges({ checkedAt, changes }: { checkedAt: string; chang
                 <span className="font-semibold">{change.title}</span>
                 {change.kind === "changed" ? <span className="text-sm text-rule">What changed: {change.what.join(", ")}</span> : null}
                 {change.kind === "removed" && change.done ? (
-                  <span className="text-sm text-rule">You finished this one. It stays in your records.</span>
+                  <span className="text-sm text-rule">You’ve submitted or finished this one. It stays in your records, with its notes and documents.</span>
                 ) : null}
                 {change.kind === "removed" && !change.done ? (
                   <span className="text-sm text-rule">

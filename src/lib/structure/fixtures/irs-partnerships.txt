@@ -1,0 +1,66 @@
+A partnership is the relationship between two or more people to do trade or business. Each person contributes money, property, labor or skill, and shares in the profits and losses of the business.
+Publication 541, Partnerships, has information on how to:
+Form a partnership
+Make partnership distributions
+Understand exclusion rules
+End a partnership
+Reporting partnership income
+A partnership must file an annual information return to report the income, deductions, gains, losses, etc., from its operations, but it does not pay income tax. Instead, it "passes through" profits or losses to its partners. Each partner reports their share of the partnership's income or loss on their personal tax return.
+Partners are not employees and shouldn't be issued a Form W-2. The partnership must furnish copies of Schedule K-1 (Form 1065) to the partner. For deadlines, see About Form 1065, U.S. Return of Partnership Income.
+Forms for partnerships
+The partnership, as an entity, may need to file the forms below.
+Annual return of income
+Form 1065, U.S. Return of Partnership Income
+Treasury releases new partnership tax form instructions; agency welcomes
+Employment taxes
+Employment taxes may include Social Security and Medicare taxes and income tax withholding.
+Form 941, Employer's Quarterly Federal Tax Return
+For farm employees: Form 943, Employer's Annual Federal Tax Return for Agricultural Employees
+Federal unemployment (FUTA) tax: Form 940, Employer's Annual Federal Unemployment (FUTA) Tax Return
+Employment taxes: Depositing and reporting employment taxes
+About Form 1099-NEC, Nonemployee Compensation
+Information about Form 1099-NEC, Nonemployee Compensation, including recent updates, related forms, and instructions on how to file.
+Form 1099-NEC PDF
+Instructions for Form 1099-MISC and Form 1099-NEC (print version PDF)
+E-file information returns with IRIS
+E-file Form 1099 with the Information Returns Intake System (IRIS) for tax year 2022 and later.
+Excise taxes
+Refer to excise tax for more information.
+Form 965-A, Individual Report of Net 965 Tax Liability
+Form 8990, Limitation on Business Interest Expense Under Section 163(j)
+Forms for individuals in partnerships
+If you are an individual in a partnership, you may need to file the forms below.
+Income tax
+Form 965-A, Individual Report of Net 965 Tax Liability
+Schedule E (Form 1040), Supplemental Income and Loss
+Form 1040, U.S. Individual Income Tax Return or Form 1040-SR, U.S. Tax Return for Seniors
+Self-employment tax
+Schedule SE (Form 1040), Self-Employment Tax
+Form 1040, U.S. Individual Income Tax Return or Form 1040-SR, U.S. Tax Return for Seniors
+Estimated tax
+Form 1040-ES, Estimated Tax for Individuals
+International tax
+Form 5471, Information Return of U.S. Persons With Respect to Certain Foreign Corporations and related schedules
+Form 8082, Notice of Inconsistent Treatment or Administrative Adjustment Request (AAR)
+Form 8288, U.S. Withholding Tax Return for Dispositions by Foreign Persons of U.S. Real Property Interests
+Form 8865, Return of U.S. Persons With Respect to Certain Foreign Partnerships
+Form 1065, Schedules K-2 and K-3 Filing Requirements
+Partnerships frequently asked questions (FAQs)
+1061 reporting guidance FAQs
+Section 754 election and revocation
+Clarifications for disregarded entity reporting and Section 743(b) reporting
+New limits on partners’ shares of partnership losses
+Substantial built-in loss changes under Internal Revenue Code (IRC) Section 743
+Technical terminations, Internal Revenue Code (IRC) Section 708
+Form 1065, Schedule B, Other information, question 22
+What can be entered in Schedules K-1 and K-3 in place of FOREIGNUS
+Related
+Where to file tax returns: Addresses listed by return type
+Preventing and resolving disputes
+Report of Foreign Bank and Financial Accounts (FBAR)
+Modernized e-file (MeF) for partnerships
+About Publication 583, Starting a Business and Keeping Records
+Business tax transcripts
+Information for married couples
+Married couples in Business
+Married couples may choose not to be a partnership

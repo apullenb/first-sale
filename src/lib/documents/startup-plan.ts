@@ -1,9 +1,13 @@
+import type { TaskStatus } from "@/lib/domain";
+import { STATUS_LABELS } from "@/lib/research/applicability";
 import type { PlanTaskDraft } from "@/lib/rules/plan";
 import { type PdfBlock, writePdf } from "./pdf-writer";
 
 // The startup plan as a printable PDF. Plain code: it only lays out what the plan already says.
 
-type Step = PlanTaskDraft & { status: "todo" | "done" };
+type Step = PlanTaskDraft & { status: TaskStatus };
+
+const PROGRESS: Record<TaskStatus, string> = { todo: "", submitted: " (submitted, waiting to hear back)", done: " (done)" };
 
 export function formatFee(cents: number): string {
   return cents === 0 ? "Free" : `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: cents % 100 ? 2 : 0 })}`;
@@ -15,18 +19,20 @@ function day(iso: string): string {
 
 export async function startupPlanPdf(input: { businessName: string; steps: readonly Step[]; now: Date }): Promise<Uint8Array> {
   const blocks: PdfBlock[] = input.steps.map((step, index) => {
-    const paragraphs = [step.why];
+    const paragraphs = [`${STATUS_LABELS[step.requirementStatus ?? "needs_confirmation"]}${step.timing === "later" ? " · Later, not before your first sale" : ""}`, step.why];
+    for (const condition of step.conditions ?? []) paragraphs.push(`Depends on: ${condition}`);
     if (step.agency) paragraphs.push(`Who handles it: ${step.agency}`);
     if (step.feeCents !== null) paragraphs.push(`Fee: ${formatFee(step.feeCents)}${step.feeCheckedAt ? ` (checked ${day(step.feeCheckedAt)})` : ""}`);
     if (step.deadline) paragraphs.push(`Deadline: ${step.deadline}`);
+    if (step.renewal) paragraphs.push(`Renewal: ${step.renewal.text}${step.renewal.feeCents !== null ? `, ${formatFee(step.renewal.feeCents)}` : ""}`);
     if (step.doneWhen) paragraphs.push(`Done when: ${step.doneWhen}`);
     const bullets = [
       ...step.prepare.map((item) => `Have ready: ${item}`),
       ...step.links.map((link) => `${link.confirms ? "Official source" : "Related official page"}: ${link.url}`),
       ...step.uncertainty.map((note) => `Still to check: ${note}`),
     ];
-    if (step.verification !== "sourced" && step.whoToCall) bullets.push(`Ask ${step.whoToCall}: ${step.whatToAsk.join(" ")}`);
-    return { heading: `${index + 1}. ${step.title}${step.status === "done" ? " (done)" : ""}`, paragraphs, bullets };
+    if (step.verification !== "sourced" && step.whoToCall) bullets.push(`Ask ${step.whoToCall} in writing: ${step.whatToAsk.join(" ")}`);
+    return { heading: `${index + 1}. ${step.title}${PROGRESS[step.status]}`, paragraphs, bullets };
   });
   const practice = input.steps.some((step) => step.simulated)
     ? " Practice mode: built-in rules, not real research, suggested some of these steps."

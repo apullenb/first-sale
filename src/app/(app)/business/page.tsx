@@ -3,11 +3,12 @@ import { Suspense } from "react";
 import { DetailField } from "@/components/business/detail-field";
 import { BusinessHeading } from "@/components/intake/business-heading";
 import { LocalDate } from "@/components/local-date";
+import { History } from "@/components/structure/history";
 import { CARD, EYEBROW, PAGE_TITLE, PRIMARY_LINK, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
-import { getMyBusiness, getMyDetails, getMyPlan } from "@/lib/data/my-business";
-import { DETAIL_KEYS, DETAILS, displayDetail } from "@/lib/details";
+import { getMyBusiness, getMyDetails, getMyIntakeDraft, listMyHistory } from "@/lib/data/my-business";
+import { DECISION_KEYS, DETAIL_KEYS, DETAILS, type DetailSpec, displayDetail } from "@/lib/details";
 import type { BusinessProfile } from "@/lib/domain";
-import { displayName, profileToAnswers, summarize } from "@/lib/intake/answers";
+import { displayName, groupRows, profileToAnswers, sameAnswers, summarize, type SummaryRow } from "@/lib/intake/answers";
 import { sectionMetadata } from "@/lib/sections";
 
 export const metadata = sectionMetadata("/business");
@@ -23,7 +24,13 @@ export default function BusinessPage({ searchParams }: PageProps<"/business">) {
 }
 
 async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/business">["searchParams"] }) {
-  const [{ welcome }, current, details, plan] = await Promise.all([searchParams, getMyBusiness(), getMyDetails(), getMyPlan()]);
+  const [{ welcome }, current, details, draft, history] = await Promise.all([
+    searchParams,
+    getMyBusiness(),
+    getMyDetails(),
+    getMyIntakeDraft(),
+    listMyHistory({ kind: "profile", limit: 10 }),
+  ]);
 
   if (!current) {
     return (
@@ -31,11 +38,15 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
         <p className={EYEBROW}>Start your business · Step 1</p>
         <h1 className={PAGE_TITLE}>Your business</h1>
         <p className="text-lg text-muted">
-          Answer a few questions about your business. Your answers shape your requirements, your structure and your
-          startup plan.
+          Answer a few quick questions, mostly by clicking. Your answers shape your requirements, your structure and your startup plan.
         </p>
+        {draft?.mode === "create" ? (
+          <p className="rounded-xl bg-accent-tint px-4 py-3 text-accent-ink">
+            You’ve started already. Your answers from <LocalDate iso={draft.updatedAt.toISOString()} /> are saved.
+          </p>
+        ) : null}
         <Link href="/business/new" className={PRIMARY_LINK}>
-          Tell us about your business
+          {draft?.mode === "create" ? "Pick up where you left off" : "Tell us about your business"}
         </Link>
       </div>
     );
@@ -43,8 +54,7 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
 
   const welcoming = welcome === "1" && current.profile !== null;
   const saved = new Map(details.map((detail) => [detail.key, detail]));
-  const structure = saved.get("structure_choice");
-  const structureStep = plan?.steps.find((step) => step.topic === "structure");
+  const groups = current.profile ? groupRows(summarize(profileToAnswers(current.profile), { followUps: true })) : null;
 
   return (
     <div className="flex max-w-3xl flex-col gap-8">
@@ -56,24 +66,36 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
 
       {welcoming && current.profile ? <Welcome profile={current.profile} /> : null}
 
-      {current.profile ? (
+      {draft?.mode === "edit" && !(current.profile && sameAnswers(draft.answers, profileToAnswers(current.profile))) ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent-tint px-4 py-3 text-accent-ink">
+          <p>You have answer changes you haven’t confirmed yet.</p>
+          <Link href="/business/edit" className={SECONDARY_LINK}>
+            Review them
+          </Link>
+        </div>
+      ) : null}
+
+      {groups ? (
         <section aria-labelledby="answers-heading" className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 id="answers-heading" className={SECTION_TITLE}>
               Your answers
             </h2>
             <Link href="/business/edit" className={SECONDARY_LINK}>
-              Edit answers
+              Change answers
             </Link>
           </div>
-          <dl className="rounded-2xl bg-surface px-5 ring-1 ring-ink/5">
-            {summarize(profileToAnswers(current.profile), { followUps: true }).map((row) => (
-              <div key={row.label} className="flex flex-wrap gap-x-4 gap-y-1 border-b border-rule-tint py-3 last:border-b-0">
-                <dt className="w-44 font-semibold text-rule">{row.label}</dt>
-                <dd className={`min-w-0 flex-1 basis-60 ${row.value ? "" : "text-muted"}`}>{row.value || "Not answered"}</dd>
-              </div>
-            ))}
-          </dl>
+          <p className="text-rule">You confirmed these. First Sale uses them everywhere, so you won’t be asked again.</p>
+          <Rows rows={groups.confirmed} />
+          {groups.open.length ? (
+            <>
+              <h3 className="mt-2 font-bold">Still open</h3>
+              <p className="text-rule">
+                You said “not sure” or skipped these. We don’t assume an answer: your requirements show what depends on them.
+              </p>
+              <Rows rows={groups.open} open />
+            </>
+          ) : null}
         </section>
       ) : (
         <section className="flex flex-col gap-3 rounded-2xl bg-check-tint p-5">
@@ -88,15 +110,25 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
         <h2 id="decisions-heading" className={SECTION_TITLE}>
           Decisions
         </h2>
-        <div className={`${CARD} flex flex-col gap-2`}>
-          <h3 className="font-bold">{DETAILS.structure_choice.label}</h3>
-          <p className="text-[15px] text-rule">{DETAILS.structure_choice.help}</p>
-          <p className={structure ? "" : "text-muted"}>
-            {structure ? displayDetail("structure_choice", structure.value) : "Not decided yet"}
-          </p>
-          {structure ? <Origin detail={structure} /> : null}
-          <Link href={structureStep ? `/checklist/${structureStep.id}` : "/checklist"} className={`${SECONDARY_LINK} mt-1`}>
-            {structureStep ? "Open the business structure step" : "Open your startup plan"}
+        <div className={`${CARD} flex flex-col gap-3`}>
+          <dl className="flex flex-col gap-3">
+            {DECISION_KEYS.map((key) => {
+              const decision = saved.get(key);
+              return (
+                <div key={key} className="flex flex-col gap-0.5">
+                  <dt className="font-bold">{DETAILS[key].label}</dt>
+                  <dd className={decision ? "" : "text-muted"}>{decision ? displayDetail(key, decision.value) : "Not decided yet"}</dd>
+                  {decision ? (
+                    <dd>
+                      <Origin detail={decision} />
+                    </dd>
+                  ) : null}
+                </div>
+              );
+            })}
+          </dl>
+          <Link href="/structure" className={SECONDARY_LINK}>
+            Compare your options
           </Link>
         </div>
       </section>
@@ -114,7 +146,7 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
           First Sale never stores Social Security or tax id numbers. Forms leave those for you to fill in yourself.
         </p>
         <ul className="rounded-2xl bg-surface px-5 ring-1 ring-ink/5">
-          {DETAIL_KEYS.filter((key) => key !== "structure_choice").map((key) => {
+          {DETAIL_KEYS.filter((key) => !(DETAILS[key] as DetailSpec).decision).map((key) => {
             const detail = saved.get(key);
             return (
               <li key={key} className="border-b border-rule-tint py-4 last:border-b-0">
@@ -124,6 +156,8 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
           })}
         </ul>
       </section>
+
+      <History title="Answer history" events={history} empty="No changes yet." />
 
       <div className="flex flex-wrap gap-2.5">
         {current.profile && !welcoming ? (
@@ -136,6 +170,23 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
         </Link>
       </div>
     </div>
+  );
+}
+
+function Rows({ rows, open = false }: { rows: SummaryRow[]; open?: boolean }) {
+  if (!rows.length) return null;
+  return (
+    <dl className={`rounded-2xl px-5 ring-1 ${open ? "bg-check-tint/50 ring-check/20" : "bg-surface ring-ink/5"}`}>
+      {rows.map((row) => (
+        <div key={row.label} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-rule-tint py-3 last:border-b-0">
+          <dt className="w-44 font-semibold text-rule">{row.label}</dt>
+          <dd className={`flex min-w-0 flex-1 basis-60 flex-wrap items-center gap-2 ${row.value ? "" : "text-muted"}`}>
+            {row.value || "Not answered"}
+            {row.unsure ? <span className="rounded-full bg-check-tint px-2.5 py-0.5 text-[13px] font-bold text-check">Not sure yet</span> : null}
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -160,6 +211,7 @@ function Welcome({ profile }: { profile: BusinessProfile }) {
   const place = summarize(profileToAnswers(profile)).find((row) => row.step === "place")?.value;
   const items = [
     `Find your requirements for ${place} on official government sites`,
+    "Compare business structures, explained for your answers",
     "Get a startup plan with your steps in the right order",
     "Get help understanding and filling in your forms",
   ];

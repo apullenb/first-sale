@@ -2,6 +2,7 @@
 
 import { type ReactNode, useId, useLayoutEffect, useState } from "react";
 import { draftAnswersAction, saveAnswersAction } from "@/app/(app)/documents/actions";
+import { refreshDraftAction } from "@/app/(app)/documents/form-actions";
 import { ActorChip } from "@/components/actor-chip";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import type { FieldKind } from "@/lib/documents/types";
@@ -26,6 +27,8 @@ export interface EditorField {
 interface Props {
   // Drafted in practice mode by word matching
   practice?: boolean;
+  // A checked official form: its blanks are filled by fixed rules, not the AI
+  rules?: boolean;
   documentId: string;
   fields: EditorField[];
   // Changes whenever the saved answers do
@@ -48,7 +51,7 @@ function rowsFrom(fields: EditorField[]): Record<string, Row> {
 
 const LONG_LABEL = /address|describe|description|purpose|explain|activities|nature of/i;
 
-export function AnswersEditor({ documentId, fields, signature, sourceLabels, detailOptions, draftBlocked, practice }: Props) {
+export function AnswersEditor({ documentId, fields, signature, sourceLabels, detailOptions, draftBlocked, practice, rules }: Props) {
   const uid = useId();
   const [rows, setRows] = useState(() => rowsFrom(fields));
   const [seen, setSeen] = useState(signature);
@@ -85,7 +88,7 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
 
   async function draft() {
     if (dirty && !window.confirm("Drafting replaces changes you haven’t saved. Answers you saved or confirmed stay. Continue?")) return;
-    await run("drafting", () => draftAnswersAction(documentId));
+    await run("drafting", () => (rules ? refreshDraftAction(documentId) : draftAnswersAction(documentId)));
   }
 
   async function save() {
@@ -115,11 +118,13 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
     <div className="flex flex-col gap-4">
       <ul className="flex flex-col gap-2 text-sm text-rule">
         <li className="flex items-start gap-2.5">
-          {practice ? <ActorChip actor="rule" /> : <ActorChip actor="ai" />}
+          {practice || rules ? <ActorChip actor="rule" /> : <ActorChip actor="ai" />}
           <span>
-            {practice
-              ? "Practice mode matched blanks to your business details with simple word matching, not AI. Check every one closely."
-              : "AI matched blanks to your business details. It never makes up an answer."}
+            {rules
+              ? "First Sale’s checked rules for this form filled blanks from your business details. Nothing is guessed, and blanks your details don’t answer stay empty."
+              : practice
+                ? "Practice mode matched blanks to your business details with simple word matching, not AI. Check every one closely."
+                : "AI matched blanks to your business details. It never makes up an answer."}
           </span>
         </li>
         <li className="flex items-start gap-2.5">
@@ -132,8 +137,14 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
         <p className="text-sm text-muted">{draftBlocked}</p>
       ) : (
         <div className="flex flex-col items-start gap-2">
-          <button type="button" onClick={draft} disabled={pending} className={AI_BUTTON}>
-            {status === "drafting" ? "Drafting answers…" : drafted ? "Draft answers again" : "Draft answers from my business details"}
+          <button type="button" onClick={draft} disabled={pending} className={rules ? SECONDARY : AI_BUTTON}>
+            {status === "drafting"
+              ? "Drafting answers…"
+              : rules
+                ? "Fill in again from my details"
+                : drafted
+                  ? "Draft answers again"
+                  : "Draft answers from my business details"}
           </button>
         </div>
       )}

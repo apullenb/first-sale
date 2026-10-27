@@ -1,0 +1,18 @@
+A Limited Liability Company (LLC) is a business structure allowed by state statute. Each state may use different regulations, you should check with your state if you are interested in starting a Limited Liability Company.
+Owners of an LLC are called members. Most states do not restrict ownership, so members may include individuals, corporations, other LLCs and foreign entities. There is no maximum number of members. Most states also permit “single-member” LLCs, those having only one owner.
+A few types of businesses generally cannot be LLCs, such as banks and insurance companies. Check your state’s requirements and the federal tax regulations for further information. There are special rules for foreign LLCs.
+Classifications
+Depending on elections made by the LLC and the number of members, the IRS will treat an LLC as either a corporation, partnership, or as part of the LLC’s owner’s tax return (a “disregarded entity”). Specifically, a domestic LLC with at least two members is classified as a partnership for federal income tax purposes unless it files Form 8832 and affirmatively elects to be treated as a corporation. For income tax purposes, an LLC with only one member is treated as an entity disregarded as separate from its owner, unless it files Form 8832 and elects to be treated as a corporation. However, for purposes of employment tax and certain excise taxes, an LLC with only one member is still considered a separate entity.
+Effective date of election
+An LLC that does not want to accept its default federal tax classification, or that wishes to change its classification, uses Form 8832, Entity Classification Election PDF, to elect how it will be classified for federal tax purposes. Generally, an election specifying an LLC’s classification cannot take effect more than 75 days prior to the date the election is filed, nor can it take effect later than 12 months after the date the election is filed. An LLC may be eligible for late election relief in certain circumstances. See About Form 8832, Entity Classification Election for more information.
+Related Topics
+Single member limited liability companies
+LLC filing as a corporation or partnership
+Limited liability company - Possible repercussions
+Where to file tax returns - Addresses listed by return type
+Powers of attorney for LLCs
+Business structures
+Forms & Instructions
+About Form 8832, Entity Classification Election
+Publications
+About Publication 3402, Taxation of Limited Liability Companies

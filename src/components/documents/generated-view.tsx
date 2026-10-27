@@ -14,9 +14,11 @@ interface Props {
   // The form it was made from; null when there isn't one or it was deleted
   from: { id: string; title: string } | null;
   stepTitle: string | null;
+  // Details used in this copy that have changed since it was made
+  outdated?: { label: string; before: string; now: string | null }[];
 }
 
-export function GeneratedView({ doc, from, stepTitle }: Props) {
+export function GeneratedView({ doc, from, stepTitle, outdated = [] }: Props) {
   const kind = doc.generatedKind ? GENERATED_LABELS[doc.generatedKind] : "Prepared document";
   const isPlan = doc.generatedKind === "business_plan";
   const prepared = doc.generatedKind === "filled_form" || doc.generatedKind === "answer_sheet";
@@ -53,6 +55,21 @@ export function GeneratedView({ doc, from, stepTitle }: Props) {
       </div>
 
       {isPlan && doc.draft?.simulated ? <PracticeBanner what="This business plan was drafted in practice mode." /> : null}
+      {outdated.length ? (
+        <section aria-labelledby="outdated-copy" className="flex flex-col gap-1.5 rounded-2xl bg-check-tint p-5 text-check">
+          <h2 id="outdated-copy" className="font-display text-xl font-bold">
+            Made before your details changed
+          </h2>
+          <ul className="flex flex-col gap-0.5">
+            {outdated.map((fact) => (
+              <li key={fact.label}>
+                <span className="font-semibold">{fact.label}:</span> {fact.before || "not set"} → {fact.now ?? "removed"}
+              </li>
+            ))}
+          </ul>
+          <p>Update the answers on the form, then save a new reviewed copy. This one stays as a record.</p>
+        </section>
+      ) : null}
 
       <section aria-label="Open or download" className={`${CARD} flex flex-col gap-3`}>
         {prepared ? (

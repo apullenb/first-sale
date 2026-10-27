@@ -1,0 +1,35 @@
+A sole proprietor is someone who owns an unincorporated business by themselves. If you are the sole member of a domestic limited liability company (LLC) and elect to treat the LLC as a corporation, you are not a sole proprietor.
+Forms you may need to file
+Use this table to help determine some forms you may be required to file as a sole proprietor.
+IF you are liable for:THEN use Form:
+Income tax
+1040, U.S. Individual Income Tax Return
+and Schedule C (Form 1040 or 1040-SR), Profit or Loss from Business
+Self-employment tax
+Schedule SE (Form 1040), Self-Employment Tax
+Estimated tax
+1040-ES, Estimated Tax for Individuals
+Social Security and Medicare taxes and income tax withholding
+941, Employer's Quarterly Federal Tax Return
+943, Employer's Annual Federal Tax Return for Agricultural Employees
+944, Employer's Annual Federal Tax Return
+Providing information on Social Security and Medicare taxes and income tax withholding
+W-2, Wage and Tax Statement (to employee)
+and W-3, Transmittal of Wage and Tax Statements (to the Social Security Administration)
+Federal unemployment (FUTA) tax
+940, Employer's Annual Federal Unemployment (FUTA) Tax Return
+Filing information returns for payments to nonemployees and transactions with other persons
+Find forms in E-file information returns and A guide to information returns
+Excise taxes
+Find forms in Excise tax
+Business Tax Account
+Eligible business taxpayers can view their information online by accessing Business Tax Account.
+E-file information returns with IRIS
+E-file Form 1099 with the Information Returns Intake System (IRIS) for tax year 2022 and later.
+Related
+Self-employed individuals tax center
+Business structures
+Forms for sole proprietorship
+Publications
+About Publication 334, Tax Guide for Small Business (For Individuals Who Use Schedule C)
+About Publication 583, Starting a Business and Keeping Records

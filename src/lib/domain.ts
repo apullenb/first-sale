@@ -33,6 +33,39 @@ export type BusinessStructure = (typeof BUSINESS_STRUCTURES)[number];
 export const REGISTERED_AS = [...BUSINESS_STRUCTURES, "unsure"] as const;
 export const EXPERIENCE_LEVELS = ["first_business", "some", "experienced"] as const;
 export const LAUNCH_TIMINGS = ["within_1_month", "1_3_months", "3_6_months", "later", "unsure"] as const;
+// Picked first in intake; drives which follow-ups are asked
+export const BUSINESS_CATEGORIES = [
+  "baked_goods",
+  "packaged_food",
+  "prepared_food",
+  "woodworking",
+  "crafts",
+  "clothing_boutique",
+  "resale_shop",
+  "personal_care",
+  "home_services",
+  "lessons_care",
+  "creative_services",
+  "other",
+] as const;
+export type BusinessCategory = (typeof BUSINESS_CATEGORIES)[number];
+export const OWNER_RELATIONS = ["spouse", "family", "friends", "unsure"] as const;
+// Registrations already in hand; "none" stands alone
+export const EXISTING_SETUP = ["business_name", "ein", "sales_tax", "local_license", "health_permit", "none", "unsure"] as const;
+// How customers get what they buy
+export const HANDOFF_METHODS = [
+  "in_person_sale",
+  "pickup_home",
+  "pickup_elsewhere",
+  "local_delivery",
+  "ship_in_state",
+  "ship_out_of_state",
+  "unsure",
+] as const;
+export const INVENTORY_SOURCES = ["new_wholesale", "secondhand", "consignment", "own_designs", "unsure"] as const;
+export const SALES_RANGES = ["under_5k", "5k_25k", "25k_100k", "over_100k", "unsure"] as const;
+export const HELP_KINDS = ["employees", "contractors", "family_help", "unsure"] as const;
+export const GOALS = ["test_idea", "side_income", "full_time", "grow"] as const;
 
 const text = (max: number) => z.string().trim().max(max);
 
@@ -45,6 +78,15 @@ const picks = <T extends readonly [string, ...string[]]>(options: T) =>
     .refine((list) => new Set(list).size === list.length, "Each option can be picked once");
 
 const yesNoUnsure = z.enum(YES_NO_UNSURE).nullable().default(null);
+
+// Optional pick-many: empty means not asked or not answered yet, never "none"
+const morePicks = <T extends readonly [string, ...string[]]>(options: T) =>
+  z
+    .array(z.enum(options))
+    .max(options.length)
+    .refine((list) => new Set(list).size === list.length, "Each option can be picked once")
+    .refine((list) => !list.includes("none" as T[number]) || list.length === 1, "“None” can’t be picked with other options")
+    .default([]);
 
 // What intake saves. The state, owners, kinds and channels drive requirements, so they're required.
 // Later questions default to null, so answers saved before they existed still load.
@@ -76,6 +118,27 @@ export const businessProfileSchema = z.object({
   hiringPlans: z.enum(HIRING_PLANS).nullable(),
   experience: z.enum(EXPERIENCE_LEVELS).nullable().default(null),
   launchTiming: z.enum(LAUNCH_TIMINGS).nullable().default(null),
+  // Guided intake: null or [] until answered, so older profiles still load. "unsure" is never read as "no".
+  category: z.enum(BUSINESS_CATEGORIES).nullable().default(null),
+  // Example ids picked from the category (src/lib/intake/catalog.ts)
+  productTags: z.array(z.string().trim().min(1).max(40)).max(24).default([]),
+  // Only with more than one owner
+  ownerRelation: z.enum(OWNER_RELATIONS).nullable().default(null),
+  // Only with one owner
+  mayAddOwners: yesNoUnsure,
+  // Only when a name is given and there's one owner
+  nameIsLegalName: yesNoUnsure,
+  alreadyHave: morePicks(EXISTING_SETUP),
+  handoff: morePicks(HANDOFF_METHODS),
+  makesForKids: yesNoUnsure,
+  foodContact: yesNoUnsure,
+  inventorySources: morePicks(INVENTORY_SOURCES),
+  servicesLicensed: yesNoUnsure,
+  firstYearSales: z.enum(SALES_RANGES).nullable().default(null),
+  // A lease, loan or buying on credit
+  takesOnDebt: yesNoUnsure,
+  helpKinds: morePicks(HELP_KINDS),
+  goals: morePicks(GOALS),
 });
 export type BusinessProfile = z.infer<typeof businessProfileSchema>;
 
@@ -99,7 +162,7 @@ export const requirementDraftSchema = z.object({
   topic: z.enum(PLAN_TOPICS),
   whyItApplies: z.string().max(1000),
   level: z.enum(JURISDICTION_LEVELS),
-  // The office responsible, such as "Ohio Secretary of State"
+  // The office responsible, such as "Texas Secretary of State"
   agency: z.string().max(200),
   sourceIds: z.array(z.string()).max(5),
   // Word for word from a cited page; checked in code
@@ -115,18 +178,30 @@ export const requirementDraftSchema = z.object({
   doneWhen: z.string().max(300),
   // Keys of requirements to finish first
   dependsOn: z.array(z.string().max(60)).max(5),
+  // The model's read; code adds conditions of its own (src/lib/research/applicability.ts)
+  applicability: z.enum(["applies", "conditional", "optional", "outside_coverage"]).default("applies"),
+  // What a conditional requirement depends on, in plain words
+  condition: z.string().max(300).default(""),
+  // Before the first sale, or an obligation that comes later
+  timing: z.enum(["before_selling", "later"]).default("before_selling"),
+  // Structures it applies to; empty means any
+  forStructures: z.array(z.enum(BUSINESS_STRUCTURES)).max(4).default([]),
+  // Kept only if the quote states them, like the fee and deadline
+  renewal: z.string().max(200).nullable().default(null),
+  renewalFeeUsd: z.number().nonnegative().nullable().default(null),
 });
 export type RequirementDraft = z.infer<typeof requirementDraftSchema>;
 
 export const VERIFICATION_STATES = ["sourced", "needs_verification"] as const;
 export type VerificationState = (typeof VERIFICATION_STATES)[number];
 
-export const TASK_STATUSES = ["todo", "done"] as const;
+// Filing progress, kept apart from research and document status: "submitted" waits on the office's answer
+export const TASK_STATUSES = ["todo", "submitted", "done"] as const;
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 export const DOCUMENT_ORIGINS = ["upload", "paste", "official_form", "generated"] as const;
 export type DocumentOrigin = (typeof DOCUMENT_ORIGINS)[number];
-export const GENERATED_KINDS = ["business_plan", "filled_form", "answer_sheet", "startup_plan"] as const;
+export const GENERATED_KINDS = ["business_plan", "filled_form", "answer_sheet", "startup_plan", "website_copy", "answer_guide"] as const;
 export type GeneratedKind = (typeof GENERATED_KINDS)[number];
 export const DRAFT_KINDS = ["listing", "social_post", "order_reply", "role_description"] as const;
 export const DRAFT_STATUSES = ["draft", "approved", "exported"] as const;

@@ -1,5 +1,8 @@
 import { sourcePackSchema, type SourcePack } from "@/lib/research/source-pack";
+import austin from "./austin.json";
 import federal from "./federal.json";
+import texas from "./texas.json";
+import travisCounty from "./travis-county.json";
 
-// State, county and city packs join this list once the demo states are chosen.
-export const SOURCE_PACKS: SourcePack[] = [federal].map((pack) => sourcePackSchema.parse(pack));
+// Texas, Travis County and Austin are the demo place: their official pages are read live. Other places rely on search.
+export const SOURCE_PACKS: SourcePack[] = [federal, texas, travisCounty, austin].map((pack) => sourcePackSchema.parse(pack));

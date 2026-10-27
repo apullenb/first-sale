@@ -50,6 +50,34 @@
       "when": 1793116912502,
       "tag": "0006_plan_step_practice_flag",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793118536012,
+      "tag": "0007_website_plans",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793120328889,
+      "tag": "0008_brand_kit",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793120376561,
+      "tag": "0009_website_options",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793124822866,
+      "tag": "0010_intake_requirements",
+      "breakpoints": true
     }
   ]
 }

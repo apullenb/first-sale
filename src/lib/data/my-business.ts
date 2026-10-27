@@ -6,7 +6,7 @@ import type { DetailKey } from "@/lib/details";
 import { businessProfileSchema, type BusinessProfile, type TaskStatus } from "@/lib/domain";
 import { profileKey, type ResearchResult } from "@/lib/research/requirements";
 import type { WorkflowId } from "@/lib/workflows";
-import { createBusinessForOwner, getBusinessForOwner, updateBusinessProfileForOwner } from "./businesses";
+import { getBusinessForOwner } from "./businesses";
 import { deleteDetailForOwner, getDetailsForOwner, saveDetailsForOwner } from "./details";
 import {
   createDocumentForOwner,
@@ -18,9 +18,33 @@ import {
   type NewDocument,
   updateDocumentForOwner,
 } from "./documents";
-import { getPlanForOwner, getStepForOwner, reviewPlanForOwner, setStepStatusForOwner } from "./plan";
+import { getPlanForOwner, getStepForOwner, replanForOwner, reviewPlanForOwner, setStepStatusForOwner } from "./plan";
 import { getResearchForOwner, type ResearchSnapshot, saveResearchForOwner } from "./research";
+import { getWebsitePlanForOwner, saveWebsitePlanForOwner, updateWebsitePlanForOwner, type WebsitePatch, type WebsitePlan } from "./website";
 import { finishRun, lastRunForOwner, startRunForOwner } from "./workflow-runs";
+import type { NewBrandAsset } from "@/lib/brand/generate";
+import type { AssetCheck, BrandBrief, BrandImageKind, BrandKit, VersionKind } from "@/lib/brand/types";
+import {
+  addAssetForOwner,
+  approveVersionsForOwner,
+  assetRoomForOwner,
+  chooseLogoForOwner,
+  clearIdeasForOwner,
+  createRoundForOwner,
+  findAssetByRequestForOwner,
+  findRoundByRequestForOwner,
+  getAssetFileForOwner,
+  getAssetForOwner,
+  getBrandForOwner,
+  getBrandKitForOwner,
+  getConceptForOwner,
+  getRoundForOwner,
+  type NewRound,
+  pickImageForOwner,
+  saveBriefForOwner,
+  setAssetCheckForOwner,
+  unpickImageForOwner,
+} from "./brand";
 import type { NewPhotoVersion } from "@/lib/photos/edit";
 import type { PhotoReview } from "@/lib/photos/types";
 import {
@@ -40,6 +64,10 @@ import {
   setPhotoVersionReviewForOwner,
   updatePhotoForOwner,
 } from "./product-photos";
+import type { IntakeDraftInput } from "@/lib/intake/draft-schema";
+import type { DecisionBasis } from "@/lib/structure/types";
+import { createBusinessWithHistoryForOwner, listHistoryForOwner, updateProfileWithHistoryForOwner, type BusinessEvent } from "./business-history";
+import { deleteIntakeDraftForOwner, getIntakeDraftForOwner, saveIntakeDraftForOwner } from "./intake-drafts";
 
 // What pages, actions and route handlers call: the owner always comes from the verified session.
 
@@ -61,17 +89,6 @@ export async function getMyBusiness(): Promise<MyBusiness | null> {
   const user = await getCurrentUser();
   const row = await getBusinessForOwner(getDb(), user.id);
   return row ? checked(row) : null;
-}
-
-// Null when the owner already has a business
-export async function createMyBusiness(input: { profile: BusinessProfile; isDemo?: boolean }) {
-  const user = await getCurrentUser();
-  return createBusinessForOwner(getDb(), user.id, input);
-}
-
-export async function updateMyBusinessProfile(profile: BusinessProfile) {
-  const user = await getCurrentUser();
-  return updateBusinessProfileForOwner(getDb(), user.id, profile);
 }
 
 // The last requirements research, or null if it hasn't run
@@ -237,4 +254,159 @@ export async function approveMyPhotoVersion(versionId: string, approved: boolean
 export async function listMyPhotoLibrary() {
   const user = await getCurrentUser();
   return listPhotoLibraryForOwner(getDb(), user.id);
+}
+
+export async function getMyWebsitePlan() {
+  const user = await getCurrentUser();
+  return getWebsitePlanForOwner(getDb(), user.id);
+}
+
+export async function saveMyWebsitePlan(patch: WebsitePatch) {
+  const user = await getCurrentUser();
+  return saveWebsitePlanForOwner(getDb(), user.id, patch);
+}
+
+export async function updateMyWebsitePlan(update: (plan: WebsitePlan | null) => WebsitePatch | null) {
+  const user = await getCurrentUser();
+  return updateWebsitePlanForOwner(getDb(), user.id, update);
+}
+
+// Branding
+
+export async function getMyBrandState() {
+  const user = await getCurrentUser();
+  return getBrandForOwner(getDb(), user.id);
+}
+
+// The approved brand for other sections, such as the website; null until a logo is chosen
+export async function getMyBrand(): Promise<BrandKit | null> {
+  const user = await getCurrentUser();
+  return getBrandKitForOwner(getDb(), user.id);
+}
+
+export async function saveMyBrandBrief(brief: BrandBrief) {
+  const user = await getCurrentUser();
+  return saveBriefForOwner(getDb(), user.id, brief);
+}
+
+export async function createMyBrandRound(input: NewRound) {
+  const user = await getCurrentUser();
+  return createRoundForOwner(getDb(), user.id, input);
+}
+
+export async function findMyBrandRoundByRequest(requestKey: string) {
+  const user = await getCurrentUser();
+  return findRoundByRequestForOwner(getDb(), user.id, requestKey);
+}
+
+export async function getMyBrandRound(roundId: string) {
+  const user = await getCurrentUser();
+  return getRoundForOwner(getDb(), user.id, roundId);
+}
+
+export async function getMyBrandConcept(conceptId: string) {
+  const user = await getCurrentUser();
+  return getConceptForOwner(getDb(), user.id, conceptId);
+}
+
+export async function findMyBrandAssetByRequest(requestKey: string) {
+  const user = await getCurrentUser();
+  return findAssetByRequestForOwner(getDb(), user.id, requestKey);
+}
+
+export async function myBrandAssetRoom(adding: number) {
+  const user = await getCurrentUser();
+  return assetRoomForOwner(getDb(), user.id, adding);
+}
+
+export async function addMyBrandAsset(input: NewBrandAsset) {
+  const user = await getCurrentUser();
+  return addAssetForOwner(getDb(), user.id, input);
+}
+
+export async function setMyBrandAssetCheck(assetId: string, check: AssetCheck) {
+  const user = await getCurrentUser();
+  return setAssetCheckForOwner(getDb(), user.id, assetId, check);
+}
+
+export async function getMyBrandAsset(assetId: string) {
+  const user = await getCurrentUser();
+  return getAssetForOwner(getDb(), user.id, assetId);
+}
+
+export async function getMyBrandAssetFile(assetId: string) {
+  const user = await getCurrentUser();
+  return getAssetFileForOwner(getDb(), user.id, assetId);
+}
+
+export async function chooseMyLogo(assetId: string) {
+  const user = await getCurrentUser();
+  return chooseLogoForOwner(getDb(), user.id, assetId);
+}
+
+export async function approveMyLogoVersions(ids: Record<VersionKind, string>) {
+  const user = await getCurrentUser();
+  return approveVersionsForOwner(getDb(), user.id, ids);
+}
+
+export async function pickMyBrandImage(assetId: string) {
+  const user = await getCurrentUser();
+  return pickImageForOwner(getDb(), user.id, assetId);
+}
+
+export async function unpickMyBrandImage(kind: BrandImageKind) {
+  const user = await getCurrentUser();
+  return unpickImageForOwner(getDb(), user.id, kind);
+}
+
+export async function clearMyBrandIdeas() {
+  const user = await getCurrentUser();
+  return clearIdeasForOwner(getDb(), user.id);
+}
+
+// Intake progress and history
+
+export async function getMyIntakeDraft() {
+  const user = await getCurrentUser();
+  return getIntakeDraftForOwner(getDb(), user.id);
+}
+
+export async function saveMyIntakeDraft(draft: IntakeDraftInput) {
+  const user = await getCurrentUser();
+  return saveIntakeDraftForOwner(getDb(), user.id, draft);
+}
+
+export async function deleteMyIntakeDraft() {
+  const user = await getCurrentUser();
+  return deleteIntakeDraftForOwner(getDb(), user.id);
+}
+
+// Null when the owner already has a business
+export async function createMyBusinessFromIntake(profile: BusinessProfile) {
+  const user = await getCurrentUser();
+  return createBusinessWithHistoryForOwner(getDb(), user.id, profile);
+}
+
+export async function updateMyProfileWithHistory(profile: BusinessProfile, summary: string[]) {
+  const user = await getCurrentUser();
+  return updateProfileWithHistoryForOwner(getDb(), user.id, profile, summary);
+}
+
+// Owner-confirmed decisions, with what they saw when deciding
+export async function recordMyDecisions(values: { key: DetailKey; value: string }[], basis: DecisionBasis, reconfirm = false) {
+  const user = await getCurrentUser();
+  return saveDetailsForOwner(getDb(), user.id, values, { source: "owner", documentId: null }, new Date(), basis, reconfirm);
+}
+
+export async function listMyHistory(filter: { kind?: BusinessEvent["kind"]; limit?: number } = {}) {
+  const user = await getCurrentUser();
+  return listHistoryForOwner(getDb(), user.id, filter);
+}
+
+// Requirements, plan and documents
+
+// Rebuilds the plan from saved research after an answer or decision changes; changes wait for the owner's review
+export async function replanMyPlan(profile: BusinessProfile, details: readonly { key: string; value: string }[]) {
+  const user = await getCurrentUser();
+  return replanForOwner(getDb(), user.id, profile, details);
 }

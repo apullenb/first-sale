@@ -24,7 +24,8 @@ export interface DocumentField {
 }
 
 export interface DocumentContent {
-  readMethod: "pdf_text" | "pdf_form" | "ai_reading" | "pasted" | "none";
+  // "catalog": an online application's questions, from First Sale's checked list
+  readMethod: "pdf_text" | "pdf_form" | "ai_reading" | "pasted" | "catalog" | "none";
   pages: DocumentPage[];
   fields: DocumentField[];
   // Parts we couldn't read clearly; the owner is asked about each one
@@ -86,6 +87,8 @@ export interface DraftAnswer {
   value: string;
   // "profile.name", "detail.principal_address", "owner", or "" when unanswered
   source: string;
+  // Other facts the answer depends on, such as the business structure that decided it
+  alsoFrom?: string[];
   state: AnswerState;
   // Why a field is left for the owner, such as a signature
   note: string;

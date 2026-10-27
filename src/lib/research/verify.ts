@@ -87,12 +87,17 @@ export function verifyRequirements(
       if (quoted) problems.push("Deadline not found in the quote");
       deadline = null;
     }
+    // Renewals are extra detail: dropped when the quote doesn't show them, without doubting the requirement
+    const renewal = claim.renewal?.trim() && quoted && containsPhrase(quoted, normalize(claim.renewal)) ? claim.renewal.trim() : null;
+    const renewalFeeUsd = renewal && claim.renewalFeeUsd !== null && renewalFeeShown(quoted!, claim.renewalFeeUsd) ? claim.renewalFeeUsd : null;
 
     const sourced = problems.length === 0;
     return {
       ...claim,
       feeUsd,
       deadline,
+      renewal,
+      renewalFeeUsd,
       verification: sourced ? "sourced" : "needs_verification",
       problems,
       confirmedBy: sourced && quotedFrom ? [quotedFrom] : [],
@@ -182,9 +187,40 @@ function mentionsFee(quoted: Quoted, feeUsd: number): boolean {
     feeUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
   ]);
   if (Number.isInteger(feeUsd)) forms.add(String(feeUsd)).add(feeUsd.toLocaleString("en-US"));
-  return [...forms].some((form) =>
-    inQuote(quoted, new RegExp(String.raw`\$\s?${form.replace(/[.,]/g, "\\$&")}${AMOUNT_END}`)),
+  const words = Number.isInteger(feeUsd) ? amountInWords(feeUsd) : null;
+  return (
+    [...forms].some((form) => inQuote(quoted, new RegExp(String.raw`\$\s?${form.replace(/[.,]/g, "\\$&")}${AMOUNT_END}`))) ||
+    (words !== null && inQuote(quoted, new RegExp(String.raw`${WORDS_BEFORE}${words.replace(/-/g, "[- ]")} dollars?\b${CENTS_AFTER}`)))
   );
+}
+
+// No larger number word just before ("ninety nine" isn't nine), and no "and fifty cents" just after
+const WORDS_BEFORE = String.raw`(?<![a-z-])(?<!(?:hundred|thousand|and|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)[- ])`;
+const CENTS_AFTER = String.raw`(?!\s+and\s+[a-z]+(?:[- ][a-z]+)?\s+cents?\b)`;
+
+// A renewal fee counts only in a sentence that's about renewing or paying yearly, so a one-time fee nearby isn't taken for it
+function renewalFeeShown(quoted: Quoted, feeUsd: number): boolean {
+  return quoted.spans.some(([start, end]) => {
+    const shown = quoted.text.slice(start, end);
+    let at = 0;
+    for (const sentence of shown.split(/(?<=\.)\s+/)) {
+      const from = start + shown.indexOf(sentence, at);
+      at = from - start + sentence.length;
+      if (/renew|annual|each year|every year|per year|a year|yearly/.test(sentence) && mentionsFee({ text: quoted.text, spans: [[from, from + sentence.length]] }, feeUsd)) return true;
+    }
+    return false;
+  });
+}
+
+const ONES = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+const TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+
+// "ninety-nine", as some laws write amounts; whole dollars under 10,000
+export function amountInWords(amount: number): string | null {
+  if (!Number.isInteger(amount) || amount < 1 || amount >= 10_000) return null;
+  const under100 = (n: number) => (n < 20 ? ONES[n] : `${TENS[Math.floor(n / 10)]}${n % 10 ? `-${ONES[n % 10]}` : ""}`);
+  const under1000 = (n: number) => [n >= 100 ? `${ONES[Math.floor(n / 100)]} hundred` : "", n % 100 ? under100(n % 100) : ""].filter(Boolean).join(" ");
+  return [amount >= 1000 ? `${ONES[Math.floor(amount / 1000)]} thousand` : "", amount % 1000 ? under1000(amount % 1000) : ""].filter(Boolean).join(" ");
 }
 
 // Whole words inside one shown stretch, so "30 days" doesn't match "130 days"

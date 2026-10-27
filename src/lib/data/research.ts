@@ -73,6 +73,11 @@ export async function saveResearchForOwner(
       openQuestions: research.openQuestions,
       planProposal: research.plan,
       planReviewedAt: null,
+      proposedAt: research.checkedAt,
+      profile: research.profile,
+      structure: research.structure,
+      coverage: research.coverage,
+      conflicts: research.conflicts,
     };
     await tx
       .insert(researchSnapshots)
@@ -117,6 +122,16 @@ export async function saveResearchForOwner(
           problems: requirement.problems,
           position,
           checkedAt: research.checkedAt,
+          applicability: requirement.applicability,
+          condition: requirement.condition,
+          status: requirement.status,
+          conditions: requirement.conditions,
+          timing: requirement.timing,
+          forStructures: requirement.forStructures,
+          fitsStructure: requirement.fitsStructure,
+          renewal: requirement.renewal,
+          renewalFeeCents: requirement.renewalFeeUsd === null ? null : Math.round(requirement.renewalFeeUsd * 100),
+          alreadyHave: requirement.alreadyHave,
         })),
       );
     }

@@ -1,0 +1,29 @@
+Get federal and state tax ID numbers
+Your state tax ID and federal tax ID numbers — also known as an Employer Identification Number (EIN) — work like a personal social security number, but for your business. They let your small business pay state and federal taxes.
+Your Employer Identification Number (EIN) is your business’s federal tax ID number. You need it to pay federal taxes, hire employees, open a bank account, and apply for business licenses and permits.
+It’s free to apply for an EIN, and you should do it right after you register your business.
+Your business needs a federal tax ID number if it does any of the following:
+Pays employees
+Operates as a corporation or partnership
+Files tax returns for employment, excise, or alcohol, tobacco, and firearms
+Withholds taxes on income, other than wages, paid to a non-resident alien
+Uses a Keogh Plan (a tax-deferred pension plan)
+Works with certain types of organizations
+You can apply and receive an EIN immediately using the IRS assistance tool. It will guide you through questions and ask for your name, social security number or taxpayer ID number, and business structure. If you are a third-party, you will also need signed authorization to apply. Your nine-digit federal tax ID becomes available immediately upon verification. Do not apply for an EIN on websites that charge a fee – the EIN application is free of cost.
+Change or replace your EIN
+If you already have an EIN, you might have to change or replace it with a new one if certain changes have occurred with your business, depending on your business structure and the kind of change that occurred. In general, you need a new EIN when your business’s ownership or structure changes. Check with the IRS to determine exactly whether you need to change or replace your EIN.
+Deactivate your EIN
+An EIN cannot be canceled as it is an assigned, permanent federal ID number. However, if you no longer need your EIN, the IRS can deactivate it if your organization is not exempt, and you have filed all outstanding tax returns and paid any taxes owed. Both SBA and the IRS have guidance on closing or selling your business.
+Receiving an EIN you didn’t request
+Occasionally, someone may request an EIN on your behalf for a legitimate business reason. If you receive a notice for an EIN that isn’t yours, the IRS recommends that:
+You first confirm that it was not a legitimate request on your behalf.
+If you confirm that it was not requested on your behalf, report it using the IRS’s Business Identity Theft Affidavit (PDF).
+If your EIN was stolen, follow the IRS’s steps to report business identity theft.
+The need for a state tax ID number ties directly to whether your business must pay state taxes. Sometimes, you can use state tax ID numbers for other functions, like protection against identity theft for sole proprietors.
+Tax obligations differ at the state and local levels, so you’ll need to check with your state’s websites.
+To know whether you need a state tax ID, research and understand your state’s laws regarding income taxes and employment taxes, the two most common forms of state taxes for small businesses.
+The process to get a state tax ID number is similar to getting a federal tax ID number, but it will vary by state. You’ll have to check with your state government for specific steps.
+State income and employment taxes for businesses
+Seven states have no income tax, and another two only impose tax on income from dividends. States that do tax income will determine figures based on business structure.
+Taxes also vary by state on employment insurance and workers’ compensation insurance. Understand these and other implications in calculating startup costs and choosing a business structure.
+Visit your state’s Department of Revenue website to identify whether you need to get a state tax ID number in order to pay state taxes.

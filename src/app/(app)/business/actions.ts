@@ -5,9 +5,20 @@ import { getDb } from "@/db/client";
 import { getModel } from "@/lib/ai";
 import { getCurrentUser } from "@/lib/auth/server";
 import { takeAiRequest } from "@/lib/data/ai-quota";
-import { createMyBusiness, deleteMyDetail, saveMyDetails, updateMyBusinessProfile } from "@/lib/data/my-business";
-import { detailInputSchema, detailProblem, isDetailKey } from "@/lib/details";
-import { businessProfileSchema } from "@/lib/domain";
+import {
+  createMyBusinessFromIntake,
+  deleteMyDetail,
+  deleteMyIntakeDraft,
+  getMyBusiness,
+  saveMyDetails,
+  saveMyIntakeDraft,
+  updateMyProfileWithHistory,
+} from "@/lib/data/my-business";
+import { detailInputSchema, detailProblem, isDecisionKey, isDetailKey } from "@/lib/details";
+import { businessProfileSchema, US_STATE_CODES } from "@/lib/domain";
+import { intakeDraftSchema } from "@/lib/intake/draft-schema";
+import { changeSummary, profileImpact } from "@/lib/intake/impact";
+import { placeOptions, type PlaceOptions } from "@/lib/intake/places";
 import { DESCRIPTION_MAX_LENGTH, suggestIntakeAnswers } from "@/lib/intake/suggest";
 import type { IntakeSuggestion } from "@/lib/intake/suggestion-schema";
 
@@ -44,26 +55,52 @@ export async function suggestAnswersAction(description: unknown): Promise<Action
 export async function createBusinessAction(profile: unknown): Promise<ActionResult> {
   const parsed = businessProfileSchema.safeParse(profile);
   if (!parsed.success) return { ok: false, message: INVALID_PROFILE };
-  const business = await createMyBusiness({ profile: parsed.data });
+  const business = await createMyBusinessFromIntake(parsed.data);
   if (!business) return { ok: false, message: "You already have a business. Edit its answers from Your business." };
   refresh();
   return { ok: true, value: null };
 }
 
+// The owner confirmed these changes after seeing what they affect; the history records each one
 export async function updateBusinessAction(profile: unknown): Promise<ActionResult> {
   const parsed = businessProfileSchema.safeParse(profile);
   if (!parsed.success) return { ok: false, message: INVALID_PROFILE };
-
-  const updated = await updateMyBusinessProfile(parsed.data);
+  const current = await getMyBusiness();
+  if (!current) return { ok: false, message: NO_BUSINESS };
+  const summary = current.profile
+    ? changeSummary(profileImpact(current.profile, parsed.data, { researchCheckedAt: null, planSteps: 0, structureDecision: null, documents: [] }))
+    : ["Answered the intake questions again"];
+  const updated = await updateMyProfileWithHistory(parsed.data, summary);
   if (!updated) return { ok: false, message: NO_BUSINESS };
   refresh();
   return { ok: true, value: null };
 }
 
+// Autosave while answering; false when the draft no longer fits, such as after saving in another tab
+export async function saveIntakeDraftAction(input: unknown): Promise<ActionResult<{ saved: boolean }>> {
+  const parsed = intakeDraftSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Your progress couldn’t be saved. Keep going; we’ll try again." };
+  return { ok: true, value: { saved: await saveMyIntakeDraft(parsed.data) } };
+}
+
+export async function discardIntakeDraftAction(): Promise<ActionResult> {
+  await deleteMyIntakeDraft();
+  refresh();
+  return { ok: true, value: null };
+}
+
+export async function placeOptionsAction(state: unknown): Promise<ActionResult<PlaceOptions>> {
+  await getCurrentUser();
+  if (typeof state !== "string" || !(US_STATE_CODES as readonly string[]).includes(state)) return { ok: false, message: "Choose a state first." };
+  return { ok: true, value: placeOptions(state as (typeof US_STATE_CODES)[number]) };
+}
+
 // The owner typed or picked this themselves, so it's saved as theirs
 export async function saveDetailAction(input: unknown): Promise<ActionResult> {
   const parsed = detailInputSchema.safeParse(input);
-  if (!parsed.success || !isDetailKey(parsed.data.key)) return { ok: false, message: "That detail can’t be saved. Reload the page and try again." };
+  if (!parsed.success || !isDetailKey(parsed.data.key) || isDecisionKey(parsed.data.key)) {
+    return { ok: false, message: "That detail can’t be saved. Reload the page and try again." };
+  }
   const problem = detailProblem(parsed.data.key, parsed.data.value);
   if (problem) return { ok: false, message: problem };
   if (!(await saveMyDetails([{ key: parsed.data.key, value: parsed.data.value }]))) return { ok: false, message: NO_BUSINESS };
@@ -72,7 +109,7 @@ export async function saveDetailAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteDetailAction(key: unknown): Promise<ActionResult> {
-  if (typeof key !== "string" || !isDetailKey(key)) return { ok: false, message: "That detail wasn’t found." };
+  if (typeof key !== "string" || !isDetailKey(key) || isDecisionKey(key)) return { ok: false, message: "That detail wasn’t found." };
   if (!(await deleteMyDetail(key))) return { ok: false, message: NO_BUSINESS };
   refresh();
   return { ok: true, value: null };

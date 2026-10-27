@@ -1,0 +1,13 @@
+{
+  "jurisdiction": { "level": "county", "state": "TX", "name": "Travis" },
+  "allowedHosts": ["traviscountytx.gov"],
+  "sources": [
+    {
+      "id": "tx-travis-dba",
+      "title": "Travis County Clerk: Assumed names (DBAs)",
+      "url": "https://countyclerk.traviscountytx.gov/departments/recording/dbas/",
+      "topics": ["name_registration"],
+      "lastChecked": "2026-10-27"
+    }
+  ]
+}

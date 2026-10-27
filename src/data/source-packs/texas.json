@@ -1,0 +1,55 @@
+{
+  "jurisdiction": { "level": "state", "state": "TX", "name": "Texas" },
+  "allowedHosts": ["sos.texas.gov", "comptroller.texas.gov", "dshs.texas.gov"],
+  "sources": [
+    {
+      "id": "tx-sos-205",
+      "title": "Texas Secretary of State: Form 205, Certificate of Formation (LLC)",
+      "url": "https://www.sos.texas.gov/corp/forms/205_boc.pdf",
+      "topics": ["business_structure"],
+      "lastChecked": "2026-10-27"
+    },
+    {
+      "id": "tx-sos-503",
+      "title": "Texas Secretary of State: Form 503, Assumed Name Certificate",
+      "url": "https://www.sos.texas.gov/corp/forms/503_boc.pdf",
+      "topics": ["name_registration"],
+      "lastChecked": "2026-10-27"
+    },
+    {
+      "id": "tx-cpa-permit-faq",
+      "title": "Texas Comptroller: Obtaining a sales tax permit",
+      "url": "https://comptroller.texas.gov/taxes/sales/faq/permit.php",
+      "topics": ["tax_registration"],
+      "lastChecked": "2026-10-27"
+    },
+    {
+      "id": "tx-cpa-permit",
+      "title": "Texas Comptroller: Sales tax permit application",
+      "url": "https://comptroller.texas.gov/taxes/permit/",
+      "topics": ["tax_registration"],
+      "lastChecked": "2026-10-27"
+    },
+    {
+      "id": "tx-cpa-franchise",
+      "title": "Texas Comptroller: Franchise tax",
+      "url": "https://comptroller.texas.gov/taxes/franchise/",
+      "topics": ["tax_registration"],
+      "lastChecked": "2026-10-27"
+    },
+    {
+      "id": "tx-cpa-bakery",
+      "title": "Texas Comptroller: Grocery and convenience stores (bakery items)",
+      "url": "https://comptroller.texas.gov/taxes/publications/96-280.php",
+      "topics": ["food_safety"],
+      "lastChecked": "2026-10-27"
+    },
+    {
+      "id": "tx-dshs-cottage",
+      "title": "Texas DSHS: Cottage food production",
+      "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+      "topics": ["food_safety"],
+      "lastChecked": "2026-10-27"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
-import type { JurisdictionLevel, PlanTopic, RequirementDraft, TaskStatus, VerificationState } from "@/lib/domain";
+import type { BusinessStructure, JurisdictionLevel, PlanTopic, RequirementDraft, TaskStatus, VerificationState } from "@/lib/domain";
+import type { RequirementStatus } from "@/lib/research/applicability";
 import { orderTasks } from "./checklist";
 
 // Plain code: AI drafts each requirement, these rules turn checked requirements into ordered steps.
@@ -34,9 +35,38 @@ export interface PlanTaskDraft {
   prerequisites: string[];
   // Built from practice-mode results; missing on plans saved before this was tracked
   simulated?: boolean;
+  // Whether and how it applies, kept apart from whether a page confirms it (verification)
+  requirementStatus: RequirementStatus;
+  conditions: string[];
+  timing: "before_selling" | "later";
+  forStructures: BusinessStructure[];
+  renewal: { text: string; feeCents: number | null } | null;
+  // The government whose rule it is, such as "State of Texas"
+  jurisdiction: string;
+  alreadyHave: string | null;
 }
 
-type CheckedRequirement = RequirementDraft & { verification: VerificationState; problems: string[]; confirmedBy?: string[] };
+// The rule-written part of a step, for plans saved before it existed
+export const PLAN_DEFAULTS = {
+  requirementStatus: "needs_confirmation",
+  conditions: [],
+  timing: "before_selling",
+  forStructures: [],
+  renewal: null,
+  jurisdiction: "",
+  alreadyHave: null,
+} satisfies Partial<PlanTaskDraft>;
+
+type CheckedRequirement = RequirementDraft & {
+  verification: VerificationState;
+  problems: string[];
+  confirmedBy?: string[];
+  // From classify(); without it, status follows the source check alone
+  status?: RequirementStatus;
+  conditions?: string[];
+  fitsStructure?: boolean;
+  alreadyHave?: string | null;
+};
 
 export interface ReadSource {
   id: string;
@@ -58,12 +88,18 @@ export function slugKey(text: string): string {
   );
 }
 
+// IRS: "form your entity through the secretary of state before you apply for an EIN"
+const EIN = /\bein\b|employer identification/i;
+const FORMATION = /articles|form(ing)? (an |your )?(llc|corporation|limited liability)|incorporat/i;
+
 // Ordered steps, prerequisites first. Unknown or circular prerequisites are dropped, never guessed.
+// Requirements ruled out by the owner's structure stay in the requirements list but not in the plan.
 export function buildPlan(
-  requirements: readonly CheckedRequirement[],
+  allRequirements: readonly CheckedRequirement[],
   sources: readonly ReadSource[],
   simulated = false,
 ): PlanTaskDraft[] {
+  const requirements = allRequirements.filter((requirement) => requirement.fitsStructure !== false);
   const byId = new Map(sources.map((source) => [source.id, source]));
   const keyFor = new Map<string, string>();
   const used = new Set<string>();
@@ -115,16 +151,32 @@ export function buildPlan(
       doneWhen: requirement.doneWhen,
       prerequisites: [],
       simulated,
+      requirementStatus: requirement.status ?? (sourced ? "verified" : "needs_confirmation"),
+      conditions: requirement.conditions ?? [],
+      timing: requirement.timing,
+      forStructures: requirement.forStructures,
+      renewal: requirement.renewal ? { text: requirement.renewal, feeCents: requirement.renewalFeeUsd === null ? null : Math.round(requirement.renewalFeeUsd * 100) } : null,
+      jurisdiction: [...new Set(cited.filter((source) => source.government).map((source) => source.government))].join(", "),
+      alreadyHave: requirement.alreadyHave ?? null,
     };
   });
 
-  // Keep each prerequisite only if it names another step and doesn't close a loop
+  // Rule-based order the model may have missed, then the model's own; never one that closes a loop
+  // Only once the structure is settled: until then the structure step comes first anyway
+  const formation = drafts.find(
+    (draft) =>
+      draft.forStructures.some((each) => each === "llc" || each === "corporation") &&
+      draft.conditions.length === 0 &&
+      FORMATION.test(`${draft.key} ${draft.title}`),
+  );
+  const link = (draft: PlanTaskDraft, key: string | undefined) => {
+    if (!key || key === draft.key || draft.prerequisites.includes(key)) return;
+    if (!reaches(drafts, key, draft.key)) draft.prerequisites.push(key);
+  };
+  // The rule's edges go in first, so a model edge pointing the other way can't win
+  for (const draft of drafts) if (formation && EIN.test(`${draft.key} ${draft.title}`)) link(draft, formation.key);
   drafts.forEach((draft, index) => {
-    for (const wanted of requirements[index].dependsOn) {
-      const key = keyFor.get(slugKey(wanted));
-      if (!key || key === draft.key || draft.prerequisites.includes(key)) continue;
-      if (!reaches(drafts, key, draft.key)) draft.prerequisites.push(key);
-    }
+    for (const wanted of requirements[index].dependsOn) link(draft, keyFor.get(slugKey(wanted)));
   });
 
   const byKey = new Map(drafts.map((draft) => [draft.key, draft]));
@@ -183,7 +235,8 @@ export function diffPlan(current: readonly CurrentTask[], proposed: readonly Pla
     if (what.length) changes.push({ kind: "changed", key: task.key, title: task.title, what });
   }
   for (const task of live) {
-    if (!next.has(task.key)) changes.push({ kind: "removed", key: task.key, title: task.title, done: task.status === "done" });
+    // Submitted counts as started: it's kept as a record, never deleted
+    if (!next.has(task.key)) changes.push({ kind: "removed", key: task.key, title: task.title, done: task.status !== "todo" });
   }
   return changes;
 }
@@ -198,6 +251,12 @@ function changedParts(before: PlanTaskDraft, after: PlanTaskDraft): string[] {
   if (!same(before.prerequisites, after.prerequisites)) what.push("Steps to finish first");
   if (before.level !== after.level || before.topic !== after.topic) what.push("Which government it comes from");
   if (Boolean(before.simulated) !== Boolean(after.simulated)) what.push(after.simulated ? "Now from practice mode" : "Checked for real, not in practice mode");
+  if ((before.requirementStatus ?? PLAN_DEFAULTS.requirementStatus) !== after.requirementStatus) what.push("Whether it applies to you");
+  if ((before.timing ?? PLAN_DEFAULTS.timing) !== after.timing) what.push("When it’s needed");
+  if ((before.renewal?.feeCents ?? null) !== (after.renewal?.feeCents ?? null) || (before.renewal?.text ?? null) !== (after.renewal?.text ?? null)) {
+    what.push("Renewal");
+  }
+  if (!same(before.forStructures ?? [], after.forStructures)) what.push("Which business structures it’s for");
   return what;
 }
 
@@ -238,7 +297,7 @@ export function applyPlan(
     const removing = changes.has(task.key) && accepted.has(task.key);
     if (!removing) {
       upserts.push({ ...strip(task), id: task.id, position: upserts.length, retired: task.retired });
-    } else if (task.status === "done") {
+    } else if (task.status !== "todo") {
       upserts.push({ ...strip(task), id: task.id, position: upserts.length, retired: true });
     } else {
       deleteIds.push(task.id);

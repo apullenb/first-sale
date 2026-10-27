@@ -61,13 +61,25 @@ export function keywordSuggestions(description: string): IntakeSuggestion {
     else if (has(["sole proprietor"])) registeredAs = "sole_proprietorship";
   }
 
-  let shipsOrders: IntakeSuggestion["shipsOrders"] = null;
-  if (has(["won t ship", "not ship", "don t ship", "no shipping"])) shipsOrders = "no";
-  else if (has([" ship", "mail order", "by mail", "mail them", "mail it"])) shipsOrders = "yes";
+  // First match wins, most specific first
+  const categories: [NonNullable<IntakeSuggestion["category"]>, string[]][] = [
+    ["baked_goods", ["bake", "cake", "cookie", "bread", " pie", "cupcake", "candy", "fudge", "pastr"]],
+    ["packaged_food", ["jam", "jelly", "salsa", "hot sauce", "pickle", "granola", "honey"]],
+    ["prepared_food", ["cater", "meal", "food truck", "tamale", "lunch"]],
+    ["woodworking", ["wood", "cutting board", "furniture", "carpent"]],
+    ["clothing_boutique", ["boutique", "clothing", "clothes", "dress", "apparel"]],
+    ["crafts", ["candle", "pottery", "jewelry", "craft", "soap", " knit", " sew", "quilt", "painting"]],
+    ["resale_shop", ["resell", "resale", "vintage", "antique", "gift shop"]],
+    ["personal_care", ["hair", "nails", "lashes", "massage", "makeup"]],
+    ["home_services", ["cleaning", "repair", "handyman", "lawn", "pet sitting", "dog walking"]],
+    ["lessons_care", ["tutor", "lessons", "childcare", "daycare", "fitness", "coaching"]],
+    ["creative_services", ["photograph", "graphic design", "bookkeeping", "writing"]],
+  ];
+  const category = categories.find(([, words]) => has(words))?.[0] ?? null;
 
   // Longest names first, so "west virginia" isn't read as "virginia"
   const byLength = [...US_STATE_CODES].sort((a, b) => STATE_NAMES[b].length - STATE_NAMES[a].length);
   const state = byLength.find((code) => t.includes(` ${STATE_NAMES[code].toLowerCase()} `)) ?? null;
 
-  return { state, owners, stage, registeredAs, offeringKinds, channels, shipsOrders, premises };
+  return { category, state, owners, stage, registeredAs, offeringKinds, channels, premises };
 }

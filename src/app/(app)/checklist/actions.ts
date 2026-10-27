@@ -30,7 +30,7 @@ export async function reviewPlanAction(input: unknown): Promise<ActionResult> {
 
 const statusSchema = z.object({
   stepId: z.string().max(60),
-  status: z.enum(["todo", "done"]),
+  status: z.enum(["todo", "submitted", "done"]),
   note: z.string().max(500).nullable(),
   // The owner ticked "I finished this myself"
   confirmed: z.boolean(),
@@ -40,7 +40,9 @@ export async function setStepStatusAction(input: unknown): Promise<ActionResult>
   const parsed = statusSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Keep the note under 500 characters." };
   const { stepId, status, confirmed } = parsed.data;
-  if (status === "done" && !confirmed) return { ok: false, message: "Tick the box to confirm you finished this step." };
+  if (status !== "todo" && !confirmed) {
+    return { ok: false, message: status === "submitted" ? "Tick the box to confirm you submitted it yourself." : "Tick the box to confirm you finished this step." };
+  }
   const note = parsed.data.note?.trim() || null;
   if (note && looksLikeIdNumber(note)) {
     return { ok: false, message: "Leave Social Security and tax id numbers out of notes. Keep them somewhere safe instead." };

@@ -124,6 +124,7 @@ describe("discoverOfficialPages", () => {
         allowedHosts: ["ohiosos.gov"],
         government: "State of Ohio",
         discovered: true,
+        categories: ["formation"],
       },
       {
         id: "county-license-1",
@@ -133,6 +134,7 @@ describe("discoverOfficialPages", () => {
         allowedHosts: ["franklincountyohio.gov"],
         government: "Franklin County Data Center",
         discovered: true,
+        categories: ["licenses"],
       },
       {
         id: "city-license-1",
@@ -142,6 +144,7 @@ describe("discoverOfficialPages", () => {
         allowedHosts: ["columbus.gov"],
         government: "City of Columbus",
         discovered: true,
+        categories: ["licenses"],
       },
     ]);
     expect(webSearch).toHaveBeenCalledTimes(searchTopics(columbus).length);
@@ -172,8 +175,8 @@ describe("discoverOfficialPages", () => {
     const { model } = searchingModel({ "state-name": [hit("https://www.ohiosos.gov/a")] });
     const { gaps } = await discoverOfficialPages(model, columbus);
     expect(gaps).toHaveLength(searchTopics(columbus).length - 1);
-    expect(gaps[0]).toEqual({ level: "state", about: "forming an LLC or other business entity in Ohio", failed: false });
-    expect(gaps.at(-1)).toEqual({ level: "city", about: "running a business from home in Columbus", failed: false });
+    expect(gaps[0]).toEqual({ level: "state", category: "formation", about: "forming an LLC or other business entity in Ohio", failed: false });
+    expect(gaps.at(-1)).toEqual({ level: "city", category: "zoning", about: "running a business from home in Columbus", failed: false });
   });
 
   it("marks a topic whose search failed", async () => {
@@ -183,7 +186,7 @@ describe("discoverOfficialPages", () => {
     });
     const { sources, gaps } = await discoverOfficialPages(model, columbus);
     expect(sources.map((source) => source.id)).toEqual(["state-formation-1"]);
-    expect(gaps[0]).toEqual({ level: "state", about: "registering a business name in Ohio", failed: true });
+    expect(gaps[0]).toEqual({ level: "state", category: "formation", about: "registering a business name in Ohio", failed: true });
     expect(gaps.slice(1).every((gap) => !gap.failed)).toBe(true);
   });
 
@@ -195,7 +198,7 @@ describe("discoverOfficialPages", () => {
   it("makes every topic a gap, not a failure, for a model that can't search", async () => {
     const { sources, gaps } = await discoverOfficialPages(createMockProvider(), columbus);
     expect(sources).toEqual([]);
-    expect(gaps).toEqual(searchTopics(columbus).map(({ level, about }) => ({ level, about, failed: false })));
+    expect(gaps).toEqual(searchTopics(columbus).map(({ level, category, about }) => ({ level, category, about, failed: false })));
   });
 
   it("searches without a city when the owner has none", async () => {

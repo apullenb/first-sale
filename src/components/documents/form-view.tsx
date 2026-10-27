@@ -13,6 +13,7 @@ import { PracticeBanner } from "@/components/practice-banner";
 import { CARD, EYEBROW, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
 import type { StoredDocument } from "@/lib/data/documents";
 import { CUT_OFF_MESSAGE, type RunState } from "@/lib/data/workflow-runs";
+import { officialForm } from "@/data/official-forms";
 import type { DocumentGuide } from "@/lib/documents/types";
 import { AnchorNote } from "./anchor-note";
 import { AnswersEditor, type EditorField } from "./answers-editor";
@@ -24,6 +25,8 @@ import { StepLink } from "./step-link";
 
 export interface FormViewProps {
   doc: StoredDocument;
+  // Checks, outdated answers and versions, shown under the title
+  status?: React.ReactNode;
   steps: { id: string; title: string }[];
   runs: { read: RunState | null; explain: RunState | null; draft: RunState | null };
   editorFields: EditorField[];
@@ -47,12 +50,13 @@ export function FormView(props: FormViewProps) {
         <p className={EYEBROW}>Start your business · Step 5</p>
         <DocumentTitle key={doc.title} documentId={doc.id} title={doc.title} />
         <p className="text-rule">
-          {originSentence(doc.origin)} on <LocalDate iso={doc.createdAt.toISOString()} />.
+          {originSentence(doc.origin, doc.role)} on <LocalDate iso={doc.createdAt.toISOString()} />.
           {doc.origin === "official_form" && doc.sourceUrl ? (
             <>
               {" "}
               <a href={doc.sourceUrl} target="_blank" rel="noopener noreferrer" className={TEXT_LINK}>
-                See it on the official website<span className="sr-only"> (opens in a new tab)</span>
+                {doc.role === "answer_guide" ? "Open the official application" : "See it on the official website"}
+                <span className="sr-only"> (opens in a new tab)</span>
               </a>
             </>
           ) : null}
@@ -76,6 +80,7 @@ export function FormView(props: FormViewProps) {
       </div>
 
       {simulated ? <PracticeBanner what="This form was read and explained in practice mode." /> : null}
+      {props.status}
 
       <Reading {...props} />
       {isReadable(doc.content) ? (
@@ -343,6 +348,7 @@ function Answers({ doc, runs, editorFields, answersSignature, sourceLabels, deta
           detailOptions={detailOptions}
           draftBlocked={draftBlocked}
           practice={Object.values(doc.answers).some((answer) => answer.simulated)}
+          rules={Boolean(doc.formKey && (doc.role === "answer_guide" || (doc.verification?.ok && rulesFor(doc.formKey))))}
         />
       ) : (
         <p className="text-rule">
@@ -358,17 +364,17 @@ function Prepared({ doc }: { doc: StoredDocument }) {
   return (
     <section aria-labelledby="prepared-heading" className={`${CARD} flex flex-col gap-4`}>
       <h2 id="prepared-heading" className={SECTION_TITLE}>
-        Make a prepared copy
+        Save your reviewed version
       </h2>
       <p className="text-rule">
-        Prepared copies aren’t filed. You check them, sign them, and file them yourself.
+        It’s saved as a new version next to this one, which stays as it is. Reviewed copies aren’t filed: you check them, sign them, and file them yourself.
         {canFill ? " The filled copy contains only the answers you’ve confirmed." : null}
       </p>
       <div className="flex flex-wrap items-start gap-3">
         {canFill ? (
           <ActionButton
             action={fillCopyAction.bind(null, doc.id)}
-            label="Make a filled copy"
+            label="Save a filled copy"
             pendingLabel="Making the copy…"
             variant="primary"
             openDocument
@@ -376,7 +382,7 @@ function Prepared({ doc }: { doc: StoredDocument }) {
         ) : null}
         <ActionButton
           action={answerSheetAction.bind(null, doc.id)}
-          label="Make an answer sheet"
+          label={doc.role === "answer_guide" ? "Save my answers as a guide" : "Save an answer sheet"}
           pendingLabel="Making the sheet…"
           variant={canFill ? "secondary" : "primary"}
           openDocument
@@ -388,4 +394,9 @@ function Prepared({ doc }: { doc: StoredDocument }) {
       </p>
     </section>
   );
+}
+
+// Forms whose blanks the catalog maps by hand; others are drafted by matching
+function rulesFor(formKey: string): boolean {
+  return (officialForm(formKey)?.fields.length ?? 0) > 0;
 }

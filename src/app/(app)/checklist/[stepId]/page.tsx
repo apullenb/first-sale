@@ -1,18 +1,31 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { type ReactNode, Suspense } from "react";
+import { Suspense } from "react";
 import { ActorChip } from "@/components/actor-chip";
 import { LocalDate } from "@/components/local-date";
+import { ROLE_LABELS, roleOf } from "@/lib/documents/library";
+import { FilingSteps } from "@/components/plan/filing-steps";
+import { type FormDoc, OfficialFormCard } from "@/components/plan/official-form-card";
+import { RecordUpload } from "@/components/plan/record-upload";
 import { StepStateLabel, stepStates } from "@/components/plan/step-state";
 import { StepStatus } from "@/components/plan/step-status";
 import { StructureDecision } from "@/components/plan/structure-decision";
 import { PracticeBanner } from "@/components/practice-banner";
 import { StatusChip } from "@/components/requirements/requirement-card";
+import { RequirementStatusChip } from "@/components/requirements/requirement-status";
+import { WrittenInquiry } from "@/components/requirements/written-inquiry";
 import { CARD, EYEBROW, PAGE_TITLE, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
-import { getMyDetails, getMyStep, listMyDocuments } from "@/lib/data/my-business";
-import { formatFee } from "@/lib/documents/startup-plan";
+import { OFFICIAL_FORMS } from "@/data/official-forms";
+import type { StoredDocument } from "@/lib/data/documents";
+import { getMyBusiness, getMyDetails, getMyStep, listMyDocuments } from "@/lib/data/my-business";
+import { autofillContext, autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
+import { formsFor } from "@/lib/documents/form-catalog";
+import { ACCEPTED_TYPES } from "@/lib/documents/upload";
 import { LEVEL_LABELS, TOPIC_LABELS } from "@/lib/labels";
+import { jurisdictionName, placeOf, structureOf } from "@/lib/research/applicability";
+import { writtenInquiry } from "@/lib/research/inquiry";
+import { filingSteps } from "@/lib/rules/filing";
 import { followingSteps } from "@/lib/rules/plan";
 
 export const metadata: Metadata = { title: "Startup plan step" };
@@ -39,10 +52,10 @@ const LINK_ITEM = "flex min-h-11 w-fit items-center font-semibold underline unde
 
 async function StepDetail({ params }: { params: Params }) {
   const { stepId } = await params;
-  const [found, documents] = await Promise.all([getMyStep(stepId), listMyDocuments()]);
+  const [found, documents, business, details] = await Promise.all([getMyStep(stepId), listMyDocuments(), getMyBusiness(), getMyDetails()]);
   if (!found) notFound();
   const { step, all } = found;
-  const details = step.topic === "structure" ? await getMyDetails() : [];
+  const profile = business?.profile ?? null;
 
   const states = stepStates(all);
   const byKey = new Map(all.map((candidate) => [candidate.key, candidate]));
@@ -50,128 +63,135 @@ async function StepDetail({ params }: { params: Params }) {
   const after = followingSteps(all.filter((candidate) => !candidate.retired), step.key);
   const linked = documents.filter((doc) => doc.taskId === step.id);
   const sourced = step.verification === "sourced";
+  // Undecided owners see every form that fits, each saying who it's for
+  const forms = profile ? formsFor(OFFICIAL_FORMS, step, placeOf(profile), structureOf(profile, details).structure) : [];
+  // The numbered steps follow a form only when one fits; the cards say who each is for
+  const form = forms.length === 1 ? forms[0] : null;
+
+  const place = profile ? placeOf(profile) : null;
+  const decision = profile ? structureOf(profile, details) : null;
+  // A structure chosen since the plan was built can rule this step out before the plan is updated
+  const ruledOut = Boolean(decision?.structure && step.forStructures.length && !step.forStructures.includes(decision.structure));
+  const conditions = step.conditions;
+  const facts = profile ? autofillFacts(profile, details) : [];
+  const forForm = (key: string, role: "original" | "answer_guide"): FormDoc | null => {
+    const doc = documents.find((each) => each.formKey === key && each.role === role);
+    return doc ? { doc, outdated: outdatedFacts(doc.factsUsed, facts) } : null;
+  };
+  const cards = forms.map((each) => {
+    const original = forForm(each.key, "original");
+    const guide = forForm(each.key, "answer_guide");
+    const reviewed = documents.filter((doc) => doc.role === "reviewed" && (doc.familyId === original?.doc.id || doc.familyId === guide?.doc.id));
+    return { form: each, original, guide, reviewed };
+  });
+  const missing =
+    form && profile
+      ? [
+          ...new Set(
+            form.fields.flatMap((rule) => {
+              const filled = rule.answer(autofillContext(profile, details));
+              return "missing" in filled ? [filled.missing.replace(/^(Decide your business structure first)\b.*$/, "$1.")] : [];
+            }),
+          ),
+        ]
+      : [];
+  const filing = step.topic !== "structure";
+  const unresolved = !sourced || conditions.length > 0 || step.requirementStatus !== "verified";
 
   return (
     <>
       <div className="flex flex-col gap-2">
         <p className={EYEBROW}>
           {TOPIC_LABELS[step.topic]} · {LEVEL_LABELS[step.level]}
+          {place ? `: ${jurisdictionName(step.level, place)}` : ""}
         </p>
         <h1 className={PAGE_TITLE}>{step.title}</h1>
         <div className="flex flex-wrap items-center gap-2">
+          <RequirementStatusChip status={step.requirementStatus} />
           <StatusChip sourced={sourced} />
           <StepStateLabel state={states.get(step.key)} />
         </div>
+        {step.timing === "later" ? <p className="text-sm text-muted">This comes later: you don’t need it before your first sale.</p> : null}
       </div>
 
       {step.simulated ? <PracticeBanner what="This step came from practice results." /> : null}
+      {ruledOut ? (
+        <p className="rounded-xl bg-check-tint px-4 py-3 text-check">
+          This step isn’t for the business structure you chose. <Link href="/checklist" className="font-semibold underline underline-offset-4">Update your plan</Link> to see the changes.
+        </p>
+      ) : null}
       {step.retired ? (
         <p className="rounded-xl bg-rule-tint px-4 py-3 text-rule">
-          A later check of your requirements left this step out of your plan. You’d already finished it, so it stays here
-          for your records.
+          A later check of your requirements left this step out of your plan. You’d already finished it, so it stays here for your records.
         </p>
       ) : null}
 
-      {step.why || step.needsProfessional ? (
-        <section aria-labelledby="why-heading" className={`flex flex-col gap-2 ${CARD}`}>
-          <h2 id="why-heading" className={SECTION_TITLE}>
-            Why it may apply to you
-          </h2>
-          {step.why ? <p>{step.why}</p> : null}
-          {step.needsProfessional ? <p className="text-sm text-muted">A lawyer or accountant can help you with this one.</p> : null}
-        </section>
-      ) : null}
-
-      {!sourced || step.uncertainty.length ? (
-        <section aria-labelledby="check-heading" className="flex flex-col gap-2.5 rounded-2xl bg-check-tint/60 p-5 ring-1 ring-check/15">
-          <h2 id="check-heading" className={`${SECTION_TITLE} text-check`}>
-            Still to check
-          </h2>
-          {step.uncertainty.length ? (
-            <ul className="flex list-disc flex-col gap-1 pl-5">
-              {step.uncertainty.map((item, index) => (
-                <li key={index}>{item}</li>
+      <section aria-labelledby="why-heading" className={`flex flex-col gap-2 ${CARD}`}>
+        <h2 id="why-heading" className={SECTION_TITLE}>
+          Why it may apply to you
+        </h2>
+        {step.why ? <p>{step.why}</p> : null}
+        {conditions.length ? (
+          <div className="flex flex-col gap-1 rounded-xl bg-rule-tint/60 px-3.5 py-2.5">
+            <p className="font-semibold">It depends on</p>
+            <ul className="flex list-disc flex-col gap-0.5 pl-5">
+              {conditions.map((condition, index) => (
+                <li key={index}>{condition}</li>
               ))}
             </ul>
-          ) : null}
-          {!sourced && step.whoToCall ? (
-            <p>
-              <span className="font-semibold">Who to call:</span> {step.whoToCall}
-            </p>
-          ) : null}
-          {!sourced && step.whatToAsk.length ? (
-            <>
-              <p className="font-semibold">What to ask</p>
-              <ul className="flex list-disc flex-col gap-1 pl-5">
-                {step.whatToAsk.map((question, index) => (
-                  <li key={index}>{question}</li>
-                ))}
-              </ul>
-            </>
-          ) : null}
-        </section>
-      ) : null}
-
-      <section aria-labelledby="details-heading" className="flex flex-col gap-2.5">
-        <h2 id="details-heading" className={SECTION_TITLE}>
-          The details
-        </h2>
-        <dl className="rounded-2xl bg-surface px-5 ring-1 ring-ink/5">
-          <Row label="Who handles it">{step.agency || step.whoToCall || "We didn’t find which office handles this yet."}</Row>
-          <Row label="Fee">
-            {step.feeCents === null ? (
-              "We didn’t find a fee on an official page. Ask when you call."
-            ) : (
-              <>
-                {formatFee(step.feeCents)}
-                {step.feeCheckedAt ? (
-                  <span className="text-muted">
-                    {" "}
-                    · checked <LocalDate iso={step.feeCheckedAt} />
-                  </span>
-                ) : null}
-              </>
-            )}
-          </Row>
-          <Row label="Deadline">{step.deadline ?? "We didn’t find a deadline on an official page. Ask when you call."}</Row>
-          {step.prepare.length ? (
-            <Row label="Have these ready">
-              <ul className="flex list-disc flex-col gap-1 pl-5">
-                {step.prepare.map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
-              </ul>
-            </Row>
-          ) : null}
-          {step.doneWhen ? <Row label="Done when">{step.doneWhen}</Row> : null}
-        </dl>
-      </section>
-
-      <section aria-labelledby="links-heading" className="flex flex-col gap-2.5">
-        <h2 id="links-heading" className={SECTION_TITLE}>
-          Official links
-        </h2>
-        {step.links.length ? (
-          <ul className="flex flex-col gap-2">
-            {step.links.map((link, index) => (
-              <li key={`${index}-${link.url}`} className="flex flex-col rounded-2xl bg-surface px-4 py-2 ring-1 ring-ink/5 sm:px-5">
-                <a href={link.url} target="_blank" rel="noopener noreferrer" className={`${LINK_ITEM} text-accent-ink`}>
-                  {link.title}
-                  <span className="sr-only"> (opens in a new tab)</span>
-                </a>
-                <p className="flex flex-wrap gap-x-3 gap-y-1 pb-1.5 text-sm">
-                  {link.government ? <span className="text-muted">{link.government}</span> : null}
-                  <span className={`font-semibold ${link.confirms ? "text-accent-ink" : "text-rule"}`}>
-                    {link.confirms ? "Confirms this step" : "Related official page"}
-                  </span>
-                </p>
-              </li>
+          </div>
+        ) : null}
+        {step.alreadyHave ? <p className="rounded-xl bg-accent-tint px-3.5 py-2.5 text-accent-ink">{step.alreadyHave}</p> : null}
+        {step.uncertainty.length ? (
+          <ul className="flex list-disc flex-col gap-1 pl-5 text-[15px] text-rule">
+            {step.uncertainty.map((item, index) => (
+              <li key={index}>{item}</li>
             ))}
           </ul>
-        ) : (
-          <p className="text-muted">We didn’t find an official page for this step yet. That doesn’t mean it doesn’t apply.</p>
-        )}
+        ) : null}
       </section>
+
+      <FilingSteps
+        steps={filingSteps({
+          title: step.title,
+          agency: step.agency,
+          feeCents: step.feeCents,
+          feeCheckedAt: step.feeCheckedAt,
+          deadline: step.deadline,
+          renewal: step.renewal,
+          links: step.links,
+          prepare: step.prepare,
+          doneWhen: step.doneWhen,
+          waitingOn: before.filter((prerequisite) => prerequisite.status !== "done").map((prerequisite) => prerequisite.title),
+          following: after.map((following) => following.title),
+          form,
+          missing,
+        })}
+      />
+
+      {step.retired
+        ? null
+        : cards.map((card) => (
+            <OfficialFormCard key={card.form.key} stepId={step.id} form={card.form} original={card.original} guide={card.guide} reviewed={card.reviewed} />
+          ))}
+      {missing.length ? (
+        <Link href="/business" className={SECONDARY_LINK}>
+          Add missing details to your business
+        </Link>
+      ) : null}
+
+      {unresolved && profile && place ? (
+        <section aria-labelledby="ask-heading" className="flex flex-col gap-2.5 rounded-2xl bg-check-tint/60 p-5 ring-1 ring-check/15">
+          <h2 id="ask-heading" className={`${SECTION_TITLE} text-check`}>
+            Not sure it applies? Ask in writing
+          </h2>
+          <WrittenInquiry
+            inquiry={writtenInquiry({ title: step.title, questions: step.whatToAsk, profile, place })}
+            office={step.whoToCall || step.agency}
+            link={step.links[0] ? { title: step.links[0].title, url: step.links[0].url } : null}
+          />
+        </section>
+      ) : null}
 
       {step.topic === "structure" ? (
         <StructureDecision key={step.id} current={details.find((detail) => detail.key === "structure_choice")?.value ?? null} />
@@ -219,21 +239,19 @@ async function StepDetail({ params }: { params: Params }) {
         <h2 id="documents-heading" className={SECTION_TITLE}>
           Documents for this step
         </h2>
-        {linked.length ? (
-          <ul className="flex flex-col">
-            {linked.map((doc) => (
-              <li key={doc.id}>
-                <Link href={`/documents/${doc.id}`} className={LINK_ITEM}>
-                  {doc.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-muted">No documents are linked to this step yet.</p>
+        {linked.length ? <LinkedDocuments docs={linked} /> : <p className="text-muted">No documents are linked to this step yet.</p>}
+        {step.retired ? null : (
+          <details className="group">
+            <summary className="flex min-h-11 w-fit cursor-pointer items-center font-semibold text-accent-ink underline underline-offset-4">
+              Save a receipt or approval
+            </summary>
+            <div className="mt-2">
+              <RecordUpload stepId={step.id} accept={Object.keys(ACCEPTED_TYPES).join(",")} />
+            </div>
+          </details>
         )}
         <Link href={`/documents?step=${encodeURIComponent(step.id)}`} className={SECONDARY_LINK}>
-          Get help with a form for this step
+          Get help with another form for this step
         </Link>
       </section>
 
@@ -246,11 +264,14 @@ async function StepDetail({ params }: { params: Params }) {
             <ActorChip actor="owner" />
           </div>
           <StepStatus
-            key={step.id}
+            key={`${step.id}-${step.status}`}
             stepId={step.id}
             status={step.status}
             note={step.evidenceNote}
             completedAt={step.completedAt?.toISOString() ?? null}
+            submittedAt={step.submittedAt?.toISOString() ?? null}
+            submissionNote={step.submissionNote}
+            filing={filing}
           />
         </section>
       )}
@@ -258,11 +279,20 @@ async function StepDetail({ params }: { params: Params }) {
   );
 }
 
-function Row({ label, children }: { label: string; children: ReactNode }) {
+function LinkedDocuments({ docs }: { docs: StoredDocument[] }) {
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-1 border-b border-rule-tint py-3 last:border-b-0">
-      <dt className="w-40 font-semibold text-rule">{label}</dt>
-      <dd className="min-w-0 flex-1 basis-60">{children}</dd>
-    </div>
+    <ul className="flex flex-col gap-1">
+      {docs.map((doc) => (
+        <li key={doc.id} className="flex flex-col">
+          <Link href={`/documents/${doc.id}`} className={LINK_ITEM}>
+            {doc.title}
+          </Link>
+          <span className="text-sm text-muted">
+            {ROLE_LABELS[roleOf(doc)]}
+            {doc.version > 1 ? ` · version ${doc.version}` : ""} · <LocalDate iso={doc.createdAt.toISOString()} />
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }

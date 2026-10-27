@@ -8,6 +8,8 @@ export const GENERATED_LABELS: Record<GeneratedKind, string> = {
   filled_form: "Filled copy of a form",
   answer_sheet: "Answer sheet",
   startup_plan: "Startup plan",
+  website_copy: "Website words",
+  answer_guide: "Answer guide",
 };
 
 export const READ_METHOD_LABELS: Record<DocumentContent["readMethod"], string> = {
@@ -15,6 +17,7 @@ export const READ_METHOD_LABELS: Record<DocumentContent["readMethod"], string> =
   pdf_text: "Read from the PDF’s own text",
   ai_reading: "Read by AI from the picture of each page",
   pasted: "From the text you pasted",
+  catalog: "Questions from First Sale’s checked list for this application",
   none: "Not read yet",
 };
 
@@ -31,7 +34,8 @@ export function formKindLabel(origin: DocumentOrigin, mimeType: string): string 
   return `Uploaded ${FILE_KINDS[mimeType] ?? "file"}`;
 }
 
-export function originSentence(origin: DocumentOrigin): string {
+export function originSentence(origin: DocumentOrigin, role: string | null = null): string {
+  if (role === "answer_guide") return "First Sale listed these questions from the official rules for this application";
   if (origin === "paste") return "You pasted this form’s text";
   if (origin === "official_form") return "First Sale fetched this form from an official government website";
   return "You uploaded this form";

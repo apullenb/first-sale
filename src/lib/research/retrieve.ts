@@ -1,5 +1,6 @@
 import type { JurisdictionLevel } from "@/lib/domain";
 import { pdfText } from "@/lib/documents/pdf";
+import type { ResearchCategory } from "./coverage";
 import { MAX_SOURCE_CHARS, pageText } from "./page-text";
 import { isAllowedHost } from "./source-pack";
 import type { RetrievedSource } from "./verify";
@@ -19,6 +20,8 @@ export interface SourceToRead {
   government: string;
   // Found by search rather than listed in a source pack
   discovered: boolean;
+  // What it was read for, for the coverage summary
+  categories?: ResearchCategory[];
 }
 
 export interface RetrievedPage extends RetrievedSource {
@@ -27,6 +30,7 @@ export interface RetrievedPage extends RetrievedSource {
   government: string;
   discovered: boolean;
   text: string;
+  categories?: ResearchCategory[];
 }
 
 export interface UnreadSource {
@@ -34,6 +38,8 @@ export interface UnreadSource {
   title: string;
   url: string;
   reason: string;
+  level?: JurisdictionLevel;
+  categories?: ResearchCategory[];
 }
 
 export type Fetched =
@@ -61,13 +67,13 @@ export async function retrieveSources(
   const unread: UnreadSource[] = [];
   for (const { source, fragment, fetched } of results) {
     if (!fetched.ok) {
-      unread.push({ id: source.id, title: source.title, url: source.url, reason: fetched.reason });
+      unread.push({ id: source.id, title: source.title, url: source.url, reason: fetched.reason, level: source.level, categories: source.categories });
       continue;
     }
     const text = fetched.pdf ? await readPdfSource(fetched.pdf) : pageText(fetched.html, fragment).text;
     if (!text) {
       const reason = text === null ? "The linked section isn’t on the page anymore" : "The page had no readable text";
-      unread.push({ id: source.id, title: source.title, url: source.url, reason });
+      unread.push({ id: source.id, title: source.title, url: source.url, reason, level: source.level, categories: source.categories });
       continue;
     }
     pages.push({
@@ -79,6 +85,7 @@ export async function retrieveSources(
       discovered: source.discovered,
       text,
       retrievedAt: now.toISOString(),
+      categories: source.categories,
     });
   }
   return { pages, unread };

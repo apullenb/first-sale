@@ -2,13 +2,16 @@ import { createHash } from "node:crypto";
 import Link from "next/link";
 import { Suspense } from "react";
 import type { EditorField } from "@/components/documents/answers-editor";
+import { FormStatus } from "@/components/documents/form-status";
 import { FormView } from "@/components/documents/form-view";
 import { GeneratedView } from "@/components/documents/generated-view";
 import { CARD, PRIMARY_LINK } from "@/components/styles";
 import type { StoredDocument } from "@/lib/data/documents";
-import { getMyBusiness, getMyDetails, getMyDocument, getMyPlan, lastMyRun } from "@/lib/data/my-business";
+import { getMyBusiness, getMyDetails, getMyDocument, getMyPlan, lastMyRun, listMyDocuments } from "@/lib/data/my-business";
+import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
+import { ACCEPTED_TYPES } from "@/lib/documents/upload";
 import { DETAIL_KEYS, DETAILS } from "@/lib/details";
-import { factsFor, MAX_QUESTION, mustFillYourself } from "@/lib/documents/companion";
+import { MAX_QUESTION, mustFillYourself } from "@/lib/documents/companion";
 
 export const metadata = { title: "Document" };
 // Explaining, asking and drafting wait on AI calls
@@ -42,28 +45,36 @@ function Missing() {
 }
 
 async function Generated({ doc }: { doc: StoredDocument }) {
-  const [from, plan] = await Promise.all([
+  const [from, plan, business, details] = await Promise.all([
     doc.fromDocumentId && doc.fromDocumentId.length <= 60 ? getMyDocument(doc.fromDocumentId) : null,
     doc.taskId ? getMyPlan() : null,
+    doc.factsUsed ? getMyBusiness() : null,
+    doc.factsUsed ? getMyDetails() : [],
   ]);
   const step = [...(plan?.steps ?? []), ...(plan?.retired ?? [])].find((candidate) => candidate.id === doc.taskId);
-  return <GeneratedView doc={doc} from={from ? { id: from.id, title: from.title } : null} stepTitle={step?.title ?? null} />;
+  const outdated = business?.profile ? outdatedFacts(doc.factsUsed, autofillFacts(business.profile, details)) : [];
+  return <GeneratedView doc={doc} from={from ? { id: from.id, title: from.title } : null} stepTitle={step?.title ?? null} outdated={outdated} />;
 }
 
 // Choice details store set option values, which typed answers wouldn't match
 const SAVABLE_DETAILS = DETAIL_KEYS.filter((key) => DETAILS[key].kind !== "choice").map((key) => ({ key, label: DETAILS[key].label }));
 
 async function Form({ doc }: { doc: StoredDocument }) {
-  const [plan, business, details, read, explain, draft] = await Promise.all([
+  const [plan, business, details, read, explain, draft, library] = await Promise.all([
     getMyPlan(),
     getMyBusiness(),
     getMyDetails(),
     lastMyRun("read_document", doc.id),
     lastMyRun("explain_document", doc.id),
     lastMyRun("draft_answers", doc.id),
+    listMyDocuments(),
   ]);
 
-  const facts = business?.profile ? factsFor(business.profile, details) : [];
+  const facts = business?.profile ? autofillFacts(business.profile, details) : [];
+  const family = doc.familyId ?? doc.id;
+  const versions = library
+    .filter((other) => other.id !== doc.id && (other.id === family || other.familyId === family || other.fromDocumentId === doc.id))
+    .sort((a, b) => b.version - a.version);
   const sourceLabels = Object.fromEntries(facts.map((fact) => [fact.id, fact.label]));
   const editorFields: EditorField[] = doc.content.fields.map((field) => {
     const answer = doc.answers[field.id];
@@ -97,6 +108,7 @@ async function Form({ doc }: { doc: StoredDocument }) {
   return (
     <FormView
       doc={doc}
+      status={<FormStatus doc={doc} outdated={outdatedFacts(doc.factsUsed, facts)} versions={versions} acceptedTypes={Object.keys(ACCEPTED_TYPES).join(",")} />}
       steps={steps}
       runs={{ read, explain, draft }}
       editorFields={editorFields}

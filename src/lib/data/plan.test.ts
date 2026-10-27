@@ -1,16 +1,17 @@
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
 import { checklistTasks, researchSnapshots, users } from "@/db/schema";
-import type { ResearchResult } from "@/lib/research/requirements";
+import type { ResearchedRequirement, ResearchResult } from "@/lib/research/requirements";
 import type { VerifiedRequirement } from "@/lib/research/verify";
 import { buildPlan } from "@/lib/rules/plan";
 import { createTestDb } from "@/test/db";
-import { retrievedPage, seedOwners, verifiedRequirement } from "@/test/fixtures";
+import { researchedRequirement, retrievedPage, seedOwners, testProfile, verifiedRequirement } from "@/test/fixtures";
 import {
   getPlanForOwner,
   getStepForOwner,
   orderSteps,
   type PlanStep,
+  replanForOwner,
   reviewPlanForOwner,
   setStepStatusForOwner,
 } from "./plan";
@@ -19,7 +20,8 @@ import { saveResearchForOwner } from "./research";
 const FIRST = new Date("2026-10-26T15:00:00Z");
 const SECOND = new Date("2026-10-27T15:00:00Z");
 
-function research(requirements: VerifiedRequirement[], checkedAt: Date): ResearchResult {
+function research(verified: VerifiedRequirement[], checkedAt: Date): ResearchResult {
+  const requirements: ResearchedRequirement[] = verified.map((requirement) => researchedRequirement(requirement));
   const pages = [retrievedPage({ retrievedAt: checkedAt.toISOString() })];
   return {
     checkedAt,
@@ -32,6 +34,10 @@ function research(requirements: VerifiedRequirement[], checkedAt: Date): Researc
     assumptions: [],
     openQuestions: [],
     plan: buildPlan(requirements, pages),
+    coverage: [],
+    conflicts: [],
+    profile: testProfile(),
+    structure: null,
   };
 }
 
@@ -205,5 +211,93 @@ describe("orderSteps", () => {
 
   it("falls back to plan order on a loop instead of throwing", () => {
     expect(orderSteps([step("b", 1, ["a"]), step("a", 0, ["b"])]).map((s) => s.key)).toEqual(["a", "b"]);
+  });
+});
+
+describe("filing status", () => {
+  it("records submitting and approval separately, and undoing clears both", async () => {
+    await saveResearchForOwner(db, "owner-a", research(firstPlan, FIRST), "key-1");
+    const id = await stepId("owner-a", "ein");
+    const at = new Date("2026-10-28T10:00:00Z");
+    await setStepStatusForOwner(db, "owner-a", { stepId: id, status: "submitted", note: "Faxed" }, at);
+    let step = (await getStepForOwner(db, "owner-a", id))!.step;
+    expect(step).toMatchObject({ status: "submitted", submissionNote: "Faxed", submittedAt: at, completedAt: null });
+
+    const later = new Date("2026-11-02T10:00:00Z");
+    await setStepStatusForOwner(db, "owner-a", { stepId: id, status: "done", note: "EIN letter came" }, later);
+    step = (await getStepForOwner(db, "owner-a", id))!.step;
+    expect(step).toMatchObject({ status: "done", submittedAt: at, completedAt: later, evidenceNote: "EIN letter came" });
+
+    await setStepStatusForOwner(db, "owner-a", { stepId: id, status: "todo", note: null }, later);
+    step = (await getStepForOwner(db, "owner-a", id))!.step;
+    expect(step).toMatchObject({ status: "todo", submittedAt: null, completedAt: null, submissionNote: "Faxed" });
+  });
+});
+
+describe("replanForOwner", () => {
+  const llc = researchedRequirement({ key: "llc-articles", title: "File articles of organization", topic: "structure", level: "state", forStructures: ["llc"], conditions: ["Only if you set up as an LLC. Decide your business structure first."], status: "conditional" });
+  const owner = testProfile();
+
+  it("rebuilds the plan when the structure decision changes, waiting for review, without searching again", async () => {
+    const result = research(firstPlan, FIRST);
+    const withLlc = { ...result, requirements: [...result.requirements, llc], plan: buildPlan([...result.requirements, llc], result.pages, true) };
+    await saveResearchForOwner(db, "owner-a", withLlc, "key-1");
+    expect((await getPlanForOwner(db, "owner-a"))!.steps.find((step) => step.key === "llc-articles")).toMatchObject({ requirementStatus: "conditional" });
+
+    // A sole proprietor doesn't form an LLC: its step is proposed for removal, not removed
+    expect(await replanForOwner(db, "owner-a", owner, [{ key: "structure_choice", value: "sole_proprietorship" }], SECOND)).toBe("proposed");
+    const plan = (await getPlanForOwner(db, "owner-a"))!;
+    expect(plan.steps.some((step) => step.key === "llc-articles")).toBe(true);
+    expect(plan.proposal?.changes).toEqual([{ kind: "removed", key: "llc-articles", title: "File articles of organization", done: false }]);
+    expect(plan.proposal?.checkedAt).toEqual(SECOND);
+    const [snapshot] = await db.select().from(researchSnapshots);
+    expect(snapshot).toMatchObject({ structure: "sole_proprietorship", checkedAt: FIRST });
+
+    expect(await reviewPlanForOwner(db, "owner-a", { checkedAt: SECOND, acceptedKeys: ["llc-articles"] })).toBe("applied");
+    expect((await getPlanForOwner(db, "owner-a"))!.steps.some((step) => step.key === "llc-articles")).toBe(false);
+  });
+
+  it("settles the condition once the owner picks the structure the step is for", async () => {
+    const result = research(firstPlan, FIRST);
+    await saveResearchForOwner(db, "owner-a", { ...result, requirements: [...result.requirements, llc], plan: buildPlan([...result.requirements, llc], result.pages, true) }, "key-1");
+    expect(await replanForOwner(db, "owner-a", owner, [{ key: "structure_choice", value: "llc" }], SECOND)).toBe("proposed");
+    const change = (await getPlanForOwner(db, "owner-a"))!.proposal?.changes.find((each) => each.key === "llc-articles");
+    expect(change).toMatchObject({ kind: "changed", what: ["Whether it applies to you"] });
+  });
+
+  it("says when there's nothing to plan from", async () => {
+    expect(await replanForOwner(db, "owner-a", owner, [], SECOND)).toBe("no_research");
+    expect(await replanForOwner(db, "nobody", owner, [], SECOND)).toBe("no_business");
+  });
+});
+
+describe("replanForOwner keeps the confirming page", () => {
+  it("credits the page the quote was found on, not just the first one cited", async () => {
+    const pages = [
+      retrievedPage({ id: "sba", url: "https://www.sba.gov/name", title: "SBA", level: "federal", text: "Register your name." }),
+      retrievedPage({ id: "travis", url: "https://countyclerk.traviscountytx.gov/departments/recording/dbas/", title: "Travis County Clerk", level: "county", text: "Filing fee is $23.00 for business name and one owner." }),
+    ];
+    const name = researchedRequirement({
+      key: "assumed-name-county",
+      title: "File an assumed name certificate",
+      topic: "name_registration",
+      level: "county",
+      sourceIds: ["sba", "travis"],
+      verification: "sourced",
+      confirmedBy: ["travis"],
+      status: "verified",
+    });
+    await saveResearchForOwner(
+      db,
+      "owner-a",
+      { ...research([], FIRST), pages, requirements: [name], plan: buildPlan([name], pages, true) },
+      "key-1",
+    );
+    const linksBefore = (await getPlanForOwner(db, "owner-a"))!.steps[0].links;
+    expect(linksBefore.map((link) => [link.title, link.confirms])).toEqual([["SBA", false], ["Travis County Clerk", true]]);
+
+    await replanForOwner(db, "owner-a", testProfile(), [{ key: "structure_choice", value: "llc" }], SECOND);
+    const [snapshot] = await db.select().from(researchSnapshots);
+    expect(snapshot.planProposal?.[0].links.map((link) => [link.title, link.confirms])).toEqual([["SBA", false], ["Travis County Clerk", true]]);
   });
 });

@@ -1,18 +1,25 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { ActionButton } from "@/components/action-button";
 import { ActorChip } from "@/components/actor-chip";
 import { LocalDate } from "@/components/local-date";
 import { PracticeBanner } from "@/components/practice-banner";
 import { CheckRequirementsButton } from "@/components/requirements/check-button";
+import { CoverageList } from "@/components/requirements/coverage-list";
 import { RequirementCard, SourceLinks } from "@/components/requirements/requirement-card";
+import { RequirementStatusChip } from "@/components/requirements/requirement-status";
 import { ResearchRunStatus } from "@/components/requirements/research-run";
+import { WrittenInquiry } from "@/components/requirements/written-inquiry";
 import { CARD, PRIMARY_LINK, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
-import { getMyBusiness, getMyResearch, lastMyRun } from "@/lib/data/my-business";
+import { getMyBusiness, getMyDetails, getMyResearch, lastMyRun } from "@/lib/data/my-business";
 import type { ResearchSnapshot } from "@/lib/data/research";
-import type { BusinessProfile, JurisdictionLevel } from "@/lib/domain";
-import { STATE_NAMES } from "@/lib/intake/options";
+import type { BusinessProfile } from "@/lib/domain";
+import { classify, jurisdictionName, type Place, placeLabel, placeOf, type RequirementStatus, STATUS_HELP, structureOf } from "@/lib/research/applicability";
+import { answerChanges } from "@/lib/research/changes";
+import { writtenInquiry } from "@/lib/research/inquiry";
 import { profileKey } from "@/lib/research/requirements";
 import { sectionMetadata } from "@/lib/sections";
+import { replanAction } from "./actions";
 
 export const metadata = sectionMetadata("/requirements");
 // Re-checking reads several official pages, then waits on a long model call
@@ -25,8 +32,7 @@ export default function RequirementsPage() {
         <p className="text-sm font-semibold text-accent-ink">Start your business · Step 2</p>
         <h1 className="font-display text-4xl font-bold leading-tight tracking-tight">What you need to open</h1>
         <p className="text-lg text-muted">
-          Each requirement links to the official page it came from. If there isn’t one, it says so, and tells you who to
-          call and what to ask.
+          What applies to your business, where it comes from, and what’s still unknown. Nothing here is a guess dressed up as a rule.
         </p>
       </div>
       <Suspense fallback={<p className="text-muted">Loading your requirements…</p>}>
@@ -37,7 +43,7 @@ export default function RequirementsPage() {
 }
 
 async function Requirements() {
-  const [business, research, run] = await Promise.all([getMyBusiness(), getMyResearch(), lastMyRun("research", null)]);
+  const [business, research, run, details] = await Promise.all([getMyBusiness(), getMyResearch(), lastMyRun("research", null), getMyDetails()]);
 
   if (!business?.profile) {
     return (
@@ -53,19 +59,51 @@ async function Requirements() {
       </section>
     );
   }
+  const place = placeOf(business.profile);
   return (
     <>
       <ResearchRunStatus run={run} />
-      {research ? <Results profile={business.profile} research={research} /> : <FirstCheck profile={business.profile} />}
+      <PlaceSummary place={place} />
+      {research ? <Results profile={business.profile} research={research} details={details} place={place} /> : <FirstCheck place={place} />}
     </>
   );
 }
 
-function FirstCheck({ profile }: { profile: BusinessProfile }) {
+function PlaceSummary({ place }: { place: Place }) {
+  const unsure = place.city && place.insideCity === "unknown";
+  return (
+    <section aria-labelledby="place-heading" className={`flex flex-col gap-1.5 ${CARD}`}>
+      <h2 id="place-heading" className="text-xs font-bold uppercase tracking-wider text-muted">
+        Where your rules come from
+      </h2>
+      <p className="font-display text-xl font-bold">{placeLabel(place)}</p>
+      <ul className="flex flex-col gap-1 text-[15px] text-rule">
+        <li>Federal and {place.stateName} rules apply to you.</li>
+        <li>{place.county ? `${place.county} County rules may apply.` : "County: not given yet, so county rules aren’t checked."}</li>
+        <li>
+          {!place.city
+            ? "City: not given yet."
+            : place.insideCity === "yes"
+              ? `You’re inside ${place.city} city limits, so its rules apply.`
+              : place.insideCity === "no"
+                ? `You’re outside ${place.city} city limits. Your township or village may have its own rules.`
+                : `Not confirmed whether you’re inside ${place.city} city limits. A mailing address or ZIP code doesn’t say.`}
+        </li>
+      </ul>
+      {unsure || !place.county ? (
+        <Link href="/business/edit" className={`flex min-h-11 w-fit items-center ${TEXT_LINK}`}>
+          Confirm your place
+        </Link>
+      ) : null}
+    </section>
+  );
+}
+
+function FirstCheck({ place }: { place: Place }) {
   return (
     <section aria-labelledby="first-check" className={`flex flex-col gap-4 ${CARD}`}>
       <h2 id="first-check" className={SECTION_TITLE}>
-        Find what applies to you in {STATE_NAMES[profile.location.state]}
+        Find what applies to you in {place.stateName}
       </h2>
       <HowChecked />
       <CheckRequirementsButton label="Find my requirements" variant="primary" />
@@ -81,107 +119,180 @@ function HowChecked({ research }: { research?: ResearchSnapshot }) {
         <ActorChip actor={research?.simulated ? "rule" : "ai"} />
         <span>
           {research?.simulated
-            ? "Practice rules read official federal (.gov) pages and matched your answers to a fixed list. No AI looked at your business, and state and local sites weren’t searched."
+            ? "Practice rules read official pages and matched your answers to a fixed list. No AI looked at your business, and state and local sites weren’t searched."
             : !research
-            ? "AI looks for official government (.gov) sites for your state, county and city, plus federal guidance, and lists what applies to your business."
-            : research.searched
-              ? "AI searched official government (.gov) sites for your state, county and city, plus federal guidance."
-              : "AI read official government (.gov) pages, including federal guidance. First Sale didn’t search state and local sites this time."}
+              ? "AI looks for official government (.gov) sites for your state, county and city, plus federal guidance, and lists what applies to your business."
+              : research.searched
+                ? "AI searched official government (.gov) sites for your state, county and city, plus federal guidance."
+                : "AI read official government (.gov) pages, including federal guidance. First Sale didn’t search state and local sites this time."}
         </span>
       </li>
       <li className="flex items-start gap-2.5">
         <ActorChip actor="rule" />
         <span>
-          Only sites on the official .gov list count as official, and every quote, fee and deadline{" "}
-          {research ? "was" : "is"} checked against the page. Anything that doesn’t match is marked “Needs verification.”
+          Only sites on the official .gov list count as official, and every quote, fee and deadline {research ? "was" : "is"} checked against the
+          page. Rules then decide whether each one applies to you, from your answers.
         </span>
       </li>
     </ul>
   );
 }
 
-const GROUPS: { label: string; levels: JurisdictionLevel[] }[] = [
-  { label: "Federal", levels: ["federal"] },
-  { label: "State", levels: ["state"] },
-  { label: "County and city", levels: ["county", "city"] },
+const GROUPS: { status: RequirementStatus; heading: string }[] = [
+  { status: "verified", heading: "Applies to you" },
+  { status: "conditional", heading: "Depends on something" },
+  { status: "needs_confirmation", heading: "To confirm" },
+  { status: "optional", heading: "Your choice" },
+  { status: "outside_coverage", heading: "Outside what First Sale checks" },
 ];
 
-function Results({ profile, research }: { profile: BusinessProfile; research: ResearchSnapshot }) {
-  const sourcedCount = research.requirements.filter((r) => r.verification === "sourced").length;
-  const verifyCount = research.requirements.length - sourcedCount;
-  const stateName = STATE_NAMES[profile.location.state];
-  const readLevels = new Set(research.sources.map((source) => source.level));
-  const changed = profileKey(profile) !== research.profileKey;
+const LEVEL_ORDER = { federal: 0, state: 1, county: 2, city: 3 } as const;
+
+function Results({
+  profile,
+  research,
+  details,
+  place,
+}: {
+  profile: BusinessProfile;
+  research: ResearchSnapshot;
+  details: { key: string; value: string }[];
+  place: Place;
+}) {
+  const decision = structureOf(profile, details);
+  // Any change to the answers needs a new search; until then, statuses and places follow the answers that were checked
+  const recheck = profileKey(profile) !== research.profileKey;
+  const basis = recheck && research.profile ? research.profile : profile;
+  const basisPlace = recheck && research.profile ? placeOf(research.profile) : place;
+  const standings = new Map(research.requirements.map((requirement) => [requirement.id, classify(requirement, basis, basisPlace, decision)]));
+  const fitting = research.requirements.filter((requirement) => standings.get(requirement.id)!.fitsStructure);
+  const ruledOut = research.requirements.filter((requirement) => !standings.get(requirement.id)!.fitsStructure);
+  const changes = answerChanges(research.profile, profile, (research.structure as typeof decision.structure) ?? null, decision.structure);
+  // A change no watched answer explains, or a snapshot saved before answers were kept, can only say that something changed
+  const unknownChange = recheck && !changes.some((change) => change.recheck);
   const hasQuestions = research.openQuestions.length > 0;
+  const sourceIds = new Map(research.sources.map((source) => [source.key, source]));
 
   return (
     <>
       {research.simulated ? <PracticeBanner what="These requirements are practice results." /> : null}
 
-      {changed ? (
-        <section className="flex flex-col gap-3 rounded-2xl bg-check-tint p-5">
-          <p className="text-check">Your answers changed since this list was checked. Re-check to bring it up to date.</p>
-          <CheckRequirementsButton label="Re-check sources" variant="primary" />
+      {changes.length || unknownChange ? (
+        <section aria-labelledby="changed-heading" className="flex flex-col gap-3 rounded-2xl bg-check-tint p-5">
+          <h2 id="changed-heading" className={`${SECTION_TITLE} text-check`}>
+            Your answers changed since this check
+          </h2>
+          {changes.length ? (
+            <ul className="flex flex-col gap-1.5">
+              {changes.map((change) => (
+                <li key={change.what} className="flex flex-col">
+                  <span className="font-semibold">
+                    {change.what}
+                    {change.before || change.now ? `: ${change.before || "not given"} → ${change.now || "not given"}` : " changed"}
+                  </span>
+                  <span className="text-sm text-rule">Can change: {change.affects}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Some of your answers changed.</p>
+          )}
+          <p className="text-rule">Nothing in your plan changes until you review it. Steps you’ve finished stay finished.</p>
+          {recheck ? (
+            <CheckRequirementsButton label="Re-check sources" variant="primary" />
+          ) : (
+            <ActionButton action={replanAction} label="Update my plan" pendingLabel="Updating…" variant="primary" doneHref="/checklist" />
+          )}
         </section>
       ) : null}
 
-      <div className="flex flex-wrap gap-2">
-        <span className="rounded-full bg-accent-tint px-3 py-1 text-sm font-semibold text-accent-ink">
-          {sourcedCount} with an official source
-        </span>
-        <span className="rounded-full bg-check-tint px-3 py-1 text-sm font-semibold text-check">
-          {verifyCount} to confirm by phone
-        </span>
-      </div>
-      {research.requirements.length ? (
+      <ul aria-label="How many of each" className="flex flex-wrap gap-2">
+        {GROUPS.map((group) => {
+          const count = fitting.filter((requirement) => standings.get(requirement.id)!.status === group.status).length;
+          return count ? (
+            <li key={group.status}>
+              <a href={`#group-${group.status}`} className="flex min-h-11 items-center gap-1.5">
+                <RequirementStatusChip status={group.status} />
+                <span className="text-sm font-semibold">{count}</span>
+              </a>
+            </li>
+          ) : null;
+        })}
+      </ul>
+      {fitting.length ? (
         <Link href="/checklist" className={PRIMARY_LINK}>
           See your startup plan
         </Link>
       ) : null}
 
       {GROUPS.map((group) => {
-        const items = research.requirements.filter((requirement) => group.levels.includes(requirement.level));
-        const local = group.levels[0] !== "federal";
-        const missing = local && group.levels.every((level) => !readLevels.has(level));
-        if (items.length === 0 && !missing) return null;
-        const headingId = `group-${group.levels[0]}`;
-        const place = group.label === "State" ? stateName : "county or city";
+        const items = fitting
+          .filter((requirement) => standings.get(requirement.id)!.status === group.status)
+          .sort((a, b) => LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level]);
+        if (!items.length) return null;
         return (
-          <section key={group.label} aria-labelledby={headingId} className="flex flex-col gap-2.5">
-            <h2 id={headingId} className="text-[13px] font-bold uppercase tracking-wider text-muted">
-              {group.label === "State" ? stateName : group.label}
-            </h2>
-            {missing ? (
-              <p className="text-sm text-muted">
-                {research.searched ? (
-                  <>
-                    We didn’t find official {place} pages for your business. That doesn’t mean there are no{" "}
-                    {group.label === "State" ? "state" : "local"} rules.{" "}
-                    {hasQuestions ? (
-                      <>
-                        See{" "}
-                        <a href="#still-to-find-out" className={TEXT_LINK}>
-                          “Still to find out”
-                        </a>{" "}
-                        below for what to ask.
-                      </>
-                    ) : (
-                      "Ask the offices named on each requirement."
-                    )}
-                  </>
-                ) : (
-                  <>
-                    We haven’t searched official {place} sites yet{items.length ? ", so these say who to ask" : ""}.
-                  </>
-                )}
-              </p>
-            ) : null}
+          <section key={group.status} id={`group-${group.status}`} aria-labelledby={`heading-${group.status}`} className="flex scroll-mt-4 flex-col gap-2.5">
+            <div className="flex flex-col gap-0.5">
+              <h2 id={`heading-${group.status}`} className={SECTION_TITLE}>
+                {group.heading}
+              </h2>
+              <p className="text-sm text-muted">{STATUS_HELP[group.status]}</p>
+            </div>
             {items.map((requirement) => (
-              <RequirementCard key={requirement.id} requirement={requirement} sources={research.sources} />
+              <RequirementCard
+                key={requirement.id}
+                requirement={requirement}
+                sources={research.sources}
+                standing={standings.get(requirement.id)!}
+                inquiry={writtenInquiry({ title: requirement.title, questions: requirement.whatToAsk, profile, place })}
+                jurisdiction={jurisdictionName(requirement.level, basisPlace)}
+              />
             ))}
           </section>
         );
       })}
+
+      {ruledOut.length ? (
+        <details className={`${CARD} group`}>
+          <summary className="flex min-h-11 cursor-pointer items-center font-semibold">Not for the structure you chose ({ruledOut.length})</summary>
+          <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-rule">
+            {ruledOut.map((requirement) => (
+              <li key={requirement.id}>{requirement.title}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-sm text-muted">If you change your structure, these come back.</p>
+        </details>
+      ) : null}
+
+      {research.conflicts.length ? (
+        <section aria-labelledby="conflicts-heading" className={`flex flex-col gap-3 ${CARD}`}>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h2 id="conflicts-heading" className={SECTION_TITLE}>
+              Where official pages disagree or leave a gap
+            </h2>
+            <ActorChip actor="ai" />
+          </div>
+          <ul className="flex flex-col gap-3">
+            {research.conflicts.map((conflict, index) => (
+              <li key={index} className="flex flex-col gap-1">
+                <p className="font-semibold">{conflict.about}</p>
+                <p className="text-rule">{conflict.explanation}</p>
+                <div className="text-sm">
+                  <SourceLinks sources={conflict.sourceIds.flatMap((key) => sourceIds.get(key) ?? [])} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <section aria-labelledby="coverage-heading" className={`flex flex-col gap-3 ${CARD}`}>
+        <h2 id="coverage-heading" className={SECTION_TITLE}>
+          What we checked
+        </h2>
+        <p className="text-muted">A gap means we couldn’t check, not that there’s no rule.</p>
+        {research.coverage.length ? <CoverageList cells={research.coverage} /> : <p className="text-muted">Re-check to see what each part covered.</p>}
+      </section>
 
       {research.assumptions.length ? (
         <section aria-labelledby="assumed-heading" className={`flex flex-col gap-3 ${CARD}`}>
@@ -204,24 +315,32 @@ function Results({ profile, research }: { profile: BusinessProfile; research: Re
       ) : null}
 
       {hasQuestions ? (
-        <section
-          id="still-to-find-out"
-          aria-labelledby="questions-heading"
-          className="flex scroll-mt-4 flex-col gap-3 rounded-2xl bg-check-tint/60 p-5 ring-1 ring-check/15"
-        >
+        <section id="still-to-find-out" aria-labelledby="questions-heading" className="flex scroll-mt-4 flex-col gap-3 rounded-2xl bg-check-tint/60 p-5 ring-1 ring-check/15">
           <h2 id="questions-heading" className={`${SECTION_TITLE} text-check`}>
             Still to find out
           </h2>
-          <p>First Sale couldn’t settle these. Each one says who can tell you.</p>
+          <p>First Sale couldn’t settle these. Each one says who can tell you, with a message you can send them.</p>
           <ul className="flex flex-col gap-2.5">
             {research.openQuestions.map((item, index) => (
-              <li key={index} className="flex flex-col gap-0.5 rounded-xl bg-surface px-3.5 py-3 ring-1 ring-ink/5">
+              <li key={index} className="flex flex-col gap-1 rounded-xl bg-surface px-3.5 py-3 ring-1 ring-ink/5">
                 <span className="font-semibold">{item.question}</span>
                 {item.whoToCall ? (
                   <span className="text-sm text-rule">
-                    <span className="font-semibold">Who to ask:</span> {item.whoToCall}
+                    <span className="font-semibold">Who can tell you:</span> {item.whoToCall}
                   </span>
                 ) : null}
+                <details className="group">
+                  <summary className="flex min-h-11 w-fit cursor-pointer items-center text-sm font-semibold text-accent-ink underline underline-offset-4">
+                    Ask in writing
+                  </summary>
+                  <div className="mt-1 text-sm">
+                    <WrittenInquiry
+                      inquiry={writtenInquiry({ title: "a question about my business’s requirements", questions: [item.question], profile, place })}
+                      office={item.whoToCall}
+                      link={null}
+                    />
+                  </div>
+                </details>
               </li>
             ))}
           </ul>
@@ -234,8 +353,7 @@ function Results({ profile, research }: { profile: BusinessProfile; research: Re
         </h2>
         <HowChecked research={research} />
         <p className="text-muted">
-          Checked <LocalDate iso={research.checkedAt.toISOString()} /> from {research.sources.length} official{" "}
-          {research.sources.length === 1 ? "page" : "pages"}:
+          Checked <LocalDate iso={research.checkedAt.toISOString()} /> from {research.sources.length} official {research.sources.length === 1 ? "page" : "pages"}:
         </p>
         <div className="text-sm">
           <SourceLinks sources={research.sources} />
@@ -246,13 +364,17 @@ function Results({ profile, research }: { profile: BusinessProfile; research: Re
             <ul className="flex flex-col gap-1">
               {research.unreadSources.map((source) => (
                 <li key={source.key}>
-                  {source.title}: <span className="text-muted">{source.reason}</span>
+                  <a href={source.url} target="_blank" rel="noopener noreferrer" className={TEXT_LINK}>
+                    {source.title}
+                    <span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                  : <span className="text-muted">{source.reason}</span>
                 </li>
               ))}
             </ul>
           </div>
         ) : null}
-        {changed ? null : <CheckRequirementsButton label="Re-check sources" variant="secondary" />}
+        {changes.length || unknownChange ? null : <CheckRequirementsButton label="Re-check sources" variant="secondary" />}
       </section>
     </>
   );

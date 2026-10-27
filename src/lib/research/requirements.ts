@@ -2,10 +2,12 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { SOURCE_PACKS } from "@/data/source-packs";
 import { generateObject, registerMockFixture, type ModelProvider } from "@/lib/ai";
-import { type BusinessProfile, businessProfileSchema, requirementDraftSchema } from "@/lib/domain";
+import { BUSINESS_STRUCTURES, type BusinessProfile, type BusinessStructure, businessProfileSchema, requirementDraftSchema } from "@/lib/domain";
 import { OwnerFacingError } from "@/lib/errors";
 import { STATE_NAMES } from "@/lib/intake/options";
 import { buildPlan, type PlanTaskDraft } from "@/lib/rules/plan";
+import { type Classified, classify, placeOf, structureOf } from "./applicability";
+import { categoriesOfTopics, type CoverageCell, coverageFor } from "./coverage";
 import { discoverOfficialPages, type SearchGap } from "./discover";
 import { mockResearch } from "./mock-research";
 import { governmentFor } from "./official-sites";
@@ -19,7 +21,17 @@ export const researchReplySchema = z.object({
   // Guesses about the owner's situation that change the list, for the owner to correct
   assumptions: z.array(z.string().max(300)).max(8),
   openQuestions: z.array(z.object({ question: z.string().max(300), whoToCall: z.string().max(200) })).max(8),
+  // Where official pages disagree or leave a gap that matters
+  conflicts: z.array(z.object({ about: z.string().max(200), explanation: z.string().max(500), sourceIds: z.array(z.string()).max(4) })).max(5).default([]),
 });
+
+export interface Conflict {
+  about: string;
+  explanation: string;
+  sourceIds: string[];
+}
+
+export type ResearchedRequirement = VerifiedRequirement & Classified;
 
 export interface OpenQuestion {
   question: string;
@@ -34,10 +46,15 @@ export interface ResearchResult {
   searched: boolean;
   pages: RetrievedPage[];
   unread: UnreadSource[];
-  requirements: VerifiedRequirement[];
+  requirements: ResearchedRequirement[];
   assumptions: string[];
   openQuestions: OpenQuestion[];
   plan: PlanTaskDraft[];
+  coverage: CoverageCell[];
+  conflicts: Conflict[];
+  // The answers and structure decision it ran on
+  profile: BusinessProfile;
+  structure: BusinessStructure | null;
 }
 
 export class ResearchError extends OwnerFacingError {}
@@ -55,21 +72,41 @@ List the requirements that apply to this business, most important first:
 - agency: the office responsible, named as the source names it when one does.
 - Also list state, county and city requirements that commonly apply to a business like this one but that no source here covers. Use an empty sourceIds and null evidence for those. Missing sources never mean a requirement doesn't exist.
 - whyItApplies: one or two plain sentences that tie the requirement to this owner's answers. When it depends on something, say what it depends on instead of saying it definitely applies.
+- applicability: "applies" when the sources and the owner's answers show it applies; "conditional" when it depends on something not settled yet, and then condition says what, in plain words; "optional" for a choice the owner may make but doesn't have to; "outside_coverage" for rules about a particular product or activity that these sources don't cover, so the owner knows to look into it.
+- Answers that are null, empty or "unsure" are unknown, never "no". When an unknown answer decides whether a requirement applies, mark it conditional and say which answer decides it.
+- The owner's place comes only from their answers. Never guess a county or city from a ZIP code or a mailing city.
+- forStructures: the business structures it's for, such as ["llc"] for forming an LLC. Empty when it applies to any structure. <decisions> says which structure the owner chose, if any.
+- timing: "before_selling" for what must be done before the first sale, "later" for obligations that come afterward, such as renewals, tax returns or hiring.
+- renewal and renewalFeeUsd: only when the evidence you quote states them. Copy the renewal wording exactly. Otherwise null.
 - gather: the information and documents to have ready, from the sources when they list them.
 - doneWhen: what finishing this step looks like, in plain words. Name a specific document only if a source names it.
 - dependsOn: keys of other requirements that must be finished first, only when this one truly needs them.
-- whoToCall: the kind of office that can confirm it, such as "your county health department". No phone numbers or web addresses.
-- whatToAsk: two to four short questions the owner can ask that office.
+- whoToCall: the kind of office that can confirm it in writing, such as "your county health department". No phone numbers or web addresses. Never make calling an office a step: the owner will write to them.
+- whatToAsk: two to four short questions the owner can send that office in writing.
 - needsProfessional: true when a lawyer or accountant is usually worth consulting.
 - If the owner says they already registered their business, leave out formation steps they've finished but keep the ones that may remain.
 - assumptions: anything you assumed about the owner's situation that changes the list, such as which foods they make. Leave it empty if you assumed nothing.
 - openQuestions: things you couldn't settle that the owner should ask about, with who to ask.
+- conflicts: where cited sources disagree, or where one source leaves something unclear that matters for this owner, with the source ids. Explain it plainly; don't pick a side the sources don't support.
 - Write for someone with no business background. Short sentences, plain words, no legal jargon. Explain any official term the first time you use it.
 - At most 15 requirements.`;
 
+// Food and hiring pages only when they matter, so each check reads what's relevant
+export function relevantSources(pack: SourcePack, profile: BusinessProfile): SourcePack["sources"] {
+  const food = profile.offeringKinds.includes("food");
+  // Unknown counts as maybe: the pages are read, and the model says what it depends on
+  const hiring =
+    profile.hiringPlans !== "not_now" || profile.helpKinds.includes("employees") || profile.helpKinds.includes("unsure");
+  return pack.sources.filter((source) =>
+    source.topics.some((topic) => (topic === "food_safety" ? food : topic === "employment" ? hiring : true)),
+  );
+}
+
 // Federal sources always; state, county and city packs for the owner's place once they exist
 export function packsFor(profile: BusinessProfile, packs: readonly SourcePack[] = SOURCE_PACKS): SourcePack[] {
-  const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+  // Intake may save "Travis County" or just "Travis"
+  const bare = (name: string) => name.trim().toLowerCase().replace(/\s+(county|parish|borough)$/, "");
+  const same = (a: string, b: string) => bare(a) === bare(b);
   const { state, county, city } = profile.location;
   return packs.filter(({ jurisdiction }) => {
     if (jurisdiction.level === "federal") return true;
@@ -80,8 +117,29 @@ export function packsFor(profile: BusinessProfile, packs: readonly SourcePack[] 
   });
 }
 
+// Guided-intake fields; left out while unanswered, so research saved before they existed keeps its key
+const INTAKE_FIELDS = new Set([
+  "category",
+  "productTags",
+  "ownerRelation",
+  "mayAddOwners",
+  "nameIsLegalName",
+  "alreadyHave",
+  "handoff",
+  "makesForKids",
+  "foodContact",
+  "inventorySources",
+  "servicesLicensed",
+  "firstYearSales",
+  "takesOnDebt",
+  "helpKinds",
+  "goals",
+]);
+
 export function profileKey(profile: BusinessProfile): string {
-  return createHash("sha256").update(JSON.stringify(profile)).digest("hex");
+  const unanswered = (value: unknown) => value === null || (Array.isArray(value) && value.length === 0);
+  const kept = Object.fromEntries(Object.entries(profile).filter(([key, value]) => !(INTAKE_FIELDS.has(key) && unanswered(value))));
+  return createHash("sha256").update(JSON.stringify(kept)).digest("hex");
 }
 
 export interface ResearchOptions {
@@ -91,6 +149,8 @@ export interface ResearchOptions {
   // Keys of the current plan, so the same steps keep their keys
   existingKeys?: readonly string[];
   userKey?: string;
+  // Saved business details, for the owner's decisions
+  details?: readonly { key: string; value: string }[];
 }
 
 // Finds official pages, reads them, has the model list requirements, then checks every citation in code
@@ -101,8 +161,10 @@ export async function researchRequirements(
 ): Promise<ResearchResult> {
   const now = options.now ?? new Date();
   const packs = packsFor(profile, options.packs);
+  const decision = structureOf(profile, options.details ?? []);
+  const place = placeOf(profile);
   const listed: SourceToRead[] = packs.flatMap((pack) =>
-    pack.sources.map((source) => ({
+    relevantSources(pack, profile).map((source) => ({
       id: source.id,
       title: source.title,
       url: source.url,
@@ -110,6 +172,7 @@ export async function researchRequirements(
       allowedHosts: pack.allowedHosts,
       government: governmentFor(source.url)?.name ?? "",
       discovered: false,
+      categories: categoriesOfTopics(source.topics),
     })),
   );
 
@@ -131,7 +194,7 @@ export async function researchRequirements(
     userKey: options.userKey,
     messages: [
       { role: "system", content: SYSTEM },
-      { role: "user", content: researchMessage(profile, pages, options.existingKeys ?? []) },
+      { role: "user", content: researchMessage(profile, pages, options.existingKeys ?? [], decision.structure) },
     ],
   });
 
@@ -141,18 +204,30 @@ export async function researchRequirements(
   }
 
   const allowedHosts = [...new Set([...packs.flatMap((pack) => pack.allowedHosts), ...discovery.sources.flatMap((s) => s.allowedHosts)])];
-  const requirements = verifyRequirements(reply.requirements, pages, allowedHosts);
+  const requirements = verifyRequirements(reply.requirements, pages, allowedHosts).map((requirement) => ({
+    ...requirement,
+    ...classify(requirement, profile, place, decision),
+  }));
+  const read = new Set(pages.map((page) => page.id));
+  const searched = Boolean(model.webSearch);
   return {
     checkedAt: now,
     model: model.name,
     simulated: model.simulated,
-    searched: Boolean(model.webSearch),
+    searched,
     pages,
     unread,
     requirements,
     assumptions: reply.assumptions,
-    openQuestions: [...placeQuestions(profile, discovery.gaps, Boolean(model.webSearch)), ...reply.openQuestions],
+    openQuestions: [...placeQuestions(profile, discovery.gaps, searched), ...reply.openQuestions],
     plan: buildPlan(requirements, pages, model.simulated),
+    coverage: coverageFor({ profile, place, searched, gaps: discovery.gaps, pages, unread, requirements }),
+    // Only conflicts about pages that were actually read
+    conflicts: reply.conflicts
+      .map((conflict) => ({ ...conflict, sourceIds: conflict.sourceIds.filter((id) => read.has(id)) }))
+      .filter((conflict) => conflict.sourceIds.length > 0),
+    profile,
+    structure: decision.structure,
   };
 }
 
@@ -187,7 +262,12 @@ export function placeQuestions(profile: BusinessProfile, gaps: readonly SearchGa
   return questions;
 }
 
-export function researchMessage(profile: BusinessProfile, pages: readonly RetrievedPage[], existingKeys: readonly string[] = []): string {
+export function researchMessage(
+  profile: BusinessProfile,
+  pages: readonly RetrievedPage[],
+  existingKeys: readonly string[] = [],
+  structure: BusinessStructure | null = null,
+): string {
   const place = [profile.location.city, profile.location.county, STATE_NAMES[profile.location.state]]
     .map((part) => part.trim())
     .filter(Boolean)
@@ -199,7 +279,8 @@ export function researchMessage(profile: BusinessProfile, pages: readonly Retrie
       `<source id="${attr(page.id)}" level="${page.level}" government="${attr(page.government)}" title="${attr(page.title)}">\n${page.text.replace(/<(\/?)source/gi, "< $1source")}\n</source>`,
   );
   const keys = existingKeys.length ? `\n\n<existing_keys>${existingKeys.map(attr).join(", ")}</existing_keys>` : "";
-  return `<profile>\n${answers}\n</profile>${keys}\n\n${blocks.join("\n\n")}`;
+  const decisions = `\n\n<decisions>${JSON.stringify({ structure: structure ?? "not decided yet" })}</decisions>`;
+  return `<profile>\n${answers}\n</profile>${decisions}${keys}\n\n${blocks.join("\n\n")}`;
 }
 
 function attr(value: string): string {
@@ -211,8 +292,11 @@ registerMockFixture(RESEARCH_SCHEMA_NAME, (request) => {
   const text = typeof last?.content === "string" ? last.content : "";
   const profileJson = text.match(/^<profile>\n([\s\S]*?)\n<\/profile>/)?.[1];
   const profile = businessProfileSchema.parse(JSON.parse(profileJson ?? "null"));
+  const decided = text.match(/<decisions>(.*?)<\/decisions>/)?.[1];
+  const chosen = decided ? (JSON.parse(decided) as { structure: string }).structure : null;
+  const structure = (BUSINESS_STRUCTURES as readonly string[]).includes(chosen ?? "") ? (chosen as BusinessStructure) : null;
   const sources = new Map(
     [...text.matchAll(/<source id="([^"]+)"[^>]*>\n([\s\S]*?)\n<\/source>/g)].map((match) => [match[1], match[2]]),
   );
-  return JSON.stringify({ requirements: mockResearch(profile, sources), assumptions: [], openQuestions: [] });
+  return JSON.stringify({ requirements: mockResearch(profile, sources, structure), assumptions: [], openQuestions: [], conflicts: [] });
 });

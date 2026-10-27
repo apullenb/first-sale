@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RequirementStatusChip } from "@/components/requirements/requirement-status";
 import type { PlanStep } from "@/lib/data/plan";
 import { formatFee } from "@/lib/documents/startup-plan";
 import { TOPIC_LABELS } from "@/lib/labels";
@@ -20,8 +21,8 @@ export function PlanProgress({ done, total }: { done: number; total: number }) {
   );
 }
 
-// The first step whose earlier steps are all done
-export function NextStep({ step }: { step: PlanStep }) {
+// The one thing to do next: ready now, needed before selling
+export function NextStep({ step, parallel = 0 }: { step: PlanStep; parallel?: number }) {
   const facts = [TOPIC_LABELS[step.topic], step.agency, step.feeCents === null ? null : `Fee: ${formatFee(step.feeCents)}`].filter(Boolean);
   return (
     <section aria-labelledby="next-step-heading" className="flex flex-col gap-1.5 rounded-2xl bg-accent-tint p-5">
@@ -34,7 +35,14 @@ export function NextStep({ step }: { step: PlanStep }) {
       >
         {step.title}
       </Link>
+      <RequirementStatusChip status={step.requirementStatus} />
       {facts.length ? <p className="text-rule">{facts.join(" · ")}</p> : null}
+      {step.conditions[0] ? <p className="text-[15px] text-rule">First check: {step.conditions[0]}</p> : null}
+      {parallel > 0 ? (
+        <p className="text-sm text-muted">
+          {parallel === 1 ? "One more step" : `${parallel} more steps`} can happen at the same time.
+        </p>
+      ) : null}
       {step.simulated ? <p className="text-sm font-semibold text-check">Practice mode: built-in rules suggested this step, not real research.</p> : null}
     </section>
   );

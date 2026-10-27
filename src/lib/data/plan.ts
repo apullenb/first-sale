@@ -1,10 +1,11 @@
 import "server-only";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import type { Db } from "@/db/client";
-import { businesses, checklistTasks, researchSnapshots } from "@/db/schema";
-import type { TaskStatus } from "@/lib/domain";
+import { businesses, checklistTasks, requirements, researchSnapshots, sources } from "@/db/schema";
+import type { BusinessProfile, TaskStatus } from "@/lib/domain";
+import { classify, placeOf, structureOf } from "@/lib/research/applicability";
 import { orderTasks } from "@/lib/rules/checklist";
-import { applyPlan, type CurrentTask, diffPlan, type PlanChange, type PlanTaskDraft } from "@/lib/rules/plan";
+import { applyPlan, buildPlan, type CurrentTask, diffPlan, PLAN_DEFAULTS, type PlanChange, type PlanTaskDraft, slugKey } from "@/lib/rules/plan";
 
 // Owner-scoped like businesses.ts: the business is always looked up by its owner.
 
@@ -15,14 +16,16 @@ export interface PlanStep extends CurrentTask {
   position: number;
   evidenceNote: string | null;
   completedAt: Date | null;
+  submittedAt: Date | null;
+  submissionNote: string | null;
 }
 
 export interface PlanView {
   steps: PlanStep[];
   // Done steps a later plan dropped, kept as a record
   retired: PlanStep[];
-  // Changes from the last re-check waiting for the owner's review
-  proposal: { checkedAt: Date; changes: PlanChange[] } | null;
+  // Changes waiting for the owner's review: from a re-check, or from a changed decision ("replan")
+  proposal: { checkedAt: Date; changes: PlanChange[]; from: "recheck" | "replan" } | null;
 }
 
 export function toStep(row: TaskRow): PlanStep {
@@ -49,10 +52,24 @@ export function toStep(row: TaskRow): PlanStep {
     status: row.status,
     retired: row.retired,
     simulated: row.simulated,
+    requirementStatus: row.requirementStatus,
+    conditions: row.conditions,
+    timing: row.timing,
+    forStructures: row.forStructures,
+    renewal: row.renewal,
+    jurisdiction: row.jurisdiction,
+    alreadyHave: row.alreadyHave,
     position: row.position,
     evidenceNote: row.evidenceNote,
     completedAt: row.completedAt,
+    submittedAt: row.submittedAt,
+    submissionNote: row.submissionNote,
   };
+}
+
+// Proposals saved before a field existed get its default
+function withDefaults(drafts: readonly PlanTaskDraft[]): PlanTaskDraft[] {
+  return drafts.map((draft) => ({ ...PLAN_DEFAULTS, ...draft }));
 }
 
 // Prerequisites first, then plan order; prerequisites that no longer exist are ignored
@@ -84,14 +101,23 @@ export async function getPlanForOwner(db: Db, ownerId: string): Promise<PlanView
         .where(eq(checklistTasks.businessId, businessId))
         .orderBy(asc(checklistTasks.position));
       const [snapshot] = await tx
-        .select({ checkedAt: researchSnapshots.checkedAt, proposal: researchSnapshots.planProposal, reviewedAt: researchSnapshots.planReviewedAt })
+        .select({
+          checkedAt: researchSnapshots.checkedAt,
+          proposedAt: researchSnapshots.proposedAt,
+          proposal: researchSnapshots.planProposal,
+          reviewedAt: researchSnapshots.planReviewedAt,
+        })
         .from(researchSnapshots)
         .where(eq(researchSnapshots.businessId, businessId));
 
       const all = rows.map(toStep);
       const proposal =
         snapshot?.proposal && !snapshot.reviewedAt
-          ? { checkedAt: snapshot.checkedAt, changes: diffPlan(all, snapshot.proposal) }
+          ? {
+              checkedAt: snapshot.proposedAt ?? snapshot.checkedAt,
+              changes: diffPlan(all, withDefaults(snapshot.proposal)),
+              from: snapshot.proposedAt && snapshot.proposedAt > snapshot.checkedAt ? ("replan" as const) : ("recheck" as const),
+            }
           : null;
       return {
         steps: orderSteps(all.filter((step) => !step.retired)),
@@ -149,6 +175,13 @@ async function writePlan(
       doneWhen: task.doneWhen,
       retired: task.retired,
       simulated: task.simulated ?? false,
+      requirementStatus: task.requirementStatus,
+      conditions: task.conditions,
+      timing: task.timing,
+      forStructures: task.forStructures,
+      renewal: task.renewal,
+      jurisdiction: task.jurisdiction,
+      alreadyHave: task.alreadyHave,
       updatedAt: now,
     };
     if (id) {
@@ -175,10 +208,10 @@ export async function reviewPlanForOwner(
     if (!businessId) return "no_business";
     const [snapshot] = await tx.select().from(researchSnapshots).where(eq(researchSnapshots.businessId, businessId));
     if (!snapshot?.planProposal || snapshot.planReviewedAt) return "no_proposal";
-    if (snapshot.checkedAt.getTime() !== input.checkedAt.getTime()) return "stale";
+    if ((snapshot.proposedAt ?? snapshot.checkedAt).getTime() !== input.checkedAt.getTime()) return "stale";
 
     const rows = await tx.select().from(checklistTasks).where(eq(checklistTasks.businessId, businessId)).for("update");
-    await writePlan(tx, businessId, rows.map(toStep), snapshot.planProposal, new Set(input.acceptedKeys), now);
+    await writePlan(tx, businessId, rows.map(toStep), withDefaults(snapshot.planProposal), new Set(input.acceptedKeys), now);
     return "applied";
   });
 }
@@ -192,11 +225,13 @@ export async function setStepStatusForOwner(
   return db.transaction(async (tx) => {
     const businessId = await businessIdFor(tx, ownerId);
     if (!businessId) return false;
-    // Undoing keeps the owner's note; retired steps are a record and can't change
+    // Submitted and approved are recorded separately; undoing keeps the owner's notes; retired steps are a record and can't change
     const set =
       input.status === "done"
         ? { status: input.status, evidenceNote: input.note, completedAt: now, updatedAt: now }
-        : { status: input.status, completedAt: null, updatedAt: now };
+        : input.status === "submitted"
+          ? { status: input.status, submissionNote: input.note, submittedAt: now, completedAt: null, updatedAt: now }
+          : { status: input.status, completedAt: null, submittedAt: null, updatedAt: now };
     const updated = await tx
       .update(checklistTasks)
       .set(set)
@@ -213,4 +248,87 @@ export async function getStepForOwner(db: Db, ownerId: string, stepId: string): 
   const all = rows.map(toStep);
   const step = all.find((candidate) => candidate.id === stepId);
   return step ? { step, all } : null;
+}
+
+export type ReplanOutcome = "proposed" | "applied" | "unchanged" | "no_research" | "no_business";
+
+// Rebuilds the plan from the saved research with the owner's current answers and decisions, without searching again.
+// Changes wait for the owner's review like a re-check's; a first plan applies straight away.
+export async function replanForOwner(
+  db: Db,
+  ownerId: string,
+  profile: BusinessProfile,
+  details: readonly { key: string; value: string }[],
+  now = new Date(),
+): Promise<ReplanOutcome> {
+  return db.transaction(async (tx) => {
+    const businessId = await businessIdFor(tx, ownerId, true);
+    if (!businessId) return "no_business";
+    const [snapshot] = await tx.select().from(researchSnapshots).where(eq(researchSnapshots.businessId, businessId));
+    if (!snapshot) return "no_research";
+    const rows = await tx.select().from(requirements).where(eq(requirements.businessId, businessId)).orderBy(asc(requirements.position));
+    const read = await tx.select().from(sources).where(eq(sources.businessId, businessId));
+    const taskRows = await tx.select().from(checklistTasks).where(eq(checklistTasks.businessId, businessId)).for("update");
+    // The page each step's quote was found on, as the current plan recorded it; requirements don't keep it
+    const keyOfUrl = new Map(read.map((source) => [source.url, source.key]));
+    const confirmedFor = new Map(
+      taskRows.map((task) => [task.key, task.links.filter((link) => link.confirms).flatMap((link) => keyOfUrl.get(link.url) ?? [])]),
+    );
+
+    const place = placeOf(profile);
+    const decision = structureOf(profile, details);
+    const checked = rows.map((row) => {
+      const requirement = {
+        key: row.key,
+        title: row.title,
+        topic: row.topic,
+        whyItApplies: row.whyItApplies,
+        level: row.level,
+        agency: row.agency,
+        sourceIds: row.sourceIds,
+        evidence: row.evidence,
+        feeUsd: row.feeCents === null ? null : row.feeCents / 100,
+        deadline: row.deadline,
+        needsProfessional: row.needsProfessional,
+        whoToCall: row.whoToCall,
+        whatToAsk: row.whatToAsk,
+        gather: row.gather,
+        doneWhen: row.doneWhen,
+        dependsOn: row.dependsOn,
+        applicability: row.applicability,
+        condition: row.condition,
+        timing: row.timing,
+        forStructures: row.forStructures,
+        renewal: row.renewal,
+        renewalFeeUsd: row.renewalFeeCents === null ? null : row.renewalFeeCents / 100,
+        verification: row.verification,
+        problems: row.problems,
+        confirmedBy: row.verification === "sourced" ? (confirmedFor.get(slugKey(row.key)) ?? []) : [],
+      };
+      return { ...requirement, ...classify(requirement, profile, place, decision) };
+    });
+    const proposal = buildPlan(
+      checked,
+      read.map((source) => ({ id: source.key, title: source.title, url: source.url, government: source.government, retrievedAt: source.retrievedAt.toISOString() })),
+      snapshot.simulated,
+    );
+    for (const [index, row] of rows.entries()) {
+      const { status, conditions, fitsStructure } = checked[index];
+      await tx.update(requirements).set({ status, conditions, fitsStructure }).where(eq(requirements.id, row.id));
+    }
+
+    const current = taskRows.map(toStep);
+    const changes = diffPlan(current, proposal);
+    // Its own time, so a review of an earlier proposal can't apply this one unseen
+    await tx
+      .update(researchSnapshots)
+      .set({ structure: decision.structure, planProposal: proposal, planReviewedAt: changes.length ? null : now, proposedAt: now })
+      .where(eq(researchSnapshots.businessId, businessId));
+    if (changes.length === 0) return "unchanged";
+    if (current.length === 0) {
+      await writePlan(tx, businessId, current, proposal, new Set(changes.map((change) => change.key)), now);
+      return "applied";
+    }
+    return "proposed";
+  });
 }

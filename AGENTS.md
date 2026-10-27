@@ -29,4 +29,14 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Drafted form answers come from saved facts, never model text. Signatures, ID numbers and sworn statements are always left for the owner, and Social Security and tax id numbers are never stored.
 - Nothing is filed or submitted for the owner. Prepared copies say "Not filed."
 - Long AI jobs go through `runWorkflow` (`src/lib/workflow-runner.ts`). It applies the AI limit, blocks double runs, and records the outcome. Logs never include document text or the owner's answers.
+- "Not sure" is an answer: store `unsure`, never read it as "no", and treat it as an open question. Answers filled in from other answers stay marked until the owner confirms them.
+- Structure explanations cite `src/lib/structure/facts.ts` (verbatim official quotes) or say they need confirming for the owner's state; never state a state fee from memory.
+- Whether a requirement applies is decided in code (`classify` in `src/lib/research/applicability.ts`), from the model's read plus the owner's answers and decisions. Steps for one structure stay conditional until the owner decides.
+- Calling an office is never a required step. Unconfirmed items get a prepared written question (`writtenInquiry`) and the best official link.
+- Official forms come from `src/data/official-forms`. Every fee, time and step there quotes an official page with the date checked. Mark anything read only in a browser as `byHand` or `handChecked`. Only download forms the app's server can fetch, and never get around a site's bot check.
+- Downloaded originals are never changed. Reviewed copies, receipts and approvals are new rows with a `role`, and versions share a `family_id`. Drafted answers record every fact they rest on (`source`, `alsoFrom`, `facts_used`), so a changed fact flags them.
+- Filing status is the owner's record: "submitted", then "done" once approved. Opening a link or downloading a form never changes it.
+- The demo place's quotes are tested against `src/test/texas-pages.ts`, which is copied from what the server read. When an official page changes, update both together.
+- Website platform facts in `src/data/website-platforms.ts` come from each company's own pages, with the date checked. Options found by search keep a price, number or money claim only when their own sources contain it.
+- Only public details (business email, phone, purpose) and the business plan's customer, difference and price answers go into website drafting. Owner names, addresses, costs and funding never do.
 - Comments: 1–2 short lines, only when needed, no history.

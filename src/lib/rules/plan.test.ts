@@ -209,6 +209,13 @@ const step = (key: string, overrides: Partial<PlanTaskDraft> = {}): PlanTaskDraf
   whatToAsk: [],
   doneWhen: "",
   prerequisites: [],
+  requirementStatus: "needs_confirmation",
+  conditions: [],
+  timing: "before_selling",
+  forStructures: [],
+  renewal: null,
+  jurisdiction: "",
+  alreadyHave: null,
   ...overrides,
 });
 
@@ -378,3 +385,27 @@ describe("diffPlan practice mode", () => {
     expect(changes).toEqual([{ kind: "changed", key: "ein", title: "EIN", what: ["Checked for real, not in practice mode"] }]);
   });
 });
+
+describe("review fixes", () => {
+  it("puts the EIN after forming the LLC even when the model said the opposite", () => {
+    const plan = buildPlan(
+      [
+        verifiedRequirement({ key: "ein", title: "Get an EIN" }),
+        verifiedRequirement({ key: "llc-articles", title: "File articles of organization", forStructures: ["llc"], dependsOn: ["ein"] }),
+      ],
+      sources,
+    );
+    expect(plan.find((each) => each.key === "ein")?.prerequisites).toEqual(["llc-articles"]);
+    expect(plan.find((each) => each.key === "llc-articles")?.prerequisites).toEqual([]);
+    expect(plan.map((each) => each.key)).toEqual(["llc-articles", "ein"]);
+  });
+
+  it("keeps a submitted step that a later plan drops, as a record", () => {
+    const current = [{ ...step("llc"), id: "id-llc", status: "submitted" as const, retired: false }];
+    expect(diffPlan(current, [])).toEqual([{ kind: "removed", key: "llc", title: "Step llc", done: true }]);
+    const write = applyPlan(current, [], new Set(["llc"]));
+    expect(write.deleteIds).toEqual([]);
+    expect(write.upserts[0]).toMatchObject({ key: "llc", retired: true });
+  });
+});
+

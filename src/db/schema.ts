@@ -26,7 +26,10 @@ import {
   TASK_STATUSES,
   VERIFICATION_STATES,
   type BusinessProfile,
+  type BusinessStructure,
 } from "@/lib/domain";
+import { REQUIREMENT_STATUSES } from "@/lib/research/applicability";
+import { DOCUMENT_ROLES } from "@/lib/documents/library";
 import type {
   DocumentContent,
   DocumentGuide,
@@ -35,7 +38,14 @@ import type {
   GeneratedContent,
 } from "@/lib/documents/types";
 import type { PlanLink, PlanTaskDraft } from "@/lib/rules/plan";
+import type { CoverageCell } from "@/lib/research/coverage";
+import type { FormVerification } from "@/lib/documents/official-forms";
+import type { MoreOptions, OptionExplanation } from "@/lib/website/options";
+import { type DomainCheck, PLATFORMS, type WebsiteContent } from "@/lib/website/types";
 import { PHOTO_CATEGORIES, PHOTO_CROPS, PHOTO_LOOKS, type PhotoCheck, type PhotoReview } from "@/lib/photos/types";
+import { ASSET_KINDS, type AssetCheck, type BrandBrief, type BrandPicks, type ConceptReply } from "@/lib/brand/types";
+import type { IntakeAnswers, Marks } from "@/lib/intake/answers";
+import type { DecisionBasis } from "@/lib/structure/types";
 
 const id = () => text("id").primaryKey().$defaultFn(() => crypto.randomUUID());
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -99,6 +109,15 @@ export const researchSnapshots = pgTable("research_snapshots", {
   // Plan built from this run; the owner reviews it when a plan already exists
   planProposal: jsonb("plan_proposal").$type<PlanTaskDraft[]>(),
   planReviewedAt: timestamp("plan_reviewed_at", { withTimezone: true }),
+  // When the waiting plan proposal was made: a re-check, or a re-plan after a decision changed
+  proposedAt: timestamp("proposed_at", { withTimezone: true }),
+  // The answers and structure decision it ran on, to say what changed since
+  profile: jsonb("profile").$type<BusinessProfile>(),
+  structure: text("structure"),
+  // What each research category found at each level of government
+  coverage: jsonb("coverage").$type<CoverageCell[]>().notNull().default([]),
+  // Where official pages disagree, as the model reported them, cited pages checked in code
+  conflicts: jsonb("conflicts").$type<{ about: string; explanation: string; sourceIds: string[] }[]>().notNull().default([]),
 });
 
 // Pages the research step actually fetched; requirements cite their keys
@@ -148,6 +167,18 @@ export const requirements = pgTable(
     // Order the model listed them in
     position: integer("position").notNull().default(0),
     checkedAt: timestamp("checked_at", { withTimezone: true }).notNull(),
+    // The model's read, then the rules' status (src/lib/research/applicability.ts)
+    applicability: text("applicability", { enum: ["applies", "conditional", "optional", "outside_coverage"] }).notNull().default("applies"),
+    status: text("status", { enum: REQUIREMENT_STATUSES }).notNull().default("needs_confirmation"),
+    // The model's own condition; conditions adds the rules' to it
+    condition: text("condition").notNull().default(""),
+    conditions: jsonb("conditions").$type<string[]>().notNull().default([]),
+    timing: text("timing", { enum: ["before_selling", "later"] }).notNull().default("before_selling"),
+    forStructures: jsonb("for_structures").$type<BusinessStructure[]>().notNull().default([]),
+    fitsStructure: boolean("fits_structure").notNull().default(true),
+    renewal: text("renewal"),
+    renewalFeeCents: integer("renewal_fee_cents"),
+    alreadyHave: text("already_have"),
   },
   (table) => [index("requirements_business_id_idx").on(table.businessId)],
 );
@@ -190,6 +221,16 @@ export const checklistTasks = pgTable(
     retired: boolean("retired").notNull().default(false),
     // Came from practice-mode research, so it's labeled as practice wherever it shows
     simulated: boolean("simulated").notNull().default(false),
+    requirementStatus: text("requirement_status", { enum: REQUIREMENT_STATUSES }).notNull().default("needs_confirmation"),
+    conditions: jsonb("conditions").$type<string[]>().notNull().default([]),
+    timing: text("timing", { enum: ["before_selling", "later"] }).notNull().default("before_selling"),
+    forStructures: jsonb("for_structures").$type<BusinessStructure[]>().notNull().default([]),
+    renewal: jsonb("renewal").$type<{ text: string; feeCents: number | null }>(),
+    jurisdiction: text("jurisdiction").notNull().default(""),
+    alreadyHave: text("already_have"),
+    // Filing progress: submitted, then done once the office approves; never set by opening a link
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
+    submissionNote: text("submission_note"),
     updatedAt: updatedAt(),
   },
   (table) => [
@@ -238,10 +279,26 @@ export const documents = pgTable(
     draft: jsonb("draft").$type<GeneratedContent>(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
+    // Library role: an unchanged original, a reviewed copy, a receipt…; null on rows saved before roles
+    role: text("role", { enum: DOCUMENT_ROLES }),
+    // Versions of one document share the first version's id
+    familyId: text("family_id"),
+    version: integer("version").notNull().default(1),
+    // Entry in the official-forms catalog it came from
+    formKey: text("form_key"),
+    verification: jsonb("verification").$type<FormVerification>(),
+    // Facts the drafted answers used, to flag the draft when they change
+    factsUsed: jsonb("facts_used").$type<Record<string, string>>(),
+    // When the app downloaded it from the official site
+    obtainedAt: timestamp("obtained_at", { withTimezone: true }),
+    // From the browser, so a retried request returns the document already made
+    requestKey: text("request_key"),
   },
   (table) => [
     index("documents_business_id_idx").on(table.businessId),
     index("documents_task_id_idx").on(table.taskId),
+    index("documents_family_idx").on(table.businessId, table.familyId),
+    uniqueIndex("documents_business_request_idx").on(table.businessId, table.requestKey),
   ],
 );
 
@@ -438,4 +495,140 @@ export const productPhotoVersions = pgTable(
     uniqueIndex("product_photo_versions_photo_number_idx").on(table.photoId, table.number),
     uniqueIndex("product_photo_versions_photo_request_idx").on(table.photoId, table.requestKey),
   ],
+);
+
+// The owner's website plan: platform, web address, drafted page copy and setup progress. One per business.
+export const websitePlans = pgTable("website_plans", {
+  businessId: text("business_id")
+    .primaryKey()
+    .references(() => businesses.id, { onDelete: "cascade" }),
+  platform: text("platform", { enum: PLATFORMS }),
+  domain: text("domain"),
+  domainChecks: jsonb("domain_checks").$type<DomainCheck[]>().notNull().default([]),
+  content: jsonb("content").$type<WebsiteContent>(),
+  // Set when the owner approves the page copy; cleared when they change it
+  contentApprovedAt: timestamp("content_approved_at", { withTimezone: true }),
+  setupDone: jsonb("setup_done").$type<string[]>().notNull().default([]),
+  // Other builders Muse found when the owner asked, with their sources
+  moreOptions: jsonb("more_options").$type<MoreOptions>(),
+  // "Explain more" answers, by option key, so each is written once
+  explanations: jsonb("explanations").$type<Record<string, OptionExplanation>>().notNull().default({}),
+  updatedAt: updatedAt(),
+});
+
+// Branding: the owner's brief and picks. One per business.
+export const brandKits = pgTable("brand_kits", {
+  businessId: text("business_id")
+    .primaryKey()
+    .references(() => businesses.id, { onDelete: "cascade" }),
+  brief: jsonb("brief").$type<BrandBrief>(),
+  // The owner's pick; versions and brand images are made from it
+  chosenLogoId: text("chosen_logo_id"),
+  // Approved files by kind: the version set, then each brand image
+  picks: jsonb("picks").$type<BrandPicks>().notNull().default({}),
+  updatedAt: updatedAt(),
+});
+
+// One request for logo ideas, with the brief it was written from
+export const brandRounds = pgTable(
+  "brand_rounds",
+  {
+    id: id(),
+    businessId: businessId(),
+    // From the browser, so a retried request returns this round instead of writing another
+    requestKey: text("request_key").notNull(),
+    // "More like this": the idea it grew from
+    basedOnConceptId: text("based_on_concept_id"),
+    brief: jsonb("brief").$type<BrandBrief>().notNull(),
+    model: text("model").notNull(),
+    simulated: boolean("simulated").notNull(),
+    createdAt: createdAt(),
+  },
+  (table) => [uniqueIndex("brand_rounds_business_request_idx").on(table.businessId, table.requestKey)],
+);
+
+export const brandConcepts = pgTable(
+  "brand_concepts",
+  {
+    id: id(),
+    roundId: text("round_id")
+      .notNull()
+      .references(() => brandRounds.id, { onDelete: "cascade" }),
+    businessId: businessId(),
+    position: integer("position").notNull(),
+    concept: jsonb("concept").$type<ConceptReply>().notNull(),
+    createdAt: createdAt(),
+  },
+  (table) => [index("brand_concepts_round_id_idx").on(table.roundId)],
+);
+
+// Every generated logo, version and brand image, byte for byte as returned
+export const brandAssets = pgTable(
+  "brand_assets",
+  {
+    id: id(),
+    businessId: businessId(),
+    kind: text("kind", { enum: ASSET_KINDS }).notNull(),
+    conceptId: text("concept_id")
+      .notNull()
+      .references(() => brandConcepts.id, { onDelete: "cascade" }),
+    // The logo it was made from: the one refined, or the chosen logo
+    sourceId: text("source_id"),
+    // The owner's requested change, in their words
+    change: text("change"),
+    prompt: text("prompt").notNull(),
+    model: text("model").notNull(),
+    // Practice preview, not made by the image service
+    simulated: boolean("simulated").notNull(),
+    // Same key on a retry returns this file instead of paying for another
+    requestKey: text("request_key").notNull(),
+    mimeType: text("mime_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+    data: bytea("data").notNull(),
+    check: jsonb("check").$type<AssetCheck>(),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    uniqueIndex("brand_assets_business_request_idx").on(table.businessId, table.requestKey),
+    index("brand_assets_business_kind_idx").on(table.businessId, table.kind),
+  ],
+);
+
+// Intake answers saved as the owner goes, so they can pick up where they left off. One per owner.
+export const intakeDrafts = pgTable("intake_drafts", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  // "create" before the business exists; "edit" holds changes not confirmed yet
+  mode: text("mode", { enum: ["create", "edit"] }).notNull(),
+  answers: jsonb("answers").$type<IntakeAnswers>().notNull(),
+  // Answers filled in by AI or from other answers, not confirmed yet
+  marks: jsonb("marks").$type<Marks>().notNull().default({}),
+  step: text("step").notNull(),
+  // Edit drafts: the saved answers they started from, to spot a save made elsewhere since
+  baseKey: text("base_key"),
+  // Suggestions came from practice-mode word matching
+  practice: boolean("practice").notNull().default(false),
+  updatedAt: updatedAt(),
+});
+
+// Confirmed answer changes and decisions, added to and never edited
+export const businessEvents = pgTable(
+  "business_events",
+  {
+    id: id(),
+    businessId: businessId(),
+    kind: text("kind", { enum: ["profile", "decision"] }).notNull(),
+    // Decision detail key, such as "structure_choice"; null for answer changes
+    key: text("key"),
+    before: jsonb("before").$type<BusinessProfile | string | null>(),
+    after: jsonb("after").$type<BusinessProfile | string | null>(),
+    // Owner-facing lines: what changed
+    summary: jsonb("summary").$type<string[]>().notNull().default([]),
+    basis: jsonb("basis").$type<DecisionBasis>(),
+    createdAt: createdAt(),
+  },
+  (table) => [index("business_events_business_created_idx").on(table.businessId, table.createdAt)],
 );

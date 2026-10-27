@@ -1,6 +1,7 @@
 import { AIProviderError, type ModelProvider } from "@/lib/ai";
 import type { BusinessProfile, JurisdictionLevel } from "@/lib/domain";
 import { STATE_NAMES } from "@/lib/intake/options";
+import type { ResearchCategory } from "./coverage";
 import { governmentFor, governsPlace } from "./official-sites";
 import type { SourceToRead } from "./retrieve";
 
@@ -10,6 +11,7 @@ import type { SourceToRead } from "./retrieve";
 export interface SearchTopic {
   id: string;
   level: Exclude<JurisdictionLevel, "federal">;
+  category: ResearchCategory;
   // Owner-facing, as in "We couldn't find an official page about …"
   about: string;
   question: string;
@@ -17,6 +19,7 @@ export interface SearchTopic {
 
 export interface SearchGap {
   level: SearchTopic["level"];
+  category: ResearchCategory;
   about: string;
   // The search itself failed, rather than finding nothing official
   failed: boolean;
@@ -47,12 +50,14 @@ export function searchTopics(profile: BusinessProfile): SearchTopic[] {
     {
       id: "state-name",
       level: "state",
+      category: "formation",
       about: `registering a business name in ${state}`,
       question: official(`${state} state`, "how to register a business name or assumed name (DBA)"),
     },
     {
       id: "state-formation",
       level: "state",
+      category: "formation",
       about: `forming an LLC or other business entity in ${state}`,
       question: official(`${state} state`, "how to form an LLC, including the filing form and fee"),
     },
@@ -61,6 +66,7 @@ export function searchTopics(profile: BusinessProfile): SearchTopic[] {
     topics.push({
       id: "state-sales-tax",
       level: "state",
+      category: "tax",
       about: `registering to collect sales tax in ${state}`,
       question: official(`${state} state`, "how a new business registers to collect sales tax"),
     });
@@ -69,6 +75,7 @@ export function searchTopics(profile: BusinessProfile): SearchTopic[] {
     topics.push({
       id: "state-food",
       level: "state",
+      category: "food",
       about: `selling food made at home in ${state}`,
       question: official(`${state} state`, "the rules for selling food made in a home kitchen (cottage food)"),
     });
@@ -77,6 +84,7 @@ export function searchTopics(profile: BusinessProfile): SearchTopic[] {
     topics.push({
       id: "state-employer",
       level: "state",
+      category: "tax",
       about: `registering as a new employer in ${state}`,
       question: official(`${state} state`, "how a new employer registers for state payroll taxes and unemployment insurance"),
     });
@@ -85,6 +93,7 @@ export function searchTopics(profile: BusinessProfile): SearchTopic[] {
     topics.push({
       id: "county-license",
       level: "county",
+      category: "licenses",
       about: `business licenses in ${county} County`,
       question: official(`${county} County, ${state}`, "whether a new business needs a county business license or permit"),
     });
@@ -92,6 +101,7 @@ export function searchTopics(profile: BusinessProfile): SearchTopic[] {
       topics.push({
         id: "county-food",
         level: "county",
+        category: "food",
         about: `food permits from the ${county} County health department`,
         question: official(`${county} County, ${state}`, "health department permits for selling food"),
       });
@@ -101,13 +111,15 @@ export function searchTopics(profile: BusinessProfile): SearchTopic[] {
     topics.push({
       id: "city-license",
       level: "city",
+      category: "licenses",
       about: `business licenses in ${city}`,
       question: official(`city of ${city}, ${state}`, "whether a new business needs a city business license"),
     });
-    if (profile.premises === "home") {
+    if (profile.premises === "home" || profile.handoff.includes("pickup_home")) {
       topics.push({
         id: "city-home",
         level: "city",
+        category: "zoning",
         about: `running a business from home in ${city}`,
         question: official(`city of ${city}, ${state}`, "the rules or permit for running a business from home (home occupation)"),
       });
@@ -116,6 +128,7 @@ export function searchTopics(profile: BusinessProfile): SearchTopic[] {
       topics.push({
         id: "city-space",
         level: "city",
+        category: "zoning",
         about: `zoning and occupancy for a business space in ${city}`,
         question: official(`city of ${city}, ${state}`, "zoning approval or a certificate of occupancy for a business space"),
       });
@@ -131,7 +144,7 @@ export async function discoverOfficialPages(
 ): Promise<Discovery> {
   const topics = searchTopics(profile);
   if (!model.webSearch) {
-    return { sources: [], gaps: topics.map(({ level, about }) => ({ level, about, failed: false })) };
+    return { sources: [], gaps: topics.map(({ level, category, about }) => ({ level, category, about, failed: false })) };
   }
   const search = model.webSearch;
   const location = { region: STATE_NAMES[profile.location.state], city: profile.location.city.trim() || undefined };
@@ -172,9 +185,10 @@ export async function discoverOfficialPages(
         allowedHosts: [government.domain],
         government: government.name,
         discovered: true,
+        categories: [topic.category],
       });
     }
-    if (kept === 0) gaps.push({ level: topic.level, about: topic.about, failed });
+    if (kept === 0) gaps.push({ level: topic.level, category: topic.category, about: topic.about, failed });
   }
   return { sources, gaps };
 }

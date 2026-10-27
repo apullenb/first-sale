@@ -102,7 +102,7 @@ describe("retrieveSources", () => {
     const fetchImpl = vi.fn().mockResolvedValue(new Response("", { status: 503 }));
     const { pages, unread } = await retrieveSources([source("a", "https://www.sba.gov/x")], fetchImpl);
     expect(pages).toEqual([]);
-    expect(unread).toEqual([{ id: "a", title: "a", url: "https://www.sba.gov/x", reason: "The site answered with error 503" }]);
+    expect(unread).toEqual([{ id: "a", title: "a", url: "https://www.sba.gov/x", reason: "The site answered with error 503", level: "federal" }]);
   });
 
   it("keeps a found page's government and level, and that it was discovered", async () => {

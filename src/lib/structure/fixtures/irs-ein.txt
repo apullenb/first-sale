@@ -1,0 +1,50 @@
+Use this tool to get an EIN directly from the IRS in minutes for free. Answer questions and submit the application. If it’s approved, we’ll issue your EIN immediately online.
+Beware of websites that charge for an EIN. You never have to pay a fee for an EIN.
+How it works
+Complete the application in one session. You can't save it for later.
+It expires after 15 minutes of inactivity, and you’ll need to start over.
+Print your EIN confirmation letter for your records.
+Who can use this tool
+Use this if all of these are correct:
+You are a domestic organization, formed or created in the United States or U.S. territories.
+Your principal place of business is in the U.S. or U.S. territories.
+You're the responsible party in control of the entity or its authorized representative.
+You have the responsible party’s Social Security number (SSN) or individual taxpayer ID number (ITIN).
+You can't use this if either:
+Your principal place of business is outside the U.S. If so, apply by phone, fax or mail.
+You are applying with an EIN (unless you are government entity).
+What you need
+Your business entity type.
+The Social Security number or taxpayer ID number of the responsible party in control of your business or organization.
+If you’re a third-party designee, you must have signed authorization to apply.
+Get an EIN
+Get your EIN straight from the IRS in minutes.
+Apply for an EIN
+The business name you enter must conform to certain formatting rules.
+Availability
+This tool is available during the following times (Eastern Time):
+Mon–Fri: 6:00 a.m. – 1:00 a.m. (next day)
+Sat: 6:00 a.m. – 9:00 p.m.
+Sun: 6:00 p.m. – 12:00 a.m.
+Daily limit
+You can apply for only 1 EIN per responsible party per day.
+When to get an EIN
+Businesses, organizations and some retirement trusts need an EIN to manage their taxes. Generally, you need an EIN to:
+Hire employees
+Operate a partnership or corporation
+Pay sales and excise taxes
+Change business structures or ownership
+Administer certain trusts, retirement plans and estates
+If you are creating a corporation or LLC, form your entity through the secretary of state before you apply for an EIN. If you don’t form your entity with the state first, your EIN application may be delayed.
+File required tax returns and information returns using your EIN.
+If you have an existing EIN, see when to get a new EIN.
+Other ways to apply
+If you can't apply online, find out how to apply by phone, fax or mail.
+Report beneficial owners to FinCEN when required
+Some corporations, limited liability companies, and other entities may be required to report information on beneficial owners (the people who ultimately own or control the company) to the U.S. Department of the Treasury's Financial Crimes Enforcement Network (FinCEN). Find out if you must report beneficial owners.
+Beneficial Ownership Information Reporting | FinCEN.gov
+Related
+Employer identification number
+Privacy Act Statement and Paperwork Reduction Act Notice
+Businesses with employees
+EIN video

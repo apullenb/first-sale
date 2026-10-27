@@ -184,3 +184,43 @@ describe("document data access", () => {
     expect(results.filter((result) => result.ok)).toHaveLength(2);
   });
 });
+
+describe("library versions and retries", () => {
+  it("returns the document already made when a request is retried with the same key", async () => {
+    const first = await createDocumentForOwner(db, "owner-a", upload({ requestKey: "req-123456" }), NOW);
+    const again = await createDocumentForOwner(db, "owner-a", upload({ requestKey: "req-123456", title: "Second try" }), NOW);
+    expect(first.ok && again.ok && again.id === first.id && again.existed).toBe(true);
+    expect(await listDocumentsForOwner(db, "owner-a")).toHaveLength(1);
+    // Another owner's key never matches
+    const other = await createDocumentForOwner(db, "owner-b", upload({ requestKey: "req-123456" }), NOW);
+    expect(other.ok && first.ok && other.id !== first.id).toBe(true);
+  });
+
+  it("adds new versions to the first one's family, keeping the original unchanged", async () => {
+    const original = await createDocumentForOwner(db, "owner-a", upload({ origin: "official_form", role: "original", formKey: "irs-ss4" }), NOW);
+    if (!original.ok) throw new Error(original.reason);
+    const second = await createDocumentForOwner(db, "owner-a", upload({ origin: "generated", role: "reviewed", versionOf: original.id, data: new Uint8Array([1, 2]) }), NOW);
+    if (!second.ok) throw new Error(second.reason);
+    const third = await createDocumentForOwner(db, "owner-a", upload({ origin: "generated", role: "reviewed", versionOf: second.id, data: new Uint8Array([3]) }), NOW);
+    if (!third.ok) throw new Error(third.reason);
+
+    const docs = new Map((await listDocumentsForOwner(db, "owner-a")).map((doc) => [doc.id, doc]));
+    expect(docs.get(original.id)).toMatchObject({ familyId: null, version: 1, role: "original", formKey: "irs-ss4" });
+    expect(docs.get(second.id)).toMatchObject({ familyId: original.id, version: 2, role: "reviewed" });
+    expect(docs.get(third.id)).toMatchObject({ familyId: original.id, version: 3 });
+    expect((await getDocumentFileForOwner(db, "owner-a", original.id))?.data).toEqual(bytes);
+  });
+
+  it("won't make a version of another owner's document", async () => {
+    const theirs = await createDocumentForOwner(db, "owner-b", upload(), NOW);
+    if (!theirs.ok) throw new Error(theirs.reason);
+    expect(await createDocumentForOwner(db, "owner-a", upload({ versionOf: theirs.id }), NOW)).toEqual({ ok: false, reason: "bad_version" });
+  });
+
+  it("keeps the facts a draft used, for spotting outdated answers later", async () => {
+    const made = await createDocumentForOwner(db, "owner-a", upload({ factsUsed: { "profile.name": "Rise Bakery" } }), NOW);
+    if (!made.ok) throw new Error(made.reason);
+    await updateDocumentForOwner(db, "owner-a", made.id, { factsUsed: { "profile.name": "Rise & Shine" } }, NOW);
+    expect((await getDocumentForOwner(db, "owner-a", made.id))?.factsUsed).toEqual({ "profile.name": "Rise & Shine" });
+  });
+});

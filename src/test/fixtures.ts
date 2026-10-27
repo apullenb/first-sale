@@ -2,6 +2,7 @@ import { users } from "@/db/schema";
 import { createBusinessForOwner } from "@/lib/data/businesses";
 import type { BusinessProfile, RequirementDraft } from "@/lib/domain";
 import type { RetrievedPage } from "@/lib/research/retrieve";
+import type { Classified } from "@/lib/research/applicability";
 import type { VerifiedRequirement } from "@/lib/research/verify";
 import type { createTestDb } from "./db";
 
@@ -31,6 +32,21 @@ export function testProfile(
     hiringPlans: null,
     experience: null,
     launchTiming: null,
+    category: null,
+    productTags: [],
+    ownerRelation: null,
+    mayAddOwners: null,
+    nameIsLegalName: null,
+    alreadyHave: [],
+    handoff: [],
+    makesForKids: null,
+    foodContact: null,
+    inventorySources: [],
+    servicesLicensed: null,
+    firstYearSales: null,
+    takesOnDebt: null,
+    helpKinds: [],
+    goals: [],
     ...rest,
   };
 }
@@ -53,12 +69,31 @@ export function requirementDraft(overrides: Partial<RequirementDraft> = {}): Req
     gather: [],
     doneWhen: "",
     dependsOn: [],
+    applicability: "applies",
+    condition: "",
+    timing: "before_selling",
+    forStructures: [],
+    renewal: null,
+    renewalFeeUsd: null,
     ...overrides,
   };
 }
 
 export function verifiedRequirement(overrides: Partial<VerifiedRequirement> = {}): VerifiedRequirement {
   return { ...requirementDraft(), verification: "needs_verification", problems: [], ...overrides };
+}
+
+// A checked requirement with the rules' status, as research saves it
+export function researchedRequirement(overrides: Partial<VerifiedRequirement & Classified> = {}): VerifiedRequirement & Classified {
+  const base = verifiedRequirement(overrides);
+  return {
+    status: base.verification === "sourced" ? "verified" : "needs_confirmation",
+    conditions: [],
+    fitsStructure: true,
+    alreadyHave: null,
+    ...base,
+    ...overrides,
+  };
 }
 
 export function retrievedPage(overrides: Partial<RetrievedPage> = {}): RetrievedPage {

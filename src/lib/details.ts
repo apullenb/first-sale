@@ -25,9 +25,33 @@ export const STRUCTURE_LABELS: Record<(typeof BUSINESS_STRUCTURES)[number] | "un
 export const DETAILS = {
   structure_choice: {
     label: "Business structure you chose",
-    help: "How your business is set up legally. It affects taxes, paperwork, and whether your personal savings are protected if the business owes money.",
+    help: "How your business is owned and set up legally. The SBA says it affects your taxes, your paperwork and your personal liability.",
     kind: "choice",
     options: Object.entries(STRUCTURE_LABELS),
+    maxLength: 40,
+    decision: true,
+  },
+  name_registration_plan: {
+    label: "Business name plan",
+    help: "Whether you’ll register a name to sell under (a DBA). It’s separate from your business structure.",
+    kind: "choice",
+    options: [
+      ["register_dba", "Register a name to sell under (DBA)"],
+      ["legal_name", "Sell under my legal name or the company’s registered name"],
+      ["undecided", "Not decided yet"],
+    ],
+    maxLength: 40,
+    decision: true,
+  },
+  tax_classification_plan: {
+    label: "Tax treatment plan",
+    help: "How the IRS treats your business for income tax. Every structure has a default; some can choose another.",
+    kind: "choice",
+    options: [
+      ["default", "Keep the default for my structure"],
+      ["ask_professional", "Ask a tax professional about choosing another first"],
+      ["undecided", "Not decided yet"],
+    ],
     maxLength: 40,
     decision: true,
   },
@@ -83,6 +107,13 @@ export const DETAILS = {
 
 export type DetailKey = keyof typeof DETAILS;
 export const DETAIL_KEYS = Object.keys(DETAILS) as DetailKey[];
+
+export const DECISION_KEYS = DETAIL_KEYS.filter((key) => (DETAILS[key] as DetailSpec).decision);
+
+// Decisions are recorded only on /structure, after its confirm step, with the answers behind them
+export function isDecisionKey(key: DetailKey): boolean {
+  return DECISION_KEYS.includes(key);
+}
 
 export function isDetailKey(key: string): key is DetailKey {
   return Object.hasOwn(DETAILS, key);

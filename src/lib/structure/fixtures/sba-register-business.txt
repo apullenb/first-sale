@@ -1,0 +1,76 @@
+Register your business
+Register your business to make it a distinct legal entity. How and where you need to register depends on your business structure and business location.
+Your location and business structure determine how you’ll need to register your business. Determine those factors first, and registration becomes very straightforward.
+For most small businesses, registering your business is as simple as registering your business name with state and local governments.
+In some cases, you don’t need to register at all. If you conduct business as yourself using your legal name, you won’t need to register anywhere. But remember, if you don’t register your business, you could miss out on personal liability protection, legal benefits, and tax benefits.
+Beneficial ownership information (BOI) reporting
+Many companies in the United States have to report information about their beneficial owners – the individuals who ultimately own or control the company. This report is made to the Financial Crimes Enforcement Network (FinCEN). FinCEN is a bureau of the U.S. Department of the Treasury. BOI reporting is a requirement of the Corporate Transparency Act of 2021.
+Companies that are required to comply are called reporting companies. The majority of reporting companies must file their initial, updated or corrected reports by March 21, 2025. For additional information, refer to FinCEN’s BOI notice (PDF).
+Beneficial ownership information reporting is not an annual requirement. A report only needs to be submitted once, unless the filer needs to update or correct information. FinCEN’s E-Filing system is simple, secure, and free of charge. Learn more about beneficial ownership information reporting at www.fincen.gov/boi.
+Other reporting requirements
+Other business reporting requirements depend on the nature of your business. Most businesses will need to file to get a federal tax ID. Small businesses sometimes have to register with the federal government for trademark protection or tax-exempt status.
+If you want to trademark your business, brand or product name, file with the United States Patent and Trademark office once you’ve formed your business.
+If you want tax-exempt status for a nonprofit corporation, register your business as a tax-exempt entity with the IRS.
+To create an S corp, you’ll need to file form 2553 with the IRS.
+If your business is a limited liability company (LLC), corporation, partnership, or nonprofit corporation, you’ll probably need to register with any state where you conduct business activities.
+Typically, you’re considered to be conducting business activities in a state when:
+Your business has a physical presence in the state
+You often have in-person meetings with clients in the state
+A significant portion of your company’s revenue comes from the state
+Any of your employees work in the state
+Some states allow you to register online, and some states make you file paper documents in person or through the mail.
+Most states require you to register with the Secretary of State’s office, a Business Bureau, or a Business Agency.
+Look up your state
+Find out where to register your small business in your state.
+Get a registered agent
+If your business is an LLC, corporation, partnership, or nonprofit corporation, you’ll need a registered agent in your state before you file.
+A registered agent receives official papers and legal documents on behalf of your company. The registered agent must be located in the state where you register.
+Many business owners prefer to use a registered agent service rather than take on this role themselves.
+File for foreign qualification
+If your LLC, corporation, partnership, or nonprofit corporation conducts business activities in more than one state, you might need to form your business in one state and then file for foreign qualification in other states where your business is active.
+The state where you form your business will consider your business to be domestic, while every other state will view your business as foreign. Foreign qualification notifies the state that a foreign business is active there.
+Foreign qualified businesses typically need to pay taxes and annual report fees in both their state of formation and states where they’re foreign qualified.
+To foreign qualify, file a Certificate of Authority with the state. Many states also require a Certificate of Good Standing from your state of formation. Each state charges a filing fee, but the amount varies by state and business structure.
+Check with state offices to find out foreign qualification requirements and fees.
+File state documents and fees
+In most cases, the total cost to register your business will be less than $300, but fees vary depending on your state and business structure.
+The information you’ll need typically includes:
+Business name
+Business location
+Ownership, management structure, or directors
+Registered agent information
+Number and value of shares (if you’re a corporation)
+The documents you need — and what goes in them — will vary based on your state and business structure.
+Business structureDocumentDescription
+LLC
+Articles of organization
+Articles of organization is a simple document that describes the basics of your LLC. It includes business information like the company name, address, member names, and the registered agent.
+LLC
+LLC operating agreement
+An operating agreement describes the structure of your company’s financial and functional decisions. It defines how key business decisions are made, as well as each member’s duties, powers, and responsibilities. It’s widely recommended to create one to protect yourself and your business, even if your state doesn’t mandate it.
+Limited partnership
+Certificate of limited partnership
+This simple document describes the basics of your limited partnership. It notifies the state of the partnership’s existence and contains basic business information like the company name, address, and partner names. Not all states require it, and some states call it by a different name.
+Limited partnership
+Limited partnership agreement
+A limited partnership agreement is an internally binding document between all partners that defines how business decisions get made, each partner’s duties, powers, and responsibilities. It’s widely recommended to create one to protect yourself and your business, even if your state doesn’t mandate it.
+Limited liability partnership
+Certificate of limited liability partnership
+This simple document describes the basics of your limited liability partnership. It notifies the state of the partnership’s existence and contains basic business information like the company name, address, and partner names. Not all states require it, and some states call it by a different name.
+Limited liability partnership
+Limited liability partnership agreement
+A limited liability partnership agreement is an internally binding document between all partners that defines how business decisions get made, each partner’s duties, powers, and responsibilities. It’s widely recommended to create one to protect yourself and your business, even if your state doesn’t mandate it.
+Corporation (any kind)
+Articles of incorporation
+The articles of incorporation — or a certificate of incorporation — is a comprehensive legal document that lays out the basic outline of your business. It’s required by every state when you incorporate. The most common information included is the company name, business purpose, number of shares offered, value of shares, directors, and officers.
+Corporation (any kind)
+Bylaws or resolutions
+Bylaws (called resolutions for nonprofits) are the internal governance documents of a corporation. They define how key business decisions are made, as well as officer and shareholders’ duties, powers, and responsibilities. It’s widely recommended to create one to protect yourself and your business, even if your state doesn’t mandate it.
+In addition, some states also require you to register your DBA — a trade name or a fictitious name — if you use one. Check with your state government office to determine what’s required in your area.
+Typically, you don’t need to register with county or city governments to actually form your business.
+If your business is an LLC, corporation, partnership, or nonprofit corporation, you might need to file for licenses and permits from the county or city.
+Some counties and cities also require you to register your DBA — a trade name or a fictitious name — if you use one.
+Local governments determine registration, licensing, and permitting requirements, so visit local government websites to find out what you need to do.
+Some states require you to provide reports soon after registering depending on your business structure.
+You may need to file additional documentation with your state tax board or franchise tax board. These filings are typically referred to as Initial Reports or Tax Board registration, and most often need to be filed within 30-90 days after you register with the state.
+Check with your local tax office or franchise tax board, if it applies to you.

@@ -10,6 +10,8 @@ export const SOURCE_TOPICS = [
   "zoning",
   "food_safety",
   "employment",
+  // Rules for particular products or activities, such as children's products
+  "activity",
 ] as const;
 
 // Lowercase, at least one dot: "gov" alone would allow every .gov site

@@ -16,3 +16,4 @@ export type {
 } from "./types";
 export { ImageEditError } from "./image-types";
 export type { ImageEditRequest, ImageEditResult, ImageInput, ImageModel } from "./image-types";
+export type { ImageGenerateRequest } from "./image-types";

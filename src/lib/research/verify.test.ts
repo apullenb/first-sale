@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { RequirementDraft } from "@/lib/domain";
+import { requirementDraft } from "@/test/fixtures";
 import { isAllowedHost } from "./source-pack";
-import { pageWithExcerpt, verifyCitations, verifyRequirements } from "./verify";
+import { amountInWords, pageWithExcerpt, verifyCitations, verifyRequirements } from "./verify";
 
 const retrieved = [
   { id: "irs-ein", url: "https://www.irs.gov/ein", retrievedAt: "2026-10-26T00:00:00Z" },
@@ -81,6 +82,12 @@ describe("verifyRequirements", () => {
     gather: [],
     doneWhen: "",
     dependsOn: [],
+    applicability: "applies",
+    condition: "",
+    timing: "before_selling",
+    forStructures: [],
+    renewal: null,
+    renewalFeeUsd: null,
     ...overrides,
   });
 
@@ -301,6 +308,12 @@ describe("verifyRequirements: the quote's government", () => {
     gather: [],
     doneWhen: "",
     dependsOn: [],
+    applicability: "applies",
+    condition: "",
+    timing: "before_selling",
+    forStructures: [],
+    renewal: null,
+    renewalFeeUsd: null,
   };
 
   it("doesn't count a quote from another government's page", () => {
@@ -320,5 +333,65 @@ describe("isAllowedHost ports", () => {
     expect(isAllowedHost("https://www.irs.gov/ein", ["irs.gov"])).toBe(true);
     expect(isAllowedHost("https://www.irs.gov:443/ein", ["irs.gov"])).toBe(true);
     expect(isAllowedHost("https://intranet.irs.gov:8443/", ["irs.gov"])).toBe(false);
+  });
+});
+
+describe("verifyRequirements: amounts in words and renewals", () => {
+  const pages = [
+    {
+      id: "orc",
+      url: "https://codes.ohio.gov/ohio-revised-code/section-911.02",
+      retrievedAt: "2026-10-27T00:00:00Z",
+      level: "state" as const,
+      text: "Any person who owns or operates a home bakery shall pay a sum of ten dollars annually for registration. The registration shall be renewed annually by the thirtieth day of September.\nThe fee is one hundred fifty dollars for a wholesale bakery.",
+    },
+  ];
+  const draft = (overrides: Partial<RequirementDraft>) => ({
+    ...requirementDraft({ key: "home-bakery", level: "state", sourceIds: ["orc"], evidence: "shall pay a sum of ten dollars annually for registration. The registration shall be renewed annually by the thirtieth day of September." }),
+    ...overrides,
+  });
+
+  it("finds a fee written in words, as Ohio law writes them", () => {
+    const [checked] = verifyRequirements([draft({ feeUsd: 10, renewal: "renewed annually by the thirtieth day of September", renewalFeeUsd: 10 })], pages, ["codes.ohio.gov"]);
+    expect(checked).toMatchObject({ verification: "sourced", feeUsd: 10, renewal: "renewed annually by the thirtieth day of September", renewalFeeUsd: 10 });
+  });
+
+  it("doesn't read “one hundred fifty dollars” as fifty", () => {
+    const [checked] = verifyRequirements([draft({ evidence: "The fee is one hundred fifty dollars for a wholesale bakery.", feeUsd: 50 })], pages, ["codes.ohio.gov"]);
+    expect(checked).toMatchObject({ feeUsd: null, verification: "needs_verification" });
+    expect(verifyRequirements([draft({ evidence: "The fee is one hundred fifty dollars for a wholesale bakery.", feeUsd: 150 })], pages, ["codes.ohio.gov"])[0].feeUsd).toBe(150);
+  });
+
+  it("drops a renewal the quote doesn't show, without doubting the requirement", () => {
+    const [checked] = verifyRequirements([draft({ feeUsd: 10, renewal: "every two years", renewalFeeUsd: 20 })], pages, ["codes.ohio.gov"]);
+    expect(checked).toMatchObject({ verification: "sourced", renewal: null, renewalFeeUsd: null });
+  });
+
+  it("spells whole amounts the way laws do", () => {
+    expect(amountInWords(39)).toBe("thirty-nine");
+    expect(amountInWords(99)).toBe("ninety-nine");
+    expect(amountInWords(200)).toBe("two hundred");
+    expect(amountInWords(1250)).toBe("one thousand two hundred fifty");
+    expect(amountInWords(12.5)).toBeNull();
+  });
+});
+
+describe("verifyRequirements: amounts in words, edge cases", () => {
+  const page = (text: string) => [{ id: "orc", url: "https://codes.ohio.gov/x", retrievedAt: "2026-10-27T00:00:00Z", level: "state" as const, text }];
+  const check = (text: string, overrides: Partial<RequirementDraft>) =>
+    verifyRequirements([{ ...requirementDraft({ level: "state", sourceIds: ["orc"], evidence: text }), ...overrides }], page(text), ["codes.ohio.gov"])[0];
+
+  it("doesn't take part of a larger amount, or dollars with cents, for a whole fee", () => {
+    expect(check("The license fee is ninety nine dollars for each place.", { feeUsd: 9 }).feeUsd).toBeNull();
+    expect(check("The license fee is twenty-five dollars for each place.", { feeUsd: 5 }).feeUsd).toBeNull();
+    expect(check("The license fee is twenty dollars and fifty cents each year.", { feeUsd: 20 }).feeUsd).toBeNull();
+    expect(check("The license fee is one dollar for each place.", { feeUsd: 1 }).feeUsd).toBe(1);
+  });
+
+  it("only takes a renewal fee from a sentence about renewing", () => {
+    const text = "The filing fee is $99 for the application. The registration must be renewed every two years.";
+    expect(check(text, { feeUsd: 99, renewal: "renewed every two years", renewalFeeUsd: 99 })).toMatchObject({ feeUsd: 99, renewal: "renewed every two years", renewalFeeUsd: null });
+    const yearly = "The registration costs ten dollars annually. It must be renewed by September 30.";
+    expect(check(yearly, { feeUsd: 10, renewal: "renewed by September 30", renewalFeeUsd: 10 })).toMatchObject({ renewalFeeUsd: 10 });
   });
 });

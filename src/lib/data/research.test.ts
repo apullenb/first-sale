@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
 import { checklistTasks, requirements, sources, users } from "@/db/schema";
-import type { ResearchResult } from "@/lib/research/requirements";
+import type { ResearchedRequirement, ResearchResult } from "@/lib/research/requirements";
 import { buildPlan } from "@/lib/rules/plan";
 import { createTestDb } from "@/test/db";
-import { retrievedPage, testProfile, verifiedRequirement } from "@/test/fixtures";
+import { researchedRequirement, retrievedPage, testProfile } from "@/test/fixtures";
 import { createBusinessForOwner } from "./businesses";
 import { getResearchForOwner, saveResearchForOwner } from "./research";
 
@@ -12,8 +12,8 @@ const profile = testProfile({ name: null });
 
 function research(title: string, checkedAt = new Date("2026-10-26T15:00:00Z")): ResearchResult {
   const pages = [retrievedPage({ text: "…", retrievedAt: checkedAt.toISOString() })];
-  const reqs = [
-    verifiedRequirement({
+  const reqs: ResearchedRequirement[] = [
+    researchedRequirement({
       key: "ein",
       title,
       sourceIds: ["irs-ein"],
@@ -36,6 +36,10 @@ function research(title: string, checkedAt = new Date("2026-10-26T15:00:00Z")): 
     assumptions: ["You bake at home"],
     openQuestions: [{ question: "Which county?", whoToCall: "the county" }],
     plan: buildPlan(reqs, pages),
+    coverage: [],
+    conflicts: [],
+    profile,
+    structure: null,
   };
 }
 
@@ -129,5 +133,33 @@ describe("research data access", () => {
     expect(await db.select().from(requirements)).toHaveLength(0);
     expect(await db.select().from(sources)).toHaveLength(0);
     expect(await db.select().from(checklistTasks)).toHaveLength(0);
+  });
+});
+
+describe("research kept for returning owners", () => {
+  it("keeps the answers, decision, coverage, conflicts and each requirement's status it ran on", async () => {
+    const result = research("Get an EIN");
+    await saveResearchForOwner(
+      db,
+      "owner-a",
+      {
+        ...result,
+        structure: "partnership",
+        coverage: [{ category: "tax", level: "federal", state: "confirmed", pagesRead: 1 }],
+        conflicts: [{ about: "The fee", explanation: "Two pages differ.", sourceIds: ["irs-ein"] }],
+        requirements: result.requirements.map((requirement) => ({ ...requirement, status: "optional" as const, conditions: ["Only if"], timing: "later" as const, renewal: "every year", renewalFeeUsd: 5 })),
+      },
+      "key-1",
+    );
+    const saved = await getResearchForOwner(db, "owner-a");
+    expect(saved).toMatchObject({
+      profile,
+      structure: "partnership",
+      proposedAt: new Date("2026-10-26T15:00:00Z"),
+      coverage: [{ category: "tax", level: "federal", state: "confirmed", pagesRead: 1 }],
+      conflicts: [{ about: "The fee", sourceIds: ["irs-ein"] }],
+    });
+    expect(saved?.requirements[0]).toMatchObject({ status: "optional", conditions: ["Only if"], timing: "later", renewal: "every year", renewalFeeCents: 500 });
+    expect(await getResearchForOwner(db, "owner-b")).toBeNull();
   });
 });

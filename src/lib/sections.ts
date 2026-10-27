@@ -58,6 +58,22 @@ export const SECTIONS: Section[] = [
     summary: "Forms you’re working on, with help understanding and filling them in, plus your business plan and other documents First Sale prepared.",
   },
   {
+    href: "/brand",
+    title: "Branding",
+    group: "Run your business",
+    step: null,
+    milestone: 12,
+    summary: "A logo made for your business, its stacked, profile and one-color versions, and matching images for your social pages and website.",
+  },
+  {
+    href: "/website",
+    title: "Website",
+    group: "Run your business",
+    step: null,
+    milestone: 13,
+    summary: "Compare three ways to build your website and what they cost, get a recommendation for your business, then build it step by step.",
+  },
+  {
     href: "/photos",
     title: "Product photos",
     group: "Run your business",

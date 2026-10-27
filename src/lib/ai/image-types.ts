@@ -19,6 +19,16 @@ export interface ImageEditRequest {
   userKey?: string;
 }
 
+// Text to image: the prompt is the only input
+export interface ImageGenerateRequest {
+  prompt: string;
+  // "WxH" sets the shape only; the provider picks the pixel size
+  size?: string;
+  format?: "png" | "jpeg" | "webp";
+  timeoutMs?: number;
+  userKey?: string;
+}
+
 export interface ImageEditResult {
   data: Uint8Array;
   // As the provider labeled it; callers check the bytes themselves
@@ -31,6 +41,8 @@ export interface ImageModel {
   // Practice mode: no image service, so results are previews and must be labeled as such
   readonly simulated: boolean;
   edit(request: ImageEditRequest): Promise<ImageEditResult>;
+  // Present when the provider can make an image from text alone
+  generate?(request: ImageGenerateRequest): Promise<ImageEditResult>;
 }
 
 export class ImageEditError extends AIProviderError {

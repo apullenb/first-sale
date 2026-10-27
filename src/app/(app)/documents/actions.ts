@@ -18,19 +18,19 @@ import {
   updateMyDocument,
 } from "@/lib/data/my-business";
 import type { CreateOutcome, StoredDocument } from "@/lib/data/documents";
-import { DETAILS, detailProblem, displayDetail, isDetailKey, looksLikeIdNumber } from "@/lib/details";
+import { DETAILS, detailProblem, displayDetail, isDecisionKey, isDetailKey, looksLikeIdNumber } from "@/lib/details";
 import { draftBusinessPlan, knownNumbers, MAX_PLAN_INPUT, numberFlags, PLAN_QUESTIONS, type PlanQuestionKey } from "@/lib/documents/business-plan";
 import { askAboutForm, draftAnswers, explainForm, factsFor, MAX_QUESTION, mustFillYourself } from "@/lib/documents/companion";
 import { answerSheet, fillPdfCopy } from "@/lib/documents/fill";
 import { stepGuidance } from "@/lib/documents/guidance";
 import { writePdf } from "@/lib/documents/pdf-writer";
-import { readDocument } from "@/lib/documents/read";
 import { EMPTY_CONTENT, type DraftAnswers, type PlanSection } from "@/lib/documents/types";
 import { checkUpload, cleanTitle, MAX_PASTE_CHARS, MAX_UPLOAD_BYTES } from "@/lib/documents/upload";
 import { OwnerFacingError } from "@/lib/errors";
 import { displayName } from "@/lib/intake/answers";
 import { governmentFor } from "@/lib/research/official-sites";
 import { fetchOfficialPage } from "@/lib/research/retrieve";
+import { readAndSave } from "@/lib/documents/read-and-save";
 import { runWorkflow } from "@/lib/workflow-runner";
 
 const NOT_FOUND = "That document wasn’t found. It may have been deleted.";
@@ -46,23 +46,6 @@ function createFailure(outcome: Exclude<CreateOutcome, { ok: true }>): ActionRes
     default:
       return { ok: false, message: "Tell us about your business first." };
   }
-}
-
-async function readAndSave(doc: { id: string; type: Parameters<typeof readDocument>[1]["type"]; data?: Uint8Array; text?: string }) {
-  return runWorkflow("read_document", doc.id, async () => {
-    const content = await readDocument(getModel(), { type: doc.type, data: doc.data, text: doc.text }, new Date(), await myAiKey());
-    const before = await getMyDocument(doc.id);
-    // A failed read never replaces a good earlier one
-    if (!content.pages.some((page) => page.text.trim()) && before?.content.pages.some((page) => page.text.trim())) {
-      throw new OwnerFacingError(`We couldn’t read it this time, so we kept the earlier reading. ${content.unclear[0]?.why ?? ""}`.trim());
-    }
-    // Answers stay for blanks that are still there with the same label; explanations start fresh
-    const same = new Set(
-      content.fields.filter((field) => before?.content.fields.some((old) => old.id === field.id && old.label === field.label)).map((field) => field.id),
-    );
-    const answers = Object.fromEntries(Object.entries(before?.answers ?? {}).filter(([fieldId]) => same.has(fieldId)));
-    await updateMyDocument(doc.id, { content, guide: null, answers });
-  });
 }
 
 // --- Adding documents
@@ -81,6 +64,7 @@ export async function uploadDocumentAction(form: FormData): Promise<ActionResult
   const created = await createMyDocument({
     title: check.title,
     origin: "upload",
+    role: "form",
     mimeType: check.type,
     data: bytes,
     sha256: check.sha256,
@@ -104,6 +88,7 @@ export async function pasteDocumentAction(input: unknown): Promise<ActionResult<
   const created = await createMyDocument({
     title: cleanTitle(parsed.data.title || text.split("\n")[0]),
     origin: "paste",
+    role: "form",
     mimeType: "text/plain",
     data: null,
     sha256: null,
@@ -136,6 +121,8 @@ export async function officialFormAction(input: unknown): Promise<ActionResult<s
   const created = await createMyDocument({
     title: check.title,
     origin: "official_form",
+    role: "original",
+    obtainedAt: new Date(),
     mimeType: check.type,
     data: fetched.pdf,
     sha256: check.sha256,
@@ -257,7 +244,10 @@ export async function draftAnswersAction(documentId: unknown): Promise<ActionRes
         return [fieldId, now && (now.state === "confirmed" || now.source === "owner") && answer.state !== "fill_yourself" ? now : answer];
       }),
     );
-    await updateMyDocument(doc.id, { answers });
+    // Which facts the draft rests on, so a later change flags it as outdated
+    const values = new Map(facts.map((fact) => [fact.id, fact.value]));
+    const factsUsed = Object.fromEntries(Object.values(answers).flatMap((answer) => (values.has(answer.source) ? [[answer.source, values.get(answer.source)!]] : [])));
+    await updateMyDocument(doc.id, { answers, factsUsed });
   });
   refresh();
   return result.ok ? { ok: true, value: null } : result;
@@ -303,7 +293,7 @@ export async function saveAnswersAction(input: unknown): Promise<ActionResult> {
 
   const details = parsed.data.saveDetails.flatMap(({ fieldId, key }) => {
     const value = next[fieldId]?.value ?? "";
-    return isDetailKey(key) && value ? [{ key, value }] : [];
+    return isDetailKey(key) && !isDecisionKey(key) && value ? [{ key, value }] : [];
   });
   for (const detail of details) {
     const problem = detailProblem(detail.key, detail.value);
@@ -333,6 +323,13 @@ function preparedTitle(title: string, what: string): string {
   return `${title.slice(0, 80)} (${what}, not filed)`;
 }
 
+// Facts the copy was made from, only those its confirmed answers use
+function usedBy(doc: StoredDocument): Record<string, string> | null {
+  if (!doc.factsUsed) return null;
+  const sources = new Set(Object.values(doc.answers).filter((answer) => answer.state === "confirmed").map((answer) => answer.source));
+  return Object.fromEntries(Object.entries(doc.factsUsed).filter(([id]) => sources.has(id)));
+}
+
 export async function fillCopyAction(documentId: unknown): Promise<ActionResult<string>> {
   const doc = await load(documentId);
   if (!doc || doc.origin === "generated") return { ok: false, message: NOT_FOUND };
@@ -350,9 +347,12 @@ export async function fillCopyAction(documentId: unknown): Promise<ActionResult<
     return { ok: false, message: messages[filled.reason] };
   }
   const created = await createMyDocument({
-    title: preparedTitle(doc.title, "filled copy"),
+    title: preparedTitle(doc.title, "reviewed copy"),
     origin: "generated",
     generatedKind: "filled_form",
+    role: "reviewed",
+    versionOf: doc.id,
+    factsUsed: usedBy(doc),
     mimeType: "application/pdf",
     data: filled.bytes,
     sha256: null,
@@ -378,9 +378,12 @@ export async function answerSheetAction(documentId: unknown): Promise<ActionResu
     preparedOn: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }),
   });
   const created = await createMyDocument({
-    title: preparedTitle(doc.title, "answer sheet"),
+    title: preparedTitle(doc.title, doc.role === "answer_guide" ? "answer guide" : "answer sheet"),
     origin: "generated",
-    generatedKind: "answer_sheet",
+    generatedKind: doc.role === "answer_guide" ? "answer_guide" : "answer_sheet",
+    role: "reviewed",
+    versionOf: doc.id,
+    factsUsed: usedBy(doc),
     mimeType: "application/pdf",
     data: bytes,
     sha256: null,

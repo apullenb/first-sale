@@ -1,7 +1,7 @@
 import type { PlanStep } from "@/lib/data/plan";
 import { taskReadiness } from "@/lib/rules/checklist";
 
-export type StepState = { state: "done" } | { state: "ready" } | { state: "waiting"; waitingOn: PlanStep[] };
+export type StepState = { state: "done" } | { state: "submitted" } | { state: "ready" } | { state: "waiting"; waitingOn: PlanStep[] };
 
 // By step key. Retired steps count as done; prerequisites no longer in the plan don't block.
 export function stepStates(all: readonly PlanStep[]): Map<string, StepState> {
@@ -13,7 +13,9 @@ export function stepStates(all: readonly PlanStep[]): Map<string, StepState> {
       readiness.id,
       readiness.state === "waiting"
         ? { state: "waiting", waitingOn: readiness.waitingOn.flatMap((key) => byKey.get(key) ?? []) }
-        : { state: readiness.state },
+        : readiness.state === "ready" && byKey.get(readiness.id)?.status === "submitted"
+          ? { state: "submitted" }
+          : { state: readiness.state },
     ]),
   );
 }
@@ -29,6 +31,13 @@ export function StepStateLabel({ state }: { state: StepState | undefined }) {
           <path d="M20 6 9 17l-5-5" />
         </svg>
         Done
+      </span>
+    );
+  }
+  if (state.state === "submitted") {
+    return (
+      <span className="inline-flex w-fit items-center whitespace-nowrap rounded-full bg-ai-tint px-2.5 py-0.5 text-[13px] font-semibold text-ai-ink">
+        Submitted, waiting to hear back
       </span>
     );
   }

@@ -1,9 +1,11 @@
+import { createHash } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 import type { CompletionRequest, ModelProvider, WebSearchRequest } from "@/lib/ai";
+import { SOURCE_PACKS } from "@/data/source-packs";
 import { createMockProvider } from "@/lib/ai/providers/mock";
 import { retrievedPage, testProfile } from "@/test/fixtures";
 import type { SearchGap } from "./discover";
-import { packsFor, placeQuestions, ResearchError, researchMessage, researchRequirements } from "./requirements";
+import { packsFor, placeQuestions, profileKey, ResearchError, researchMessage, researchRequirements } from "./requirements";
 import type { SourcePack } from "./source-pack";
 
 const profile = testProfile({
@@ -15,6 +17,8 @@ const profile = testProfile({
   premises: "home",
   hiringPlans: "not_now",
 });
+
+const FEDERAL = SOURCE_PACKS.filter((each) => each.jurisdiction.level === "federal");
 
 const pack = (level: SourcePack["jurisdiction"]["level"], state: SourcePack["jurisdiction"]["state"], name: string): SourcePack => ({
   jurisdiction: { level, state, name },
@@ -72,9 +76,9 @@ describe("packsFor", () => {
 
 describe("placeQuestions", () => {
   const gaps: SearchGap[] = [
-    { level: "state", about: "registering a business name in Ohio", failed: false },
-    { level: "county", about: "business licenses in Franklin County", failed: true },
-    { level: "city", about: "business licenses in Columbus", failed: false },
+    { level: "state", category: "formation", about: "registering a business name in Ohio", failed: false },
+    { level: "county", category: "licenses", about: "business licenses in Franklin County", failed: true },
+    { level: "city", category: "licenses", about: "business licenses in Columbus", failed: false },
   ];
 
   it("asks for a missing county", () => {
@@ -129,7 +133,7 @@ describe("placeQuestions", () => {
   // Owners may type the county with or without the word County
   it("doesn't double the word County when the owner typed it", () => {
     const place = testProfile({ location: { county: "Franklin County", city: "Columbus", insideCityLimits: null } });
-    const questions = placeQuestions(place, [{ level: "county", about: "business licenses in Franklin County", failed: false }], true);
+    const questions = placeQuestions(place, [{ level: "county", category: "licenses", about: "business licenses in Franklin County", failed: false }], true);
     expect(questions.map((question) => question.whoToCall)).toEqual([
       "the Franklin County property or planning office",
       "Franklin County offices",
@@ -168,7 +172,7 @@ describe("researchRequirements", () => {
 
   it("runs offline in practice mode: reads the federal pages, checks the drafts, and builds the plan", async () => {
     const fetchImpl = officialSites();
-    const result = await researchRequirements(createMockProvider(), profile, { fetchImpl, now: NOW });
+    const result = await researchRequirements(createMockProvider(), profile, { fetchImpl, now: NOW, packs: FEDERAL });
 
     expect(result).toMatchObject({ checkedAt: NOW, model: "Mock", simulated: true, searched: false, assumptions: [] });
     expect(result.unread).toEqual([]);
@@ -181,11 +185,10 @@ describe("researchRequirements", () => {
       "sba-business-location",
       "sba-licenses-permits",
       "sba-tax-ids",
-      "sba-hire-employees",
     ]);
     expect(result.pages[0]).toMatchObject({ government: "Internal Revenue Service (Department of the Treasury)", discovered: false });
-    // Pages sharing a URL are fetched once
-    expect(fetchImpl).toHaveBeenCalledTimes(4);
+    // Pages sharing a URL are fetched once, and hiring pages are skipped for an owner not hiring
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
 
     const byKey = new Map(result.requirements.map((r) => [r.key, r]));
     expect(byKey.get("ein")).toMatchObject({ verification: "sourced", feeUsd: 0 });
@@ -310,5 +313,19 @@ describe("researchRequirements", () => {
   it("gives up with a message the owner can act on when no page can be read", async () => {
     const offline = vi.fn().mockRejectedValue(new TypeError("fetch failed"));
     await expect(researchRequirements(createMockProvider(), profile, { fetchImpl: offline })).rejects.toBeInstanceOf(ResearchError);
+  });
+});
+
+describe("profileKey", () => {
+  const guided = ["category", "productTags", "ownerRelation", "mayAddOwners", "nameIsLegalName", "alreadyHave", "handoff", "makesForKids", "foodContact", "inventorySources", "servicesLicensed", "firstYearSales", "takesOnDebt", "helpKinds", "goals"];
+
+  it("keeps the key of research saved before the guided-intake answers existed", () => {
+    const profile = testProfile();
+    const older = Object.fromEntries(Object.entries(profile).filter(([key]) => !guided.includes(key)));
+    expect(profileKey(profile)).toBe(createHash("sha256").update(JSON.stringify(older)).digest("hex"));
+  });
+
+  it("changes once one of them is answered", () => {
+    expect(profileKey(testProfile({ mayAddOwners: "no" }))).not.toBe(profileKey(testProfile()));
   });
 });

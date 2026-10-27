@@ -1,0 +1,13 @@
+{
+  "jurisdiction": { "level": "city", "state": "TX", "name": "Austin" },
+  "allowedHosts": ["austintexas.gov"],
+  "sources": [
+    {
+      "id": "tx-austin-home",
+      "title": "City of Austin: Small business permitting and home businesses",
+      "url": "https://www.austintexas.gov/development-services/small-business-permitting",
+      "topics": ["zoning", "licenses_permits"],
+      "lastChecked": "2026-10-27"
+    }
+  ]
+}
