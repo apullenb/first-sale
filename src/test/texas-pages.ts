@@ -1,6 +1,6 @@
 import { textPdf } from "./pdf";
 
-// Lines copied from official Texas, Travis County and Austin pages as the server read them on 2026-10-27, for research tests.
+// Lines copied from official Texas, Travis County and Austin pages as the server read them on 2026-10-27 (Form 401-A on 2026-10-28), for research tests.
 // Tests serve these instead of fetching the live pages; the .pdf ones come back as small PDFs.
 
 export const TEXAS_PAGES: Record<string, string[]> = {
@@ -21,6 +21,21 @@ export const TEXAS_PAGES: Record<string, string[]> = {
     "A. This document becomes effective when the document is filed by the secretary of state.",
     "The undersigned affirms that the person designated as registered agent has consented to the",
     "appointment. The undersigned also affirms that, to the best knowledge of the undersigned, the name",
+  ],
+  "https://www.sos.texas.gov/corp/forms/401-a-boc.pdf": [
+    "Form 401-A",
+    "(Revised 12/09)",
+    "Acceptance of Appointment",
+    "and",
+    "Consent to Serve as Registered Agent",
+    "§5.201(b) Business Organizations Code",
+    "I acknowledge, accept and consent to my designation or appointment as registered agent in Texas for",
+  ],
+  "https://www.sos.texas.gov/corp/instructions/401-a.shtml": [
+    "Form 401-A—General Information",
+    "Acceptance of Appointment and Consent to Serve as Registered Agent",
+    "Execution of Consent: If the person named as registered agent is an individual, the individual designated must sign the consent.",
+    "Filing Not Required: The signed consent of the registered agent should be sent to and retained by the represented entity.",
   ],
   "https://www.sos.texas.gov/corp/forms/503_boc.pdf": [
     "This space reserved for office use.",

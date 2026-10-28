@@ -26,6 +26,7 @@ export function OfficialFormCard({ stepId, form, original, guide, reviewed }: { 
       </div>
       <p className="font-semibold">{form.title}</p>
       {form.whoFor ? <p className="text-[15px] text-rule">{form.whoFor}.</p> : null}
+      {form.kept ? <p className="rounded-lg bg-rule-tint px-3 py-2.5 text-[15px] text-rule">{form.kept.text}</p> : null}
       <p className="text-sm text-muted">
         {form.agency} ·{" "}
         <a href={form.pageUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center underline underline-offset-2">

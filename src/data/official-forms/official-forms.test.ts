@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { BusinessStructure } from "@/lib/domain";
 import { autofillContext } from "@/lib/documents/autofill";
-import { formsFor } from "@/lib/documents/form-catalog";
+import { filedForm, formsFor } from "@/lib/documents/form-catalog";
 import { governmentFor } from "@/lib/research/official-sites";
 import { testProfile } from "@/test/fixtures";
 import { amountInWords } from "@/lib/research/verify";
@@ -9,7 +9,7 @@ import { TEXAS_PAGES } from "@/test/texas-pages";
 import { OFFICIAL_FORMS } from "./index";
 
 const facts = (form: (typeof OFFICIAL_FORMS)[number]) =>
-  [form.fee, form.renewal, form.deadline, form.signature, ...form.before, ...form.afterward, ...form.submit.flatMap((method) => (method.timing ? [method.timing] : []))].filter(
+  [form.fee, form.renewal, form.deadline, form.signature, form.kept ?? null, ...form.before, ...form.afterward, ...form.submit.flatMap((method) => (method.timing ? [method.timing] : []))].filter(
     (fact) => fact !== null,
   );
 
@@ -85,5 +85,41 @@ describe("formsFor", () => {
     // Structure undecided: a step for sole proprietors and partnerships gets no LLC form
     expect(keys(name("state", ["sole_proprietorship", "partnership"]), "Travis")).toEqual([]);
     expect(keys(name("state"), "Travis")).toEqual(["tx-assumed-name-503"]);
+  });
+});
+
+describe("Texas Form 401-A, the registered agent's consent", () => {
+  const formation = { topic: "structure" as const, key: "llc-formation", title: "File a certificate of formation to form your LLC", level: "state" as const, forStructures: ["llc" as const] };
+  const consent = OFFICIAL_FORMS.find((form) => form.key === "tx-registered-agent-401a")!;
+  const answers = (details: { key: "owner_names" | "registered_agent"; value: string }[]) => {
+    const ctx = autofillContext(testProfile({ name: "Rise Bakery LLC", location: { state: "TX", county: "Travis", city: "Austin" } }), [{ key: "structure_choice", value: "llc" }, ...details]);
+    return Object.fromEntries(consent.fields.map((rule) => [rule.fieldId, rule.answer(ctx)]));
+  };
+
+  it("sits beside Form 205 on the LLC's formation step, without becoming the form the step files", () => {
+    const forms = formsFor(OFFICIAL_FORMS, formation, { state: "TX", county: "Travis" }, "llc");
+    expect(forms.map((form) => form.key)).toEqual(["tx-llc-205", "tx-registered-agent-401a"]);
+    expect(filedForm(forms)?.key).toBe("tx-llc-205");
+    expect(consent.kept?.quote).toContain("retained by the represented entity");
+  });
+
+  it("fills the part for an agent who is a person when the owner is their own agent, and leaves the company part blank", () => {
+    const filled = answers([
+      { key: "owner_names", value: "Dana Ruiz" },
+      { key: "registered_agent", value: "Dana Ruiz, 12 Elm St, Austin, TX 78701" },
+    ]);
+    expect(filled["Name of represented entity:"]).toMatchObject({ value: "Rise Bakery LLC" });
+    expect(filled["Printed name of registered agent:"]).toMatchObject({ value: "Dana Ruiz", sure: true });
+    expect(filled["Date (mm/dd/yyyy):"]).toHaveProperty("owner");
+    expect(filled["Name of organization designated as registered agent:"]).toMatchObject({ owner: expect.stringContaining("Leave this part blank") });
+  });
+
+  it("leaves both parts for an agent who isn't an owner, and asks for the agent first", () => {
+    const other = answers([
+      { key: "owner_names", value: "Dana Ruiz" },
+      { key: "registered_agent", value: "Texas Agent Services Inc., 100 Congress Ave, Austin, TX 78701" },
+    ]);
+    expect(Object.values(other).every((filled) => "owner" in filled)).toBe(true);
+    expect(answers([{ key: "owner_names", value: "Dana Ruiz" }])["Name of represented entity:"]).toEqual({ missing: "Add your registered agent to your business details." });
   });
 });

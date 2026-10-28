@@ -201,7 +201,7 @@ export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 export const DOCUMENT_ORIGINS = ["upload", "paste", "official_form", "generated"] as const;
 export type DocumentOrigin = (typeof DOCUMENT_ORIGINS)[number];
-export const GENERATED_KINDS = ["business_plan", "filled_form", "answer_sheet", "startup_plan", "website_copy", "answer_guide"] as const;
+export const GENERATED_KINDS = ["business_plan", "filled_form", "answer_sheet", "startup_plan", "website_copy", "answer_guide", "owners_agreement"] as const;
 export type GeneratedKind = (typeof GENERATED_KINDS)[number];
 export const DRAFT_KINDS = ["listing", "social_post", "order_reply", "role_description"] as const;
 export const DRAFT_STATUSES = ["draft", "approved", "exported"] as const;

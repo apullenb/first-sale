@@ -135,6 +135,9 @@ Forms First Sale knows by hand are in `src/data/official-forms/`, each with word
   - Form 205: rules fill the LLC's name, who runs it and the franchise-tax mailing address.
   - Form 503: rules fill the assumed name, entity type and principal office.
   - The registered agent, organizer and signatures are left for the owner.
+- **Texas Form 401-A (registered agent's consent), from sos.texas.gov:** downloaded and checked (Revised 12/09).
+  - Texas requires the agent's written consent before Form 205 names them. The form is signed and kept, not filed, and it doesn't count as the step's filed form.
+  - When the agent is one of the owners, rules fill the business name and the agent's name. The part for an agent company is left blank.
 - **Travis County assumed name certificate, from traviscountytx.gov:** for a sole proprietor or partnership. It's downloaded and checked, and rules fill the name, address and owners. It's signed before a notary to mail, or filed in person with every owner's ID.
 - **Texas Form AP-201 (sales and use tax permit), from comptroller.texas.gov:** downloaded and checked (Rev.7-26/31). Its 231 blanks aren't mapped by hand, so the paper form is drafted by matching, and the online application gets an answer guide.
 
@@ -143,6 +146,17 @@ A step offers the forms that fit the owner's county and structure. An LLC gets F
 Links and quotes from sites that refuse automated requests are marked "checked by hand", with the date. First Sale never gets past a site's bot check.
 
 The owner reviews every answer and saves a reviewed copy (a filled PDF or an answer guide). It's a new version next to the original, marked "Not filed". If a detail a draft used changes later, such as the address or the structure, the draft and its copies are flagged outdated, and "Update the answers" drafts those blanks again.
+
+## Owners' agreement
+
+An LLC's or partnership's own rules: who owns what, who runs it, and how decisions and money are handled. In Texas an LLC's is called a company agreement. It isn't filed with the state, but banks commonly ask for it, and without one Texas law decides how profits are split.
+
+- **Where:** on the step that forms the business (or the structure step, for a partnership) and on the Documents page, once an LLC or partnership is recorded.
+- **Filled by rules, not AI.** Fixed wording is filled from the saved name, owners, who runs it, purpose, address and state. The owner adds each owner's share (they must add up to 100%), what each puts in, how owners decide, and the manager's name if there is one.
+- **Approve, then sign.** Approving makes a PDF with Schedule A (the owners' shares) and a signature line for each owner. It says it's a starting point, not legal advice.
+- **Outdated.** If a detail it used changes, it's flagged and can't be approved until it's prepared again. Preparing again removes the old PDF.
+- **Not covered:** buyouts, death or disability, deadlocks, competing businesses and pay. The page lists these for a lawyer.
+- Sole proprietors don't need one. Corporations adopt bylaws instead, which First Sale doesn't prepare yet.
 
 ## Documents and the paperwork companion
 

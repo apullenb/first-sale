@@ -6,6 +6,7 @@ import { ActorChip } from "@/components/actor-chip";
 import { LocalDate } from "@/components/local-date";
 import { ROLE_LABELS, roleOf } from "@/lib/documents/library";
 import { FilingSteps } from "@/components/plan/filing-steps";
+import { AgreementCard } from "@/components/documents/agreement-card";
 import { type FormDoc, OfficialFormCard } from "@/components/plan/official-form-card";
 import { RecordUpload } from "@/components/plan/record-upload";
 import { StepStateLabel, stepStates } from "@/components/plan/step-state";
@@ -20,7 +21,8 @@ import { OFFICIAL_FORMS } from "@/data/official-forms";
 import type { StoredDocument } from "@/lib/data/documents";
 import { getMyBusiness, getMyDetails, getMyStep, listMyDocuments } from "@/lib/data/my-business";
 import { autofillContext, autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
-import { formsFor } from "@/lib/documents/form-catalog";
+import { filedForm, formsFor } from "@/lib/documents/form-catalog";
+import { agreementName, agreementStepKey, agreementStructure } from "@/lib/documents/owners-agreement";
 import { ACCEPTED_TYPES } from "@/lib/documents/upload";
 import { LEVEL_LABELS, TOPIC_LABELS } from "@/lib/labels";
 import { jurisdictionName, placeOf, structureOf } from "@/lib/research/applicability";
@@ -65,8 +67,8 @@ async function StepDetail({ params }: { params: Params }) {
   const sourced = step.verification === "sourced";
   // Undecided owners see every form that fits, each saying who it's for
   const forms = profile ? formsFor(OFFICIAL_FORMS, step, placeOf(profile), structureOf(profile, details).structure) : [];
-  // The numbered steps follow a form only when one fits; the cards say who each is for
-  const form = forms.length === 1 ? forms[0] : null;
+  // The numbered steps follow a form only when one filed form fits; the cards say who each is for
+  const form = filedForm(forms);
 
   const place = profile ? placeOf(profile) : null;
   const decision = profile ? structureOf(profile, details) : null;
@@ -74,6 +76,10 @@ async function StepDetail({ params }: { params: Params }) {
   const ruledOut = Boolean(decision?.structure && step.forStructures.length && !step.forStructures.includes(decision.structure));
   const conditions = step.conditions;
   const facts = profile ? autofillFacts(profile, details) : [];
+  // The owners' agreement shows on the step that forms the business, once an LLC or partnership is chosen
+  const agreementFor = agreementStructure(decision?.structure ?? null);
+  const agreementHere = agreementFor !== null && !step.retired && agreementStepKey(all.filter((each) => !each.retired), agreementFor) === step.key;
+  const agreement = documents.find((doc) => doc.generatedKind === "owners_agreement") ?? null;
   const forForm = (key: string, role: "original" | "answer_guide"): FormDoc | null => {
     const doc = documents.find((each) => each.formKey === key && each.role === role);
     return doc ? { doc, outdated: outdatedFacts(doc.factsUsed, facts) } : null;
@@ -174,6 +180,14 @@ async function StepDetail({ params }: { params: Params }) {
         : cards.map((card) => (
             <OfficialFormCard key={card.form.key} stepId={step.id} form={card.form} original={card.original} guide={card.guide} reviewed={card.reviewed} />
           ))}
+      {agreementHere && profile ? (
+        <AgreementCard
+          name={agreementName(agreementFor, profile.location.state === "TX")}
+          owners={profile.owners.count}
+          doc={agreement}
+          outdated={agreement ? outdatedFacts(agreement.factsUsed, facts) : []}
+        />
+      ) : null}
       {missing.length ? (
         <Link href="/business" className={SECONDARY_LINK}>
           Add missing details to your business

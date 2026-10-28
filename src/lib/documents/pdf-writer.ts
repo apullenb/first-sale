@@ -39,6 +39,11 @@ export function toWinAnsi(text: string): string {
     .join("");
 }
 
+// Letters the standard fonts can't draw, which toWinAnsi would print as "?"
+export function unprintable(text: string): string[] {
+  return [...new Set([...text.normalize("NFC")].filter((char) => char !== "?" && toWinAnsi(char) === "?"))];
+}
+
 export async function writePdf(spec: PdfSpec): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(toWinAnsi(spec.title));
@@ -76,7 +81,9 @@ export async function writePdf(spec: PdfSpec): Promise<Uint8Array> {
 
   for (const block of spec.blocks) {
     if (block.heading) {
-      y -= 8;
+      // Keeps a heading with the first lines under it
+      if (y - 8 - 13 * 1.35 - 3 * 10.5 * 1.35 < PAGE.margin + 20) newPage();
+      else y -= 8;
       write(block.heading, bold, 13, { gap: 2 });
     }
     for (const paragraph of block.paragraphs ?? []) {
@@ -93,6 +100,8 @@ export async function writePdf(spec: PdfSpec): Promise<Uint8Array> {
       y -= 3;
     }
     for (const entry of block.entries ?? []) {
+      // Keeps a label, such as a signer's name, with its line
+      if (y - 3 * 10.5 * 1.35 < PAGE.margin + 20) newPage();
       write(entry.label, bold, 10.5);
       write(entry.value || "-", regular, 10.5, { indent: 10 });
       if (entry.note) write(entry.note, regular, 9, { indent: 10, color: MUTED });

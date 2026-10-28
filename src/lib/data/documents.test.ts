@@ -100,6 +100,17 @@ describe("document data access", () => {
     expect((await getDocumentFileForOwner(db, "owner-a", id))?.data).toEqual(replacement);
   });
 
+  it("removes a file, and leaves a document alone when its guard fails under the lock", async () => {
+    const draft = { sections: [], inputs: { prepared_at: "first" }, approvedAt: null, simulated: false };
+    const id = await create("owner-a", { draft });
+
+    expect(await updateDocumentForOwner(db, "owner-a", id, { title: "Stale" }, NOW, (row) => row.draft?.inputs.prepared_at === "second")).toBe(false);
+    expect((await getDocumentForOwner(db, "owner-a", id))?.title).toBe("Vendor form");
+
+    expect(await updateDocumentForOwner(db, "owner-a", id, { data: null }, NOW, (row) => row.draft?.inputs.prepared_at === "first")).toBe(true);
+    expect(await getDocumentForOwner(db, "owner-a", id)).toMatchObject({ byteSize: 0, hasFile: false });
+  });
+
   it("deletes only the owner's own documents", async () => {
     const id = await create("owner-a");
     expect(await deleteDocumentForOwner(db, "owner-b", id)).toBe(false);

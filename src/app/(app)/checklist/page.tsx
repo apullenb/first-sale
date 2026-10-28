@@ -62,7 +62,7 @@ async function Plan() {
   const practice = plan.steps.some((step) => step.simulated);
   const where = business.profile ? placeOf(business.profile) : null;
   const structure = business.profile ? structureOf(business.profile, details).structure : null;
-  const formOf = (step: PlanStep) => (where ? (formsFor(OFFICIAL_FORMS, step, where, structure)[0] ?? null) : null);
+  const formOf = (step: PlanStep) => (where ? (formsFor(OFFICIAL_FORMS, step, where, structure).find((form) => !form.kept) ?? null) : null);
   const actionSteps = plan.steps.map((step) => {
     const form = formOf(step);
     return {

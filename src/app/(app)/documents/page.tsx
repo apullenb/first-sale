@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ActorChip } from "@/components/actor-chip";
 import { AddFormPanel, type AddMode } from "@/components/documents/add-form-panel";
+import { AgreementCard } from "@/components/documents/agreement-card";
 import { HowDocumentsAreHandled } from "@/components/documents/how-handled";
 import { formatBytes } from "@/components/documents/labels";
 import { LibraryList } from "@/components/documents/library-list";
@@ -10,7 +11,9 @@ import { CARD, EYEBROW, PAGE_TITLE, PRIMARY_LINK, SECONDARY_LINK, SECTION_TITLE 
 import { DOCUMENT_LIMITS, type StoredDocument } from "@/lib/data/documents";
 import { getMyBusiness, getMyDetails, getMyPlan, listMyDocuments } from "@/lib/data/my-business";
 import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
+import { agreementName, agreementStructure } from "@/lib/documents/owners-agreement";
 import { ACCEPTED_TYPES, MAX_PASTE_CHARS, MAX_UPLOAD_BYTES } from "@/lib/documents/upload";
+import { structureOf } from "@/lib/research/applicability";
 import { sectionMetadata } from "@/lib/sections";
 
 export const metadata = sectionMetadata("/documents");
@@ -60,6 +63,8 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
   const businessPlan = documents.find((doc) => doc.generatedKind === "business_plan") ?? null;
   const facts = business.profile ? autofillFacts(business.profile, details) : [];
   const outdated = new Map(documents.map((doc) => [doc.id, outdatedFacts(doc.factsUsed, facts)]));
+  const agreementFor = business.profile ? agreementStructure(structureOf(business.profile, details).structure) : null;
+  const agreement = documents.find((doc) => doc.generatedKind === "owners_agreement") ?? null;
   const usedBytes = documents.reduce((total, doc) => total + doc.byteSize, 0);
 
   return (
@@ -78,6 +83,15 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
       <LibraryList documents={documents} steps={allSteps} outdated={outdated} />
 
       <BusinessPlanCard plan={businessPlan} />
+
+      {agreementFor && business.profile ? (
+        <AgreementCard
+          name={agreementName(agreementFor, business.profile.location.state === "TX")}
+          owners={business.profile.owners.count}
+          doc={agreement}
+          outdated={agreement ? (outdated.get(agreement.id) ?? []) : []}
+        />
+      ) : null}
 
       <p className="text-sm text-muted">
         Your library holds up to {DOCUMENT_LIMITS.count} documents and {formatBytes(DOCUMENT_LIMITS.totalBytes)} in all.

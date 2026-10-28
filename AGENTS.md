@@ -34,6 +34,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Whether a requirement applies is decided in code (`classify` in `src/lib/research/applicability.ts`), from the model's read plus the owner's answers and decisions. Steps for one structure stay conditional until the owner decides.
 - Calling an office is never a required step. Unconfirmed items get a prepared written question (`writtenInquiry`) and the best official link.
 - Official forms come from `src/data/official-forms`. Every fee, time and step there quotes an official page with the date checked. Mark anything read only in a browser as `byHand` or `handChecked`. Only download forms the app's server can fetch, and never get around a site's bot check.
+- A form that is signed and kept rather than filed, like Texas Form 401-A, sets `kept`. It never counts as a step's filed form (`filedForm`).
+- The owners' agreement (`src/lib/documents/owners-agreement.ts`) is fixed wording filled by rules, never model output. Change its terms only on the user's say-so, and quote any law it relies on from the official page.
 - Downloaded originals are never changed. Reviewed copies, receipts and approvals are new rows with a `role`, and versions share a `family_id`. Drafted answers record every fact they rest on (`source`, `alsoFrom`, `facts_used`), so a changed fact flags them.
 - Filing status is the owner's record: "submitted", then "done" once approved. Opening a link or downloading a form never changes it.
 - The demo place's quotes are tested against `src/test/texas-pages.ts`, which is copied from what the server read. When an official page changes, update both together.

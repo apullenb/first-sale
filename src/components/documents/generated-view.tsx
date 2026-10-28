@@ -21,6 +21,7 @@ interface Props {
 export function GeneratedView({ doc, from, stepTitle, outdated = [] }: Props) {
   const kind = doc.generatedKind ? GENERATED_LABELS[doc.generatedKind] : "Prepared document";
   const isPlan = doc.generatedKind === "business_plan";
+  const isAgreement = doc.generatedKind === "owners_agreement";
   const prepared = doc.generatedKind === "filled_form" || doc.generatedKind === "answer_sheet";
 
   return (
@@ -67,7 +68,7 @@ export function GeneratedView({ doc, from, stepTitle, outdated = [] }: Props) {
               </li>
             ))}
           </ul>
-          <p>Update the answers on the form, then save a new reviewed copy. This one stays as a record.</p>
+          <p>{isAgreement ? "Prepare the agreement again from your new details." : "Update the answers on the form, then save a new reviewed copy. This one stays as a record."}</p>
         </section>
       ) : null}
 
@@ -87,11 +88,18 @@ export function GeneratedView({ doc, from, stepTitle, outdated = [] }: Props) {
             </a>
           </div>
         ) : (
-          <p className="text-rule">{isPlan ? "There’s no PDF yet. Approve your plan to make one." : "There’s no file for this document."}</p>
+          <p className="text-rule">
+            {isPlan ? "There’s no PDF yet. Approve your plan to make one." : isAgreement ? "There’s no PDF yet. Approve your agreement to make one." : "There’s no file for this document."}
+          </p>
         )}
         {isPlan ? (
           <Link href="/documents/business-plan" className={SECONDARY_LINK}>
             Edit your business plan
+          </Link>
+        ) : null}
+        {isAgreement ? (
+          <Link href="/documents/agreement" className={SECONDARY_LINK}>
+            Review or change your agreement
           </Link>
         ) : null}
       </section>
@@ -104,7 +112,9 @@ export function GeneratedView({ doc, from, stepTitle, outdated = [] }: Props) {
         confirm={
           isPlan
             ? `Delete “${doc.title}”? This removes the plan, your answers to its questions and its PDF. This can’t be undone.`
-            : `Delete “${doc.title}”? This removes the file. This can’t be undone.`
+            : isAgreement
+              ? `Delete “${doc.title}”? This removes the agreement, your answers and its PDF from First Sale. Copies you’ve printed or signed aren’t affected. This can’t be undone.`
+              : `Delete “${doc.title}”? This removes the file. This can’t be undone.`
         }
         doneHref="/documents"
       />

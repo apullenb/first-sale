@@ -167,9 +167,9 @@ export async function createMyDocument(input: NewDocument) {
   return createDocumentForOwner(getDb(), user.id, input);
 }
 
-export async function updateMyDocument(id: string, patch: DocumentPatch) {
+export async function updateMyDocument(id: string, patch: DocumentPatch, when?: Parameters<typeof updateDocumentForOwner>[5]) {
   const user = await getCurrentUser();
-  return updateDocumentForOwner(getDb(), user.id, id, patch);
+  return updateDocumentForOwner(getDb(), user.id, id, patch, new Date(), when);
 }
 
 export async function deleteMyDocument(id: string) {

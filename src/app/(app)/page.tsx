@@ -127,7 +127,7 @@ async function Overview() {
 
 function Progress({ plan, where, structure }: { plan: PlanView; where: Parameters<typeof formsFor>[2]; structure: Parameters<typeof formsFor>[3] }) {
   const priced = plan.steps.map((step) => {
-    const form = formsFor(OFFICIAL_FORMS, step, where, structure)[0] ?? null;
+    const form = formsFor(OFFICIAL_FORMS, step, where, structure).find((each) => !each.kept) ?? null;
     return { ...step, feeCents: step.feeCents ?? form?.fee?.cents ?? null, formKey: form?.key ?? null };
   });
   const actions = nextActions(priced);

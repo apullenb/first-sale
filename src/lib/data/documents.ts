@@ -189,13 +189,22 @@ export interface DocumentPatch {
   questions?: DocumentQuestion[];
   draft?: GeneratedContent | null;
   taskId?: string | null;
-  data?: Uint8Array;
+  // null removes the file, such as a PDF made from a draft that has since changed
+  data?: Uint8Array | null;
   mimeType?: string;
   sha256?: string;
   factsUsed?: Record<string, string> | null;
 }
 
-export async function updateDocumentForOwner(db: Db, ownerId: string, id: string, patch: DocumentPatch, now = new Date()): Promise<boolean> {
+// `when`: checked under the row lock, so a change made in the meantime isn't overwritten
+export async function updateDocumentForOwner(
+  db: Db,
+  ownerId: string,
+  id: string,
+  patch: DocumentPatch,
+  now = new Date(),
+  when?: (current: { draft: GeneratedContent | null }) => boolean,
+): Promise<boolean> {
   return db.transaction(async (tx) => {
     const [business] = await tx.select({ id: businesses.id }).from(businesses).where(eq(businesses.ownerId, ownerId));
     if (!business) return false;
@@ -207,10 +216,10 @@ export async function updateDocumentForOwner(db: Db, ownerId: string, id: string
       if (!task) return false;
     }
     const where = and(eq(documents.id, id), eq(documents.businessId, business.id));
-    const [found] = await tx.select({ id: documents.id }).from(documents).where(where).for("update");
-    if (!found) return false;
+    const [found] = await tx.select({ id: documents.id, draft: documents.draft }).from(documents).where(where).for("update");
+    if (!found || (when && !when(found))) return false;
     const set: Partial<typeof documents.$inferInsert> = { ...patch, updatedAt: now };
-    if (patch.data) set.byteSize = patch.data.byteLength;
+    if (patch.data !== undefined) set.byteSize = patch.data?.byteLength ?? 0;
     await tx.update(documents).set(set).where(where);
     return true;
   });

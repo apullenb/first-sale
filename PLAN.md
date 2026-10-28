@@ -270,5 +270,5 @@ drizzle/                migrations
 3. Repo visibility for submission. It's private for now.
 4. Whether the rules require every AI call, including eval graders, to use Muse.
 5. Which email service sends password resets and verification emails, and whether a hackathon demo needs them.
-6. Which generated legal documents to offer beyond prepared forms. An LLC operating agreement, for example, is a contract, so it isn't generated until decided.
+6. ~~Which generated legal documents to offer beyond prepared forms.~~ Decided: an owners' agreement for LLCs (a company agreement in Texas) and partnerships, from fixed wording filled by rules, plus Texas Form 401-A. Corporate bylaws aren't offered yet.
 7. Whether to map Form AP-201's 231 blanks by hand. For now its answers are drafted by matching.

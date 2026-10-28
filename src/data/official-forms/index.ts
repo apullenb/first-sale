@@ -1,10 +1,12 @@
 import { addressPart, addressPiece, type AutofillContext, fact, type Filled, tick } from "@/lib/documents/autofill";
 import type { CheckedFact, OfficialForm } from "@/lib/documents/form-catalog";
+import { ownerNames } from "@/lib/documents/owners-agreement";
 
 // Official forms and applications for the demo place (Austin, Travis County, Texas) and federal ones for everyone.
 // Each quote was read on the official page on the day shown. Re-check before changing anything here.
 
 const CHECKED = "2026-10-27";
+const CHECKED_401A = "2026-10-28";
 
 const IRS_EIN = { sourceTitle: "IRS: Get an employer identification number", sourceUrl: "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number" };
 const SS4_HELP = { sourceTitle: "IRS: Instructions for Form SS-4 (Rev. December 2025)", sourceUrl: "https://www.irs.gov/pub/irs-pdf/iss4.pdf" };
@@ -16,15 +18,19 @@ const TRAVIS_FORM = {
   sourceTitle: "Travis County Clerk: Assumed name certificate for unincorporated persons",
   sourceUrl: "https://countyclerk.traviscountytx.gov/wp-content/uploads/recording/DBAunincorporatedDLM.pdf",
 };
+const TX_401A = { sourceTitle: "Texas Secretary of State: Form 401-A (Revised 12/09)", sourceUrl: "https://www.sos.texas.gov/corp/forms/401-a-boc.pdf" };
+const TX_401A_INFO = { sourceTitle: "Texas Secretary of State: Form 401-A general information", sourceUrl: "https://www.sos.texas.gov/corp/instructions/401-a.shtml" };
+// The statutes site only shows text in a browser
+const TX_AGENT_LAW = { sourceTitle: "Texas Business Organizations Code, Sec. 5.201", sourceUrl: "https://statutes.capitol.texas.gov/Docs/BO/htm/BO.5.htm", byHand: true as const };
 const CPA_FAQ = { sourceTitle: "Texas Comptroller: Obtaining a sales tax permit", sourceUrl: "https://comptroller.texas.gov/taxes/sales/faq/permit.php" };
 const CPA_PERMIT = { sourceTitle: "Texas Comptroller: Sales tax permit application", sourceUrl: "https://comptroller.texas.gov/taxes/permit/" };
 const AP201 = { sourceTitle: "Texas Comptroller: Form AP-201 (Rev.7-26/31)", sourceUrl: "https://comptroller.texas.gov/forms/ap-201.pdf" };
 
-const checked = (source: { sourceTitle: string; sourceUrl: string }, text: string, quote: string): CheckedFact => ({
+const checked = (source: { sourceTitle: string; sourceUrl: string }, text: string, quote: string, checkedOn = CHECKED): CheckedFact => ({
   ...source,
   text,
   quote,
-  checkedOn: CHECKED,
+  checkedOn,
 });
 
 const SS4 = "topmostSubform[0].Page1[0].";
@@ -45,6 +51,20 @@ function managed(ctx: AutofillContext, which: "member_managed" | "manager_manage
   if (!chosen) return { missing: "Add who runs the LLC (its members or a manager) to your business details." };
   const yes = chosen.value === (which === "member_managed" ? "The owners (member-managed)" : "A chosen manager (manager-managed)");
   return { value: yes ? "Yes" : "No", from: ["detail.management"], sure: true };
+}
+
+// The registered agent, when it's one of the owners: they sign the part for an agent who is a person
+const AGENT_FACTS = ["detail.registered_agent", "detail.owner_names"];
+function ownerAgent(ctx: AutofillContext): string | null {
+  const agent = ctx.facts.get("detail.registered_agent")?.value.split(/\n|,/)[0].trim().toLowerCase();
+  if (!agent) return null;
+  return ownerNames(ctx.facts.get("detail.owner_names")?.value).find((name) => name.toLowerCase() === agent) ?? null;
+}
+
+function agentBlank(ctx: AutofillContext, part: "person" | "company"): Filled {
+  if (!ctx.facts.has("detail.registered_agent")) return { missing: "Add your registered agent to your business details." };
+  if (ownerAgent(ctx)) return owner(part === "company" ? "Leave this part blank: it’s for a registered agent company." : "Your registered agent fills this in.", AGENT_FACTS);
+  return owner(part === "person" ? "Filled in by your registered agent if they’re a person." : "Filled in by your registered agent if it’s a company.", AGENT_FACTS);
 }
 
 const purpose = (ctx: AutofillContext): Filled =>
@@ -256,7 +276,14 @@ export const OFFICIAL_FORMS: OfficialForm[] = [
     fee: { ...checked(TX_205, "$300 to file the certificate.", "Filing Fee: $300"), cents: 30000 },
     renewal: null,
     deadline: null,
-    before: [],
+    before: [
+      checked(
+        TX_AGENT_LAW,
+        "Get your registered agent’s written consent first. Texas law requires it before you name them.",
+        "has consented in a written or electronic form to be developed by the office of the secretary of state to serve as the registered agent of the entity",
+        CHECKED_401A,
+      ),
+    ],
     submit: [
       {
         kind: "online",
@@ -289,6 +316,71 @@ export const OFFICIAL_FORMS: OfficialForm[] = [
     ],
     checkedOn: CHECKED,
     notes: ["Your registered agent, the people who run the LLC, and the organizer are left for you: each needs a full name as it appears on their ID."],
+  },
+  {
+    key: "tx-registered-agent-401a",
+    title: "Texas Form 401-A: Acceptance of Appointment and Consent to Serve as Registered Agent",
+    formNumber: "401-A",
+    revision: "Revised 12/09",
+    agency: "Texas Secretary of State",
+    level: "state",
+    state: "TX",
+    forStructures: ["llc", "corporation"],
+    whoFor: "Your registered agent’s written agreement to serve, which Texas requires before you name them",
+    domain: "texas.gov",
+    pdfUrl: TX_401A.sourceUrl,
+    onlineUrl: null,
+    selfDownload: null,
+    pageUrl: SOS_FORMS.sourceUrl,
+    pageTitle: SOS_FORMS.sourceTitle,
+    mustContain: ["Form 401-A", "(Revised 12/09)", "Consent to Serve as Registered Agent"],
+    fits: { topics: ["structure"], pattern: /\bllc\b|limited liability|certificate of formation|articles|corporation|incorporat/i },
+    fee: null,
+    renewal: null,
+    deadline: null,
+    before: [],
+    submit: [],
+    signature: checked(
+      TX_401A_INFO,
+      "Your registered agent signs it. If you’re your own registered agent, you sign it.",
+      "If the person named as registered agent is an individual, the individual designated must sign the consent.",
+      CHECKED_401A,
+    ),
+    afterward: [],
+    kept: checked(
+      TX_401A_INFO,
+      "Not filed. Your registered agent signs it before you file, and you keep it with your business records.",
+      "The signed consent of the registered agent should be sent to and retained by the represented entity.",
+      CHECKED_401A,
+    ),
+    receipt: "None: it isn’t filed",
+    fields: [
+      {
+        fieldId: "Name of represented entity:",
+        line: "Agent who is a person",
+        label: "Name of your business",
+        answer: (ctx) => (ownerAgent(ctx) ? fact(ctx, "profile.name", { sure: false, note: "Use the exact name on your certificate of formation.", also: AGENT_FACTS }) : agentBlank(ctx, "person")),
+      },
+      {
+        fieldId: "Printed name of registered agent:",
+        line: "Agent who is a person",
+        label: "Registered agent’s printed name",
+        answer: (ctx) => {
+          const name = ownerAgent(ctx);
+          return name ? { value: name, from: AGENT_FACTS, sure: true } : agentBlank(ctx, "person");
+        },
+      },
+      { fieldId: "Date (mm/dd/yyyy):", line: "Agent who is a person", label: "Date signed", answer: () => owner("The date your registered agent signs.") },
+      { fieldId: "Name of organization designated as registered agent:", line: "Agent that is a company", label: "Registered agent company", answer: (ctx) => agentBlank(ctx, "company") },
+      { fieldId: "Name of represented entity 2:", line: "Agent that is a company", label: "Name of your business", answer: (ctx) => agentBlank(ctx, "company") },
+      { fieldId: "Printed name of authorized person:", line: "Agent that is a company", label: "Printed name of the person signing for the company", answer: (ctx) => agentBlank(ctx, "company") },
+      { fieldId: "Date (mm/dd/yyyy) 2:", line: "Agent that is a company", label: "Date signed", answer: (ctx) => agentBlank(ctx, "company") },
+    ],
+    checkedOn: CHECKED_401A,
+    notes: [
+      "The form has two parts: the first for an agent who is a person, the second for a registered agent company. Agent companies usually give you their own signed consent.",
+      "In a browser, the Secretary of State’s instructions for this form are at www.sos.state.tx.us/corp/instructions/401-a.shtml.",
+    ],
   },
   {
     key: "tx-assumed-name-503",

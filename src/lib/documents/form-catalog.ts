@@ -63,6 +63,8 @@ export interface OfficialForm {
   submit: SubmitMethod[];
   signature: CheckedFact | null;
   afterward: CheckedFact[];
+  // Signed and kept with the business's records instead of filed, such as a registered agent's consent
+  kept?: CheckedFact;
   // Where the receipt or confirmation comes from
   receipt: string;
   // Blanks the app fills by rule; others are left for the owner or the model's matching
@@ -96,4 +98,10 @@ export function formsFor(
       form.fits.topics.includes(step.topic) &&
       form.fits.pattern.test(`${step.key} ${step.title}`),
   );
+}
+
+// The one form a step files, for its numbered steps and fee; forms that are only kept don't count
+export function filedForm(forms: readonly OfficialForm[]): OfficialForm | null {
+  const filed = forms.filter((form) => !form.kept);
+  return filed.length === 1 ? filed[0] : null;
 }
