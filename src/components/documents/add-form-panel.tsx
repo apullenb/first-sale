@@ -3,11 +3,26 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useId, useLayoutEffect, useRef, useState } from "react";
 import type { ActionResult } from "@/app/(app)/business/actions";
-import { officialFormAction, pasteDocumentAction, uploadDocumentAction } from "@/app/(app)/documents/actions";
+import { explainReceivedAction, officialFormAction, pasteDocumentAction, uploadDocumentAction } from "@/app/(app)/documents/actions";
+import { uploadRecordAction } from "@/app/(app)/documents/form-actions";
 import { ActorChip } from "@/components/actor-chip";
-import { ALERT, CARD, INPUT, PRIMARY, SECTION_TITLE } from "@/components/styles";
+import { AI_BUTTON, ALERT, CARD, INPUT, PRIMARY, SECONDARY, SECTION_TITLE } from "@/components/styles";
 
+// "have": a paper the owner already has or got in the mail; "fill": a form to fill in
+export type AddKind = "have" | "fill";
 export type AddMode = "upload" | "paste" | "official";
+
+const KINDS: { value: AddKind; label: string }[] = [
+  { value: "have", label: "A document I have or got in the mail" },
+  { value: "fill", label: "A form I need to fill in" },
+];
+
+const KEPT_ROLES = [
+  ["mail", "A letter or notice I got"],
+  ["approval", "A registration, license or permit I already have"],
+  ["receipt", "A receipt or filing confirmation"],
+  ["supporting", "Something else"],
+] as const;
 
 const MODES: { value: AddMode; label: string }[] = [
   { value: "upload", label: "Upload a PDF or photo" },
@@ -19,19 +34,27 @@ const MODES: { value: AddMode; label: string }[] = [
 const SHRINK_OVER_BYTES = 3_500_000;
 const MAX_WIDTH = 2400;
 
+const CHOICE =
+  "flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-field bg-surface px-3.5 font-semibold has-checked:border-accent has-checked:bg-accent-tint has-checked:text-accent-ink has-focus-visible:ring-2 has-focus-visible:ring-accent";
+
 interface Props {
   steps: { id: string; title: string }[];
   initialStep: string | null;
+  initialKind: AddKind;
   initialMode: AddMode;
   acceptedTypes: string[];
   maxUploadBytes: number;
   maxPasteChars: number;
 }
 
-export function AddFormPanel({ steps, initialStep, initialMode, acceptedTypes, maxUploadBytes, maxPasteChars }: Props) {
+export function AddFormPanel({ steps, initialStep, initialKind, initialMode, acceptedTypes, maxUploadBytes, maxPasteChars }: Props) {
   const uid = useId();
   const router = useRouter();
   const fileInput = useRef<HTMLInputElement>(null);
+  // One per file chosen, kept for retries, so a lost connection can't save it twice
+  const requestKey = useRef<string | null>(null);
+  const [kind, setKind] = useState<AddKind>(initialKind);
+  const [role, setRole] = useState<(typeof KEPT_ROLES)[number][0]>("mail");
   const [mode, setMode] = useState<AddMode>(initialMode);
   const [stepId, setStepId] = useState(initialStep ?? "");
   const [file, setFile] = useState<File | null>(null);
@@ -48,9 +71,27 @@ export function AddFormPanel({ steps, initialStep, initialMode, acceptedTypes, m
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    const explain = ((event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null)?.value === "explain";
     try {
       let result: ActionResult<string>;
-      if (mode === "upload") {
+      if (kind === "have") {
+        if (!file) return setError("Choose a file to upload.");
+        setStatus("Getting your file ready…");
+        const prepared = await prepareUpload(file, acceptedTypes, maxUploadBytes);
+        if (!prepared.ok) return setError(prepared.message);
+        const form = new FormData();
+        form.append("file", prepared.file, prepared.file.name);
+        form.append("role", role);
+        form.append("requestKey", (requestKey.current ??= crypto.randomUUID()));
+        if (stepId) form.append("stepId", stepId);
+        setStatus("Saving it to your library…");
+        result = await uploadRecordAction(form);
+        if (result.ok && explain) {
+          setStatus("Reading it and writing an explanation… this can take a minute");
+          // A failed explanation shows on the document's page, with a way to try again
+          await explainReceivedAction(result.value);
+        }
+      } else if (mode === "upload") {
         if (!file) return setError("Choose a file to upload.");
         setStatus("Getting your file ready…");
         const prepared = await prepareUpload(file, acceptedTypes, maxUploadBytes);
@@ -74,6 +115,7 @@ export function AddFormPanel({ steps, initialStep, initialMode, acceptedTypes, m
       setTitle("");
       setText("");
       setUrl("");
+      requestKey.current = null;
       if (fileInput.current) fileInput.current.value = "";
       router.push(`/documents/${result.value}`);
     } catch {
@@ -87,34 +129,46 @@ export function AddFormPanel({ steps, initialStep, initialMode, acceptedTypes, m
     <section aria-labelledby={`${uid}-heading`} id="add-form" className={`${CARD} flex flex-col gap-4`}>
       <div className="flex flex-col gap-1.5">
         <h2 id={`${uid}-heading`} className={SECTION_TITLE}>
-          Add a form
+          Add to your library
         </h2>
-        <p className="text-rule">
-          Add a form you need to fill in, such as a registration or permit application. First Sale reads it, explains
-          it, and helps you draft answers.
-        </p>
-        <p className="flex items-start gap-2.5 text-sm text-rule">
-          <ActorChip actor="ai" />
-          <span>AI reads the form and finds the blanks to fill in. First Sale never files or submits anything for you.</span>
-        </p>
+        {kind === "have" ? (
+          <>
+            <p className="text-rule">
+              Upload papers you already have, like your LLC certificate or EIN letter, or a letter you got in the mail and aren’t sure about.
+              First Sale can explain what it is, what it means, and anything you need to do.
+            </p>
+            <p className="flex items-start gap-2.5 text-sm text-rule">
+              <ActorChip actor="ai" />
+              <span>AI reads it only if you ask for an explanation. Social Security, tax ID and card numbers are left out of the explanation.</span>
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-rule">
+              Add a form you need to fill in, such as a registration or permit application. First Sale reads it, explains it, and helps you
+              draft answers.
+            </p>
+            <p className="flex items-start gap-2.5 text-sm text-rule">
+              <ActorChip actor="ai" />
+              <span>AI reads the form and finds the blanks to fill in. First Sale never files or submits anything for you.</span>
+            </p>
+          </>
+        )}
       </div>
 
       <form onSubmit={submit} className="flex flex-col gap-4">
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-2 font-semibold">How would you like to add it?</legend>
+          <legend className="mb-2 font-semibold">What are you adding?</legend>
           <div className="flex flex-wrap gap-2">
-            {MODES.map((option) => (
-              <label
-                key={option.value}
-                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-field bg-surface px-3.5 font-semibold has-checked:border-accent has-checked:bg-accent-tint has-checked:text-accent-ink has-focus-visible:ring-2 has-focus-visible:ring-accent"
-              >
+            {KINDS.map((option) => (
+              <label key={option.value} className={CHOICE}>
                 <input
                   type="radio"
-                  name={`${uid}-mode`}
+                  name={`${uid}-kind`}
                   value={option.value}
-                  checked={mode === option.value}
+                  checked={kind === option.value}
                   onChange={() => {
-                    setMode(option.value);
+                    setKind(option.value);
                     setError(null);
                   }}
                   className="size-4 accent-accent"
@@ -125,17 +179,60 @@ export function AddFormPanel({ steps, initialStep, initialMode, acceptedTypes, m
           </div>
         </fieldset>
 
-        {mode === "upload" ? (
+        {kind === "have" ? (
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor={`${uid}-role`} className="font-semibold">
+              What is it?
+            </label>
+            <select id={`${uid}-role`} value={role} onChange={(event) => {
+                setRole(event.target.value as typeof role);
+                requestKey.current = null;
+              }} className={INPUT}>
+              {KEPT_ROLES.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <fieldset className="flex flex-col gap-2">
+            <legend className="mb-2 font-semibold">How would you like to add it?</legend>
+            <div className="flex flex-wrap gap-2">
+              {MODES.map((option) => (
+                <label key={option.value} className={CHOICE}>
+                  <input
+                    type="radio"
+                    name={`${uid}-mode`}
+                    value={option.value}
+                    checked={mode === option.value}
+                    onChange={() => {
+                      setMode(option.value);
+                      setError(null);
+                    }}
+                    className="size-4 accent-accent"
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
+
+        {kind === "have" || mode === "upload" ? (
           <div className="flex flex-col gap-1.5">
             <label htmlFor={`${uid}-file`} className="font-semibold">
-              The form, as a PDF or photo
+              {kind === "have" ? "The document, as a PDF or photo" : "The form, as a PDF or photo"}
             </label>
             <input
               id={`${uid}-file`}
               ref={fileInput}
               type="file"
               accept={acceptedTypes.join(",")}
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+              onChange={(event) => {
+                setFile(event.target.files?.[0] ?? null);
+                requestKey.current = null;
+              }}
               className="min-h-12 w-full rounded-lg border border-field bg-surface px-3 py-2.5 text-base file:mr-3 file:min-h-9 file:rounded-md file:border-0 file:bg-accent-tint file:px-3 file:font-semibold file:text-accent-ink"
               aria-describedby={`${uid}-file-help`}
             />
@@ -149,7 +246,7 @@ export function AddFormPanel({ steps, initialStep, initialMode, acceptedTypes, m
           </div>
         ) : null}
 
-        {mode === "paste" ? (
+        {kind === "fill" && mode === "paste" ? (
           <>
             <div className="flex flex-col gap-1.5">
               <label htmlFor={`${uid}-title`} className="font-semibold">
@@ -186,7 +283,7 @@ export function AddFormPanel({ steps, initialStep, initialMode, acceptedTypes, m
           </>
         ) : null}
 
-        {mode === "official" ? (
+        {kind === "fill" && mode === "official" ? (
           <div className="flex flex-col gap-1.5">
             <label htmlFor={`${uid}-url`} className="font-semibold">
               Link to the form
@@ -214,7 +311,15 @@ export function AddFormPanel({ steps, initialStep, initialMode, acceptedTypes, m
             <label htmlFor={`${uid}-step`} className="font-semibold">
               Which step in your plan is it for? <span className="font-normal text-muted">(optional)</span>
             </label>
-            <select id={`${uid}-step`} value={stepId} onChange={(event) => setStepId(event.target.value)} className={INPUT}>
+            <select
+              id={`${uid}-step`}
+              value={stepId}
+              onChange={(event) => {
+                setStepId(event.target.value);
+                requestKey.current = null;
+              }}
+              className={INPUT}
+            >
               <option value="">Not linked to a step</option>
               {steps.map((step) => (
                 <option key={step.id} value={step.id}>
@@ -226,9 +331,20 @@ export function AddFormPanel({ steps, initialStep, initialMode, acceptedTypes, m
         ) : null}
 
         <div className="flex flex-col items-start gap-2">
-          <button type="submit" disabled={pending} className={PRIMARY}>
-            {pending ? "Adding…" : "Add this form"}
-          </button>
+          {kind === "have" ? (
+            <div className="flex flex-wrap gap-2">
+              <button type="submit" value="explain" disabled={pending} className={AI_BUTTON}>
+                {pending ? "Working…" : "Save and explain it"}
+              </button>
+              <button type="submit" value="save" disabled={pending} className={SECONDARY}>
+                Just save it
+              </button>
+            </div>
+          ) : (
+            <button type="submit" disabled={pending} className={PRIMARY}>
+              {pending ? "Adding…" : "Add this form"}
+            </button>
+          )}
           <p role="status" className={pending ? "text-sm text-muted" : "sr-only"}>
             {status ?? ""}
           </p>

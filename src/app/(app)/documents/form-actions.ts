@@ -9,7 +9,7 @@ import type { CreateOutcome } from "@/lib/data/documents";
 import { autofillContext, autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
 import { formsFor } from "@/lib/documents/form-catalog";
 import { answerGuide, officialOriginal, refreshedAnswers } from "@/lib/documents/form-prep";
-import { UPLOAD_ROLES } from "@/lib/documents/library";
+import { isKept, UPLOAD_ROLES } from "@/lib/documents/library";
 import { downloadOfficialForm } from "@/lib/documents/official-forms";
 import { readAndSave } from "@/lib/documents/read-and-save";
 import { EMPTY_CONTENT } from "@/lib/documents/types";
@@ -103,10 +103,10 @@ export async function refreshDraftAction(documentId: unknown): Promise<ActionRes
 const roleField = z.enum(UPLOAD_ROLES);
 const requestField = z.string().min(8).max(80).nullable().catch(null);
 
-// Receipts, approvals and supporting papers for a step: saved as uploaded, not sent to the AI service
+// Letters, receipts, approvals and other papers the owner has, for a step or not: saved as uploaded, not sent to the AI service
 export async function uploadRecordAction(form: FormData): Promise<ActionResult<string>> {
   const file = form.get("file");
-  const stepId = id.safeParse(form.get("stepId"));
+  const stepId = id.nullable().safeParse(form.get("stepId") || null);
   const role = roleField.safeParse(form.get("role"));
   const requestKey = requestField.parse(form.get("requestKey"));
   if (!(file instanceof File) || !stepId.success || !role.success) return { ok: false, message: "Choose a file to upload." };
@@ -156,8 +156,8 @@ export async function replaceDocumentAction(form: FormData): Promise<ActionResul
   });
   if (!created.ok) return { ok: false, message: failure(created) };
   if (created.existed) return { ok: true, value: created.id };
-  // Forms being worked on are read again; records like receipts aren't sent to the AI service
-  if (doc.content.fields.length) await readAndSave({ id: created.id, type: check.type, data: bytes });
+  // Forms being worked on are read again; papers the owner has go to the AI service only when they ask
+  if (doc.content.fields.length && !isKept(doc)) await readAndSave({ id: created.id, type: check.type, data: bytes });
   refresh();
   return { ok: true, value: created.id };
 }

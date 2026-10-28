@@ -31,6 +31,9 @@ import { displayName } from "@/lib/intake/answers";
 import { governmentFor } from "@/lib/research/official-sites";
 import { fetchOfficialPage } from "@/lib/research/retrieve";
 import { readAndSave } from "@/lib/documents/read-and-save";
+import { isKept } from "@/lib/documents/library";
+import { readDocument } from "@/lib/documents/read";
+import { explainReceived } from "@/lib/documents/received";
 import { runWorkflow } from "@/lib/workflow-runner";
 
 const NOT_FOUND = "That document wasn’t found. It may have been deleted.";
@@ -187,6 +190,34 @@ export async function explainDocumentAction(documentId: unknown): Promise<Action
       guidance: stepGuidance(step),
       userKey: await myAiKey(),
     });
+    await updateMyDocument(doc.id, { guide });
+  });
+  refresh();
+  return result.ok ? { ok: true, value: null } : result;
+}
+
+// A letter or record the owner already has: read only now that they asked, then explained
+export async function explainReceivedAction(documentId: unknown): Promise<ActionResult> {
+  const doc = await load(documentId);
+  if (!doc || !isKept(doc)) return { ok: false, message: NOT_FOUND };
+  const [file, plan] = await Promise.all([readable(doc) ? null : getMyDocumentFile(doc.id), getMyPlan()]);
+  const check = file ? checkUpload(file.data, file.title) : null;
+  if (!readable(doc) && !check?.ok) return { ok: false, message: NOT_FOUND };
+
+  const result = await runWorkflow("explain_received", doc.id, async () => {
+    const model = getModel();
+    const userKey = await myAiKey();
+    let pages = doc.content.pages;
+    if (check?.ok && file) {
+      const content = await readDocument(model, { type: check.type, data: file.data, findBlanks: false }, new Date(), userKey);
+      await updateMyDocument(doc.id, { content });
+      if (!content.pages.some((page) => page.text.trim())) {
+        throw new OwnerFacingError(content.unclear[0]?.why ?? "We couldn’t read any words on it. Try a clearer photo or scan.");
+      }
+      pages = content.pages;
+    }
+    const steps = (plan?.steps ?? []).map((step) => ({ key: step.key, title: step.title }));
+    const guide = await explainReceived(model, { pages, steps, userKey });
     await updateMyDocument(doc.id, { guide });
   });
   refresh();

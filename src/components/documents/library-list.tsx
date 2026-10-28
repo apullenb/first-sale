@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { explainReceivedAction } from "@/app/(app)/documents/actions";
+import { ActionButton } from "@/components/action-button";
 import { LocalDate } from "@/components/local-date";
 import { SECONDARY_LINK, SECTION_TITLE } from "@/components/styles";
 import type { StoredDocument } from "@/lib/data/documents";
 import type { OutdatedFact } from "@/lib/documents/autofill";
-import { type DocumentRole, families, ROLE_LABELS, roleOf } from "@/lib/documents/library";
+import { type DocumentRole, families, isKept, ROLE_LABELS, roleOf } from "@/lib/documents/library";
 import { fileHref, formatBytes } from "./labels";
 
 const VIEWABLE = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
@@ -16,6 +18,7 @@ export function documentStatus(
 ): { label: string; tone: "ok" | "check" | "plain" } {
   const role = roleOf(doc);
   if (outdated.length) return { label: "Outdated: your details changed", tone: "check" };
+  if (role === "mail") return doc.guide?.received ? { label: "Letter or notice, explained", tone: "ok" } : { label: "Letter or notice, not explained yet", tone: "check" };
   const reviewed = versions.find((version) => roleOf(version) === "reviewed");
   if (role === "receipt" || role === "approval") return { label: "Record of filing", tone: "ok" };
   if (role === "reviewed") return { label: "Reviewed copy, not filed", tone: "plain" };
@@ -121,7 +124,17 @@ function Family({ root, versions, outdated }: { root: StoredDocument; versions: 
 
 function Actions({ doc }: { doc: StoredDocument }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap items-start gap-2">
+      {isKept(doc) && !doc.guide?.received ? (
+        <ActionButton
+          action={explainReceivedAction.bind(null, doc.id)}
+          label="Explain this document"
+          pendingLabel="Explaining…"
+          pendingStatus="Reading it and writing an explanation… this can take a minute"
+          variant="ai"
+          doneHref={`/documents/${encodeURIComponent(doc.id)}#explain-heading`}
+        />
+      ) : null}
       <Link href={`/documents/${encodeURIComponent(doc.id)}`} className={SECONDARY_LINK}>
         Open<span className="sr-only"> {doc.title}</span>
       </Link>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { ActorChip } from "@/components/actor-chip";
-import { AddFormPanel, type AddMode } from "@/components/documents/add-form-panel";
+import { type AddKind, AddFormPanel, type AddMode } from "@/components/documents/add-form-panel";
 import { AgreementCard } from "@/components/documents/agreement-card";
 import { HowDocumentsAreHandled } from "@/components/documents/how-handled";
 import { formatBytes } from "@/components/documents/labels";
@@ -27,9 +27,10 @@ export default function DocumentsPage({ searchParams }: { searchParams: SearchPa
     <div className="flex max-w-3xl flex-col gap-6">
       <div className="flex flex-col gap-1.5">
         <p className={EYEBROW}>Start your business · Step 5</p>
-        <h1 className={PAGE_TITLE}>Documents</h1>
+        <h1 className={PAGE_TITLE}>My Business Library</h1>
         <p className="text-lg text-muted">
-          Official forms, your drafted and reviewed answers, receipts and approvals, kept by plan step. Originals are never changed.
+          Official forms, your drafted and reviewed answers, receipts, approvals and letters you received, kept by plan step. Originals are never
+          changed.
         </p>
       </div>
       <Suspense fallback={<p className="text-muted">Loading your documents…</p>}>
@@ -59,6 +60,8 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
   const requestedStep = typeof params.step === "string" ? params.step : null;
   const initialStep = requestedStep && steps.some((step) => step.id === requestedStep) ? requestedStep : null;
   const initialMode: AddMode = params.add === "paste" || params.add === "official" ? params.add : "upload";
+  // Links for a step's form ask for a form; otherwise papers the owner has come first
+  const initialKind: AddKind = params.add === "have" ? "have" : params.add || requestedStep ? "fill" : "have";
 
   const businessPlan = documents.find((doc) => doc.generatedKind === "business_plan") ?? null;
   const facts = business.profile ? autofillFacts(business.profile, details) : [];
@@ -71,9 +74,10 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
     <>
       {/* Remounts when a link asks for a different step or way in */}
       <AddFormPanel
-        key={`${initialStep ?? ""}:${initialMode}`}
+        key={`${initialStep ?? ""}:${initialKind}:${initialMode}`}
         steps={steps}
         initialStep={initialStep}
+        initialKind={initialKind}
         initialMode={initialMode}
         acceptedTypes={Object.keys(ACCEPTED_TYPES)}
         maxUploadBytes={MAX_UPLOAD_BYTES}

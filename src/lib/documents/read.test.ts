@@ -78,6 +78,24 @@ describe("readDocument", () => {
     expect(content.fields.map((field) => field.label)).toEqual(["Applicant name", "Address of the home business"]);
   });
 
+  it("reads a letter's text PDF in code without looking for blanks", async () => {
+    const responder = vi.fn<(request: CompletionRequest) => string>(() => "{}");
+    const data = await textPdf([["WE ASSIGNED YOU AN EMPLOYER IDENTIFICATION NUMBER", "Keep this notice in your permanent records."]]);
+    const content = await readDocument(createMockProvider(responder), { type: "application/pdf", data, findBlanks: false }, NOW);
+    expect(content).toMatchObject({ readMethod: "pdf_text", fields: [], simulated: false });
+    expect(content.pages[0].text).toContain("EMPLOYER IDENTIFICATION NUMBER");
+    expect(responder).not.toHaveBeenCalled();
+  });
+
+  it("keeps only the text of a letter read from a photo", async () => {
+    const model = seeingModel(() =>
+      JSON.stringify({ pages: [{ number: 1, text: "Payment voucher\nAmount enclosed: ____" }], fields: [{ label: "Amount enclosed", page: 1, kind: "text", options: [], printedText: "Amount enclosed:", clear: true }], unclear: [] }),
+    );
+    const content = await readDocument(model, { type: "image/png", data: PNG, findBlanks: false }, NOW);
+    expect(content).toMatchObject({ readMethod: "ai_reading", fields: [] });
+    expect(content.pages[0].text).toContain("Payment voucher");
+  });
+
   it("says a scan needs the AI service when the model can't read PDFs", async () => {
     const content = await readDocument(createMockProvider(), { type: "application/pdf", data: await textPdf([[]]) }, NOW);
     expect(content).toMatchObject({ readMethod: "none", fields: [] });

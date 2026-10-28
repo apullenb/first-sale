@@ -51,7 +51,7 @@ export const SECTIONS: Section[] = [
   },
   {
     href: "/documents",
-    title: "Documents",
+    title: "My Business Library",
     group: "Start your business",
     step: 5,
     milestone: 8,

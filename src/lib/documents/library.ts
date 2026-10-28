@@ -12,6 +12,7 @@ export const DOCUMENT_ROLES = [
   "receipt",
   "approval",
   "prepared",
+  "mail",
 ] as const;
 export type DocumentRole = (typeof DOCUMENT_ROLES)[number];
 
@@ -24,10 +25,16 @@ export const ROLE_LABELS: Record<DocumentRole, string> = {
   receipt: "Filing receipt or confirmation",
   approval: "Approval or license",
   prepared: "Prepared by First Sale",
+  mail: "Letter or notice you received",
 };
 
 // Roles an owner picks when they upload something themselves
-export const UPLOAD_ROLES = ["supporting", "receipt", "approval"] as const satisfies readonly DocumentRole[];
+export const UPLOAD_ROLES = ["mail", "approval", "receipt", "supporting"] as const satisfies readonly DocumentRole[];
+
+// Papers the owner already has, as opposed to forms to fill in; explained only when the owner asks
+export function isKept(doc: { origin: DocumentOrigin; role: DocumentRole | null }): boolean {
+  return doc.origin === "upload" && (UPLOAD_ROLES as readonly (DocumentRole | null)[]).includes(doc.role);
+}
 
 // Rows saved before roles existed
 export function roleOf(doc: { role: DocumentRole | null; origin: DocumentOrigin; generatedKind: GeneratedKind | null }): DocumentRole {

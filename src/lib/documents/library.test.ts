@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { families, nextVersion, roleOf } from "./library";
+import { families, isKept, nextVersion, roleOf } from "./library";
 
 const doc = (id: string, overrides: Partial<{ familyId: string | null; version: number; fromDocumentId: string | null; updatedAt: Date }> = {}) => ({
   id,
@@ -38,5 +38,16 @@ describe("roleOf", () => {
     expect(roleOf({ role: null, origin: "generated", generatedKind: "business_plan" })).toBe("prepared");
     expect(roleOf({ role: null, origin: "upload", generatedKind: null })).toBe("form");
     expect(roleOf({ role: "receipt", origin: "upload", generatedKind: null })).toBe("receipt");
+  });
+});
+
+describe("isKept", () => {
+  it("is true only for papers the owner uploaded as something other than a form", () => {
+    expect(isKept({ origin: "upload", role: "mail" })).toBe(true);
+    expect(isKept({ origin: "upload", role: "approval" })).toBe(true);
+    expect(isKept({ origin: "upload", role: "form" })).toBe(false);
+    expect(isKept({ origin: "upload", role: null })).toBe(false);
+    expect(isKept({ origin: "official_form", role: "original" })).toBe(false);
+    expect(isKept({ origin: "generated", role: "receipt" })).toBe(false);
   });
 });

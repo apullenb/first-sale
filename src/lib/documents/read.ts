@@ -48,14 +48,22 @@ export interface ReadInput {
   type: AcceptedType | "text/plain";
   data?: Uint8Array;
   text?: string;
+  // False for letters and records, which have no blanks to fill in
+  findBlanks?: boolean;
 }
 
 export async function readDocument(model: ModelProvider, input: ReadInput, now = new Date(), userKey?: string): Promise<DocumentContent> {
+  const content = await readContent(model, input, now, userKey);
+  // Letters and records keep only their text, so nothing later treats them as forms
+  return input.findBlanks === false ? { ...content, fields: [] } : content;
+}
+
+async function readContent(model: ModelProvider, input: ReadInput, now: Date, userKey?: string): Promise<DocumentContent> {
   const base = { readAt: now.toISOString(), simulated: model.simulated };
 
   if (input.type === "text/plain") {
     const pages = [{ number: 1, text: (input.text ?? "").trim() }];
-    return { ...base, readMethod: "pasted", pages, fields: await findFields(model, pages, userKey), unclear: [] };
+    return { ...base, readMethod: "pasted", pages, fields: input.findBlanks === false ? [] : await findFields(model, pages, userKey), unclear: [] };
   }
 
   const data = input.data ?? new Uint8Array();
@@ -69,6 +77,7 @@ export async function readDocument(model: ModelProvider, input: ReadInput, now =
     if (!reading.looksScanned) {
       // Read entirely in code, so practice mode played no part
       if (reading.fields.length) return { ...base, simulated: false, readMethod: "pdf_form", pages: reading.pages, fields: reading.fields, unclear: [] };
+      if (input.findBlanks === false) return { ...base, simulated: false, readMethod: "pdf_text", pages: reading.pages, fields: [], unclear: [] };
       return { ...base, readMethod: "pdf_text", pages: reading.pages, fields: await findFields(model, reading.pages, userKey), unclear: [] };
     }
     if (!model.capabilities.pdf) return cantRead(base, "This looks like a scan, and reading scans needs the AI service, which isn’t connected.");

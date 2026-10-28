@@ -43,6 +43,14 @@ export const WORKFLOWS = {
     timeLimitMs: 6 * MINUTE,
     offeredFor: ["name_registration", "tax_registration", "license_permit", "location_zoning", "employer", "structure", "other"],
   },
+  explain_received: {
+    title: "Explain a document",
+    summary: "Says what a letter or document you have is, who sent it, what it means, and anything you need to do.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 6 * MINUTE,
+    offeredFor: [],
+  },
   ask_document: {
     title: "Ask about a form",
     summary: "Answers a question about a field or term, pointing to where the form says it.",

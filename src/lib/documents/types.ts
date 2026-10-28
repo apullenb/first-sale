@@ -76,6 +76,25 @@ export interface DocumentGuide {
   guidance: Guidance[];
   createdAt: string;
   simulated: boolean;
+  // Set for a letter or record the owner received, instead of a form to fill in
+  received?: ReceivedGuide;
+}
+
+// What a letter, notice or record says, from its own text
+export interface ReceivedGuide {
+  whatItIs: string;
+  whatItIsAnchor: Anchor | null;
+  // As the document names them
+  from: string;
+  meaning: string;
+  // A deadline or amount is kept only when it's in the quote from the document
+  todo: { text: string; deadline: string | null; amount: string | null; anchor: Anchor | null }[];
+  // Plan step it's the record of, by key
+  stepKey: string | null;
+  // The document's own words saying it isn't from a government office
+  notGovernment: Anchor | null;
+  // Web addresses printed on it; government is set only for sites in the official .gov registry
+  sites: { host: string; government: string | null }[];
 }
 
 export const ANSWER_STATES = ["suggested", "confirmed", "unanswered", "fill_yourself"] as const;
