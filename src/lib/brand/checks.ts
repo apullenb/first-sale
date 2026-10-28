@@ -181,7 +181,8 @@ async function readLettering(model: ModelProvider, file: ImageInput, userKey?: s
     name: LETTERING_SCHEMA_NAME,
     schema: letteringReplySchema,
     effort: "low",
-    maxOutputTokens: 2_000,
+    // Thinking shares this cap, and a cut-off reply is paid for and thrown away; the cap costs nothing unused
+    maxOutputTokens: 4_000,
     // Runs after a paid image, inside the same time limit; a failed check asks the owner to look closely
     maxRepairs: 0,
     timeoutMs: 45_000,

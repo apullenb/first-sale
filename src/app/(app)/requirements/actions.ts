@@ -2,13 +2,15 @@
 
 import { refresh } from "next/cache";
 import type { ActionResult } from "@/app/(app)/business/actions";
+import { getDb } from "@/db/client";
 import { getModel } from "@/lib/ai";
 import { OwnerFacingError } from "@/lib/errors";
 import { getMyBusiness, getMyDetails, getMyPlan, getMyResearch, myAiKey, replanMyPlan, saveMyResearch } from "@/lib/data/my-business";
+import { dbSearchCache } from "@/lib/data/search-cache";
 import { profileKey, researchRequirements } from "@/lib/research/requirements";
 import { runWorkflow } from "@/lib/workflow-runner";
 
-// Searches and reads official pages live, then replaces the saved requirements; the last results stay if it fails.
+// Searches for official pages (or reuses a search from the past week), reads them live, then replaces the saved requirements; the last results stay if it fails.
 // A plan that already exists isn't changed: the new one waits for the owner's review.
 export async function checkRequirementsAction(): Promise<ActionResult> {
   const business = await getMyBusiness();
@@ -18,7 +20,7 @@ export async function checkRequirementsAction(): Promise<ActionResult> {
   const result = await runWorkflow("research", null, async () => {
     const [plan, details] = await Promise.all([getMyPlan(), getMyDetails()]);
     const existingKeys = [...(plan?.steps ?? []), ...(plan?.retired ?? [])].map((step) => step.key);
-    const research = await researchRequirements(getModel(), profile, { existingKeys, userKey: await myAiKey(), details });
+    const research = await researchRequirements(getModel(), profile, { existingKeys, userKey: await myAiKey(), details, searchCache: dbSearchCache(getDb()) });
     if (!(await saveMyResearch(research, profile))) throw new OwnerFacingError("Your business wasn’t found. Reload the page and try again.");
   });
   if (!result.ok) return result;

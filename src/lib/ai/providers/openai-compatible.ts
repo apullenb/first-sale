@@ -19,7 +19,12 @@ export interface OpenAICompatibleConfig {
   timeoutMs?: number;
   // Send the owner's hashed id as safety_identifier (Muse supports it; other endpoints may not)
   sendUserKey?: boolean;
+  // Send prompt_cache_key (Muse supports it; other endpoints may reject unknown fields)
+  sendCacheKey?: boolean;
   dataHandling?: { recipient: string; notes: string[] };
+  // Extra tries after a temporary failure; tests pass their own wait
+  retries?: number;
+  wait?: (ms: number) => Promise<void>;
 }
 
 type WireContentPart =
@@ -35,6 +40,8 @@ interface WireMessage {
 interface WireUsage {
   prompt_tokens?: number;
   completion_tokens?: number;
+  prompt_tokens_details?: { cached_tokens?: number } | null;
+  completion_tokens_details?: { reasoning_tokens?: number } | null;
 }
 
 interface WireResponse {
@@ -69,40 +76,84 @@ export function createOpenAICompatibleProvider(
     dataHandling: config.dataHandling,
 
     webSearch: config.capabilities.webSearch
-      ? (request) => webSearch(config, `${base}/responses`, request)
+      ? (request) => withRetries(config, request.timeoutMs ?? 60_000, (ms) => webSearch(config, `${base}/responses`, { ...request, timeoutMs: ms }))
       : undefined,
 
     async complete(request: CompletionRequest): Promise<CompletionResult> {
       const body = buildRequestBody(config, request);
+      const timeoutMs = request.timeoutMs ?? config.timeoutMs ?? 120_000;
 
-      let response: Response;
-      try {
-        response = await fetch(url, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${config.apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-          signal: AbortSignal.timeout(request.timeoutMs ?? config.timeoutMs ?? 120_000),
-        });
-      } catch (error) {
-        const reason = error instanceof Error ? error.message : String(error);
-        throw new AIProviderError(`${config.name} request failed: ${reason}`, null, true);
-      }
+      return withRetries(config, timeoutMs, async (ms) => {
+        let response: Response;
+        try {
+          response = await fetch(url, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${config.apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+            signal: AbortSignal.timeout(ms),
+          });
+        } catch (error) {
+          const reason = error instanceof Error ? error.message : String(error);
+          throw new AIProviderError(`${config.name} request failed: ${reason}`, null, true);
+        }
 
-      if (!response.ok) {
-        const detail = (await response.text().catch(() => "")).slice(0, 500);
-        throw new AIProviderError(
-          `${config.name} returned ${response.status}: ${detail}`,
-          response.status,
-          response.status === 408 || response.status === 429 || response.status >= 500,
-        );
-      }
-
-      return request.stream ? readStream(config.name, response) : readJson(config.name, response);
+        if (!response.ok) throw await failedStatus(config.name, response);
+        return request.stream ? readStream(config.name, response) : readJson(config.name, response);
+      });
     },
   };
+}
+
+// Retries what can pass on a second try (rate limits, server errors, dropped connections) with backoff and jitter.
+// timeoutMs covers every attempt and wait together, so callers' time budgets hold. Never retries a bad request or a
+// gateway timeout, and only when, after waiting as long as the provider asks, a quarter of the time is still left.
+async function withRetries<T>(config: OpenAICompatibleConfig, timeoutMs: number, attempt: (ms: number) => Promise<T>): Promise<T> {
+  const retries = config.retries ?? 2;
+  const deadline = Date.now() + timeoutMs;
+  for (let tries = 0; ; tries++) {
+    try {
+      return await attempt(Math.max(1, deadline - Date.now()));
+    } catch (error) {
+      if (!(error instanceof AIProviderError) || !error.retryable || tries >= retries) throw error;
+      const wait = backoffMs(tries, error.retryAfterMs);
+      if (deadline - Date.now() - wait < timeoutMs / 4) throw error;
+      await (config.wait ?? sleep)(wait);
+    }
+  }
+}
+
+// 1 s, then 2 s, each with random jitter so many clients don't retry in step; the provider's own ask wins
+export function backoffMs(tries: number, retryAfterMs: number | null, random: () => number = Math.random): number {
+  const base = 1_000 * 2 ** tries;
+  const jittered = base / 2 + random() * (base / 2);
+  return Math.max(jittered, retryAfterMs ?? 0);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function failedStatus(name: string, response: Response, what = "returned"): Promise<AIProviderError> {
+  const detail = (await response.text().catch(() => "")).slice(0, 500);
+  return new AIProviderError(
+    `${name} ${what} ${response.status}: ${detail}`,
+    response.status,
+    // A 504 means the request ran past the server's limit, and Meta says the same request usually times out again
+    response.status === 408 || response.status === 429 || (response.status >= 500 && response.status !== 504),
+    retryAfter(response.headers.get("retry-after")),
+  );
+}
+
+// Seconds, or an HTTP date
+export function retryAfter(header: string | null, now = Date.now()): number | null {
+  if (!header) return null;
+  const seconds = Number(header);
+  if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1000;
+  const date = Date.parse(header);
+  return Number.isNaN(date) ? null : Math.max(0, date - now);
 }
 
 async function readJson(name: string, response: Response): Promise<CompletionResult> {
@@ -177,7 +228,14 @@ async function readStream(name: string, response: Response): Promise<CompletionR
 }
 
 function toUsage(usage: WireUsage | undefined): CompletionResult["usage"] {
-  return usage ? { inputTokens: usage.prompt_tokens ?? 0, outputTokens: usage.completion_tokens ?? 0 } : null;
+  return usage
+    ? {
+        inputTokens: usage.prompt_tokens ?? 0,
+        cachedInputTokens: usage.prompt_tokens_details?.cached_tokens ?? 0,
+        outputTokens: usage.completion_tokens ?? 0,
+        reasoningTokens: usage.completion_tokens_details?.reasoning_tokens ?? 0,
+      }
+    : null;
 }
 
 export function buildRequestBody(
@@ -201,8 +259,17 @@ export function buildRequestBody(
   if (request.effort && config.capabilities.reasoningEffort) {
     body.reasoning_effort = request.effort;
   }
-  if (request.stream) body.stream = true;
+  if (request.stream) {
+    body.stream = true;
+    // Token counts arrive in a last chunk only when asked for
+    body.stream_options = { include_usage: true };
+  }
   if (request.userKey && config.sendUserKey) body.safety_identifier = request.userKey;
+  if (request.cacheKey && config.sendCacheKey) {
+    body.prompt_cache_key = request.cacheKey;
+    // Only a hint; asked for by calls whose long shared start is public text, never uploaded documents
+    if (request.retainCache) body.prompt_cache_retention = "24h";
+  }
   if (request.responseFormat && config.capabilities.jsonSchema) {
     body.response_format = {
       type: "json_schema",
@@ -234,6 +301,7 @@ function hasPart(message: ChatMessage, type: "image" | "file"): boolean {
 }
 
 interface WireResponsesOutput {
+  usage?: { input_tokens?: number; output_tokens?: number; input_tokens_details?: { cached_tokens?: number } | null; output_tokens_details?: { reasoning_tokens?: number } | null };
   output?: {
     type?: string;
     results?: { title?: string; url?: string; snippet?: string }[] | null;
@@ -272,14 +340,7 @@ async function webSearch(
     const reason = error instanceof Error ? error.message : String(error);
     throw new AIProviderError(`${config.name} search failed: ${reason}`, null, true);
   }
-  if (!response.ok) {
-    const detail = (await response.text().catch(() => "")).slice(0, 500);
-    throw new AIProviderError(
-      `${config.name} search returned ${response.status}: ${detail}`,
-      response.status,
-      response.status === 408 || response.status === 429 || response.status >= 500,
-    );
-  }
+  if (!response.ok) throw await failedStatus(config.name, response, "search returned");
 
   let data: WireResponsesOutput;
   try {
@@ -288,7 +349,17 @@ async function webSearch(
     throw new AIProviderError(`${config.name} search returned a non-JSON body`, response.status, true);
   }
   if (data.error) throw new AIProviderError(`${config.name} search failed: ${data.error.message ?? "unknown"}`, response.status, true);
+  logSearch(data);
   return readSearchOutput(data);
+}
+
+// Searches are billed per query on top of tokens, and one call can run several: counts only, never the question or results
+function logSearch(data: WireResponsesOutput) {
+  const searches = (data.output ?? []).filter((item) => item.type === "web_search_call").length;
+  const usage = data.usage;
+  console.info(
+    `AI web_search: ${searches} ${searches === 1 ? "query" : "queries"}, ${usage?.input_tokens ?? 0} in (${usage?.input_tokens_details?.cached_tokens ?? 0} cached), ${usage?.output_tokens ?? 0} out (${usage?.output_tokens_details?.reasoning_tokens ?? 0} reasoning)`,
+  );
 }
 
 export function readSearchOutput(data: WireResponsesOutput): WebSearchResult {

@@ -23,7 +23,7 @@ export interface ProfileImpact {
 type Key = keyof BusinessProfile;
 
 // Answers the requirements research doesn't depend on
-const NOT_FOR_RESEARCH: readonly Key[] = ["experience", "launchTiming", "goals", "mayAddOwners", "ownerRelation", "takesOnDebt", "startupBudget"];
+const NOT_FOR_RESEARCH: readonly Key[] = ["experience", "launchTiming", "launchDate", "goals", "mayAddOwners", "ownerRelation", "takesOnDebt", "startupBudget"];
 
 // Profile facts the paperwork companion drafts from, by the profile keys behind them
 const DRAFT_FACTS: Partial<Record<Key, string[]>> = {

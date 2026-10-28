@@ -58,7 +58,7 @@ export function QuestionBlock({
       </div>
       <p id={whyId} className="text-[15px] text-rule">
         {spec.multiple ? "Pick any that fit. " : ""}
-        {spec.why}
+        <span className="font-semibold">Why we ask:</span> {spec.why}
       </p>
       {spec.cards ? (
         <ChoiceCards

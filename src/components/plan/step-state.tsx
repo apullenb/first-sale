@@ -1,5 +1,6 @@
 import type { PlanStep } from "@/lib/data/plan";
 import { taskReadiness } from "@/lib/rules/checklist";
+import { Lock } from "./lock";
 
 export type StepState = { state: "done" } | { state: "submitted" } | { state: "ready" } | { state: "waiting"; waitingOn: PlanStep[] };
 
@@ -48,5 +49,10 @@ export function StepStateLabel({ state }: { state: StepState | undefined }) {
       </span>
     );
   }
-  return <span className="text-sm text-muted">Waiting on {LIST.format(state.waitingOn.map((step) => `“${step.title}”`))}</span>;
+  return (
+    <span className="inline-flex w-fit items-center gap-1.5 text-sm text-muted">
+      <Lock />
+      Locked: finish {LIST.format(state.waitingOn.map((step) => `“${step.title}”`))} first
+    </span>
+  );
 }

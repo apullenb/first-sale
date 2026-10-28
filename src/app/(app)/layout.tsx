@@ -1,10 +1,13 @@
 import Link from "next/link";
+import { unstable_rethrow } from "next/navigation";
 import { Suspense } from "react";
 import { AccountMenu } from "@/components/account-menu";
 import { HowItWorks } from "@/components/how-it-works";
 import { LogoMark } from "@/components/logo";
 import { NavLinks } from "@/components/nav-links";
 import { SidebarNav } from "@/components/sidebar-nav";
+import { getMyPlan } from "@/lib/data/my-business";
+import { remainingWork } from "@/lib/rules/progress";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
@@ -27,7 +30,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         <aside className="flex min-w-0 flex-col gap-5 md:w-56 md:shrink-0">
           {/* Fallback keeps the menu prerendered if a route ever has unknown params */}
           <Suspense fallback={<NavLinks activeHref={null} />}>
-            <SidebarNav />
+            <SidebarNavWithCounts />
           </Suspense>
           <HowItWorks />
         </aside>
@@ -37,4 +40,17 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
       </div>
     </>
   );
+}
+
+// The count is extra: if the plan can't be read, the menu still shows without it
+async function SidebarNavWithCounts() {
+  let plan: Awaited<ReturnType<typeof getMyPlan>> = null;
+  try {
+    plan = await getMyPlan();
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error("Sidebar counts skipped:", error instanceof Error ? error.name : "unknown error");
+  }
+  const work = remainingWork(plan?.steps ?? []);
+  return <SidebarNav badges={work.left.length ? { "/checklist": { count: work.left.length, minutes: work.minutes } } : {}} />;
 }

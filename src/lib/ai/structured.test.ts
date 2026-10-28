@@ -34,6 +34,17 @@ describe("generateObject", () => {
     expect(requests[0].responseFormat?.schema).not.toHaveProperty("$schema");
   });
 
+  it("streams by default and names the prompt cache after the task", async () => {
+    const { model, requests } = scripted(['{"title":"Pie","tags":[]}', '{"title":"Pie","tags":[]}']);
+
+    await generateObject(model, { name: "Listing", schema: listingSchema, messages });
+    await generateObject(model, { name: "Listing", schema: listingSchema, messages, stream: false });
+    expect(requests.map((request) => [request.stream, request.cacheKey])).toEqual([
+      [true, "Listing"],
+      [false, "Listing"],
+    ]);
+  });
+
   it("accepts JSON wrapped in a code fence", async () => {
     const { model } = scripted(['```json\n{"title":"Tray","tags":[]}\n```']);
     await expect(

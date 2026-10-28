@@ -1,4 +1,4 @@
-import { AIProviderError, type ModelProvider } from "@/lib/ai";
+import { AIProviderError, type ModelProvider, type WebSearchHit, type WebSearchRequest } from "@/lib/ai";
 import type { BusinessProfile, JurisdictionLevel } from "@/lib/domain";
 import { STATE_NAMES } from "@/lib/intake/options";
 import type { ResearchCategory } from "./coverage";
@@ -23,6 +23,12 @@ export interface SearchGap {
   about: string;
   // The search itself failed, rather than finding nothing official
   failed: boolean;
+}
+
+// Recent results for the same question and place; a cache that can't be reached never stops a search
+export interface SearchCache {
+  get(request: Pick<WebSearchRequest, "question" | "location">): Promise<WebSearchHit[] | null>;
+  put(request: Pick<WebSearchRequest, "question" | "location">, hits: WebSearchHit[]): Promise<void>;
 }
 
 export interface Discovery {
@@ -140,7 +146,7 @@ export function searchTopics(profile: BusinessProfile): SearchTopic[] {
 export async function discoverOfficialPages(
   model: ModelProvider,
   profile: BusinessProfile,
-  options: { timeoutMs?: number; userKey?: string } = {},
+  options: { timeoutMs?: number; userKey?: string; cache?: SearchCache } = {},
 ): Promise<Discovery> {
   const topics = searchTopics(profile);
   if (!model.webSearch) {
@@ -150,8 +156,17 @@ export async function discoverOfficialPages(
   const location = { region: STATE_NAMES[profile.location.state], city: profile.location.city.trim() || undefined };
 
   const outcomes = await inBatches(topics, CONCURRENCY, async (topic) => {
+    const request = { question: topic.question, location };
+    const cached = await options.cache?.get(request).catch(cacheFailed);
+    if (cached) return { topic, hits: cached, failed: false };
     try {
-      const result = await search({ question: topic.question, location, timeoutMs: options.timeoutMs, userKey: options.userKey });
+      const result = await search({ ...request, timeoutMs: options.timeoutMs, userKey: options.userKey });
+      // Kept only when an official page for this place turned up, so a search that found none runs again next time
+      const official = result.hits.some((hit) => {
+        const government = governmentFor(hit.url);
+        return government?.level === topic.level && governsPlace(government, profile.location);
+      });
+      if (official) await options.cache?.put(request, result.hits).catch(cacheFailed);
       return { topic, hits: result.hits, failed: false };
     } catch (error) {
       if (!(error instanceof AIProviderError)) throw error;
@@ -191,6 +206,11 @@ export async function discoverOfficialPages(
     if (kept === 0) gaps.push({ level: topic.level, category: topic.category, about: topic.about, failed });
   }
   return { sources, gaps };
+}
+
+function cacheFailed(error: unknown): null {
+  console.error("Search cache unavailable:", error instanceof Error ? error.name : "unknown error");
+  return null;
 }
 
 async function inBatches<T, R>(items: readonly T[], size: number, run: (item: T) => Promise<R>): Promise<R[]> {

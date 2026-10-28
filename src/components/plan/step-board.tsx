@@ -4,7 +4,9 @@ import { CARD, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
 import type { PlanStep } from "@/lib/data/plan";
 import { formatFee } from "@/lib/documents/startup-plan";
 import type { Costs, NextActions } from "@/lib/rules/next-action";
+import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
 import { Tick } from "./journey";
+import { Lock } from "./lock";
 import { PlanProgress } from "./plan-summary";
 
 const LIST = new Intl.ListFormat("en-US", { type: "conjunction" });
@@ -44,7 +46,7 @@ export function StepBoard({ actions, costs, beforeSelling }: Props) {
           <Row key={step.id} step={step} mark="todo">
             <Meta step={step} />
             {step.requirementStatus === "conditional" && step.conditions[0] ? <p className="text-sm text-rule">First check: {step.conditions[0]}</p> : null}
-            <Link href={`/checklist/${step.id}#progress-heading`} className={`flex min-h-11 w-fit items-center text-sm ${TEXT_LINK}`}>
+            <Link href={`/checklist/${step.id}${step.topic === "structure" ? "#progress-heading" : "#already-done"}`} className={`flex min-h-11 w-fit items-center text-sm ${TEXT_LINK}`}>
               Already done this? Mark it done
             </Link>
           </Row>
@@ -54,7 +56,7 @@ export function StepBoard({ actions, costs, beforeSelling }: Props) {
       {waiting.length ? (
         <Column id="waiting-board-heading" title="Waiting" count={waiting.length}>
           {waiting.map(({ step, on }) => (
-            <Row key={step.id} step={step} mark="waiting">
+            <Row key={step.id} step={step} mark={on ? "locked" : "waiting"} lockedBy={on}>
               <WaitingNote step={step} on={on} />
             </Row>
           ))}
@@ -76,7 +78,7 @@ export function StepBoard({ actions, costs, beforeSelling }: Props) {
           </summary>
           <ul className="mt-2 flex flex-col gap-2">
             {later.map(({ step, mark, on }) => (
-              <Row key={step.id} step={step} mark={mark}>
+              <Row key={step.id} step={step} mark={mark === "waiting" && on ? "locked" : mark} lockedBy={on}>
                 {mark === "done" ? <DoneNote step={step} /> : mark === "waiting" ? <WaitingNote step={step} on={on} /> : <Meta step={step} />}
               </Row>
             ))}
@@ -105,7 +107,7 @@ function WaitingNote({ step, on }: { step: PlanStep; on: PlanStep[] | null }) {
   return (
     <p className="text-sm text-rule">
       {on ? (
-        `Starts after ${LIST.format(on.map((each) => `“${each.title}”`))}`
+        `Finish ${LIST.format(on.map((each) => `“${each.title}”`))} first`
       ) : step.submittedAt ? (
         <>
           Submitted <LocalDate iso={step.submittedAt.toISOString()} />, waiting to hear back
@@ -139,21 +141,23 @@ function Column({ id, title, count, empty, children }: { id: string; title: stri
 const MARKS = {
   todo: "bg-surface ring-2 ring-accent",
   waiting: "bg-rule-tint text-rule",
+  locked: "bg-rule-tint text-muted",
   done: "bg-accent text-white",
   later: "bg-surface ring-1 ring-ink/20",
 } as const;
 
-const MARK_LABELS = { todo: "To do", waiting: "Waiting", done: "Done", later: "Later or optional" } as const;
+const MARK_LABELS = { todo: "To do", waiting: "Waiting", locked: "Locked", done: "Done", later: "Later or optional" } as const;
 
-function Row({ step, mark, children }: { step: PlanStep; mark: keyof typeof MARKS; children?: React.ReactNode }) {
+function Row({ step, mark, lockedBy, children }: { step: PlanStep; mark: keyof typeof MARKS; lockedBy?: PlanStep[] | null; children?: React.ReactNode }) {
+  const hint = lockedBy?.length ? `Finish ${LIST.format(lockedBy.map((each) => `“${each.title}”`))} first` : undefined;
   return (
-    <li className="flex gap-3 rounded-xl bg-ground px-3.5 py-2.5">
-      <span className={`mt-3 flex size-5 shrink-0 items-center justify-center rounded-full ${MARKS[mark]}`}>
-        {mark === "done" ? <Tick /> : null}
+    <li className={`flex gap-3 rounded-xl px-3.5 py-2.5 ${mark === "locked" ? "bg-ground/60" : "bg-ground"}`}>
+      <span title={hint} className={`mt-3 flex size-5 shrink-0 items-center justify-center rounded-full ${MARKS[mark]}`}>
+        {mark === "done" ? <Tick /> : mark === "locked" ? <Lock /> : null}
         <span className="sr-only">{MARK_LABELS[mark]}: </span>
       </span>
       <div className="flex min-w-0 flex-col">
-        <Link href={`/checklist/${step.id}`} className={`${STEP_LINK} ${mark === "done" ? "text-rule" : ""}`}>
+        <Link href={`/checklist/${step.id}`} className={`${STEP_LINK} ${mark === "done" || mark === "locked" ? "text-muted" : ""}`}>
           {step.title}
         </Link>
         {children}
@@ -163,6 +167,6 @@ function Row({ step, mark, children }: { step: PlanStep; mark: keyof typeof MARK
 }
 
 function Meta({ step }: { step: PlanStep }) {
-  const facts = [step.agency, step.feeCents === null ? null : `Fee ${formatFee(step.feeCents)}`].filter(Boolean);
+  const facts = [step.agency, step.feeCents === null ? null : `Fee ${formatFee(step.feeCents)}`, `About ${formatMinutes(stepMinutes(step))} of your time`].filter(Boolean);
   return facts.length ? <p className="text-sm text-muted">{facts.join(" · ")}</p> : null;
 }

@@ -42,6 +42,7 @@ function createProvider(provider: string, env: Env): ModelProvider {
         // Muse Spark: images, PDFs, JSON Schema, reasoning effort, and web search on the Responses API
         capabilities: { vision: true, pdf: true, jsonSchema: true, reasoningEffort: true, webSearch: true },
         sendUserKey: true,
+        sendCacheKey: true,
         dataHandling: museDataHandling(env.MUSE_MODEL || MUSE_DEFAULTS.model),
       });
 
@@ -81,6 +82,7 @@ function museDataHandling(model: string) {
     notes: [
       "First Sale uses Meta’s Standard mode, which Meta says doesn’t use your content to train its models.",
       "Meta’s documentation doesn’t say how long it keeps requests, so we can’t promise more than that.",
+      "To cost less, requirement checks ask Meta to keep their prompt cache for up to a day. That cache holds the official pages and your business answers.",
     ],
   };
 }

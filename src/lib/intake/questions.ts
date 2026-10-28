@@ -327,7 +327,7 @@ export const QUESTIONS: readonly QuestionSpec[] = [
   {
     field: "hiringPlans",
     step: "help",
-    title: () => "Do you plan to have anyone help you?",
+    title: () => "Will anyone work for you, like an employee, a contractor or a family member who helps?",
     why: "Paying people adds employer steps to your plan, usually later.",
     options: () => entries(HIRING_LABELS),
     asks: always,
@@ -352,7 +352,8 @@ export const QUESTIONS: readonly QuestionSpec[] = [
     title: () => "When do you hope to start selling?",
     why: "It helps us order your steps.",
     options: () => entries(LAUNCH_TIMING_LABELS),
-    asks: always,
+    // Older answers only: the wizard now asks for a date
+    asks: () => false,
   },
   {
     field: "experience",
@@ -365,7 +366,7 @@ export const QUESTIONS: readonly QuestionSpec[] = [
   {
     field: "goals",
     step: "timing",
-    title: () => "What are you hoping for? Pick any.",
+    title: () => "What are your current goals for your business?",
     why: "Your goals shape which structure and next steps we suggest.",
     options: () => entries(GOAL_LABELS),
     multiple: true,
@@ -384,6 +385,7 @@ export function questionPath(a: IntakeAnswers, steps: readonly StepId[]): string
     place: ["state", "county", "city"],
     owners: ["owners"],
     name: ["name"],
+    timing: ["launchDate"],
   };
   return steps.flatMap((step) => [...(special[step] ?? []), ...questionsFor(step, a).map((question) => question.field)]);
 }

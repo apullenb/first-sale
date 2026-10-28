@@ -118,6 +118,8 @@ export const businessProfileSchema = z.object({
   hiringPlans: z.enum(HIRING_PLANS).nullable(),
   experience: z.enum(EXPERIENCE_LEVELS).nullable().default(null),
   launchTiming: z.enum(LAUNCH_TIMINGS).nullable().default(null),
+  // The owner's goal date for a first sale, YYYY-MM-DD
+  launchDate: z.iso.date().nullable().default(null),
   // Guided intake: null or [] until answered, so older profiles still load. "unsure" is never read as "no".
   category: z.enum(BUSINESS_CATEGORIES).nullable().default(null),
   // Example ids picked from the category (src/lib/intake/catalog.ts)

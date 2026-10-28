@@ -80,13 +80,15 @@ export interface Costs {
   unknown: string[];
 }
 
-// Each form's fee counts once, even when two steps share it, from the strongest of them; optional and done steps aren't counted
+// Each form's fee counts once, even when two steps share it, from the strongest of them; optional, done and already-paid steps aren't counted
 export function planCosts(steps: readonly ActionStep[]): Costs {
   const costs: Costs = { startup: [], startupCents: 0, maybe: [], yearly: [], yearlyCents: 0, unknown: [] };
   const strength = (step: ActionStep) => (step.requirementStatus === "conditional" ? 0 : 2) + (step.feeCents === null ? 0 : 1);
   const best = new Map<string, ActionStep>();
+  // A form filed for a finished step is already paid for
+  const paid = new Set(steps.filter((step) => step.status === "done" && step.formKey).map((step) => step.formKey));
   for (const step of steps) {
-    if (SIDE.includes(step.requirementStatus) || step.status === "done") continue;
+    if (SIDE.includes(step.requirementStatus) || step.status === "done" || (step.formKey && paid.has(step.formKey))) continue;
     const id = step.formKey ?? step.key;
     const held = best.get(id);
     if (!held || strength(step) > strength(held)) best.set(id, step);

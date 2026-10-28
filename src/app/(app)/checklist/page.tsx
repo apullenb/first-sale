@@ -21,6 +21,7 @@ import { formatFee } from "@/lib/documents/startup-plan";
 import { LEVEL_LABELS, TOPIC_LABELS } from "@/lib/labels";
 import { placeOf, STRUCTURE_NAMES, structureOf } from "@/lib/research/applicability";
 import { type ActionStep, type NextActions, nextActions, planCosts } from "@/lib/rules/next-action";
+import { formatMinutes, remainingWork } from "@/lib/rules/progress";
 import { sectionMetadata } from "@/lib/sections";
 import { replanAction } from "../requirements/actions";
 import { savePlanPdfAction } from "./actions";
@@ -58,6 +59,7 @@ async function Plan() {
 
   const states = stepStates([...plan.steps, ...plan.retired]);
   const doneCount = plan.steps.filter((step) => step.status === "done").length;
+  const work = remainingWork(plan.steps);
   // The steps themselves say whether they came from practice mode; the latest check may not have been applied
   const practice = plan.steps.some((step) => step.simulated);
   const where = business.profile ? placeOf(business.profile) : null;
@@ -142,6 +144,11 @@ async function Plan() {
           </ul>
 
           <PlanProgress done={doneCount} total={plan.steps.length} />
+          {work.left.length ? (
+            <p className="-mt-2 text-muted">
+              {work.left.length} left before your first sale, about {formatMinutes(work.minutes)} of your own time. Time waiting on an office isn’t counted.
+            </p>
+          ) : null}
           {actions.first ? (
             <NextStep step={plan.steps.find((step) => step.id === actions.first!.id)!} parallel={Math.max(0, actions.now.length - 1)} />
           ) : doneCount === plan.steps.length ? (

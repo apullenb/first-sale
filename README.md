@@ -75,6 +75,7 @@ Owners answer mostly by clicking: they pick the kind of business closest to thei
 "Find my requirements" on the Requirements page:
 1. Reads the federal pages listed in `src/data/source-packs/`.
 2. Searches for the owner's state, county and city pages with Muse web search, one narrow question per topic.
+   - Results are kept for 7 days in `search_cache`, shared by every owner, so the same question for the same place isn't paid for twice. They're kept only when they include an official page for that place, so a search that found none runs again. The pages themselves are still fetched fresh on every check.
    - Only pages on domains in CISA's official .gov registry count, and only when the registry says the site belongs to the owner's own state, county or city. Code decides this, not the model.
    - The registry snapshot is `src/data/dotgov/domains.json`. Refresh it with `node scripts/update-dotgov.mjs`.
    - Some real government sites aren't on .gov (Florida's business registry, for one). Their rules show as "Needs verification" until the owner confirms them in writing.
@@ -295,7 +296,12 @@ The app works with any OpenAI-compatible model. Set `AI_PROVIDER` in `.env.local
 **About Muse.** The app uses the developer Model API (`https://api.meta.ai/v1`), not the consumer Meta AI app. Checked against Meta's docs (dev.meta.ai) on 2026-10-27:
 - `muse-spark-1.3` handles Chat Completions with JSON Schema output, plus image and PDF input. PDFs are sent as `file` parts, and Meta converts them to text and page images.
 - Web search ("search grounding") is only on the Responses API, so research searches through `/v1/responses` with the `web_search` tool.
-- Long calls stream to avoid timeouts. Each request carries a hashed owner id as `safety_identifier`.
+- Every structured call streams, so long thinking doesn't hit a timeout. Each request carries a hashed owner id as `safety_identifier`.
+- Temporary failures (rate limits, server errors, dropped connections) are retried twice with backoff and jitter, waiting as long as `Retry-After` asks. Each call's time limit covers every attempt and wait together, and a retry happens only if a quarter of that time is left after the wait, so each page's time limit holds. Bad requests and gateway timeouts (504, which Meta says usually time out again) are never retried.
+- Each task's system prompt is a stable prefix sent first, and its schema name goes out as `prompt_cache_key`, so repeat calls reuse Meta's prompt cache. Research sends the official pages first (federal, then state, county, city) and the owner's answers last, so owners in the same state share a cached start, and only research asks for `prompt_cache_retention: "24h"` (never calls with uploaded documents). Cached input costs $0.15 per million tokens against $1.25 (Meta's pricing page, 2026-10-28).
+- Each call logs its token counts (input, cached, output, reasoning), never the prompt or reply. Web searches also log how many queries ran, since Meta bills $2.50 per 1,000 queries on top of tokens.
+- Reasoning effort is the lowest that fits the task: high for research, medium for writing, judging and reading scans (handwriting and glare need the care), low for extraction like filling form fields. Thinking bills as output.
+- After research's code checks, a second model call judges whether each quote actually says what its requirement claims (`src/lib/research/claims.ts`). Requirements it doesn't back become "to confirm". If that call fails, the code checks stand alone.
 - `-contributor` models may train on prompts and are refused unless `AI_ALLOW_CONTRIBUTOR_MODELS=true`.
 
 ## Scripts

@@ -2,9 +2,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { AIProviderError } from "../types";
 import { createMockProvider } from "./mock";
 import {
+  backoffMs,
   buildRequestBody,
   createOpenAICompatibleProvider,
   readSearchOutput,
+  retryAfter,
   type OpenAICompatibleConfig,
 } from "./openai-compatible";
 
@@ -14,7 +16,12 @@ const config: OpenAICompatibleConfig = {
   apiKey: "test-key",
   model: "test-model",
   capabilities: { vision: true, pdf: true, jsonSchema: true, reasoningEffort: true, webSearch: true },
+  // Retries happen at once in tests
+  wait: async () => {},
 };
+
+// A fresh response for every attempt, as a real server sends
+const respond = (body: BodyInit | null, init: ResponseInit) => vi.fn().mockImplementation(() => Promise.resolve(new Response(body, init)));
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -152,15 +159,16 @@ describe("complete", () => {
     expect(result).toEqual({
       text: "Hello",
       finishReason: "stop",
-      usage: { inputTokens: 3, outputTokens: 1 },
+      usage: { inputTokens: 3, cachedInputTokens: 0, outputTokens: 1, reasoningTokens: 0 },
     });
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("https://api.example.test/v1/chat/completions");
     expect(init.headers.Authorization).toBe("Bearer test-key");
   });
 
-  it("marks rate limits as retryable", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("slow down", { status: 429 })));
+  it("marks rate limits as retryable, and gives up after two retries", async () => {
+    const fetchMock = respond("slow down", { status: 429 });
+    vi.stubGlobal("fetch", fetchMock);
 
     const error = await createOpenAICompatibleProvider(config)
       .complete({ messages: [{ role: "user", content: "Hi" }] })
@@ -168,6 +176,111 @@ describe("complete", () => {
 
     expect(error).toBeInstanceOf(AIProviderError);
     expect(error).toMatchObject({ status: 429, retryable: true });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("retries a temporary failure, waiting as long as Retry-After asks", async () => {
+    const waits: number[] = [];
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response("busy", { status: 503, headers: { "Retry-After": "3" } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ choices: [{ message: { content: "ok" }, finish_reason: "stop" }] }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await createOpenAICompatibleProvider({ ...config, wait: async (ms) => void waits.push(ms) }).complete({
+      messages: [{ role: "user", content: "Hi" }],
+    });
+    expect(result.text).toBe("ok");
+    expect(waits).toEqual([3000]);
+  });
+
+  it("doesn't retry when the wait the provider asks for leaves too little of the call's time", async () => {
+    const fetchMock = respond("overloaded", { status: 503, headers: { "Retry-After": "60" } });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      createOpenAICompatibleProvider(config).complete({ messages: [{ role: "user", content: "Hi" }], timeoutMs: 45_000 }),
+    ).rejects.toMatchObject({
+      status: 503,
+      retryAfterMs: 60_000,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("waits as long as Retry-After asks when the call has time for it", async () => {
+    const waits: number[] = [];
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response("slow down", { status: 429, headers: { "Retry-After": "15" } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ choices: [{ message: { content: "ok" }, finish_reason: "stop" }] }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await createOpenAICompatibleProvider({ ...config, wait: async (ms) => void waits.push(ms) }).complete({
+      messages: [{ role: "user", content: "Hi" }],
+      timeoutMs: 100_000,
+    });
+    expect(result.text).toBe("ok");
+    expect(waits).toEqual([15_000]);
+  });
+
+  it("doesn't retry a gateway timeout, which Meta says usually times out again", async () => {
+    const fetchMock = respond("timed out", { status: 504 });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(createOpenAICompatibleProvider(config).complete({ messages: [{ role: "user", content: "Hi" }] })).rejects.toMatchObject({
+      status: 504,
+      retryable: false,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("doesn't retry an attempt that already used a quarter of its time", async () => {
+    const fetchMock = vi.fn().mockImplementation(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      return new Response("busy", { status: 503 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      createOpenAICompatibleProvider(config).complete({ messages: [{ role: "user", content: "Hi" }], timeoutMs: 100 }),
+    ).rejects.toMatchObject({ status: 503 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends the cache key and asks for usage on streams, and reads cached and reasoning tokens", async () => {
+    const events = [
+      `data: ${JSON.stringify({ choices: [{ delta: { content: "{}" }, finish_reason: "stop" }] })}\n\n`,
+      `data: ${JSON.stringify({
+        choices: [],
+        usage: { prompt_tokens: 900, completion_tokens: 50, prompt_tokens_details: { cached_tokens: 800 }, completion_tokens_details: { reasoning_tokens: 40 } },
+      })}\n\ndata: [DONE]\n\n`,
+    ].join("");
+    const fetchMock = respond(events, { status: 200 });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await createOpenAICompatibleProvider({ ...config, sendCacheKey: true }).complete({
+      messages: [{ role: "user", content: "Hi" }],
+      stream: true,
+      cacheKey: "business_plan",
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({
+      stream: true,
+      stream_options: { include_usage: true },
+      prompt_cache_key: "business_plan",
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).not.toHaveProperty("prompt_cache_retention");
+    expect(result.usage).toEqual({ inputTokens: 900, cachedInputTokens: 800, outputTokens: 50, reasoningTokens: 40 });
+  });
+
+  it("asks for a day's cache retention only when the call opts in", () => {
+    const body = buildRequestBody({ ...config, sendCacheKey: true }, { messages: [{ role: "user", content: "Hi" }], cacheKey: "research", retainCache: true });
+    expect(body).toMatchObject({ prompt_cache_key: "research", prompt_cache_retention: "24h" });
+  });
+
+  it("leaves the cache key out for endpoints that don't take it", () => {
+    const body = buildRequestBody(config, { messages: [{ role: "user", content: "Hi" }], cacheKey: "x" });
+    expect(body).not.toHaveProperty("prompt_cache_key");
+    expect(body).not.toHaveProperty("prompt_cache_retention");
   });
 
   it("joins streamed chunks, even when an event is split across reads", async () => {
@@ -197,13 +310,17 @@ describe("complete", () => {
       stream: true,
     });
 
-    expect(result).toEqual({ text: '{"a":1}', finishReason: "stop", usage: { inputTokens: 7, outputTokens: 2 } });
+    expect(result).toEqual({
+      text: '{"a":1}',
+      finishReason: "stop",
+      usage: { inputTokens: 7, cachedInputTokens: 0, outputTokens: 2, reasoningTokens: 0 },
+    });
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({ stream: true });
   });
 
   it("turns a streamed error event into a retryable provider error", async () => {
     const body = `data: ${JSON.stringify({ error: { message: "overloaded" } })}\n\n`;
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(body, { status: 200 })));
+    vi.stubGlobal("fetch", respond(body, { status: 200 }));
 
     await expect(
       createOpenAICompatibleProvider(config).complete({ messages: [{ role: "user", content: "Hi" }], stream: true }),
@@ -212,19 +329,38 @@ describe("complete", () => {
 
   it("treats a stream that stops early as a retryable error, not a reply", async () => {
     const body = `data: ${JSON.stringify({ choices: [{ delta: { content: '{"a":' } }] })}\n\n`;
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(body, { status: 200 })));
+    vi.stubGlobal("fetch", respond(body, { status: 200 }));
 
     await expect(
       createOpenAICompatibleProvider(config).complete({ messages: [{ role: "user", content: "Hi" }], stream: true }),
     ).rejects.toMatchObject({ name: "AIProviderError", retryable: true, message: expect.stringMatching(/ended before/) });
   });
 
-  it("marks bad requests as not retryable", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("bad", { status: 400 })));
+  it("marks bad requests as not retryable, and never retries them", async () => {
+    const fetchMock = respond("bad", { status: 400 });
+    vi.stubGlobal("fetch", fetchMock);
 
     await expect(
       createOpenAICompatibleProvider(config).complete({ messages: [{ role: "user", content: "Hi" }] }),
     ).rejects.toMatchObject({ status: 400, retryable: false });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("backoffMs and retryAfter", () => {
+  it("doubles from 1 s with jitter, and lets the provider ask for longer", () => {
+    expect(backoffMs(0, null, () => 0)).toBe(500);
+    expect(backoffMs(0, null, () => 1)).toBe(1000);
+    expect(backoffMs(1, null, () => 1)).toBe(2000);
+    expect(backoffMs(0, 5000, () => 0)).toBe(5000);
+    expect(backoffMs(0, 60_000, () => 0)).toBe(60_000);
+  });
+
+  it("reads seconds or an HTTP date", () => {
+    expect(retryAfter("2")).toBe(2000);
+    expect(retryAfter(new Date(10_000).toUTCString(), 4_000)).toBe(6000);
+    expect(retryAfter("soon")).toBeNull();
+    expect(retryAfter(null)).toBeNull();
   });
 });
 
@@ -295,10 +431,7 @@ describe("webSearch", () => {
   });
 
   it("throws a provider error when the body has an error field", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: { message: "tool unavailable" } }), { status: 200 })),
-    );
+    vi.stubGlobal("fetch", respond(JSON.stringify({ error: { message: "tool unavailable" } }), { status: 200 }));
 
     const error = await createOpenAICompatibleProvider(config)
       .webSearch!({ question: "q" })
@@ -308,7 +441,7 @@ describe("webSearch", () => {
   });
 
   it("throws a provider error on a failed status", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("nope", { status: 503 })));
+    vi.stubGlobal("fetch", respond("nope", { status: 503 }));
 
     await expect(createOpenAICompatibleProvider(config).webSearch!({ question: "q" })).rejects.toMatchObject({
       name: "AIProviderError",

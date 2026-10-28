@@ -7,6 +7,9 @@ import { LocalDate } from "@/components/local-date";
 import { ROLE_LABELS, roleOf } from "@/lib/documents/library";
 import { FilingSteps } from "@/components/plan/filing-steps";
 import { AgreementCard } from "@/components/documents/agreement-card";
+import { AlreadyDone } from "@/components/plan/already-done";
+import { Tick } from "@/components/plan/journey";
+import { Lock } from "@/components/plan/lock";
 import { type FormDoc, OfficialFormCard } from "@/components/plan/official-form-card";
 import { RecordUpload } from "@/components/plan/record-upload";
 import { StepStateLabel, stepStates } from "@/components/plan/step-state";
@@ -16,9 +19,10 @@ import { PracticeBanner } from "@/components/practice-banner";
 import { StatusChip } from "@/components/requirements/requirement-card";
 import { RequirementStatusChip } from "@/components/requirements/requirement-status";
 import { WrittenInquiry } from "@/components/requirements/written-inquiry";
-import { CARD, EYEBROW, PAGE_TITLE, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
+import { CARD, EYEBROW, PAGE_TITLE, PRIMARY_LINK, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
 import { OFFICIAL_FORMS } from "@/data/official-forms";
 import type { StoredDocument } from "@/lib/data/documents";
+import { orderSteps, type PlanStep } from "@/lib/data/plan";
 import { getMyBusiness, getMyDetails, getMyStep, listMyDocuments } from "@/lib/data/my-business";
 import { autofillContext, autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
 import { filedForm, formsFor } from "@/lib/documents/form-catalog";
@@ -29,6 +33,7 @@ import { jurisdictionName, placeOf, structureOf } from "@/lib/research/applicabi
 import { writtenInquiry } from "@/lib/research/inquiry";
 import { filingSteps } from "@/lib/rules/filing";
 import { followingSteps } from "@/lib/rules/plan";
+import { nextStepAfter } from "@/lib/rules/progress";
 
 export const metadata: Metadata = { title: "Startup plan step" };
 
@@ -51,6 +56,7 @@ export default function StepPage({ params }: { params: Params }) {
 }
 
 const LINK_ITEM = "flex min-h-11 w-fit items-center font-semibold underline underline-offset-4";
+const LIST = new Intl.ListFormat("en-US", { type: "conjunction" });
 
 async function StepDetail({ params }: { params: Params }) {
   const { stepId } = await params;
@@ -102,6 +108,10 @@ async function StepDetail({ params }: { params: Params }) {
         ]
       : [];
   const filing = step.topic !== "structure";
+  const state = states.get(step.key);
+  const lockedBy = state?.state === "waiting" && step.status === "todo" ? state.waitingOn : [];
+  const next = step.retired ? null : nextStepAfter(orderSteps(all.filter((each) => !each.retired)), step.key);
+  const accept = Object.keys(ACCEPTED_TYPES).join(",");
   const unresolved = !sourced || conditions.length > 0 || step.requirementStatus !== "verified";
 
   return (
@@ -131,6 +141,22 @@ async function StepDetail({ params }: { params: Params }) {
           A later check of your requirements left this step out of your plan. You’d already finished it, so it stays here for your records.
         </p>
       ) : null}
+
+      {!step.retired && step.status === "done" ? (
+        <WhatsNext next={next} done completedAt={step.completedAt} />
+      ) : lockedBy.length ? (
+        <section aria-labelledby="locked-heading" className="flex flex-col items-start gap-2 rounded-2xl bg-rule-tint p-5">
+          <h2 id="locked-heading" className="flex items-center gap-2 font-bold">
+            <Lock />
+            Locked until you finish {LIST.format(lockedBy.map((each) => `“${each.title}”`))}
+          </h2>
+          <p className="text-rule">You can read ahead. This step opens once that’s done.</p>
+          <Link href={`/checklist/${lockedBy[0].id}`} className={PRIMARY_LINK}>
+            Go to “{lockedBy[0].title}”
+          </Link>
+        </section>
+      ) : null}
+      {!step.retired && step.status === "todo" && step.topic !== "structure" ? <AlreadyDone stepId={step.id} accept={accept} /> : null}
 
       <section aria-labelledby="why-heading" className={`flex flex-col gap-2 ${CARD}`}>
         <h2 id="why-heading" className={SECTION_TITLE}>
@@ -233,7 +259,7 @@ async function StepDetail({ params }: { params: Params }) {
           {after.length ? (
             <section aria-labelledby="after-heading" className={`flex flex-col gap-1.5 ${CARD}`}>
               <h2 id="after-heading" className={SECTION_TITLE}>
-                What comes next
+                This step unlocks
               </h2>
               <ul className="flex flex-col">
                 {after.map((following) => (
@@ -260,7 +286,7 @@ async function StepDetail({ params }: { params: Params }) {
               Save a receipt or approval
             </summary>
             <div className="mt-2">
-              <RecordUpload stepId={step.id} accept={Object.keys(ACCEPTED_TYPES).join(",")} />
+              <RecordUpload stepId={step.id} accept={accept} />
             </div>
           </details>
         )}
@@ -277,19 +303,65 @@ async function StepDetail({ params }: { params: Params }) {
             </h2>
             <ActorChip actor="owner" />
           </div>
-          <StepStatus
-            key={`${step.id}-${step.status}`}
-            stepId={step.id}
-            status={step.status}
-            note={step.evidenceNote}
-            completedAt={step.completedAt?.toISOString() ?? null}
-            submittedAt={step.submittedAt?.toISOString() ?? null}
-            submissionNote={step.submissionNote}
-            filing={filing}
-          />
+          {lockedBy.length ? (
+            <p className="text-rule">
+              You can mark this once {LIST.format(lockedBy.map((each) => `“${each.title}”`))} is done.
+              {step.topic === "structure" ? "" : " Already did it on your own? Use “I’ve already done this” at the top."}
+            </p>
+          ) : (
+            <StepStatus
+              key={`${step.id}-${step.status}`}
+              stepId={step.id}
+              status={step.status}
+              note={step.evidenceNote}
+              completedAt={step.completedAt?.toISOString() ?? null}
+              submittedAt={step.submittedAt?.toISOString() ?? null}
+              submissionNote={step.submissionNote}
+              filing={filing}
+            />
+          )}
         </section>
       )}
+
+      {step.retired ? (
+        <Link href="/checklist" className={SECONDARY_LINK}>
+          Back to your plan
+        </Link>
+      ) : step.status === "done" ? null : (
+        <WhatsNext next={next} done={false} completedAt={null} />
+      )}
     </>
+  );
+}
+
+// Always somewhere to go: the next ready step after this one, never back to one that points here
+function WhatsNext({ next, done, completedAt }: { next: PlanStep | null; done: boolean; completedAt: Date | null }) {
+  return (
+    <section aria-label="What’s next" className={`flex flex-col items-start gap-2 rounded-2xl p-5 ${done ? "bg-accent-tint" : CARD}`}>
+      {completedAt ? (
+        <p className="flex items-center gap-2 font-semibold text-accent-ink">
+          <Tick />
+          <span>
+            Done on <LocalDate iso={completedAt.toISOString()} />.
+          </span>
+        </p>
+      ) : null}
+      {next ? (
+        <>
+          <p className={done ? "text-rule" : "font-semibold"}>
+            {done ? "Next" : "When you’re done here, next is"}: {next.title}
+          </p>
+          <Link href={`/checklist/${next.id}`} className={done ? PRIMARY_LINK : SECONDARY_LINK}>
+            Go to the next step
+          </Link>
+        </>
+      ) : (
+        <p className="text-rule">{done ? "Nothing else is ready to do right now." : "Nothing else is ready yet."}</p>
+      )}
+      <Link href="/checklist" className={`flex min-h-11 w-fit items-center ${TEXT_LINK}`}>
+        Back to your plan
+      </Link>
+    </section>
   );
 }
 

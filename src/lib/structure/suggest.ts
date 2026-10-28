@@ -57,7 +57,7 @@ export function basisLines(p: BusinessProfile): string[] {
   const { strong, moderate } = signalsFor(p);
   lines.push(...strong, ...moderate);
   if (p.takesOnDebt === "no") lines.push("No lease, loan or credit planned");
-  if (p.goals.includes("test_idea")) lines.push("You want to test the idea first");
+  if (p.goals.includes("test_idea")) lines.push("You want to test your idea with little risk for now");
   if (p.goals.includes("grow")) lines.push("You hope to grow it bigger");
   if (p.goals.includes("full_time")) lines.push("You hope to make it your full-time work");
   return lines;

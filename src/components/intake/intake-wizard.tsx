@@ -84,7 +84,7 @@ const WHY: Record<StepId, string> = {
   premises: "Working from home can need zoning approval. A rented space has to be approved for your kind of business.",
   money: "Your budget and sales shape which costs come first and which structure fits. Rough answers are fine.",
   help: "Paying people adds employer steps, usually later on.",
-  timing: "It helps us order your steps and explain more where you’re new.",
+  timing: "Your launch date sets the countdown on your dashboard. The rest helps us explain more where you’re new.",
 };
 
 function detailsTitle(a: IntakeAnswers): string {
@@ -127,9 +127,15 @@ export function IntakeWizard(props: Props) {
   const { answers, marks } = form;
   const [step, setStep] = useState<Step>(() => {
     const saved = draft?.step;
-    if (saved && (saved === "review" || stepsFor(draft.answers).includes(saved))) return saved;
+    if (saved && (saved === "review" || stepsFor(draft.answers).includes(saved))) {
+      // Drafts saved before "Where are you now?" moved up go back to it first
+      if (saved !== "review" && !draft.answers.stage && STEPS.indexOf(saved) > STEPS.indexOf("status")) return "status";
+      return saved;
+    }
     return editing ? "review" : "sell";
   });
+  // "No date yet" only clears the date: the older timing answer is left alone, so research doesn't look out of date
+  const [noDate, setNoDate] = useState(() => !answers.launchDate && answers.launchTiming === "unsure");
   const [resumed, setResumed] = useState<string | null>(draft?.updatedAt ?? null);
   // Set when a question was opened from the review, so Continue goes straight back
   const [fromReview, setFromReview] = useState(false);
@@ -533,6 +539,38 @@ export function IntakeWizard(props: Props) {
                 <label className="flex min-h-11 items-center gap-2.5">
                   <input type="checkbox" checked={answers.noName} onChange={(e) => update("noName", e.target.checked)} className="size-5 accent-accent" />
                   I haven’t picked a name yet
+                </label>
+              </div>
+            ) : null}
+
+            {step === "timing" ? (
+              <div className="flex flex-col gap-2.5">
+                <label htmlFor={id("launch-date")} className="text-[19px] font-bold leading-snug">
+                  What’s your goal launch date?
+                </label>
+                <p id={id("launch-why")} className="text-[15px] text-rule">
+                  <span className="font-semibold">Why we ask:</span> it’s the day you hope to make your first sale, and your dashboard counts down to it.
+                </p>
+                <input
+                  id={id("launch-date")}
+                  type="date"
+                  value={answers.launchDate}
+                  onChange={(e) => update("launchDate", e.target.value)}
+                  disabled={noDate}
+                  aria-describedby={[id("launch-why"), errorId].filter(Boolean).join(" ")}
+                  className="min-h-12 w-fit rounded-lg border border-field bg-surface px-3 py-2.5 text-base disabled:bg-ground"
+                />
+                <label className="flex min-h-11 items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={noDate}
+                    onChange={(e) => {
+                      setNoDate(e.target.checked);
+                      if (e.target.checked) update("launchDate", "");
+                    }}
+                    className="size-5 accent-accent"
+                  />
+                  I don’t have a date yet
                 </label>
               </div>
             ) : null}

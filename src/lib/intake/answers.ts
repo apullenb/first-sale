@@ -90,7 +90,9 @@ export interface IntakeAnswers {
   takesOnDebt: YesNo;
   hiringPlans: (typeof HIRING_PLANS)[number] | "";
   helpKinds: (typeof HELP_KINDS)[number][];
+  // Before launchDate; "unsure" now means no date yet
   launchTiming: (typeof LAUNCH_TIMINGS)[number] | "";
+  launchDate: string;
   experience: (typeof EXPERIENCE_LEVELS)[number] | "";
   goals: (typeof GOALS)[number][];
 }
@@ -131,12 +133,13 @@ export const EMPTY_ANSWERS: IntakeAnswers = {
   hiringPlans: "",
   helpKinds: [],
   launchTiming: "",
+  launchDate: "",
   experience: "",
   goals: [],
 };
 
 // Groups of a few questions each, in order. "place" and "sell" are read by the Today page.
-export const STEPS = ["sell", "place", "owners", "name", "status", "channels", "details", "premises", "money", "help", "timing"] as const;
+export const STEPS = ["sell", "status", "place", "owners", "name", "channels", "details", "premises", "money", "help", "timing"] as const;
 export type StepId = (typeof STEPS)[number];
 
 // Channels where orders may go out by mail, for profiles saved before handoff was asked
@@ -325,6 +328,7 @@ export function answersToProfile(a: IntakeAnswers) {
     hiringPlans: a.hiringPlans || null,
     experience: a.experience || null,
     launchTiming: a.launchTiming || null,
+    launchDate: a.launchDate || null,
     category: a.category || null,
     productTags: categoryFor(a.category)?.examples.filter((example) => a.productTags.includes(example.id)).map((example) => example.id) ?? [],
     ownerRelation: followUp("ownerRelation", a.ownerRelation),
@@ -383,6 +387,7 @@ export function profileToAnswers(p: BusinessProfile): IntakeAnswers {
     hiringPlans: p.hiringPlans ?? "",
     helpKinds: p.helpKinds,
     launchTiming: p.launchTiming ?? "",
+    launchDate: p.launchDate ?? "",
     experience: p.experience ?? "",
     goals: p.goals,
   };
@@ -405,6 +410,8 @@ export function stepProblem(step: StepId, a: IntakeAnswers): string | null {
         : null;
     case "channels":
       return a.channels.length ? null : "Pick at least one way you’ll sell.";
+    case "timing":
+      return !a.launchDate || /^\d{4}-\d{2}-\d{2}$/.test(a.launchDate) ? null : "Enter the date as month, day and year, or tick “I don’t have a date yet”.";
     default:
       return null;
   }
@@ -477,10 +484,15 @@ export function summarize(a: IntakeAnswers, options: { followUps?: boolean } = {
       : []),
     row("Hiring", a.hiringPlans ? HIRING_LABELS[a.hiringPlans] : "", "help", ["hiringPlans"]),
     ...followUp("helpKinds", "Kind of help", list(HELP_KIND_LABELS, a.helpKinds), "help"),
-    row("When you’ll start", a.launchTiming ? LAUNCH_TIMING_LABELS[a.launchTiming] : "", "timing", ["launchTiming"]),
+    row("Goal launch date", a.launchDate ? formatLaunchDate(a.launchDate) : a.launchTiming ? LAUNCH_TIMING_LABELS[a.launchTiming] : "", "timing", ["launchDate", "launchTiming"]),
     row("Run a business before", a.experience ? EXPERIENCE_LABELS[a.experience] : "", "timing", ["experience"]),
     ...(options.followUps ? [row("Your goals", list(GOAL_LABELS, a.goals), "timing", ["goals"])] : []),
   ];
+}
+
+// "Dec 1, 2026"; a date with no time, so never shifted by time zone
+export function formatLaunchDate(date: string): string {
+  return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
 // Same answers in any pick order compare equal

@@ -66,6 +66,8 @@ export const intakeAnswersSchema = z.object({
   hiringPlans: orEmpty(HIRING_PLANS),
   helpKinds: many(HELP_KINDS),
   launchTiming: orEmpty(LAUNCH_TIMINGS),
+  // Drafts saved before the date was asked still load
+  launchDate: z.union([z.iso.date(), z.literal("")]).default(""),
   experience: orEmpty(EXPERIENCE_LEVELS),
   goals: many(GOALS),
 }) satisfies z.ZodType<IntakeAnswers>;

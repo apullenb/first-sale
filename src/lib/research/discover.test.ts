@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { AIProviderError, type ModelProvider, type WebSearchHit, type WebSearchRequest } from "@/lib/ai";
 import { createMockProvider } from "@/lib/ai/providers/mock";
 import { testProfile } from "@/test/fixtures";
-import { discoverOfficialPages, searchTopics } from "./discover";
+import { discoverOfficialPages, type SearchCache, searchTopics } from "./discover";
 
 const columbus = testProfile({
   offeringKinds: ["food"],
@@ -208,3 +208,52 @@ describe("discoverOfficialPages", () => {
     expect(webSearch.mock.calls[0][0].location).toEqual({ region: "Ohio", city: undefined });
   });
 });
+
+describe("discoverOfficialPages with a search cache", () => {
+  function memoryCache(seed: Record<string, WebSearchHit[]> = {}, broken = false) {
+    const store = new Map(Object.entries(seed));
+    const cache: SearchCache = {
+      get: vi.fn(async (request) => (broken ? Promise.reject(new Error("down")) : (store.get(request.question) ?? null))),
+      put: vi.fn(async (request, hits) => {
+        if (broken) throw new Error("down");
+        store.set(request.question, hits);
+      }),
+    };
+    return { cache, store };
+  }
+  const question = (id: string) => searchTopics(columbus).find((topic) => topic.id === id)!.question;
+
+  it("reuses recent results for the same question instead of searching again", async () => {
+    const saved = [hit("https://www.ohiosos.gov/businesses/trade-names", "Ohio SOS: trade names")];
+    const { cache } = memoryCache({ [question("state-name")]: saved });
+    const { model, webSearch } = searchingModel({ "state-name": [hit("https://www.ohiosos.gov/other", "Fresh")] });
+
+    const discovery = await discoverOfficialPages(model, columbus, { cache });
+
+    expect(webSearch).toHaveBeenCalledTimes(searchTopics(columbus).length - 1);
+    expect(discovery.sources.find((source) => source.id === "state-name-1")?.url).toBe("https://www.ohiosos.gov/businesses/trade-names");
+  });
+
+  it("keeps results only when they hold an official page for this place, so a search that found none runs again", async () => {
+    const { cache, store } = memoryCache();
+    const { model } = searchingModel({
+      "city-license": [hit("https://www.columbus.gov/license", "License")],
+      "state-name": [hit("https://www.legalzoom.com/dba-ohio", "Not official")],
+    });
+
+    await discoverOfficialPages(model, columbus, { cache });
+
+    expect([...store.keys()]).toEqual([question("city-license")]);
+  });
+
+  it("still searches when the cache can't be reached", async () => {
+    const { cache } = memoryCache({}, true);
+    const { model, webSearch } = searchingModel({ "city-license": [hit("https://www.columbus.gov/license", "License")] });
+
+    const discovery = await discoverOfficialPages(model, columbus, { cache });
+
+    expect(webSearch).toHaveBeenCalledTimes(searchTopics(columbus).length);
+    expect(discovery.sources.map((source) => source.url)).toContain("https://www.columbus.gov/license");
+  });
+});
+

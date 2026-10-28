@@ -46,6 +46,7 @@ import { PHOTO_CATEGORIES, PHOTO_CROPS, PHOTO_LOOKS, type PhotoCheck, type Photo
 import { ASSET_KINDS, type AssetCheck, type BrandBrief, type BrandPicks, type ConceptReply } from "@/lib/brand/types";
 import type { IntakeAnswers, Marks } from "@/lib/intake/answers";
 import type { DecisionBasis } from "@/lib/structure/types";
+import type { WebSearchHit } from "@/lib/ai/types";
 
 const id = () => text("id").primaryKey().$defaultFn(() => crypto.randomUUID());
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -631,4 +632,16 @@ export const businessEvents = pgTable(
     createdAt: createdAt(),
   },
   (table) => [index("business_events_business_created_idx").on(table.businessId, table.createdAt)],
+);
+
+// Official-page search results shared by every owner, so the same question for the same place isn't paid for twice in a week
+export const searchCache = pgTable(
+  "search_cache",
+  {
+    // Hash of the question and place
+    key: text("key").primaryKey(),
+    hits: jsonb("hits").$type<WebSearchHit[]>().notNull(),
+    createdAt: createdAt(),
+  },
+  (table) => [index("search_cache_created_idx").on(table.createdAt)],
 );

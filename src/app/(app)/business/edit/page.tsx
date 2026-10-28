@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { IntakeWizard } from "@/components/intake/intake-wizard";
+import { draftKey } from "@/lib/data/intake-drafts";
 import { getMyBusiness, getMyDetails, getMyIntakeDraft, getMyPlan, getMyResearch, listMyDocuments } from "@/lib/data/my-business";
 import { EMPTY_ANSWERS, profileToAnswers } from "@/lib/intake/answers";
 import type { ImpactContext } from "@/lib/intake/impact";
-import { profileKey } from "@/lib/research/requirements";
 
 export const metadata: Metadata = { title: "Edit your answers" };
 
@@ -46,7 +46,7 @@ async function EditWizard() {
       mode="edit"
       initial={initial}
       initialProfile={business.profile}
-      baseKey={business.profile ? profileKey(business.profile) : "unreadable"}
+      baseKey={business.profile ? draftKey(business.profile) : "unreadable"}
       draft={saved}
       context={context}
     />
