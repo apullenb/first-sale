@@ -60,6 +60,7 @@ const SOURCES = {
   products: { label: "From your products", href: "/products" },
   checklist: { label: "From Licenses and registrations", href: "/checklist" },
   brand: { label: "From your brand", href: "/brand" },
+  logo: { label: "From your logo", href: "/logo" },
   marketing: { label: "From your marketing plan", href: "/marketing" },
 } as const;
 
@@ -210,7 +211,7 @@ export function knownFacts(sources: PlanSources): KnownFact[] {
   add("launch", "money", "Goal for first sale", profile.launchDate ? longDate(profile.launchDate) : timing, "answers");
   if (sources.progress?.total) add("progress", "money", "Licenses and registrations", `${sources.progress.done} of ${sources.progress.total} steps done`, "checklist");
 
-  add("tagline", "brand", "Tagline", sources.brand?.tagline, "brand");
+  add("tagline", "brand", "Tagline", sources.brand?.tagline, "logo");
   add("story", "brand", "Brand story", sources.brand?.story, "brand");
   add("marketing", "brand", "Marketing plan", sources.marketing?.summary, "marketing");
   return facts;

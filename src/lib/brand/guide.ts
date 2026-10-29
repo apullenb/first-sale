@@ -165,7 +165,7 @@ export async function logoGuidePdf(input: GuideInput): Promise<Uint8Array> {
   const columnHeight = (row: (typeof rows)[number]) =>
     Math.max(38, (lines(row.name, bold, 10, columnWidth - 42).length * 10 + 18) * 1.3) + 4 + lines(`On white ${row.ratio}:1. ${row.use}`, regular, 8.5, columnWidth).length * 8.5 * 1.3;
   heading("Colors", Math.max(10 * 1.3, ...rows.map(columnHeight)) + 6);
-  if (!rows.length) text("No colors saved yet. Add your logo’s colors on the Build your brand page, then save this guide again.", regular, 10, PAGE.margin, width, MUTED);
+  if (!rows.length) text("No colors saved yet. Add your logo’s colors on the Create your logo page, then save this guide again.", regular, 10, PAGE.margin, width, MUTED);
   const colorTop = y - 6;
   let lowest = colorTop;
   rows.forEach((row, index) => {

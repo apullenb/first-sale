@@ -17,6 +17,7 @@ import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Card, Chip, IconTile, Note, PageHead } from "@/components/ui";
 import { type MarketingPlatformId, PLATFORM_DATA } from "@/data/marketing-platforms";
 import { PROFILE_FACTS, profileSources, type SocialProfileFacts } from "@/data/social-profiles";
+import { BRAND_IMAGES_HREF } from "@/lib/brand/library";
 import type { BrandFile, BrandImageKind, BrandKit } from "@/lib/brand/types";
 import { getMyBrand, getMyBusiness, getMyMarketing, lastMyRun, listMyJourneyMarks } from "@/lib/data/my-business";
 import type { JourneyMark } from "@/lib/data/journey";
@@ -381,9 +382,9 @@ function PicturesPart({ brand, cover, platformName }: { brand: BrandKit | null; 
             </figure>
           ) : (
             <div className="flex max-w-sm flex-col gap-2">
-              <p className="text-[15px] text-rule">Approve your logo’s versions to get a profile-picture version made to fit a circle.</p>
-              <Link href="/brand" className={SECONDARY_LINK}>
-                Build your brand
+              <p className="text-[15px] text-rule">Make your logo’s icon (profile picture) version and choose “Use this”. It’s made to fit a circle.</p>
+              <Link href="/logo#slot-profile" className={SECONDARY_LINK}>
+                Create your logo
                 <Icon name="arrow" size="sm" />
               </Link>
             </div>
@@ -405,16 +406,16 @@ function PicturesPart({ brand, cover, platformName }: { brand: BrandKit | null; 
                     <Icon name="download" size="sm" />
                     Download<span className="sr-only"> your {platformName} cover</span>
                   </a>
-                  <Link href="/brand" className={`${TEXT_LINK} text-[15px]`}>
-                    Other sizes in Build your brand
+                  <Link href={BRAND_IMAGES_HREF} className={`${TEXT_LINK} text-[15px]`}>
+                    Other sizes in your Brand Library
                   </Link>
                 </span>
               </figure>
             ) : (
               <div className="flex max-w-sm flex-col gap-2">
-                <p className="text-[15px] text-rule">Make your {platformName} cover from your logo’s colors and style.</p>
-                <Link href="/brand" className={SECONDARY_LINK}>
-                  Build your brand
+                <p className="text-[15px] text-rule">Make your {platformName} cover from your logo’s colors and style, and choose “Use this”.</p>
+                <Link href={BRAND_IMAGES_HREF} className={SECONDARY_LINK}>
+                  Make it in your Brand Library
                   <Icon name="arrow" size="sm" />
                 </Link>
               </div>

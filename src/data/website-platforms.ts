@@ -8,7 +8,7 @@ const CHECKED = "2026-10-27";
 const STEPS_CHECKED = "2026-10-28";
 
 const PHOTOS = { label: "Make store-ready photos", href: "/photos" };
-const BRAND = { label: "Make your logo and brand images", href: "/brand" };
+const BRAND = { label: "Get your logo and colors", href: "/logo" };
 const TAX_STEP = { label: "See the sales tax step in your plan", href: "/checklist" };
 const ADDRESS = { label: "Pick your web address", href: "/website#step-address" };
 const DESIGN = { label: "Set prices, photos and buy links on this page", href: "/website#step-design" };

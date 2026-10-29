@@ -193,29 +193,29 @@ describe("checkInsights", () => {
       reply({
         tips: [
           item("Fine-tune your best sellers", { detail: "Watch which loaves sell out first and bake more of those." }),
-          item("Give yourself a deadline for the logo", { detail: "A date keeps the fun work moving.", link: "brand" }),
+          item("Give yourself a deadline for the logo", { detail: "A date keeps the fun work moving.", link: "logo" }),
           item("Team up with a café", { detail: "A partnership with the café down the street could put your bread on their counter." }),
           item("Sell gift certificates", { detail: "Gift certificates make easy holiday presents, and a card reader is lighter than a cash register." }),
-          item("Keep your logo handy", { detail: "Save your logo file where you can find it, and use a rule of thumb: one look everywhere.", link: "brand" }),
+          item("Keep your logo handy", { detail: "Save your logo file where you can find it, and use a rule of thumb: one look everywhere.", link: "logo" }),
           item("Know your card costs", { detail: "Square shows its card fees up front, so you can price with them in mind.", link: "website" }),
         ],
       }),
       context(),
     );
-    expect(result.items.filter((each) => each.section === "tips").map((each) => each.link?.href ?? null)).toEqual([null, "/brand", null, null]);
+    expect(result.items.filter((each) => each.section === "tips").map((each) => each.link?.href ?? null)).toEqual([null, "/logo", null, null]);
     expect(titles(result, "tips")).toEqual(["Fine-tune your best sellers", "Give yourself a deadline for the logo", "Team up with a café", "Sell gift certificates"]);
 
     const more = checkInsights(
       reply({
         tips: [
-          item("Keep your logo handy", { detail: "Save your logo file where you can find it, and use a rule of thumb: one look everywhere.", link: "brand" }),
+          item("Keep your logo handy", { detail: "Save your logo file where you can find it, and use a rule of thumb: one look everywhere.", link: "logo" }),
           item("Know your card costs", { detail: "Square shows its card fees up front, so you can price with them in mind.", link: "website" }),
           item("Square’s fees", { detail: "Your website page shows what each builder charges.", link: "website" }),
         ],
       }),
       context(),
     );
-    expect(more.items.filter((each) => each.section === "tips").map((each) => each.link?.href)).toEqual(["/brand", "/website", "/website"]);
+    expect(more.items.filter((each) => each.section === "tips").map((each) => each.link?.href)).toEqual(["/logo", "/website", "/website"]);
   });
 
   it("keeps a sourced link the model chose for a legal point", () => {
@@ -244,7 +244,7 @@ describe("checkInsights", () => {
     const result = checkInsights(
       reply({
         ideas: [
-          item("Show off your logo", { link: "brand" }),
+          item("Say how your brand feels", { link: "brand" }),
           item("Start a tasting list", { link: "website", stepKey: "made-up-step" }),
           item("Get a simple logo", { link: "logo" }),
         ],
