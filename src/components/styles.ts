@@ -15,7 +15,7 @@ export const SECONDARY_LINK =
 export const TEXT_LINK = "font-semibold text-accent underline decoration-[1.5px] underline-offset-[3px] hover:text-accent-ink";
 export const CARD = "rounded-[14px] border border-line bg-surface p-5 shadow-card";
 export const INPUT =
-  "min-h-12 w-full rounded-[10px] border border-field bg-surface px-3 py-2.5 text-base shadow-soft focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent-ring";
+  "min-h-12 w-full rounded-[10px] border border-field bg-surface px-3 py-2.5 text-base shadow-soft focus:border-accent focus:ring-2 focus:ring-accent-ring";
 export const EYEBROW = "text-[13.5px] font-bold uppercase tracking-[0.08em] text-accent";
 export const PAGE_TITLE = "font-display text-[32px] leading-[1.15] tracking-[-0.01em] sm:text-[38px]";
 export const SECTION_TITLE = "font-display text-[22px] leading-snug";

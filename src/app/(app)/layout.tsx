@@ -1,7 +1,7 @@
 import { unstable_rethrow } from "next/navigation";
 import { Suspense } from "react";
 import { AccountMenu } from "@/components/account-menu";
-import { SidebarNav, type SidebarBusiness } from "@/components/sidebar-nav";
+import { SidebarFallback, SidebarNav, type SidebarBusiness } from "@/components/sidebar-nav";
 import { getMyBusiness, getMyPlan } from "@/lib/data/my-business";
 import { displayName, formatLaunchDate } from "@/lib/intake/answers";
 import { remainingWork } from "@/lib/rules/progress";
@@ -9,8 +9,8 @@ import { remainingWork } from "@/lib/rules/progress";
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="mx-auto w-full max-w-[1360px] flex-1 px-4 pb-24 sm:px-6 md:grid md:grid-cols-[288px_minmax(0,1fr)] md:items-start md:gap-7 md:pt-5">
-      {/* Fallback keeps the menu prerendered if a route ever has unknown params */}
-      <Suspense fallback={<SidebarNav />}>
+      {/* The fallback reads no route, so pages with unknown params still prerender */}
+      <Suspense fallback={<SidebarFallback />}>
         <SidebarWithData />
       </Suspense>
       <main id="main" className="min-w-0 pt-5 md:pt-1">
