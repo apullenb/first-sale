@@ -45,7 +45,7 @@ export function VersionsSection({ chosen, name, assets, picks, practice, running
     <section aria-labelledby="versions-heading" className="@container flex flex-col gap-4">
       <SectionHead
         id="versions-heading"
-        number={5}
+        number={1}
         title="Get your logo versions"
         lead={
           practice

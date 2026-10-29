@@ -46,13 +46,15 @@ import { type DomainCheck, PLATFORMS, type WebsiteContent } from "@/lib/website/
 import type { SiteDesign } from "@/lib/website/site/design";
 import type { HostConnection, HostingState } from "@/lib/website/hosting/types";
 import { PHOTO_CATEGORIES, PHOTO_CROPS, PHOTO_LOOKS, type PhotoCheck, type PhotoReview } from "@/lib/photos/types";
-import { ASSET_KINDS, type AssetCheck, type BrandBrief, type BrandDesign, type BrandPicks, type ConceptReply } from "@/lib/brand/types";
+import { ASSET_KINDS, ASSET_ORIGINS, type AssetCheck, type BrandBrief, type BrandDesign, type BrandPicks, type ConceptReply } from "@/lib/brand/types";
 import type { IntakeAnswers, Marks } from "@/lib/intake/answers";
 import type { StoredIntake } from "@/lib/marketing/intake";
 import type { MarketingPlan, MarketingStep } from "@/lib/marketing/types";
 import type { DecisionBasis } from "@/lib/structure/types";
 import type { WebSearchHit } from "@/lib/ai/types";
 import type { InsightFeedback, SavedInsights } from "@/lib/insights/types";
+import { LIBRARY_GROUPS } from "@/lib/brand/library";
+import type { ProductPhotoRef } from "@/lib/rules/products";
 
 const id = () => text("id").primaryKey().$defaultFn(() => crypto.randomUUID());
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -332,11 +334,17 @@ export const products = pgTable(
     id: id(),
     businessId: businessId(),
     name: text("name").notNull(),
-    materials: text("materials").notNull(),
+    description: text("description").notNull().default(""),
+    materials: text("materials").notNull().default(""),
+    // Exactly what the owner typed, in cents
     priceCents: integer("price_cents").notNull(),
     unitCostCents: integer("unit_cost_cents"),
-    quantity: integer("quantity").notNull(),
+    // Null when the owner doesn't track stock
+    quantity: integer("quantity"),
     photoUrl: text("photo_url"),
+    // A product photo, an approved edit or a Brand Library picture
+    photo: jsonb("photo").$type<ProductPhotoRef>(),
+    createdAt: createdAt(),
   },
   (table) => [index("products_business_id_idx").on(table.businessId)],
 );
@@ -596,9 +604,10 @@ export const brandAssets = pgTable(
     id: id(),
     businessId: businessId(),
     kind: text("kind", { enum: ASSET_KINDS }).notNull(),
-    conceptId: text("concept_id")
-      .notNull()
-      .references(() => brandConcepts.id, { onDelete: "cascade" }),
+    // "uploaded": the owner's own logo, stored byte for byte
+    origin: text("origin", { enum: ASSET_ORIGINS }).notNull().default("generated"),
+    // Null for an uploaded logo and the files made from it
+    conceptId: text("concept_id").references(() => brandConcepts.id, { onDelete: "cascade" }),
     // The logo it was made from: the one refined, or the chosen logo
     sourceId: text("source_id"),
     // The owner's requested change, in their words, or what a one-click change did
@@ -617,6 +626,10 @@ export const brandAssets = pgTable(
     height: integer("height").notNull(),
     data: bytea("data").notNull(),
     check: jsonb("check").$type<AssetCheck>(),
+    // Uploads only: the owner's name for the file, the words in the logo as they typed them, and its fingerprint
+    title: text("title"),
+    words: text("words"),
+    sha256: text("sha256"),
     createdAt: createdAt(),
   },
   (table) => [
@@ -696,4 +709,23 @@ export const journeyMarks = pgTable(
     createdAt: createdAt(),
   },
   (table) => [primaryKey({ columns: [table.businessId, table.key] })],
+);
+
+// Pictures the owner adds to their Brand Library, kept byte for byte. Generated files stay in their own tables.
+export const brandLibraryFiles = pgTable(
+  "brand_library_files",
+  {
+    id: id(),
+    businessId: businessId(),
+    group: text("group", { enum: LIBRARY_GROUPS }).notNull(),
+    title: text("title").notNull(),
+    mimeType: text("mime_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    sha256: text("sha256").notNull(),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+    data: bytea("data").notNull(),
+    createdAt: createdAt(),
+  },
+  (table) => [index("brand_library_files_business_idx").on(table.businessId, table.group)],
 );

@@ -224,6 +224,7 @@ describe("saved site checks", () => {
     logos: { primary: file("logo"), stacked: null, profile: file("icon"), solid: null },
     images: { websiteHero: file("hero"), facebookCover: null, youtubeBanner: null, linkPreview: null },
     simulated: true,
+    uploaded: false,
   };
   const state = (patch: Partial<SiteState> = {}): SiteState => ({
     profile: testProfile(),

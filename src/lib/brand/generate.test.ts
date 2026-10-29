@@ -7,7 +7,7 @@ import { PRACTICE_LABEL } from "./practice";
 import { logoPrompt } from "./prompts";
 import { applyDesign, planRefinement } from "./refine";
 import { testBrief, testConcept } from "./test-fixtures";
-import type { AssetCheck } from "./types";
+import type { AssetCheck, BrandDesign } from "./types";
 
 const now = new Date("2026-10-27T12:00:00Z");
 
@@ -56,7 +56,7 @@ const vision: ModelProvider = {
 
 const concepts = [1, 2, 3].map((n) => ({ id: `concept-${n}`, concept: testConcept({ title: `Idea ${n}` }), brief: testBrief() }));
 const chosenBytes = pngBytes(1536, 1024, 42);
-const logo: LogoRef = { ...concepts[0], logoId: "logo-1", logo: { mimeType: "image/png", data: chosenBytes }, design: null };
+const logo = { ...concepts[0], logoId: "logo-1", logo: { mimeType: "image/png", data: chosenBytes }, design: null as BrandDesign | null } satisfies LogoRef;
 
 describe("drawing logo ideas", () => {
   it("draws each idea from code-built instructions and keeps the bytes exactly as returned", async () => {
@@ -204,6 +204,53 @@ describe("changes, versions and brand images start from the logo itself", () => 
     await makeBrandImages({ image: model, vision }, store, { logo, kinds: ["facebook_cover", "youtube_banner", "website_hero", "link_preview"], change: null, requestKey: "i1", now });
     expect(edit.mock.calls.map((call) => call[0].size)).toEqual(["1920x1080", "2560x1440", "1920x1080", "1200x630"]);
     for (const call of edit.mock.calls) expect(call[0].images[0].data).toEqual(chosenBytes);
+  });
+});
+
+describe("an uploaded logo", () => {
+  const palette = [{ hex: "#1F3A2E", name: "Dark green" }];
+  const uploaded: LogoRef = { id: null, concept: null, brief: testBrief(), logoId: "upload-1", logo: { mimeType: "image/webp", data: chosenBytes }, design: { palette }, words: "Rise" };
+
+  it("makes versions from the file itself, with no idea behind them, checked against the owner's words", async () => {
+    const { model, edit } = imageModel();
+    const { store, saved } = memoryStore();
+    await makeVersions({ image: model, vision }, store, { logo: uploaded, kinds: ["stacked"], requestKey: "u1", now });
+    const request = edit.mock.calls[0][0];
+    expect(request.images[0]).toEqual({ mimeType: "image/webp", data: chosenBytes });
+    expect(request.instruction).toContain("If the logo has a symbol");
+    expect(request.instruction).toContain("“Rise”");
+    expect(saved[0]).toMatchObject({ conceptId: null, sourceId: "upload-1", design: { palette } });
+    // The test vision model reads "Rise Bakery", which isn't what the owner said the logo shows
+    expect(saved[0].check?.lettering?.status).toBe("extra_words");
+  });
+
+  it("skips the spelling check when the owner didn't say what the logo says", async () => {
+    const { model } = imageModel();
+    const { store, saved } = memoryStore();
+    await makeVersions({ image: model, vision }, store, { logo: { ...uploaded, words: "" }, kinds: ["solid"], requestKey: "u2", now });
+    expect(saved[0].check).toMatchObject({ method: "ai", lettering: null });
+  });
+
+  it("makes brand pictures in the owner's colors", async () => {
+    const { model, edit } = imageModel();
+    const { store } = memoryStore();
+    await makeBrandImages({ image: model, vision }, store, { logo: uploaded, kinds: ["website_hero"], change: null, requestKey: "u3", now });
+    expect(edit.mock.calls[0][0].instruction).toContain("(#1F3A2E)");
+  });
+
+  it("is never redrawn", async () => {
+    const { model, edit } = imageModel();
+    const { store, saved } = memoryStore();
+    await expect(refineLogo({ image: model, vision }, store, { logo: uploaded, change: "Thicker", requestKey: "u4", now })).rejects.toThrow(OwnerFacingError);
+    expect(edit).not.toHaveBeenCalled();
+    expect(saved).toEqual([]);
+  });
+
+  it("gets a labeled practice preview in practice mode", async () => {
+    const { store, saved } = memoryStore();
+    await makeVersions({ image: getImageModel({})!, vision: getModel({}) }, store, { logo: uploaded, kinds: ["profile"], requestKey: "u5", now });
+    expect(saved[0]).toMatchObject({ mimeType: "image/svg+xml", simulated: true, conceptId: null });
+    expect(new TextDecoder().decode(saved[0].data)).toContain(PRACTICE_LABEL.toUpperCase());
   });
 });
 

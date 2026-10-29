@@ -8,6 +8,7 @@ import { applyDesign } from "@/lib/brand/refine";
 import {
   type AssetCheck,
   type AssetKind,
+  type AssetOrigin,
   type BrandBrief,
   type BrandDesign,
   type BrandFile,
@@ -16,6 +17,7 @@ import {
   type BrandPicks,
   type ConceptReply,
   IMAGE_KINDS,
+  type PaletteColor,
   readBrief,
   VERSION_KINDS,
   type VersionKind,
@@ -49,7 +51,9 @@ export interface RoundSummary {
 export interface AssetSummary {
   id: string;
   kind: AssetKind;
-  conceptId: string;
+  origin: AssetOrigin;
+  // Null for an uploaded logo and the files made from it
+  conceptId: string | null;
   sourceId: string | null;
   change: string | null;
   design: BrandDesign | null;
@@ -60,6 +64,9 @@ export interface AssetSummary {
   width: number;
   height: number;
   check: AssetCheck | null;
+  // Uploads only
+  title: string | null;
+  words: string | null;
   createdAt: Date;
 }
 
@@ -74,6 +81,7 @@ export interface BrandState {
 const assetColumns = {
   id: brandAssets.id,
   kind: brandAssets.kind,
+  origin: brandAssets.origin,
   conceptId: brandAssets.conceptId,
   sourceId: brandAssets.sourceId,
   change: brandAssets.change,
@@ -85,8 +93,16 @@ const assetColumns = {
   width: brandAssets.width,
   height: brandAssets.height,
   check: brandAssets.check,
+  title: brandAssets.title,
+  words: brandAssets.words,
   createdAt: brandAssets.createdAt,
 };
+
+// The business name in the saved answers, for files with no brief of their own
+function profileName(profile: unknown): string {
+  const name = profile && typeof profile === "object" && "name" in profile ? (profile as { name: unknown }).name : null;
+  return typeof name === "string" ? name : "";
+}
 
 async function businessOf(db: Db | Tx, ownerId: string, lock = false): Promise<string | null> {
   const query = db.select({ id: businesses.id }).from(businesses).where(eq(businesses.ownerId, ownerId));
@@ -261,11 +277,22 @@ export async function addAssetForOwner(db: Db, ownerId: string, input: NewBrandA
       .from(brandAssets)
       .where(and(eq(brandAssets.businessId, businessId), eq(brandAssets.requestKey, input.requestKey)));
     if (existing) return { ok: true, id: existing.id };
-    const [concept] = await tx
-      .select({ id: brandConcepts.id })
-      .from(brandConcepts)
-      .where(and(eq(brandConcepts.id, input.conceptId), eq(brandConcepts.businessId, businessId)));
-    if (!concept) return { ok: false, reason: "not_found" };
+    if (input.conceptId) {
+      const [concept] = await tx
+        .select({ id: brandConcepts.id })
+        .from(brandConcepts)
+        .where(and(eq(brandConcepts.id, input.conceptId), eq(brandConcepts.businessId, businessId)));
+      if (!concept) return { ok: false, reason: "not_found" };
+    } else {
+      // Without an idea, it must be made from the owner's own uploaded logo
+      const [source] = input.sourceId
+        ? await tx
+            .select({ id: brandAssets.id })
+            .from(brandAssets)
+            .where(and(eq(brandAssets.id, input.sourceId), eq(brandAssets.businessId, businessId), eq(brandAssets.origin, "uploaded")))
+        : [];
+      if (!source) return { ok: false, reason: "not_found" };
+    }
 
     // Id made here, so the insert doesn't send the file back
     const id = crypto.randomUUID();
@@ -308,31 +335,42 @@ export async function setAssetCheckForOwner(db: Db, ownerId: string, assetId: st
   return true;
 }
 
-// roundSimulated: the idea itself was a practice placeholder
+// concept and brief are null for an uploaded logo and the files made from it; roundSimulated: the idea itself was a practice placeholder
 export async function getAssetForOwner(
   db: Db,
   ownerId: string,
   assetId: string,
-): Promise<(AssetSummary & { concept: ConceptReply; brief: BrandBrief; roundSimulated: boolean }) | null> {
+): Promise<(AssetSummary & { concept: ConceptReply | null; brief: BrandBrief | null; roundSimulated: boolean }) | null> {
   const [row] = await db
     .select({ ...assetColumns, concept: brandConcepts.concept, brief: brandRounds.brief, roundSimulated: brandRounds.simulated })
     .from(brandAssets)
     .innerJoin(businesses, eq(businesses.id, brandAssets.businessId))
-    .innerJoin(brandConcepts, eq(brandConcepts.id, brandAssets.conceptId))
-    .innerJoin(brandRounds, eq(brandRounds.id, brandConcepts.roundId))
+    .leftJoin(brandConcepts, eq(brandConcepts.id, brandAssets.conceptId))
+    .leftJoin(brandRounds, eq(brandRounds.id, brandConcepts.roundId))
     .where(and(eq(businesses.ownerId, ownerId), eq(brandAssets.id, assetId)));
-  return row ? { ...row, brief: readBrief(row.brief) } : null;
+  return row ? { ...row, brief: row.brief ? readBrief(row.brief) : null, roundSimulated: row.roundSimulated ?? false } : null;
 }
 
 export async function getAssetFileForOwner(db: Db, ownerId: string, assetId: string) {
   const [row] = await db
-    .select({ kind: brandAssets.kind, mimeType: brandAssets.mimeType, data: brandAssets.data, simulated: brandAssets.simulated, brief: brandRounds.brief })
+    .select({
+      kind: brandAssets.kind,
+      origin: brandAssets.origin,
+      title: brandAssets.title,
+      mimeType: brandAssets.mimeType,
+      data: brandAssets.data,
+      simulated: brandAssets.simulated,
+      brief: brandRounds.brief,
+      profile: businesses.profile,
+    })
     .from(brandAssets)
     .innerJoin(businesses, eq(businesses.id, brandAssets.businessId))
-    .innerJoin(brandConcepts, eq(brandConcepts.id, brandAssets.conceptId))
-    .innerJoin(brandRounds, eq(brandRounds.id, brandConcepts.roundId))
+    .leftJoin(brandConcepts, eq(brandConcepts.id, brandAssets.conceptId))
+    .leftJoin(brandRounds, eq(brandRounds.id, brandConcepts.roundId))
     .where(and(eq(businesses.ownerId, ownerId), eq(brandAssets.id, assetId)));
-  return row ? { kind: row.kind, mimeType: row.mimeType, simulated: row.simulated, name: readBrief(row.brief).name, data: new Uint8Array(row.data) } : null;
+  if (!row) return null;
+  const name = (row.brief ? readBrief(row.brief).name : "") || profileName(row.profile);
+  return { kind: row.kind, origin: row.origin, title: row.title, mimeType: row.mimeType, simulated: row.simulated, name, data: new Uint8Array(row.data) };
 }
 
 // Versions and brand images were made from the old pick, so choosing again clears them
@@ -417,15 +455,16 @@ export async function clearIdeasForOwner(db: Db, ownerId: string): Promise<numbe
 
 // What other sections use: the chosen logo, the approved versions and images, and the palette
 export async function getBrandKitForOwner(db: Db, ownerId: string): Promise<BrandKit | null> {
-  const businessId = await businessOf(db, ownerId);
+  const [business] = await db.select({ id: businesses.id, profile: businesses.profile }).from(businesses).where(eq(businesses.ownerId, ownerId));
+  const businessId = business?.id ?? null;
   const kit = businessId ? await kitOf(db, businessId) : null;
   if (!businessId || !kit?.chosenLogoId) return null;
   const ids = [kit.chosenLogoId, ...Object.values(kit.picks).filter((id): id is string => Boolean(id))];
   const rows = await db
     .select({ ...assetColumns, concept: brandConcepts.concept, brief: brandRounds.brief, roundSimulated: brandRounds.simulated })
     .from(brandAssets)
-    .innerJoin(brandConcepts, eq(brandConcepts.id, brandAssets.conceptId))
-    .innerJoin(brandRounds, eq(brandRounds.id, brandConcepts.roundId))
+    .leftJoin(brandConcepts, eq(brandConcepts.id, brandAssets.conceptId))
+    .leftJoin(brandRounds, eq(brandRounds.id, brandConcepts.roundId))
     .where(and(eq(brandAssets.businessId, businessId), inArray(brandAssets.id, ids)));
   const primary = rows.find((row) => row.id === kit.chosenLogoId);
   if (!primary) return null;
@@ -438,21 +477,111 @@ export async function getBrandKitForOwner(db: Db, ownerId: string): Promise<Bran
     return toFile(row);
   };
   // The logo as drawn, with any one-click changes to its colors, lettering or tagline
-  const drawn = applyDesign(primary.concept, readBrief(primary.brief), primary.design);
+  const drawn = primary.concept && primary.brief ? applyDesign(primary.concept, readBrief(primary.brief), primary.design) : null;
+  // An uploaded logo: the owner's colors, and nothing claimed about its lettering or tagline
+  const name = drawn ? drawn.brief.name : readBrief(kit.brief).name.trim() || profileName(business?.profile);
   const result: BrandKit = {
-    businessName: drawn.brief.name,
-    tagline: drawn.brief.tagline.trim(),
-    colors: drawn.concept.palette,
-    lettering: drawn.concept.typography,
+    businessName: name,
+    tagline: drawn ? drawn.brief.tagline.trim() : "",
+    colors: drawn ? drawn.concept.palette : (primary.design?.palette ?? []),
+    lettering: drawn ? drawn.concept.typography : "",
     logos: { primary: toFile(primary), stacked: file("stacked"), profile: file("profile"), solid: file("solid") },
     images: { websiteHero: file("website_hero"), facebookCover: file("facebook_cover"), youtubeBanner: file("youtube_banner"), linkPreview: file("link_preview") },
     simulated: false,
+    uploaded: primary.origin === "uploaded",
   };
   // Practice placeholders count too: their colors and lettering weren't written for this business
-  result.simulated = used.some((row) => row.simulated || row.roundSimulated);
+  result.simulated = used.some((row) => row.simulated || Boolean(row.roundSimulated));
   return result;
 }
 
 function toFile(row: { id: string; width: number; height: number }): BrandFile {
   return { url: brandFileUrl(row.id), width: row.width, height: row.height };
+}
+
+// --- The owner's own logo
+
+export interface NewUploadedLogo {
+  requestKey: string;
+  title: string;
+  words: string;
+  mimeType: string;
+  sha256: string;
+  width: number;
+  height: number;
+  data: Uint8Array;
+}
+
+export type UploadLogoOutcome = { ok: true; id: string } | { ok: false; reason: "no_business" | "too_many" | "too_large" };
+
+// Stored byte for byte and chosen at once; versions and pictures from the old pick are cleared, as with any new choice
+export async function addUploadedLogoForOwner(db: Db, ownerId: string, input: NewUploadedLogo, now = new Date()): Promise<UploadLogoOutcome> {
+  return db.transaction(async (tx) => {
+    const businessId = await businessOf(tx, ownerId, true);
+    if (!businessId) return { ok: false, reason: "no_business" };
+    const [existing] = await tx
+      .select({ id: brandAssets.id })
+      .from(brandAssets)
+      .where(and(eq(brandAssets.businessId, businessId), eq(brandAssets.requestKey, input.requestKey)));
+    if (existing) return { ok: true, id: existing.id };
+    const used = await usage(tx, businessId);
+    if (used.count + 1 > BRAND_LIMITS.assets) return { ok: false, reason: "too_many" };
+    if (used.bytes + input.data.byteLength > BRAND_LIMITS.totalBytes) return { ok: false, reason: "too_large" };
+
+    const id = crypto.randomUUID();
+    await tx.insert(brandAssets).values({
+      id,
+      businessId,
+      kind: "logo",
+      origin: "uploaded",
+      conceptId: null,
+      sourceId: null,
+      change: null,
+      design: null,
+      prompt: "",
+      model: "",
+      simulated: false,
+      requestKey: input.requestKey,
+      mimeType: input.mimeType,
+      byteSize: input.data.byteLength,
+      width: input.width,
+      height: input.height,
+      data: input.data,
+      title: input.title,
+      words: input.words,
+      sha256: input.sha256,
+      createdAt: now,
+    });
+    await upsertKit(tx, businessId, { chosenLogoId: id, picks: {} }, now);
+    return { ok: true, id };
+  });
+}
+
+// The owner's colors for their uploaded logo; the file itself never changes
+export async function setUploadedLogoColorsForOwner(db: Db, ownerId: string, assetId: string, palette: PaletteColor[]): Promise<boolean> {
+  return db.transaction(async (tx) => {
+    if (!(await businessOf(tx, ownerId, true))) return false;
+    const asset = await ownedAsset(tx, ownerId, assetId);
+    if (!asset || asset.origin !== "uploaded") return false;
+    await tx
+      .update(brandAssets)
+      .set({ design: { ...(asset.design ?? {}), palette } })
+      .where(eq(brandAssets.id, asset.id));
+    return true;
+  });
+}
+
+// Removes an uploaded logo with the versions and pictures made from it
+export async function deleteUploadedLogoForOwner(db: Db, ownerId: string, assetId: string, now = new Date()): Promise<boolean> {
+  return db.transaction(async (tx) => {
+    const businessId = await businessOf(tx, ownerId, true);
+    if (!businessId) return false;
+    const asset = await ownedAsset(tx, ownerId, assetId);
+    if (!asset || asset.origin !== "uploaded") return false;
+    await tx.delete(brandAssets).where(and(eq(brandAssets.businessId, businessId), eq(brandAssets.sourceId, asset.id)));
+    await tx.delete(brandAssets).where(eq(brandAssets.id, asset.id));
+    const kit = await kitOf(tx, businessId);
+    if (kit?.chosenLogoId === asset.id) await upsertKit(tx, businessId, { chosenLogoId: null, picks: {} }, now);
+    return true;
+  });
 }

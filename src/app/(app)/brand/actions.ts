@@ -4,10 +4,11 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
 import { getImageModel, getModel, type ImageModel } from "@/lib/ai";
-import { ideasProblem as storyProblem } from "@/lib/brand/brief";
+import { briefDefaults, ideasProblem as storyProblem } from "@/lib/brand/brief";
+import { colorName, HEX } from "@/lib/brand/colors";
 import { writeConcepts } from "@/lib/brand/concepts";
 import { logoGuidePdf } from "@/lib/brand/guide";
-import { type AssetStore, type BatchResult, drawConcepts, type LogoRef, makeBrandImages, makeVersions, refineLogo } from "@/lib/brand/generate";
+import { type AssetStore, type BatchResult, drawConcepts, type LogoRef, makeBrandImages, makeVersions, refineLogo, UPLOAD_UNCHANGED } from "@/lib/brand/generate";
 import { MAX_CHANGE } from "@/lib/brand/prompts";
 import { applyDesign, planRefinement, refinementSchema } from "@/lib/brand/refine";
 import { writeStory } from "@/lib/brand/story";
@@ -28,12 +29,14 @@ import {
   getMyBrandConcept,
   getMyBrandRound,
   getMyBrandState,
+  getMyBusiness,
   listMyDocuments,
   myAiKey,
   myBrandAssetRoom,
   pickMyBrandImage,
   saveMyBrandBrief,
   setMyBrandAssetCheck,
+  setMyUploadedLogoColors,
   unpickMyBrandImage,
   updateMyDocument,
 } from "@/lib/data/my-business";
@@ -196,10 +199,18 @@ async function logoRef(assetId: string, image: ImageModel): Promise<LogoRef | st
   const asset = await getMyBrandAsset(assetId);
   const file = asset ? await getMyBrandAssetFile(asset.id) : null;
   if (!asset || !file || asset.kind !== "logo") return NOT_FOUND;
+  const logo = { mimeType: file.mimeType, data: file.data };
+  if (asset.origin === "uploaded") {
+    // The brief adds what they sell and how it should feel; the logo's words are only what the owner typed
+    const [business, state] = await Promise.all([getMyBusiness(), getMyBrandState()]);
+    const brief = { ...briefDefaults(business?.profile ?? null, state?.brief ?? null), tagline: "" };
+    return { id: null, concept: null, brief, logoId: asset.id, logo, design: asset.design, words: asset.words ?? "" };
+  }
+  if (!asset.concept || !asset.brief) return NOT_FOUND;
   if (asset.simulated && !image.simulated) return PRACTICE_FILE;
   if (asset.roundSimulated && !image.simulated) return PRACTICE_IDEAS;
   // Versions, pictures and further changes start from the logo as drawn
-  return { id: asset.conceptId, ...applyDesign(asset.concept, asset.brief, asset.design), logoId: asset.id, logo: { mimeType: file.mimeType, data: file.data }, design: asset.design };
+  return { id: asset.conceptId, ...applyDesign(asset.concept, asset.brief, asset.design), logoId: asset.id, logo, design: asset.design };
 }
 
 // A change in the owner's words, or a one-click change that code writes
@@ -220,8 +231,10 @@ export async function refineLogoAction(input: unknown): Promise<ActionResult<str
   if (existing) return { ok: true, value: existing };
   const image = imageModel();
   if (!image) return { ok: false, message: OFF };
-  const logo = await logoRef(parsed.data.assetId, image);
-  if (typeof logo === "string") return { ok: false, message: logo };
+  const found = await logoRef(parsed.data.assetId, image);
+  if (typeof found === "string") return { ok: false, message: found };
+  if (!found.concept) return { ok: false, message: UPLOAD_UNCHANGED };
+  const logo = { ...found, concept: found.concept };
   const plan = "refinement" in parsed.data ? planRefinement(parsed.data.refinement, logo) : null;
   if (plan && !plan.ok) return { ok: false, message: plan.message };
   const change = plan?.ok ? plan.label : (words ?? "");
@@ -341,6 +354,20 @@ export async function clearIdeasAction(): Promise<ActionResult> {
   return { ok: true, value: null };
 }
 
+// --- An uploaded logo's colors
+
+const colorsSchema = z.object({ assetId: id, hexes: z.array(z.string().regex(HEX)).max(3) });
+
+// The owner's own picks, named by code; the file itself never changes
+export async function setLogoColorsAction(input: unknown): Promise<ActionResult> {
+  const parsed = colorsSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Pick up to 3 colors." };
+  const hexes = [...new Set(parsed.data.hexes.map((hex) => hex.toUpperCase()))];
+  if (!(await setMyUploadedLogoColors(parsed.data.assetId, hexes.map((hex) => ({ hex, name: colorName(hex) }))))) return { ok: false, message: NOT_FOUND };
+  refresh();
+  return { ok: true, value: null };
+}
+
 // --- Logo guide
 
 // One page from the approved logo, kept in Documents and replaced when saved again
@@ -356,7 +383,16 @@ export async function saveLogoGuideAction(): Promise<ActionResult<string>> {
     sources.flatMap(([label, assetId]) => (assetId ? [getMyBrandAssetFile(assetId).then((file) => ({ label, file }))] : [])),
   );
   const now = new Date();
-  const data = await logoGuidePdf({ businessName: kit.businessName, tagline: kit.tagline, colors: kit.colors, lettering: kit.lettering, simulated: kit.simulated, images, now });
+  const data = await logoGuidePdf({
+    businessName: kit.businessName,
+    tagline: kit.tagline,
+    colors: kit.colors,
+    lettering: kit.lettering,
+    simulated: kit.simulated,
+    uploaded: kit.uploaded,
+    images,
+    now,
+  });
   const title = `Logo guide${kit.simulated ? " (practice)" : ""}`;
 
   const existing = (await listMyDocuments()).find((doc) => doc.generatedKind === "logo_guide");

@@ -31,7 +31,7 @@ export function ImagesSection({ chosenId, name, assets, picks, practice, running
 
   return (
     <section aria-labelledby="images-heading" className="@container flex flex-col gap-4">
-      <SectionHead id="images-heading" number={6} title="Make pictures for your pages">
+      <SectionHead id="images-heading" number={2} title="Make pictures for your pages">
         <p className="max-w-2xl text-muted">
           {practice
             ? "In practice mode each picture is a plain preview. With Muse connected, it makes each one from your logo, in its colors and style, shaped for where it goes."

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clearBox, contentBox, knockOut, type Pixels, placement, plainBackground, recolor } from "./pixels";
+import { clearBox, contentBox, knockOut, logoColors, type Pixels, placement, plainBackground, recolor, seeThrough } from "./pixels";
 
 type Rgb = [number, number, number];
 
@@ -89,5 +89,39 @@ describe("one-color files and placement", () => {
   it("fit the artwork inside a square with a margin, or pad it at its own size", () => {
     expect(placement({ x: 10, y: 5, width: 200, height: 100 }, { width: 100, height: 100 }, 0.1)).toEqual({ width: 100, height: 100, draw: { x: 10, y: 30, width: 80, height: 40 } });
     expect(placement({ x: 10, y: 5, width: 200, height: 100 }, null, 0.05)).toEqual({ width: 220, height: 120, draw: { x: 10, y: 10, width: 200, height: 100 } });
+  });
+});
+
+describe("uploaded logos", () => {
+  // Transparent all round, with a solid green square in the middle
+  function transparent(): Pixels {
+    const image = canvas(40, 40, [0, 0, 0], [{ x: 10, y: 10, w: 20, h: 20, color: [30, 100, 60] }]);
+    for (let pixel = 0; pixel < 40 * 40; pixel++) {
+      const x = pixel % 40;
+      const y = Math.floor(pixel / 40);
+      if (x < 10 || x >= 30 || y < 10 || y >= 30) image.data[pixel * 4 + 3] = 0;
+    }
+    return image;
+  }
+
+  it("keep a logo that's already see-through as it is", () => {
+    const image = transparent();
+    expect(seeThrough(image)).toBe(true);
+    const clear = knockOut(image)!;
+    expect(at(clear, 2, 2)[3]).toBe(0);
+    expect(at(clear, 15, 15)).toEqual([30, 100, 60, 255]);
+    expect(seeThrough(canvas(10, 10))).toBe(false);
+  });
+
+  it("suggest the main colors, most used first, without the background or near-white", () => {
+    const logo = canvas(100, 100, [255, 255, 255], [
+      { x: 0, y: 0, w: 100, h: 2, color: [255, 255, 255] },
+      { x: 10, y: 10, w: 60, h: 60, color: [31, 58, 46] },
+      { x: 70, y: 10, w: 20, h: 20, color: [200, 120, 40] },
+      { x: 20, y: 80, w: 1, h: 1, color: [250, 0, 0] },
+    ]);
+    expect(logoColors(logo)).toEqual(["#1F3A2E", "#C87828"]);
+    expect(logoColors(transparent())).toEqual(["#1E643C"]);
+    expect(logoColors(canvas(20, 20))).toEqual([]);
   });
 });

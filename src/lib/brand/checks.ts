@@ -50,6 +50,7 @@ function versionSystem(kind: VersionKind): string {
 export type Marks = "none" | "initials" | "letter";
 
 export interface Expected {
+  // "" when the words aren't known, as with an uploaded logo the owner said nothing about; the lettering is then not compared
   name: string;
   tagline: string;
   marks: Marks;
@@ -208,7 +209,7 @@ export async function checkBrandImage(
   userKey?: string,
 ): Promise<AssetCheck> {
   const reply = await readLettering(model, file, userKey);
-  const lettering = IMAGE_SPECS[kind].withLogo ? compareLettering(expected, reply.lettering, reply.readable) : noWords(reply.lettering);
+  const lettering = !IMAGE_SPECS[kind].withLogo ? noWords(reply.lettering) : expected.name.trim() ? compareLettering(expected, reply.lettering, reply.readable) : null;
   return { checkedAt: now.toISOString(), method: "ai", lettering, drift: [] };
 }
 
@@ -241,7 +242,7 @@ export async function checkVersion(
       ],
     }),
   ]);
-  const lettering = kind === "profile" ? onlyMarks(expected, reading.lettering) : compareLettering(expected, reading.lettering, reading.readable);
+  const lettering = !expected.name.trim() ? null : kind === "profile" ? onlyMarks(expected, reading.lettering) : compareLettering(expected, reading.lettering, reading.readable);
   return { checkedAt: now.toISOString(), method: "ai", lettering, drift: drift.flags };
 }
 

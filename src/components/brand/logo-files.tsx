@@ -12,6 +12,8 @@ import { KitFileError, makeKitFile, saveBlob } from "./kit-maker";
 interface Props {
   businessName: string;
   simulated: boolean;
+  // Practice per file: an uploaded main logo is the owner's own even when its versions are previews
+  practice?: Partial<Record<KitSource, boolean>>;
   colors: PaletteColor[];
   // Approved file addresses; null until approved
   sources: Record<KitSource, string | null>;
@@ -23,7 +25,10 @@ const CHECKERBOARD = "bg-[repeating-conic-gradient(#eef2f6_0_25%,#ffffff_0_50%)]
 const reasonOf = (error: unknown) => (error instanceof KitFileError ? error.message : "Couldn’t make this file in your browser. Try again, or use a different browser.");
 
 // Every file is made in the browser from the approved logo and versions; nothing new is drawn or paid for
-export function LogoFiles({ businessName, simulated, colors, sources }: Props) {
+export function LogoFiles({ businessName, simulated, practice, colors, sources }: Props) {
+  const isPractice = (source: KitSource) => practice?.[source] ?? simulated;
+  const primaryPractice = isPractice("primary");
+  const solidPractice = isPractice("solid");
   const { ink, dark, darkName } = kitColors(colors);
   const recipes = kitRecipes({ primary: Boolean(sources.primary), stacked: Boolean(sources.stacked), profile: Boolean(sources.profile), solid: Boolean(sources.solid) });
   const [busy, setBusy] = useState<string | null>(null);
@@ -49,7 +54,7 @@ export function LogoFiles({ businessName, simulated, colors, sources }: Props) {
     const preview = async (src: string | null, id: string) => {
       const recipe = KIT_RECIPES.find((each) => each.id === id);
       if (!src || !recipe) return null;
-      const url = URL.createObjectURL(await makeKitFile(src, recipe, { ink, dark }, simulated));
+      const url = URL.createObjectURL(await makeKitFile(src, recipe, { ink, dark }, recipe.source === "primary" ? primaryPractice : solidPractice));
       urls.push(url);
       return url;
     };
@@ -63,7 +68,7 @@ export function LogoFiles({ businessName, simulated, colors, sources }: Props) {
       cancelled = true;
       urls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [primary, solid, ink, dark, simulated]);
+  }, [primary, solid, ink, dark, primaryPractice, solidPractice]);
 
   async function one(recipe: KitRecipe) {
     const src = sources[recipe.source];
@@ -71,7 +76,7 @@ export function LogoFiles({ businessName, simulated, colors, sources }: Props) {
     setBusy(recipe.id);
     setProblems((current) => ({ ...current, [recipe.id]: "" }));
     try {
-      saveBlob(await makeKitFile(src, recipe, { ink, dark }, simulated), kitFileName(businessName, recipe, simulated));
+      saveBlob(await makeKitFile(src, recipe, { ink, dark }, isPractice(recipe.source)), kitFileName(businessName, recipe, isPractice(recipe.source)));
     } catch (error) {
       setProblems((current) => ({ ...current, [recipe.id]: reasonOf(error) }));
     } finally {
@@ -88,8 +93,8 @@ export function LogoFiles({ businessName, simulated, colors, sources }: Props) {
       const skipped: { recipe: KitRecipe; reason: string }[] = [];
       for (const recipe of recipes) {
         try {
-          const blob = await makeKitFile(sources[recipe.source]!, recipe, { ink, dark }, simulated);
-          files.push({ name: kitFileName(businessName, recipe, simulated), data: new Uint8Array(await blob.arrayBuffer()) });
+          const blob = await makeKitFile(sources[recipe.source]!, recipe, { ink, dark }, isPractice(recipe.source));
+          files.push({ name: kitFileName(businessName, recipe, isPractice(recipe.source)), data: new Uint8Array(await blob.arrayBuffer()) });
         } catch (error) {
           skipped.push({ recipe, reason: reasonOf(error) });
         }

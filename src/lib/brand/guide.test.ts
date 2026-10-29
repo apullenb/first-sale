@@ -41,6 +41,21 @@ describe("the logo guide PDF", () => {
     now: new Date("2026-10-28T12:00:00Z"),
   };
 
+  it("works from an uploaded WebP logo with no colors or lettering saved", async () => {
+    const bytes = await logoGuidePdf({
+      ...input,
+      tagline: "",
+      colors: [],
+      lettering: "",
+      uploaded: true,
+      images: [{ label: "Main logo", file: { mimeType: "image/webp", data: new Uint8Array([82, 73, 70, 70]) } }],
+    });
+    const text = (await readPdf(bytes)).pages[0].text;
+    for (const expected of ["the logo you uploaded", "No colors saved yet", "part of the artwork", "See the file in your logo kit"]) expect(text).toContain(expected);
+    expect(text).not.toContain("lettering: .");
+    expect(text).not.toContain("Google Fonts");
+  });
+
   it("fits on one page, with the logo, colors, fonts, space rules and do's and don'ts", async () => {
     const bytes = await logoGuidePdf(input);
     expect((await PDFDocument.load(bytes)).getPageCount()).toBe(1);

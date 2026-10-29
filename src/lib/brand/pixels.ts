@@ -42,6 +42,63 @@ export function plainBackground(image: Pixels): Rgb | null {
   return matching / border.length >= PLAIN_SHARE ? color : null;
 }
 
+// An uploaded logo that's already see-through: nearly all its border is transparent
+export function seeThrough(image: Pixels): boolean {
+  const { data, width, height } = image;
+  if (!width || !height) return false;
+  let clear = 0;
+  let total = 0;
+  const count = (pixel: number) => {
+    total++;
+    if (data[pixel * 4 + 3] < 16) clear++;
+  };
+  for (let x = 0; x < width; x++) {
+    count(x);
+    count((height - 1) * width + x);
+  }
+  for (let y = 1; y < height - 1; y++) {
+    count(y * width);
+    count(y * width + width - 1);
+  }
+  return clear / total >= PLAIN_SHARE;
+}
+
+function visibleShare(image: Pixels): number {
+  let visible = 0;
+  for (let index = 3; index < image.data.length; index += 4) if (image.data[index] >= 16) visible++;
+  return visible / Math.max(1, image.width * image.height);
+}
+
+// Up to `max` main colors in a logo, most used first, for the owner to confirm. Leaves out the plain background,
+// near-white, and colors used too little to matter, such as soft edges.
+export function logoColors(image: Pixels, max = 3): string[] {
+  const { data, width, height } = image;
+  const background = seeThrough(image) ? null : plainBackground(image);
+  const step = Math.max(1, Math.floor((width * height) / 250_000));
+  const buckets = new Map<number, { count: number; sum: Rgb }>();
+  let counted = 0;
+  for (let pixel = 0; pixel < width * height; pixel += step) {
+    const index = pixel * 4;
+    if (data[index + 3] < 200) continue;
+    if (background && distance(data, index, background) <= BACKGROUND_TOLERANCE) continue;
+    if (data[index] > 240 && data[index + 1] > 240 && data[index + 2] > 240) continue;
+    counted++;
+    const key = ((data[index] >> 4) << 8) | ((data[index + 1] >> 4) << 4) | (data[index + 2] >> 4);
+    const bucket = buckets.get(key) ?? { count: 0, sum: [0, 0, 0] };
+    bucket.count++;
+    bucket.sum = [bucket.sum[0] + data[index], bucket.sum[1] + data[index + 1], bucket.sum[2] + data[index + 2]];
+    buckets.set(key, bucket);
+  }
+  const picked: Rgb[] = [];
+  for (const bucket of [...buckets.values()].sort((a, b) => b.count - a.count)) {
+    if (picked.length >= max || bucket.count / Math.max(1, counted) < 0.02) break;
+    const color = bucket.sum.map((value) => Math.round(value / bucket.count)) as Rgb;
+    if (picked.some((other) => Math.max(...other.map((value, channel) => Math.abs(value - color[channel]))) < 48)) continue;
+    picked.push(color);
+  }
+  return picked.map((color) => `#${color.map((value) => value.toString(16).padStart(2, "0")).join("")}`.toUpperCase());
+}
+
 // Grows a mask by one pixel in every direction
 function dilate(mask: Uint8Array, width: number, height: number): Uint8Array {
   const out = new Uint8Array(mask);
@@ -90,6 +147,7 @@ function unmixFromBackground(pixel: Rgb, background: Rgb): { alpha: number; colo
 // so the logo stays smooth and solid on any color. White inside the logo becomes see-through too.
 // Null when the background isn't one plain color, or nothing would be left.
 export function knockOut(image: Pixels): Pixels | null {
+  if (seeThrough(image)) return visibleShare(image) < MIN_CONTENT ? null : { data: new Uint8ClampedArray(image.data), width: image.width, height: image.height };
   const background = plainBackground(image);
   if (!background) return null;
   const { width, height } = image;

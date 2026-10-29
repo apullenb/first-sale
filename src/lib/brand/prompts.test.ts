@@ -76,14 +76,26 @@ describe("refinements, versions and brand images", () => {
   });
 
   it("place the logo unchanged where it belongs, and keep words out of the others", () => {
-    const banner = brandImagePrompt(testBrief(), testConcept(), "youtube_banner", null);
+    const banner = brandImagePrompt(testBrief(), testConcept().palette, "youtube_banner", null);
     expect(banner).toContain("Place the logo from image 1 exactly as it is");
     expect(banner).toContain("middle 60% of the width");
-    const hero = brandImagePrompt(testBrief(), testConcept(), "website_hero", "more bread");
+    const hero = brandImagePrompt(testBrief(), testConcept().palette, "website_hero", "more bread");
     expect(hero).toContain("Use it only for its colors and drawing style");
     expect(hero).toContain("Don’t include the logo, its symbol, or any letters, words or numbers.");
     expect(hero).toContain("The owner’s change: “more bread”");
     expect(hero).toContain("no pictures of specific products");
     expect(hero).toContain("Rise Bakery is a porch swing");
+  });
+
+  it("work from an uploaded logo without claiming what it shows", () => {
+    const stacked = versionPrompt(testBrief(), null, "stacked", "Rise");
+    expect(stacked).toContain("If the logo has a symbol");
+    expect(stacked).toContain("“Rise” (letter by letter: R-i-s-e)");
+    expect(stacked).not.toContain("Rise Bakery");
+    expect(versionPrompt(testBrief(), null, "solid", "")).toContain("Keep every word and letter exactly as it is in image 1");
+    expect(versionPrompt(testBrief(), null, "profile", "Rise")).not.toContain("letter by letter");
+    const hero = brandImagePrompt(testBrief(), [], "website_hero", null);
+    expect(hero).toContain("in the logo’s colors and drawing style");
+    expect(hero).not.toContain("()");
   });
 });
