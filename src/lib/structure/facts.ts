@@ -2,7 +2,7 @@
 // Quotes were checked against the pages on CHECKED_ON (facts.test.ts re-checks saved copies of the page text).
 // State rules and fees never come from here: they come from the owner's own research, or say they need confirming.
 
-export const CHECKED_ON = "2026-10-27";
+export const CHECKED_ON = "2026-10-29";
 
 export interface FactSource {
   title: string;
