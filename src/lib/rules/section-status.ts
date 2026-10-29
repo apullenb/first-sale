@@ -24,7 +24,8 @@ export interface JourneyFacts {
   // Library documents with answers for the owner to check or facts that changed
   libraryToCheck: number;
   logoChosen: boolean;
-  logoVersionsApproved: boolean;
+  // The owner approved the short description of their brand
+  brandDescribed: boolean;
   websiteLive: boolean;
   products: number;
   marketingApproved: boolean;
@@ -60,8 +61,8 @@ export function sidebarStatus(facts: JourneyFacts): SidebarStatus {
           : DONE,
     // Not a step: just a count of documents to check
     "/documents": { state: facts.libraryToCheck ? "todo" : "done", count: facts.libraryToCheck, minutes: 0 },
+    "/brand": either(facts.brandDescribed || marked("brand")),
     "/logo": either(facts.logoChosen || marked("logo")),
-    "/brand": either(facts.logoVersionsApproved || marked("brand")),
     "/website": either(facts.websiteLive || marked("website")),
     "/products": either(facts.products > 0 || marked("products")),
     "/marketing": either(facts.marketingApproved || marked("marketing")),

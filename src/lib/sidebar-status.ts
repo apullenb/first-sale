@@ -49,7 +49,7 @@ async function statusFor(business: MyBusiness): Promise<NavStatus> {
     },
     libraryToCheck: toCheck.length,
     logoChosen: saved?.logoChosen ?? false,
-    logoVersionsApproved: saved?.logoVersionsApproved ?? false,
+    brandDescribed: saved?.brandDescribed ?? false,
     websiteLive: saved?.websiteLive ?? false,
     products: saved?.products ?? 0,
     marketingApproved: saved?.marketingApproved ?? false,

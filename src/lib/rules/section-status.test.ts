@@ -3,7 +3,7 @@ import type { ActionStep } from "./next-action";
 import { type JourneyFacts, readyPlanSteps, sectionState, sidebarStatus } from "./section-status";
 
 const START = ["/business", "/requirements", "/structure", "/checklist"];
-const BRAND = ["/logo", "/brand", "/website", "/products", "/marketing", "/social"];
+const BRAND = ["/brand", "/logo", "/website", "/products", "/marketing", "/social"];
 
 const facts = (overrides: Partial<JourneyFacts> = {}): JourneyFacts => ({
   business: true,
@@ -13,7 +13,7 @@ const facts = (overrides: Partial<JourneyFacts> = {}): JourneyFacts => ({
   plan: { exists: true, proposal: false, ready: 0, left: 0, minutes: 0, waiting: 0 },
   libraryToCheck: 0,
   logoChosen: false,
-  logoVersionsApproved: false,
+  brandDescribed: false,
   websiteLive: false,
   products: 0,
   marketingApproved: false,
@@ -48,6 +48,11 @@ describe("sidebarStatus", () => {
     const status = sidebarStatus(facts({ logoChosen: true, products: 2, marks: new Set(["brand", "website", "marketing", "social"]) }));
     expect(BRAND.map((href) => status[href].state)).toEqual(["done", "done", "done", "done", "done", "done"]);
     expect(sectionState(status, BRAND)).toBe("done");
+  });
+
+  it("counts Build your brand done once the owner approves their brand description", () => {
+    expect(sidebarStatus(facts())["/brand"].state).toBe("todo");
+    expect(sidebarStatus(facts({ brandDescribed: true }))["/brand"].state).toBe("done");
   });
 
   it("needs every picked social account set up, and none picked means not done", () => {
