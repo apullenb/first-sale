@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ChatMessage, Effort, ModelProvider } from "./types";
+import type { ChatMessage, CompletionResult, Effort, ModelProvider } from "./types";
 
 export interface GenerateObjectOptions<T> {
   name: string;
@@ -9,9 +9,12 @@ export interface GenerateObjectOptions<T> {
   maxOutputTokens?: number;
   // Extra attempts after a reply fails validation
   maxRepairs?: number;
+  // On by default: a long reply that streams doesn't hit a proxy's timeout while the model thinks
   stream?: boolean;
   timeoutMs?: number;
   userKey?: string;
+  // Keep the cached prompt a day: only for calls that start with long public text, never uploads
+  retainCache?: boolean;
 }
 
 export class StructuredOutputError extends Error {
@@ -46,15 +49,20 @@ export async function generateObject<T>(
 
   const maxRepairs = options.maxRepairs ?? 1;
   for (let attempt = 0; ; attempt++) {
+    const started = Date.now();
     const result = await model.complete({
       messages,
       effort: options.effort,
       maxOutputTokens: options.maxOutputTokens,
       responseFormat: { name: options.name, schema: jsonSchema },
-      stream: options.stream,
+      stream: options.stream ?? true,
       timeoutMs: options.timeoutMs,
       userKey: options.userKey,
+      // Each task's system prompt is a stable prefix, so its schema name names the cache
+      cacheKey: options.name,
+      retainCache: options.retainCache,
     });
+    logUsage(options.name, result.usage, Date.now() - started);
 
     if (result.finishReason === "length") {
       throw new StructuredOutputError(options.name, "reply was cut off at the output token limit", result.text);
@@ -74,6 +82,14 @@ export async function generateObject<T>(
       },
     );
   }
+}
+
+// Token counts only, never prompt or reply text: shows cache reuse and thinking cost per task
+function logUsage(name: string, usage: CompletionResult["usage"], ms: number) {
+  if (!usage) return;
+  console.info(
+    `AI ${name}: ${ms} ms, ${usage.inputTokens} in (${usage.cachedInputTokens} cached), ${usage.outputTokens} out (${usage.reasoningTokens} reasoning)`,
+  );
 }
 
 export function toJsonSchema(schema: z.ZodType): Record<string, unknown> {

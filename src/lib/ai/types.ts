@@ -29,12 +29,25 @@ export interface CompletionRequest {
   timeoutMs?: number;
   // Stable, non-identifying id for the owner behind the request, for the provider's abuse checks
   userKey?: string;
+  // Names the shared prompt prefix, so requests that start the same way can reuse the provider's cache
+  cacheKey?: string;
+  // Ask the provider to keep that prefix for a day, for calls that start with long public text
+  retainCache?: boolean;
+}
+
+export interface TokenUsage {
+  inputTokens: number;
+  // Input read from the provider's prompt cache
+  cachedInputTokens: number;
+  outputTokens: number;
+  // Thinking counted in outputTokens, never shown
+  reasoningTokens: number;
 }
 
 export interface CompletionResult {
   text: string;
   finishReason: string | null;
-  usage: { inputTokens: number; outputTokens: number } | null;
+  usage: TokenUsage | null;
 }
 
 export interface ModelCapabilities {
@@ -82,11 +95,14 @@ export interface ModelProvider {
 export class AIProviderError extends Error {
   readonly status: number | null;
   readonly retryable: boolean;
+  // How long the provider asked us to wait, from its Retry-After header
+  readonly retryAfterMs: number | null;
 
-  constructor(message: string, status: number | null, retryable: boolean) {
+  constructor(message: string, status: number | null, retryable: boolean, retryAfterMs: number | null = null) {
     super(message);
     this.name = "AIProviderError";
     this.status = status;
     this.retryable = retryable;
+    this.retryAfterMs = retryAfterMs;
   }
 }
