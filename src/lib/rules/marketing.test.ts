@@ -1,0 +1,317 @@
+import { describe, expect, it } from "vitest";
+import { PLATFORM_DATA } from "@/data/marketing-platforms";
+import type { MarketingIntake } from "@/lib/marketing/intake";
+import type { MarketingPlanReply, MarketingStep } from "@/lib/marketing/types";
+import {
+  buildMarketingSteps,
+  checkPlan,
+  doneSteps,
+  handHolding,
+  marketingMove,
+  mentionsAny,
+  moneyFlags,
+  planTexts,
+  type StepContext,
+  visibleSteps,
+  withoutPlatforms,
+} from "./marketing";
+
+function intake(overrides: Partial<MarketingIntake> = {}): MarketingIntake {
+  return { include: ["instagram"], have: [], exclude: [], social: "some", seo: "some", content: "some", done: ["none"], doneNote: "", ...overrides };
+}
+
+function reply(overrides: Partial<MarketingPlanReply> = {}): MarketingPlanReply {
+  return {
+    summary: "Reach neighbors who love bread.",
+    goals: [{ goal: "Get first orders", measure: "Ask each customer how they found you." }],
+    audience: { who: "Families nearby.", where: "The Saturday market.", cares: "Fresh bread." },
+    platforms: [{ platform: "instagram", role: "main", why: "Bread photographs well.", cadence: "Twice a week." }],
+    themes: [{ title: "Fresh from the oven", idea: "Show each bake.", examples: ["A close-up of a loaf."] }],
+    rhythm: "Plan on Sunday, post Tuesday and Friday.",
+    firstActions: [{ title: "Tell your neighbors", why: "They buy first.", area: "social", platform: null, how: ["Write a short note."] }],
+    ...overrides,
+  };
+}
+
+const CONTEXT: StepContext = { hasLogo: false, hasWebsite: false, approvedPhotos: 0 };
+
+describe("checkPlan", () => {
+  it("never lets a ruled-out platform through, by entry, action or name in the text", () => {
+    const checked = checkPlan(
+      reply({
+        summary: "Start on Instagram. TikTok videos would also help. Keep it simple.",
+        goals: [
+          { goal: "Grow on TikTok", measure: "Followers." },
+          { goal: "First orders", measure: "Ask customers. Or check tiktok views." },
+        ],
+        platforms: [
+          { platform: "instagram", role: "main", why: "Photos sell bread. Unlike TikTok, it’s calm.", cadence: "Twice a week." },
+          { platform: "tiktok", role: "main", why: "Videos.", cadence: "Daily." },
+        ],
+        themes: [
+          { title: "TikTok trends", idea: "Dance.", examples: [] },
+          { title: "Bakes", idea: "Show loaves.", examples: ["A loaf.", "Cross-post it to TikTok."] },
+        ],
+        firstActions: [
+          { title: "Film a TikTok", why: "Reach.", area: "content", platform: "tiktok", how: ["Film."] },
+          { title: "Post a loaf", why: "Show it. TikTok can wait.", area: "content", platform: "instagram", how: ["Take a photo.", "Share it on TikTok too."] },
+        ],
+      }),
+      intake({ exclude: ["tiktok"] }),
+    );
+    expect(checked.platforms.map((entry) => entry.platform)).toEqual(["instagram"]);
+    expect(checked.summary).toBe("Start on Instagram. Keep it simple.");
+    expect(checked.goals).toEqual([{ goal: "First orders", measure: "Ask customers." }]);
+    expect(checked.themes.map((theme) => theme.title)).toEqual(["Bakes"]);
+    expect(checked.themes[0].examples).toEqual(["A loaf."]);
+    expect(checked.firstActions).toEqual([{ title: "Post a loaf", why: "Show it.", area: "content", platform: "instagram", how: ["Take a photo."] }]);
+    expect(mentionsAny(planTexts(checked).join(" "), ["tiktok"])).toBe(false);
+  });
+
+  it("catches other names, plurals and possessives of a ruled-out platform, but not words that contain them", () => {
+    expect(mentionsAny("Post it on IG.", ["instagram"])).toBe(true);
+    expect(mentionsAny("A big loaf.", ["instagram"])).toBe(false);
+    expect(mentionsAny("Start a newsletter.", ["email_list"])).toBe(true);
+    expect(mentionsAny("Add it to Google Maps.", ["google_business"])).toBe(true);
+    expect(mentionsAny("Ask for Google reviews.", ["google_business"])).toBe(true);
+    expect(mentionsAny("Post three TikToks a week.", ["tiktok"])).toBe(true);
+    expect(mentionsAny("Use Facebook’s events.", ["facebook"])).toBe(true);
+    expect(mentionsAny("Ask a local YouTuber.", ["youtube"])).toBe(true);
+    expect(mentionsAny("Fill in your Instagram business profile.", ["google_business"])).toBe(false);
+  });
+
+  it("keeps platforms the owner didn't pick only as a few suggestions", () => {
+    const checked = checkPlan(
+      reply({
+        platforms: [
+          { platform: "instagram", role: "suggested", why: "", cadence: "" },
+          { platform: "google_business", role: "main", why: "", cadence: "" },
+          { platform: "nextdoor", role: "support", why: "", cadence: "" },
+          { platform: "yelp", role: "later", why: "", cadence: "" },
+          { platform: "instagram", role: "later", why: "duplicate", cadence: "" },
+        ],
+      }),
+      intake(),
+    );
+    // The one picked platform also leads, since nothing else can
+    expect(checked.platforms.map((entry) => [entry.platform, entry.role])).toEqual([
+      ["instagram", "main"],
+      ["google_business", "suggested"],
+      ["nextdoor", "suggested"],
+    ]);
+  });
+
+  it("makes a picked platform lead when the draft put them all off until later", () => {
+    const draft = reply({ platforms: [{ platform: "facebook", role: "later", why: "", cadence: "" }] });
+    const answers = intake({ include: ["instagram", "facebook"] });
+    const checked = checkPlan(draft, answers);
+    expect(checked.platforms.map((entry) => [entry.platform, entry.role])).toEqual([
+      ["facebook", "main"],
+      ["instagram", "later"],
+    ]);
+    expect(buildMarketingSteps(checked, answers, CONTEXT).map((step) => step.key)).toContain("setup:facebook");
+
+    // One the draft left out entirely gets a reason that fits leading
+    const none = checkPlan(reply({ platforms: [] }), answers);
+    expect(none.platforms[0]).toMatchObject({ platform: "instagram", role: "main", why: "You picked this. Start here." });
+  });
+
+  it("lets its suggestions lead when the owner picked none, and sets them up", () => {
+    const draft = reply({
+      platforms: [
+        { platform: "instagram", role: "suggested", why: "", cadence: "" },
+        { platform: "facebook", role: "suggested", why: "", cadence: "" },
+        { platform: "nextdoor", role: "suggested", why: "", cadence: "" },
+      ],
+    });
+    const answers = intake({ include: [], exclude: ["tiktok"] });
+    const checked = checkPlan(draft, answers);
+    expect(checked.platforms.map((entry) => [entry.platform, entry.role])).toEqual([
+      ["instagram", "main"],
+      ["facebook", "suggested"],
+    ]);
+    expect(buildMarketingSteps(checked, answers, CONTEXT).filter((step) => step.kind === "setup").map((step) => step.key)).toEqual(["setup:instagram"]);
+  });
+
+  it("gives every picked platform a place, even when the draft left it out", () => {
+    const checked = checkPlan(reply(), intake({ include: ["instagram", "email_list"] }));
+    expect(checked.platforms.find((entry) => entry.platform === "email_list")).toMatchObject({ role: "later" });
+  });
+
+  it("starts someone new to social media with one main place", () => {
+    const draft = reply({
+      platforms: [
+        { platform: "instagram", role: "main", why: "", cadence: "" },
+        { platform: "facebook", role: "main", why: "", cadence: "" },
+      ],
+    });
+    const roles = (social: MarketingIntake["social"]) =>
+      checkPlan(draft, intake({ include: ["instagram", "facebook"], social })).platforms.map((entry) => entry.role);
+    expect(roles("new")).toEqual(["main", "support"]);
+    expect(roles("confident")).toEqual(["main", "main"]);
+  });
+
+  it("leaves account setup to First Sale's own steps", () => {
+    const checked = checkPlan(
+      reply({
+        firstActions: [
+          { title: "Set up your Instagram business account", why: "", area: "social", platform: "instagram", how: ["Tap Sign up."] },
+          { title: "Post your first loaf", why: "", area: "content", platform: "instagram", how: ["Take a photo."] },
+        ],
+      }),
+      intake(),
+    );
+    expect(checked.firstActions.map((action) => action.title)).toEqual(["Post your first loaf"]);
+  });
+});
+
+describe("moneyFlags", () => {
+  it("flags dollar amounts the owner didn't give", () => {
+    const draft = reply({ rhythm: "Boost one post for $20. Price loaves at $8.", summary: "Spend $1,000 on signs." });
+    expect(moneyFlags(draft, new Set(["8"]))).toEqual(["Check “$1,000”: it isn’t in your answers.", "Check “$20”: it isn’t in your answers."]);
+  });
+});
+
+describe("handHolding", () => {
+  it("follows the owner's answer for each area on its own", () => {
+    const answers = { social: "new", seo: "some", content: "confident" } as const;
+    expect(handHolding("social", answers)).toBe("walkthrough");
+    expect(handHolding("seo", answers)).toBe("guided");
+    expect(handHolding("content", answers)).toBe("checklist");
+  });
+
+  it("gives the most help when there's no answer", () => {
+    expect(handHolding("seo", null)).toBe("walkthrough");
+    expect(handHolding("seo", { social: "confident", seo: null, content: "confident" })).toBe("walkthrough");
+  });
+});
+
+describe("buildMarketingSteps", () => {
+  const plan = reply({
+    platforms: [
+      { platform: "instagram", role: "main", why: "Bread photographs well.", cadence: "" },
+      { platform: "google_business", role: "support", why: "People search nearby.", cadence: "" },
+      { platform: "facebook", role: "later", why: "", cadence: "" },
+      { platform: "pinterest", role: "suggested", why: "", cadence: "" },
+    ],
+  });
+  const answers = intake({ include: ["instagram", "google_business", "facebook"], have: ["google_business"] });
+
+  it("sets up only the places the plan uses now, and tidies the ones the owner has", () => {
+    const steps = buildMarketingSteps(plan, answers, CONTEXT);
+    expect(steps.map((step) => step.key)).toEqual(["look", "setup:instagram", "tidy:google_business", "photos", "posts", "action:tell-your-neighbors"]);
+    const instagram = steps.find((step) => step.key === "setup:instagram")!;
+    expect(instagram).toMatchObject({ area: "social", why: "Bread photographs well.", how: PLATFORM_DATA.instagram.walkthrough, short: PLATFORM_DATA.instagram.checklist, by: "rule" });
+    expect(instagram.links[0]).toEqual({ label: PLATFORM_DATA.instagram.start!.label, href: PLATFORM_DATA.instagram.start!.url, external: true, guide: false });
+    const google = steps.find((step) => step.key === "tidy:google_business")!;
+    expect(google).toMatchObject({ area: "seo", how: PLATFORM_DATA.google_business.tidy });
+    // An account the owner has opens the account, not sign-up
+    expect(google.links[0].href).toBe(PLATFORM_DATA.google_business.home!.url);
+  });
+
+  it("never makes a step for a platform the owner ruled out", () => {
+    const sneaky = { ...plan, firstActions: [{ title: "Post on Pinterest", why: "", area: "social" as const, platform: "pinterest" as const, how: ["Pin it."] }] };
+    const steps = buildMarketingSteps(sneaky, { ...answers, include: ["instagram"], have: [], exclude: ["google_business", "pinterest"] }, CONTEXT);
+    expect(steps.some((step) => step.platform === "google_business" || step.platform === "pinterest")).toBe(false);
+  });
+
+  it("keeps a ruled-out platform's name out of every step's text", () => {
+    const named = {
+      ...plan,
+      rhythm: "Post on Sunday. Cross-post to TikTok.",
+      firstActions: [{ title: "Show a loaf", why: "It sells. TikTok loves it.", area: "content" as const, platform: null, how: ["Take a photo.", "Share it on TikTok."] }],
+    };
+    const steps = buildMarketingSteps(named, { ...answers, exclude: ["tiktok", "facebook"] }, CONTEXT);
+    const text = steps.flatMap((step) => [step.title, step.why, ...step.how, ...step.short]).join(" ");
+    expect(mentionsAny(text, ["tiktok", "facebook"])).toBe(false);
+    expect(steps.find((step) => step.kind === "action")).toMatchObject({ why: "It sells.", how: ["Take a photo."] });
+  });
+
+  it("uses what the owner already made in First Sale", () => {
+    const steps = buildMarketingSteps(plan, answers, { hasLogo: true, hasWebsite: true, approvedPhotos: 3 });
+    expect(steps.find((step) => step.key === "look")?.title).toBe("Download your profile picture and cover");
+    expect(steps.find((step) => step.key === "photos")?.why).toBe("You have 3 store-ready photos in Product photos.");
+    expect(steps.find((step) => step.key === "search")).toMatchObject({ area: "seo", links: [{ href: "/website", external: false, guide: false }] });
+  });
+
+  it("skips the profile picture and posts when the plan uses only an email list", () => {
+    const emailOnly = reply({ platforms: [{ platform: "email_list", role: "main", why: "", cadence: "" }] });
+    const steps = buildMarketingSteps(emailOnly, intake({ include: ["email_list"] }), CONTEXT);
+    expect(steps.map((step) => step.key)).toEqual(["setup:email_list", "photos", "action:tell-your-neighbors"]);
+    expect(steps[0].title).toBe("Start your email list");
+    expect(steps[0].links.map((link) => link.guide)).toEqual([true]);
+  });
+
+  it("gives the plan's own actions a checklist too, and marks practice plans' steps as the rules'", () => {
+    const action = buildMarketingSteps(plan, answers, CONTEXT).find((step) => step.kind === "action")!;
+    expect(action).toMatchObject({ how: ["Write a short note."], short: ["Write a short note."], by: "ai", practice: false });
+    const practice = buildMarketingSteps({ ...plan, simulated: true }, answers, CONTEXT);
+    expect(practice.every((step) => step.by === "rule" && step.practice)).toBe(true);
+  });
+
+  it("keeps action keys unique and marks them as AI's", () => {
+    const twice = reply({
+      firstActions: [
+        { title: "Hand out cards", why: "", area: "content", platform: null, how: ["Print them."] },
+        { title: "Hand out cards!", why: "", area: "content", platform: null, how: ["Again."] },
+      ],
+    });
+    const actions = buildMarketingSteps(twice, intake(), CONTEXT).filter((step) => step.kind === "action");
+    expect(actions.map((step) => [step.key, step.by])).toEqual([
+      ["action:hand-out-cards", "ai"],
+      ["action:hand-out-cards-2", "ai"],
+    ]);
+  });
+});
+
+describe("after the owner rules out a platform", () => {
+  const answers = intake({ include: ["instagram", "facebook"] });
+  const plan = reply({
+    rhythm: "Post on Instagram Tuesdays. Plan on Sunday.",
+    platforms: [
+      { platform: "instagram", role: "main", why: "Photos sell bread.", cadence: "" },
+      { platform: "facebook", role: "support", why: "Neighbors are there. Instagram posts can go here too.", cadence: "" },
+    ],
+  });
+  const steps = buildMarketingSteps(plan, answers, CONTEXT);
+
+  it("hides saved steps and lines that name it", () => {
+    const shown = visibleSteps(steps, ["instagram"]);
+    expect(shown.some((step) => step.platform === "instagram")).toBe(false);
+    expect(mentionsAny(shown.flatMap((step) => [step.title, step.why, ...step.how, ...step.short]).join(" "), ["instagram"])).toBe(false);
+    expect(shown.find((step) => step.key === "setup:facebook")?.why).toBe("Neighbors are there.");
+  });
+
+  it("drops a step with nothing left to do", () => {
+    const action = { ...steps.find((step) => step.kind === "action")!, how: ["Post it on Instagram."], short: ["Post it on Instagram."] };
+    expect(visibleSteps([action], ["instagram"])).toEqual([]);
+  });
+
+  it("hides it in the saved plan too", () => {
+    const shown = withoutPlatforms({ ...plan, version: 1 as const }, ["instagram"]);
+    expect(shown.platforms.map((entry) => entry.platform)).toEqual(["facebook"]);
+    expect(mentionsAny(planTexts(shown).join(" "), ["instagram"])).toBe(false);
+    expect(shown.version).toBe(1);
+  });
+});
+
+describe("doneSteps", () => {
+  it("drops ticks for steps that are gone", () => {
+    expect(doneSteps([{ key: "look" } as MarketingStep], ["look", "setup:tiktok"])).toEqual(["look"]);
+  });
+});
+
+describe("marketingMove", () => {
+  const step = (key: string) => ({ key, title: key }) as MarketingStep;
+  const base = { hasProfile: true, intake: intake(), plan: { intakeKey: "k" }, current: true, approved: true, steps: [step("a"), step("b")], done: [] as string[] };
+
+  it("walks the owner through questions, plan, approval and steps", () => {
+    expect(marketingMove({ ...base, hasProfile: false })).toEqual({ kind: "business" });
+    expect(marketingMove({ ...base, intake: null })).toEqual({ kind: "intake" });
+    expect(marketingMove({ ...base, plan: null, current: false })).toEqual({ kind: "write", again: false });
+    expect(marketingMove({ ...base, current: false })).toEqual({ kind: "write", again: true });
+    expect(marketingMove({ ...base, approved: false })).toEqual({ kind: "approve" });
+    expect(marketingMove({ ...base, done: ["a"] })).toMatchObject({ kind: "step", step: { key: "b" }, number: 2 });
+    expect(marketingMove({ ...base, done: ["a", "b"] })).toEqual({ kind: "done" });
+  });
+});

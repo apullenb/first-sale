@@ -22,6 +22,7 @@ import { getPlanForOwner, getStepForOwner, replanForOwner, reviewPlanForOwner, s
 import { getResearchForOwner, type ResearchSnapshot, saveResearchForOwner } from "./research";
 import { getWebsitePlanForOwner, saveWebsitePlanForOwner, updateWebsitePlanForOwner, type WebsitePatch, type WebsitePlan } from "./website";
 import { finishRun, lastRunForOwner, startRunForOwner } from "./workflow-runs";
+import { getMarketingForOwner, type MarketingPatch, type MarketingRecord, updateMarketingForOwner } from "./marketing";
 import type { NewBrandAsset } from "@/lib/brand/generate";
 import type { AssetCheck, BrandBrief, BrandImageKind, BrandKit, VersionKind } from "@/lib/brand/types";
 import {
@@ -271,6 +272,18 @@ export async function saveMyWebsitePlan(patch: WebsitePatch) {
 export async function updateMyWebsitePlan(update: (plan: WebsitePlan | null) => WebsitePatch | null) {
   const user = await getCurrentUser();
   return updateWebsitePlanForOwner(getDb(), user.id, update);
+}
+
+// Marketing plan
+
+export async function getMyMarketing() {
+  const user = await getCurrentUser();
+  return getMarketingForOwner(getDb(), user.id);
+}
+
+export async function updateMyMarketing(update: (current: MarketingRecord | null) => MarketingPatch | null) {
+  const user = await getCurrentUser();
+  return updateMarketingForOwner(getDb(), user.id, update);
 }
 
 // Branding
