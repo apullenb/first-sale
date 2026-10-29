@@ -2,7 +2,7 @@ import { Icon } from "@/components/icons";
 import { CHECKED_ON, FACTS, type FactId, factSource } from "@/lib/structure/facts";
 import type { Line } from "@/lib/structure/options";
 
-const CHECKED = new Date(`${CHECKED_ON}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+export const FACTS_CHECKED = new Date(`${CHECKED_ON}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
 function shortName(fact: FactId): string {
   return factSource(fact).id.startsWith("irs") ? "IRS" : "SBA";
@@ -77,7 +77,7 @@ export function SourceQuotes({ facts }: { facts: FactId[] }) {
             </li>
           );
         })}
-        <li className="text-sm text-muted">Checked against these pages on {CHECKED}.</li>
+        <li className="text-sm text-muted">Checked against these pages on {FACTS_CHECKED}.</li>
       </ul>
     </details>
   );

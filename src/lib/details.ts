@@ -19,7 +19,7 @@ export const STRUCTURE_LABELS: Record<(typeof BUSINESS_STRUCTURES)[number] | "un
   llc: "Limited liability company (LLC)",
   partnership: "Partnership",
   corporation: "Corporation",
-  undecided: "Not decided yet",
+  undecided: "Not sure yet",
 };
 
 export const DETAILS = {
@@ -38,7 +38,7 @@ export const DETAILS = {
     options: [
       ["register_dba", "Register a name to sell under (DBA)"],
       ["legal_name", "Sell under my legal name or the company’s registered name"],
-      ["undecided", "Not decided yet"],
+      ["undecided", "Not sure yet"],
     ],
     maxLength: 40,
     decision: true,
@@ -50,7 +50,7 @@ export const DETAILS = {
     options: [
       ["default", "Keep the default for my structure"],
       ["ask_professional", "Ask a tax professional about choosing another first"],
-      ["undecided", "Not decided yet"],
+      ["undecided", "Not sure yet"],
     ],
     maxLength: 40,
     decision: true,

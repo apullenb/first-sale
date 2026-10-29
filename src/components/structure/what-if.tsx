@@ -41,13 +41,10 @@ export function WhatIfPanel({ profile }: { profile: BusinessProfile }) {
   const then = suggestPath(applyWhatIf(profile, whatIf));
 
   return (
-    <section aria-labelledby={`${uid}-title`} className="flex flex-col gap-3 border-t border-line pt-4">
-      <div className="flex flex-col gap-0.5">
-        <h3 id={`${uid}-title`} className="font-bold">
-          Try a what-if
-        </h3>
-        <p className="text-[15px] text-muted">See how the suggestion would change. Nothing here changes your saved answers.</p>
-      </div>
+    <section aria-labelledby={`${uid}-title`} className="flex flex-col gap-3">
+      <h4 id={`${uid}-title`} className="sr-only">
+        What-if changes
+      </h4>
       <div role="group" aria-labelledby={`${uid}-title`} className="flex flex-wrap gap-2">
         {toggles.map((toggle) => {
           const pressed = on.includes(toggle.key);

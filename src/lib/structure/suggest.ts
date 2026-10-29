@@ -77,7 +77,7 @@ export function nameNeed(p: BusinessProfile, option: BusinessStructure): PathSug
     return {
       status: "maybe",
       text: `A company’s registered name is how the state knows it. Selling under a different name than the one you register, like ${name} if it differs, usually means a DBA too.`,
-      fact: "entity_name",
+      fact: "dba_different_identity",
     };
   }
   if (p.owners.count === 1 && p.nameIsLegalName === "yes") {
@@ -149,7 +149,9 @@ export function suggestPath(p: BusinessProfile): PathSuggestion {
         : { option: "llc", why: "A separate company you form with your state, with protection the SBA describes as “in most instances”.", fact: "llc_liability" },
     );
     if (!llc) {
-      wouldChange.push("Opening a shop or renting a space", "Making items for young children");
+      wouldChange.push("Opening a shop or renting a space");
+      // Asked only of makers and shops
+      if (p.offeringKinds.some((kind) => kind === "handmade" || kind === "resale")) wouldChange.push("Making items for young children");
       askAProfessional.push("Is my business low-risk enough to start without forming a company?");
     }
   } else {
@@ -211,4 +213,122 @@ export function applyWhatIf(p: BusinessProfile, whatIf: WhatIf): BusinessProfile
   }
   if (whatIf.customersVisit) next.customersVisit = whatIf.customersVisit;
   return next;
+}
+
+// A reason behind a recommendation, in the owner's own terms, with its official source where there is one
+export interface Reason {
+  text: string;
+  fact?: FactId;
+  // Cuts the other way, or rests on an unanswered question
+  caveat?: true;
+}
+
+const growingPlans = (p: BusinessProfile) => p.goals.includes("grow") || p.goals.includes("full_time");
+
+// Why the suggested structure fits these answers, for "Explain why"
+export function whyRecommended(p: BusinessProfile, path: PathSuggestion = suggestPath(p)): Reason[] {
+  const reasons: Reason[] = [];
+  const owners = p.owners.count;
+  const { strong, moderate } = signalsFor(p);
+  if (path.keepExisting) {
+    reasons.push({ text: `You said you’re already registered as a ${STRUCTURE_LABELS[path.option].replace(/ \(LLC\)$/, "").toLowerCase()}, so the next steps build on it.` });
+    reasons.push({ text: "You can change structure later, but there may be restrictions where you are.", fact: "convert_later" });
+    return reasons;
+  }
+  const quiet = "None of your answers point to more risk, like a lease, a loan, employees or a shop.";
+  reasons.push({ text: owners === 1 ? "You’re the only owner, so a partnership isn’t an option." : `There are ${owners} owners, so a sole proprietorship isn’t an option.` });
+
+  if (path.option === "sole_proprietorship" || path.option === "partnership") {
+    const solo = path.option === "sole_proprietorship";
+    if (p.goals.includes("test_idea")) {
+      reasons.push(
+        solo
+          ? { text: "You want to test your idea with little risk first. The SBA calls a sole proprietorship a good choice for that.", fact: "sp_fit" }
+          : { text: "You want to test your idea first. The SBA calls a partnership a good choice for that.", fact: "partnership_fit" },
+      );
+    } else if (solo && p.firstYearSales === "under_5k") {
+      reasons.push({ text: "You expect under $5,000 in sales your first year. The SBA calls a sole proprietorship a good choice for testing an idea.", fact: "sp_fit" });
+    } else if (!solo) {
+      reasons.push({ text: "The SBA calls a partnership the simplest way for two or more people to own a business together.", fact: "partnership_simplest" });
+    }
+    if (!strong.length && !moderate.length) reasons.push({ text: quiet });
+    for (const signal of moderate) reasons.push({ text: `${signal}. That adds some risk, so compare the LLC too.`, caveat: true });
+    reasons.push(
+      solo
+        ? { text: "Nothing to file to start: running a business on your own makes you one automatically.", fact: "sp_automatic" }
+        : { text: "No company to form: the IRS treats two or more people doing business together as a partnership.", fact: "partnership_definition" },
+    );
+    if (!solo) reasons.push({ text: "Whether a partnership registers with the state depends on the state.", fact: "varies_by_state", caveat: true });
+  } else {
+    for (const signal of strong) reasons.push({ text: `${signal}.` });
+    if (strong.length || moderate.length) {
+      for (const signal of moderate) reasons.push({ text: `${signal}.` });
+      reasons.push({ text: "The SBA calls an LLC a good fit for medium- or higher-risk businesses.", fact: "llc_fit" });
+    }
+    if (growingPlans(p)) reasons.push({ text: "You hope to grow it, or make it your full-time work." });
+    reasons.push({ text: "An LLC protects owners from personal liability “in most instances”, the SBA says.", fact: "llc_liability" });
+  }
+  if (unsure(p.takesOnDebt)) reasons.push({ text: "You haven’t said yet whether you’ll sign a lease or take a loan. If you will, look at this again.", caveat: true });
+  return reasons;
+}
+
+export type NamePlan = "register_dba" | "legal_name";
+export type TaxPlan = "default" | "ask_professional";
+
+export interface Recommendation<T extends string> {
+  value: T;
+  reasons: Reason[];
+}
+
+// Only when the answers make it clear; otherwise "Not sure yet" stays a fair answer
+export function recommendedNamePlan(p: BusinessProfile, option: BusinessStructure): Recommendation<NamePlan> | null {
+  const need = nameNeed(p, option);
+  if (need.status === "likely") {
+    return {
+      value: "register_dba",
+      reasons: [
+        { text: need.text, fact: need.fact },
+        { text: "Depending on where your business is located, that’s with your state, county or city.", fact: "dba_where" },
+        { text: "A DBA is a name, not a company, and doesn’t protect the name by itself.", fact: "dba_no_protection" },
+      ],
+    };
+  }
+  if (need.status === "not_needed") return { value: "legal_name", reasons: [{ text: need.text, fact: need.fact }] };
+  return null;
+}
+
+export function recommendedTaxPlan(p: BusinessProfile, option: BusinessStructure): Recommendation<TaxPlan> {
+  const tax = taxFor(option, p.owners.count);
+  if (option === "corporation") {
+    return {
+      value: "ask_professional",
+      reasons: [
+        { text: tax.text, fact: tax.fact },
+        { text: "S corporation status takes its own IRS form, so it’s worth asking before you file.", fact: "s_corp_election" },
+      ],
+    };
+  }
+  // A sole proprietor has no tax status to choose; that takes forming a company first
+  if (option !== "sole_proprietorship" && growingPlans(p) && p.firstYearSales === "over_100k") {
+    return {
+      value: "ask_professional",
+      reasons: [
+        { text: "You expect over $100,000 in sales and hope to grow." },
+        { text: "It may be worth asking whether S corporation tax status makes sense. The SBA calls it a tax status, not strictly a structure.", fact: "tax_status" },
+      ],
+    };
+  }
+  const reasons: Reason[] = [{ text: tax.text, fact: tax.fact }];
+  if (option === "sole_proprietorship") {
+    reasons.push({ text: "To choose another tax status, you’d first form a company such as an LLC. Then you’re no longer a sole proprietor, the IRS says.", fact: "sp_llc_election" });
+  }
+  if (option === "llc") reasons.push({ text: "Keeping the default takes no extra IRS form. Being taxed as a corporation would take Form 8832.", fact: tax.fact });
+  if (p.firstYearSales === null || p.firstYearSales === "unsure") {
+    reasons.push({ text: "You haven’t said how much you expect to sell. If sales grow large, ask a tax professional about other choices.", caveat: true });
+  } else if (p.firstYearSales === "over_100k") {
+    reasons.push({ text: "You expect over $100,000 in sales. If that holds, ask a tax professional whether another tax status would help.", caveat: true });
+  } else {
+    reasons.push({ text: "Nothing in your answers, like very high sales, points to choosing another yet." });
+  }
+  return { value: "default", reasons };
 }
