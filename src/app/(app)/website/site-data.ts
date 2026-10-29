@@ -1,24 +1,12 @@
 import "server-only";
 import type { BrandFile } from "@/lib/brand/types";
 import type { LibraryPhoto } from "@/lib/data/product-photos";
-import {
-  getMyBrand,
-  getMyBrandAsset,
-  getMyBrandAssetFile,
-  getMyBusiness,
-  getMyDetails,
-  getMyPhotoVersionFile,
-  getMyWebsitePlan,
-  listMyPhotoLibrary,
-} from "@/lib/data/my-business";
+import { getMyBrand, getMyBrandAsset, getMyBusiness, getMyDetails, getMyWebsitePlan, listMyPhotoLibrary, listMyProducts } from "@/lib/data/my-business";
 import type { WebsitePlan } from "@/lib/data/website";
 import { displayName } from "@/lib/intake/answers";
 import { brandAssetId, lookFromBrand } from "@/lib/website/look";
-import { type AssetFile, bundleSite, type BundleAssets } from "@/lib/website/site/bundle";
-import { photosShown, type SiteState } from "@/lib/website/site/check";
+import type { SiteState } from "@/lib/website/site/check";
 import { readDesign } from "@/lib/website/site/design";
-import { copyOf } from "@/lib/website/words";
-import { withoutMetadata } from "@/lib/photos/strip-metadata";
 
 export { publishCheck, siteSignature } from "@/lib/website/site/check";
 
@@ -37,7 +25,14 @@ async function practiceFile(file: BrandFile | null): Promise<boolean> {
 }
 
 export async function loadSite(): Promise<LoadedSite | null> {
-  const [business, plan, brand, details, library] = await Promise.all([getMyBusiness(), getMyWebsitePlan(), getMyBrand(), getMyDetails(), listMyPhotoLibrary()]);
+  const [business, plan, brand, details, library, products] = await Promise.all([
+    getMyBusiness(),
+    getMyWebsitePlan(),
+    getMyBrand(),
+    getMyDetails(),
+    listMyPhotoLibrary(),
+    listMyProducts(),
+  ]);
   if (!business?.profile) return null;
   const [logo, hero, icon] = await Promise.all([
     practiceFile(brand?.logos.primary ?? null),
@@ -56,33 +51,9 @@ export async function loadSite(): Promise<LoadedSite | null> {
     brand,
     brandPractice: { logo, hero, icon },
     library,
+    products: products.map((product) => ({ id: product.id, name: product.name, description: product.description, priceCents: product.priceCents })),
     contact: { email: detail("business_email"), phone: detail("business_phone") },
     // Read after the session, so the page renders at request time
     year: new Date().getUTCFullYear(),
   };
-}
-
-async function brandAsset(file: BrandFile | null): Promise<AssetFile | null> {
-  const id = brandAssetId(file);
-  const stored = id ? await getMyBrandAssetFile(id) : null;
-  // An uploaded logo can carry hidden details, like where a photo was taken; those stay off the site
-  return file && stored ? { mimeType: stored.mimeType, data: withoutMetadata(stored.data), width: file.width, height: file.height } : null;
-}
-
-// The files that go online, read from the owner's saved pictures
-export async function siteFiles(site: LoadedSite) {
-  if (!site.content) return null;
-  const { brand, design } = site;
-  const photos: BundleAssets["photos"] = {};
-  for (const photo of photosShown(site)) {
-    const stored = await getMyPhotoVersionFile(photo.photoId, photo.id);
-    if (stored) photos[photo.id] = { mimeType: stored.mimeType, data: stored.data, width: photo.width, height: photo.height };
-  }
-  const assets: BundleAssets = {
-    logo: design.showLogo ? await brandAsset(brand?.logos.primary ?? null) : null,
-    favicon: design.showLogo ? await brandAsset(brand?.logos.profile ?? null) : null,
-    hero: design.showHero ? await brandAsset(brand?.images.websiteHero ?? null) : null,
-    photos,
-  };
-  return bundleSite({ name: site.name, copy: copyOf(site.content), design, contact: site.contact, year: site.year }, assets);
 }

@@ -26,7 +26,7 @@ export function recommendPlatform(profile: BusinessProfile): Recommendation {
       platform: "first_sale",
       reasons: [
         "You sell services, so your site’s main job is showing what you do and making it easy to get in touch.",
-        "First Sale can build it from your words and brand, and publish it on Netlify’s free plan once you approve it.",
+        "First Sale builds and hosts it from your words and brand, so you only make the choices. Building and hosting are a demo for now.",
         "To take payments, you can add a Stripe or Square payment link to each service. If you’d rather have lots of designs to choose from, Wix is a good fit.",
       ],
     };

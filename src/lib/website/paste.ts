@@ -4,14 +4,11 @@ import type { WebsiteCopy } from "./types";
 
 // What the owner copies into the platform at each step, filled from their own saved work. Plain data for the page.
 
-// "pending": the value isn't known until the site is on Netlify, so it isn't offered for copying
-export type PastedRecord = DnsRecord & { pending: boolean };
-
 export type PasteValue =
   | { kind: "text"; label: string; text: string }
   | { kind: "color"; label: string; hex: string }
   | { kind: "file"; label: string; href: string; note: string | null }
-  | { kind: "records"; label: string; records: PastedRecord[]; note: string; source: { label: string; url: string } }
+  | { kind: "records"; label: string; records: DnsRecord[]; note: string; source: { label: string; url: string } }
   // Something First Sale can't fill yet, with where to make it
   | { kind: "missing"; label: string; text: string; href: string | null };
 
@@ -29,9 +26,7 @@ export interface PasteContext {
   // Download links by photo version id
   photos: Record<string, { href: string; practice: boolean }>;
   domain: string | null;
-  // The site's own address on its host, such as rise-bakery.netlify.app
-  siteHost: string | null;
-  domainSetup: DomainSetup;
+  domainSetup: DomainSetup | null;
 }
 
 const WORDS = "/website#step-words";
@@ -43,13 +38,6 @@ function words(copy: WebsiteCopy | null, label: string, pieces: [string, string]
 }
 
 const PRACTICE = "Practice preview, not made for your business.";
-
-export function dnsRecords(setup: DomainSetup, siteHost: string | null): PastedRecord[] {
-  return setup.records.map((record) => {
-    const pending = record.value.includes("{site}") && !siteHost;
-    return { ...record, value: record.value.replace("{site}", siteHost ?? "your site’s netlify.app address"), pending };
-  });
-}
 
 export function pasteFor(kinds: readonly PasteKind[], context: PasteContext): PasteValue[] {
   const { copy, design, brand } = context;
@@ -108,9 +96,10 @@ export function pasteFor(kinds: readonly PasteKind[], context: PasteContext): Pa
       }
       case "dns": {
         const setup = context.domainSetup;
+        if (!setup) return [];
         const label = context.domain ? `Records for ${context.domain}` : "Records for your web address";
         if (setup.shownIn) return [{ kind: "missing", label, text: `${setup.shownIn} ${setup.note}`, href: null }];
-        return [{ kind: "records", label, records: dnsRecords(setup, context.siteHost), note: setup.note, source: setup.source }];
+        return [{ kind: "records", label, records: setup.records, note: setup.note, source: setup.source }];
       }
     }
   });

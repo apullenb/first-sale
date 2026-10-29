@@ -26,7 +26,9 @@ export interface JourneyFacts {
   logoChosen: boolean;
   // The owner approved the short description of their brand
   brandDescribed: boolean;
-  websiteLive: boolean;
+  // The demo finish of a First Sale site, or an existing site connected in the demo
+  websiteFinished: boolean;
+  websiteConnected: boolean;
   products: number;
   marketingApproved: boolean;
   // Accounts the owner picked in their marketing plan, and the ones they already have
@@ -63,7 +65,7 @@ export function sidebarStatus(facts: JourneyFacts): SidebarStatus {
     "/documents": { state: facts.libraryToCheck ? "todo" : "done", count: facts.libraryToCheck, minutes: 0 },
     "/brand": either(facts.brandDescribed || marked("brand")),
     "/logo": either(facts.logoChosen || marked("logo")),
-    "/website": either(facts.websiteLive || marked("website")),
+    "/website": either(facts.websiteFinished || facts.websiteConnected || marked("website")),
     "/products": either(facts.products > 0 || marked("products")),
     "/marketing": either(facts.marketingApproved || marked("marketing")),
     "/social": either(

@@ -64,6 +64,9 @@ const PATHS = {
   list: "M9 6.5h11M9 12h11M9 17.5h11M4.5 6.5h.01M4.5 12h.01M4.5 17.5h.01",
   stamp: "M9.5 13V9.5a2.5 2.5 0 1 1 5 0V13M5 13h14v4H5zM6 20.5h12",
   branch: "M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a9 9 0 0 1-9 9",
+  server: "M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01M12 7h4M12 17h4",
+  cart: "M3 4h2.5l2.2 11h10.6L21 7.5H6.4M9.5 20h.01M17 20h.01",
+  card: "M3 6h18v12H3zM3 10h18M7 15h4",
 } as const;
 
 export type IconName = keyof typeof PATHS;

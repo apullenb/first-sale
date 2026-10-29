@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PLATFORM_DATA } from "@/data/website-platforms";
-import { dnsRecords, type PasteContext, pasteFor } from "./paste";
+import { type PasteContext, pasteFor } from "./paste";
 import { defaultDesign } from "./site/design";
 import type { WebsiteCopy } from "./types";
 
@@ -29,7 +29,6 @@ const context = (patch: Partial<PasteContext> = {}): PasteContext => ({
   },
   photos: { v1: { href: "/photos/p1/versions/v1/file", practice: false } },
   domain: "risebakery.com",
-  siteHost: null,
   domainSetup: PLATFORM_DATA.shopify.domainSetup,
   ...patch,
 });
@@ -77,14 +76,7 @@ describe("pasteFor", () => {
     expect(square.kind).toBe("missing");
   });
 
-  it("points the www record at the site's own Netlify address once it's known", () => {
-    const setup = PLATFORM_DATA.first_sale.domainSetup;
-    expect(dnsRecords(setup, "rise-bakery.netlify.app")).toEqual([
-      { type: "A", host: "@", value: "75.2.60.5", pending: false },
-      { type: "CNAME", host: "www", value: "rise-bakery.netlify.app", pending: false },
-    ]);
-    // Not offered for copying until it's known
-    expect(dnsRecords(setup, null)[1]).toMatchObject({ pending: true });
-    expect(dnsRecords(setup, null)[0]).toMatchObject({ value: "75.2.60.5", pending: false });
+  it("gives nothing for a site with no records to add", () => {
+    expect(pasteFor(["dns"], context({ domainSetup: null }))).toEqual([]);
   });
 });

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { WebsiteCopy } from "@/lib/website/types";
 
 // The owner's choices for the site First Sale builds: look, which parts show, and each item's price, photo and buy link.
 // Plain data, so client components and the schema can import it.
@@ -24,6 +25,7 @@ export const SECTION_LABELS: Record<SiteSection, string> = {
 };
 
 export const MAX_PRICE_CENTS = 10_000_000;
+export const MAX_ITEMS = 12;
 const HEX = /^#[0-9a-f]{6}$/i;
 
 const photoRef = z.object({ photoId: z.string().min(1).max(60), versionId: z.string().min(1).max(60) });
@@ -44,10 +46,12 @@ export const siteDesignSchema = z.object({
   showLogo: z.boolean(),
   showHero: z.boolean(),
   hidden: z.array(z.enum(SITE_SECTIONS)).max(SITE_SECTIONS.length),
-  items: z.array(siteItemSchema).max(12),
+  items: z.array(siteItemSchema).max(MAX_ITEMS),
   // Buttons built from the business email and phone the owner saved
   showEmail: z.boolean(),
   showPhone: z.boolean(),
+  // Saved products left off the site; the rest show under What you sell
+  hiddenProducts: z.array(z.string().min(1).max(60)).max(100),
 });
 export type SiteDesign = z.infer<typeof siteDesignSchema>;
 
@@ -61,6 +65,7 @@ export function defaultDesign(color: string): SiteDesign {
     items: [],
     showEmail: true,
     showPhone: true,
+    hiddenProducts: [],
   };
 }
 
@@ -81,6 +86,7 @@ export function readDesign(raw: unknown, color: string): SiteDesign {
     items: field("items"),
     showEmail: field("showEmail"),
     showPhone: field("showPhone"),
+    hiddenProducts: field("hiddenProducts"),
   };
 }
 
@@ -88,6 +94,37 @@ const key = (name: string) => name.trim().toLowerCase();
 
 export function itemFor(design: SiteDesign, name: string): SiteItem | null {
   return design.items.find((item) => key(item.name) === key(name)) ?? null;
+}
+
+// A product the owner saved on Add your products, as the site shows it
+export interface SiteProduct {
+  id: string;
+  name: string;
+  description: string;
+  // Exactly as the owner typed it
+  priceCents: number;
+}
+
+// The site as it shows: the drafted words' items, then saved products that aren't already among them or turned off.
+// An item with no price of its own shows its product's price.
+export function withProducts(copy: WebsiteCopy, products: SiteProduct[], design: SiteDesign): { copy: WebsiteCopy; design: SiteDesign } {
+  const added = products.filter(
+    (product) => !design.hiddenProducts.includes(product.id) && !copy.offerings.some((offering) => key(offering.name) === key(product.name)),
+  );
+  const room = Math.max(0, MAX_ITEMS - copy.offerings.length);
+  const offerings = [...copy.offerings, ...added.slice(0, room).map((product) => ({ name: product.name, description: product.description }))];
+  const items = offerings.flatMap((offering): SiteItem[] => {
+    const item = itemFor(design, offering.name);
+    const price = productPrice(products, offering.name);
+    if (item) return [item.priceCents == null && price != null ? { ...item, priceCents: price } : item];
+    return price != null ? [{ name: offering.name, priceCents: price, buyUrl: "", photo: null }] : [];
+  });
+  return { copy: { ...copy, offerings }, design: { ...design, items } };
+}
+
+// A saved product's price for an item with the same name
+export function productPrice(products: SiteProduct[], name: string): number | null {
+  return products.find((product) => key(product.name) === key(name))?.priceCents ?? null;
 }
 
 export function shows(design: SiteDesign, section: SiteSection): boolean {

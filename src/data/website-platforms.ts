@@ -7,12 +7,14 @@ import type { PlatformId } from "@/lib/website/types";
 const CHECKED = "2026-10-27";
 const STEPS_CHECKED = "2026-10-28";
 
+// Demo price: a placeholder for First Sale's own monthly fee to build and host a site, until the real price is set
+export const FIRST_SALE_SITE_MONTHLY_USD = 15;
+
 const PHOTOS = { label: "Make store-ready photos", href: "/photos" };
 const BRAND = { label: "Get your logo and colors", href: "/logo" };
 const TAX_STEP = { label: "See the sales tax step in your plan", href: "/checklist" };
 const ADDRESS = { label: "Pick your web address", href: "/website#step-address" };
 const DESIGN = { label: "Set prices, photos and buy links on this page", href: "/website#step-design" };
-const PUBLISH = { label: "Publish from this page", href: "/website#step-publish" };
 
 // Wix's own link that opens the owner's site dashboard at one page, after they pick the site
 function wixDashboard(path: string, button: string): string {
@@ -30,59 +32,48 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
   first_sale: {
     id: "first_sale",
     name: "First Sale site",
-    oneLine: "First Sale builds your site from your words, brand and items. You check it here, then publish it free on Netlify.",
+    oneLine: "First Sale builds and hosts your site from your words, brand and products. You make the choices; we handle the rest.",
     bestFor: "services, or taking orders by message or payment link, with the least setup",
-    canSell: false,
+    demoPrice: true,
     startPlan: {
-      name: "Netlify Free",
-      price: "$0",
-      monthlyUsd: 0,
-      adds: "Hosting with 300 credits a month, a free netlify.app address, and your own web address with free HTTPS.",
+      name: "First Sale site",
+      price: `$${FIRST_SALE_SITE_MONTHLY_USD} a month`,
+      monthlyUsd: FIRST_SALE_SITE_MONTHLY_USD,
+      adds: "Building, hosting and updating your site.",
     },
-    otherPlans: [{ name: "Netlify Personal", price: "$9 a month", monthlyUsd: 9, adds: "1,000 credits a month, and more credits added automatically if you run out." }],
-    cardFee: null,
-    paymentNote:
-      "No cart or checkout of its own. Each item can have a Buy button that opens your Stripe payment link (2.9% + 30¢ per card payment) or Square payment link (3.3% + 30¢ on Square Free), or customers order by email or phone.",
-    domain: {
-      label: "A free yourname.netlify.app address. For your own .com, buy it from any company that sells web addresses and add two DNS records; HTTPS is free.",
-      firstYearUsd: null,
+    otherPlans: [],
+    builtBy: "first_sale",
+    hosting: true,
+    checkout: "payment_links",
+    cardFee: {
+      label: "Stripe payment links: 2.9% + 30¢ per card payment. Square payment links: 3.3% + 30¢ on Square Free.",
+      percent: 0.029,
+      fixedCents: 30,
     },
+    domain: { freeAddress: null, sold: "elsewhere", firstUsd: null, per: null, from: false, firstYearFree: false, later: null, needsPlan: null },
+    email: { kind: "none", via: "an email service", monthlyUsd: null },
     includes: [
-      "A site built from your approved words, brand colors, logo and item photos",
-      "A live preview you can change before anything goes online",
-      "Hosting and free HTTPS on Netlify’s Free plan",
+      "A site built from your approved words, brand colors, logo and photos",
+      "A live preview you can change any time",
+      "Hosting and a secure (https) site",
       "Buy buttons that open your own Stripe or Square payment links",
-      "Publishing again whenever you change your words or design",
+      "Updates whenever you change your words or design",
     ],
-    notIncluded: [
-      { item: "A Netlify account", cost: "Free", why: "Your site lives in your own Netlify account, so it stays yours.", inApp: null },
-      { item: "Your own web address", cost: "Bought from a company that sells web addresses", why: "The free address ends in netlify.app.", inApp: ADDRESS },
-      {
-        item: "Card payments",
-        cost: "Stripe: 2.9% + 30¢ per card payment. Square Free: 3.3% + 30¢",
-        why: "There’s no cart. Each Buy button opens a payment link you make in Stripe or Square.",
-        inApp: null,
-      },
-      { item: "A business email address", cost: "Through an email service", why: "An address like you@yourname.com isn’t part of the site.", inApp: null },
-      { item: "Sales tax", cost: "Your time", why: "You charge and report sales tax yourself.", inApp: TAX_STEP },
-      { item: "Product photos and a logo", cost: "Your own", why: "Your site looks best with pictures of what you sell and your logo.", inApp: PHOTOS },
+    youDo: [
+      { text: "Pick a look, a main color and which parts show", inApp: null },
+      { text: "Check and approve the words First Sale drafts for each page", inApp: null },
+      { text: "Optional: make a Stripe or Square payment link for each item", inApp: null },
+      { text: "Charge and report sales tax", inApp: TAX_STEP },
+      { text: "Bring photos of what you sell, and your logo", inApp: PHOTOS },
     ],
-    pros: [
-      "Built for you from what you’ve already written and made in First Sale",
-      "$0 a month on Netlify’s Free plan, with free HTTPS",
-      "Nothing goes online until you approve it, and you can change it and publish again",
-      "The site is in your own Netlify account",
+    thingsToKnow: [
+      "This is a demo: First Sale shows how your site is built, but doesn’t put it online yet.",
+      "No shopping cart or stock count: Buy buttons open payment links, or customers contact you.",
+      "Card fees depend on the payment provider: Stripe 2.9% + 30¢, Square 3.3% + 30¢ on Square Free.",
+      "Simpler designs than a full website builder.",
     ],
-    cons: [
-      "No shopping cart or stock count: Buy buttons open payment links, or customers contact you",
-      "On the Free plan, if a month’s credits run out, Netlify pauses the site until the next month",
-      "Simpler designs than a full website builder",
-      "Your own web address means adding two DNS records where you bought it",
-    ],
-    signupUrl: "https://app.netlify.com/signup",
+    signupUrl: null,
     sources: [
-      { label: "Netlify pricing", url: "https://www.netlify.com/pricing/" },
-      { label: "Netlify Free and Personal", url: "https://www.netlify.com/pricing/personal-vs-free" },
       { label: "Stripe pricing", url: "https://stripe.com/pricing" },
       { label: "Square fees", url: "https://squareup.com/us/en/payments/our-fees" },
     ],
@@ -90,28 +81,8 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
     stepsCheckedOn: STEPS_CHECKED,
     setupSteps: [
       {
-        key: "first_sale-account",
-        title: "Make a free Netlify account",
-        detail: "Your site will live in your own account, so it stays yours. You only need the Free plan.",
-        clicks: ["Open Netlify’s sign-up page", "Sign up", "Pick the Free plan if it asks"],
-        goTo: { label: "Open Netlify sign-up", url: "https://app.netlify.com/signup" },
-        help: { label: "Netlify’s plans", url: "https://www.netlify.com/pricing/personal-vs-free" },
-        inApp: null,
-        paste: [],
-      },
-      {
-        key: "first_sale-connect",
-        title: "Connect Netlify to First Sale",
-        detail: "In “Publish it” on this page, click “Connect Netlify”, sign in, and click Authorize. First Sale can then put your site online when you say so.",
-        clicks: ["Publish it (on this page)", "Connect Netlify", "Authorize"],
-        goTo: null,
-        help: { label: "How Netlify connections work", url: "https://docs.netlify.com/api/get-started/" },
-        inApp: PUBLISH,
-        paste: [],
-      },
-      {
         key: "first_sale-links",
-        title: "Optional: make a Stripe payment link for each item",
+        title: "Make a Stripe payment link for each item",
         detail: "To take card payments, make one link per item, then paste each into that item’s Buy link under “Your items” on this page.",
         clicks: ["Stripe Dashboard", "Payment Links", "+ New", "+ Add a new product", "Fill in the name and price", "Add product", "Create link", "Copy the link"],
         goTo: { label: "Open Stripe payment links", url: "https://dashboard.stripe.com/payment-links/create" },
@@ -129,47 +100,8 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
         inApp: DESIGN,
         paste: ["items"],
       },
-      {
-        key: "first_sale-publish",
-        title: "Check your site, then publish it",
-        detail: "“Publish it” shows anything left to do. Nothing goes online until you click Publish and confirm.",
-        clicks: ["Check the preview on a phone and a computer", "Publish it", "Publish my site", "Confirm"],
-        goTo: null,
-        help: null,
-        inApp: PUBLISH,
-        paste: [],
-      },
-      {
-        key: "first_sale-domain",
-        title: "Optional: use your own web address",
-        detail:
-          "Buy the web address you picked from any company that sells them. Then add it to your site in Netlify, and add the two records below where you bought it.",
-        clicks: ["Netlify: your project", "Domain management", "Add a domain", "Add a domain you already own", "Type your web address", "Where you bought it: add the records below"],
-        goTo: { label: "Open Netlify", url: "https://app.netlify.com/" },
-        help: { label: "Netlify: connect a web address", url: "https://docs.netlify.com/manage/domains/configure-domains/configure-external-dns/" },
-        inApp: ADDRESS,
-        paste: ["dns"],
-      },
-      {
-        key: "first_sale-https",
-        title: "Check your site is secure (HTTPS)",
-        detail: "Netlify adds a free certificate by itself once your records work. That can take a few hours, up to a day.",
-        clicks: ["Netlify: your project", "Domain management", "HTTPS"],
-        goTo: { label: "Open Netlify", url: "https://app.netlify.com/" },
-        help: { label: "Netlify: HTTPS", url: "https://docs.netlify.com/manage/domains/secure-domains-with-https/https-ssl/" },
-        inApp: null,
-        paste: [],
-      },
     ],
-    domainSetup: {
-      records: [
-        { type: "A", host: "@", value: "75.2.60.5" },
-        { type: "CNAME", host: "www", value: "{site}" },
-      ],
-      shownIn: null,
-      note: "If where you bought it offers an ALIAS or ANAME record, Netlify prefers that for the bare address, pointed at apex-loadbalancer.netlify.com, instead of the A record. Netlify recommends the www address as your main one. Changes can take up to a day.",
-      source: { label: "Netlify: connect a web address", url: "https://docs.netlify.com/manage/domains/configure-domains/configure-external-dns/" },
-    },
+    domainSetup: null,
   },
 
   square: {
@@ -177,17 +109,28 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
     name: "Square",
     oneLine: "A free online store that shares one item list with Square’s card reader, so market and online sales stay in step.",
     bestFor: "selling in person or at markets, and starting with no monthly bill",
-    canSell: true,
+    demoPrice: false,
     startPlan: { name: "Square Free", price: "$0 a month", monthlyUsd: 0, adds: "A full online store with pickup, local delivery and shipping." },
     otherPlans: [
       { name: "Square Plus", price: "$49 a month per location", monthlyUsd: 49, adds: "Your own web address, no Square banner, abandoned-cart emails and reviews." },
       { name: "Square Premium", price: "$149 a month per location", monthlyUsd: 149, adds: "Live shipping rates, advanced reports and 24/7 phone support." },
     ],
+    builtBy: "owner",
+    hosting: true,
+    checkout: "built_in",
     cardFee: { label: "3.3% + 30¢ per online card payment on Square Free (2.9% + 30¢ on Plus)", percent: 0.033, fixedCents: 30 },
+    // Square's domains page says "starting at $19.95" without saying how long that covers (read 2026-10-29)
     domain: {
-      label: "A free yourname.square.site address. Your own .com needs Square Plus; Square sells web addresses starting at $19.95.",
-      firstYearUsd: null,
+      freeAddress: "yourname.square.site",
+      sold: "here",
+      firstUsd: 19.95,
+      per: null,
+      from: true,
+      firstYearFree: false,
+      later: null,
+      needsPlan: { name: "Square Plus", monthlyUsd: 49 },
     },
+    email: { kind: "addon", via: "Google Workspace", monthlyUsd: null },
     includes: [
       "Hosting and a secure (https) site",
       "Unlimited items with photos and options",
@@ -197,25 +140,20 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
       "Tap to Pay on your phone, with no extra hardware",
       "Facebook and Instagram connections",
     ],
-    notIncluded: [
-      { item: "Your own web address", cost: "Square Plus ($49 a month) plus a web address from $19.95", why: "The Free plan uses a square.site address.", inApp: ADDRESS },
-      { item: "A business email address", cost: "Set up through Google Workspace, which charges for it", why: "An address like you@yourname.com isn’t part of the site.", inApp: null },
-      { item: "Card fees and postage", cost: "3.3% + 30¢ per online sale on Free, plus postage", why: "Taken from each sale; postage is paid per package.", inApp: null },
-      { item: "Sales tax setup", cost: "Your time", why: "You enter the tax rates that apply to you.", inApp: TAX_STEP },
-      { item: "Product photos and a logo", cost: "Your own", why: "Your store needs pictures of what you sell and your logo.", inApp: PHOTOS },
-      { item: "Privacy and return policies", cost: "Your own", why: "Square’s terms require you to post a privacy policy.", inApp: null },
+    youDo: [
+      { text: "Make a Square account, verify your identity and link your bank", inApp: null },
+      { text: "Start your site, then paste in your words, colors and logo (ready to copy here)", inApp: null },
+      { text: "Add your items with photos and prices", inApp: PHOTOS },
+      { text: "Set up pickup, local delivery or shipping", inApp: null },
+      { text: "Enter the sales tax rates that apply to you", inApp: TAX_STEP },
+      { text: "Post a privacy policy (Square’s terms require one) and a return policy", inApp: null },
     ],
-    pros: [
-      "A real online store for $0 a month, with pickup, local delivery and shipping",
-      "The same items and stock count at your market table and online",
-      "Hosting, a secure site and unlimited items are included",
-      "Take cards in person with just your phone",
-    ],
-    cons: [
-      "Your own web address and removing the Square banner need Plus at $49 a month",
-      "The Free plan’s online card fee is higher: 3.3% + 30¢",
-      "Abandoned-cart emails and reviews need Plus",
-      "Square’s plans page shows monthly prices only, per location",
+    thingsToKnow: [
+      "Your own web address and removing the Square banner need Square Plus at $49 a month per location.",
+      "On Plus, the online card fee is 2.9% + 30¢ instead of 3.3% + 30¢.",
+      "Abandoned-cart emails and reviews need Plus.",
+      "Square’s domains page says web addresses start at $19.95 but doesn’t say how long that covers.",
+      "Postage is paid per package.",
     ],
     signupUrl: "https://squareup.com/us/en/online-store",
     sources: [
@@ -224,7 +162,6 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
       { label: "Square domains", url: "https://squareup.com/us/en/online-store/domains" },
     ],
     checkedOn: CHECKED,
-    paymentNote: null,
     stepsCheckedOn: STEPS_CHECKED,
     setupSteps: [
       {
@@ -351,7 +288,7 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
     name: "Wix",
     oneLine: "A do-it-yourself builder with lots of designs. Taking payments starts on its Core plan.",
     bestFor: "a good-looking site for services, or a small store, when design matters to you",
-    canSell: true,
+    demoPrice: false,
     startPlan: {
       name: "Wix Core",
       price: "$29 a month when billed yearly (paid upfront); monthly billing is also offered",
@@ -363,11 +300,21 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
       { name: "Wix Business", price: "$39 a month, billed yearly", monthlyUsd: 39, adds: "Automatic sales tax (up to 100 sales a month) and more store features." },
       { name: "Wix Free", price: "$0", monthlyUsd: 0, adds: "To try designs. Shows a Wix ad, uses a Wix address, and can’t take payments." },
     ],
+    builtBy: "owner",
+    hosting: true,
+    checkout: "built_in",
     cardFee: { label: "2.9% + 30¢ per online card payment with Wix Payments (American Express: 3.7% + 30¢)", percent: 0.029, fixedCents: 30 },
     domain: {
-      label: "Most yearly plans include a free web address for the first year (new buyers only). Wix’s own pages give different .com renewal prices: $13.35 and $21.35 a year.",
-      firstYearUsd: 0,
+      freeAddress: null,
+      sold: "here",
+      firstUsd: 0,
+      per: "year",
+      from: false,
+      firstYearFree: true,
+      later: "$13.35 or $21.35 a year for a .com (Wix’s pages differ)",
+      needsPlan: null,
     },
+    email: { kind: "addon", via: "Google Workspace", monthlyUsd: null },
     includes: [
       "Hosting and a secure (https) site",
       "Lots of designs to start from",
@@ -375,25 +322,20 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
       "50 GB of storage on Core",
       "A 14-day money-back guarantee on plans",
     ],
-    notIncluded: [
-      { item: "Your web address after the first year", cost: "About $13–$22 a year for a .com (Wix’s own pages differ)", why: "The free web address is for the first year only.", inApp: ADDRESS },
-      { item: "A business email address", cost: "Through Google Workspace, which charges for it", why: "An address like you@yourname.com isn’t part of the site.", inApp: null },
-      { item: "Card fees and postage", cost: "2.9% + 30¢ per online sale, plus postage", why: "Taken from each sale; postage is paid per package.", inApp: null },
-      { item: "Automatic sales tax", cost: "Needs Wix Business ($39 a month, billed yearly)", why: "On Core, you set up tax rates yourself.", inApp: TAX_STEP },
-      { item: "Some apps", cost: "Some charge a monthly fee", why: "Extra features from Wix’s app market can cost more.", inApp: null },
-      { item: "Product photos and a logo", cost: "Your own", why: "Your site needs pictures of what you sell and your logo.", inApp: PHOTOS },
+    youDo: [
+      { text: "Make a Wix account, pick a design, then paste in your words, colors and logo", inApp: null },
+      { text: "Add your products with photos and prices", inApp: PHOTOS },
+      { text: "Set up Wix Payments and link your bank", inApp: null },
+      { text: "Set up pickup, local delivery or shipping", inApp: null },
+      { text: "Enter your sales tax rate yourself on Core", inApp: TAX_STEP },
     ],
-    pros: [
-      "A free plan lets you design and try it before paying",
-      "Lots of designs, and plenty of control over how it looks",
-      "Most yearly plans include a free web address for the first year",
-      "Online card fee of 2.9% + 30¢ (more for American Express)",
-    ],
-    cons: [
-      "Taking payments needs Core: $29 a month when you pay for a year upfront",
-      "Once you start editing a design, you can’t switch to another one",
-      "Automatic sales tax needs the $39 Business plan",
-      "The free plan shows a Wix ad and can’t take payments",
+    thingsToKnow: [
+      "Core is $29 a month when you pay for a year upfront; monthly billing is also offered.",
+      "The free web address is for the first year only, for new buyers.",
+      "Once you start editing a design, you can’t switch to another one.",
+      "Automatic sales tax needs Wix Business ($39 a month, billed yearly).",
+      "Some apps from Wix’s app market charge a monthly fee.",
+      "The free plan shows a Wix ad and can’t take payments.",
     ],
     signupUrl: "https://www.wix.com/plans",
     sources: [
@@ -402,7 +344,6 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
       { label: "Choosing a Wix plan", url: "https://support.wix.com/en/article/choosing-a-premium-plan" },
     ],
     checkedOn: CHECKED,
-    paymentNote: null,
     stepsCheckedOn: STEPS_CHECKED,
     setupSteps: [
       {
@@ -532,7 +473,7 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
     name: "Shopify",
     oneLine: "A full online store from the first plan, with strong shipping and sales tax tools, for a monthly fee.",
     bestFor: "selling mostly online and shipping orders",
-    canSell: true,
+    demoPrice: false,
     startPlan: {
       name: "Shopify Basic",
       price: "$29 a month billed yearly, or $39 billed monthly",
@@ -540,11 +481,21 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
       adds: "A full store with automatic sales tax, abandoned-checkout emails and discounted shipping labels. New stores can try it for 3 days free, then $1 a month for 3 months.",
     },
     otherPlans: [{ name: "Shopify Grow", price: "$79 a month billed yearly, or $105 monthly", monthlyUsd: 79, adds: "Lower card fees and staff accounts." }],
+    builtBy: "owner",
+    hosting: true,
+    checkout: "built_in",
     cardFee: { label: "2.9% + 30¢ per online card payment with Shopify Payments (premium cards and American Express: 3.5% + 30¢ on Basic)", percent: 0.029, fixedCents: 30 },
     domain: {
-      label: "A free yourstore.myshopify.com address. Shopify says its web addresses typically start at $9 a year, depending on the ending (.com may cost more); renewals may cost more.",
-      firstYearUsd: 9,
+      freeAddress: "yourstore.myshopify.com",
+      sold: "here",
+      firstUsd: 9,
+      per: "year",
+      from: true,
+      firstYearFree: false,
+      later: null,
+      needsPlan: null,
     },
+    email: { kind: "forwarding", via: "Google Workspace or Microsoft 365", monthlyUsd: null },
     includes: [
       "Hosting and a secure (https) site",
       "Unlimited products, plus designs to start from",
@@ -553,25 +504,22 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
       "Shipping labels with discounts",
       "Casual in-person selling on every paid plan, with Tap to Pay on iPhone or Android",
     ],
-    notIncluded: [
-      { item: "Your own web address", cost: "From about $9 a year, depending on the ending", why: "Your store starts on a myshopify.com address.", inApp: ADDRESS },
-      { item: "A business email address", cost: "Forwarding is free; a full inbox needs Google Workspace or Microsoft 365", why: "Shopify forwards email but doesn’t host inboxes.", inApp: null },
-      { item: "A card reader, if you want one", cost: "Sold separately", why: "Tap to Pay on your phone works for in-person sales; a reader is optional.", inApp: null },
-      { item: "Paid designs and apps", cost: "Optional; prices vary", why: "Free designs work, but many add-ons cost extra.", inApp: null },
-      { item: "Sales tax registration", cost: "Your time", why: "Shopify works out tax, but registering with your state is up to you.", inApp: TAX_STEP },
-      { item: "Product photos and a logo", cost: "Your own", why: "Your store needs pictures of what you sell and your logo.", inApp: PHOTOS },
+    youDo: [
+      { text: "Start your store and set your store name", inApp: null },
+      { text: "Pick a theme, then paste in your words, colors and logo (ready to copy here)", inApp: null },
+      { text: "Add your products with photos and prices", inApp: PHOTOS },
+      { text: "Set up Shopify Payments and link your bank", inApp: null },
+      { text: "Set up pickup, local delivery or shipping", inApp: null },
+      { text: "Register for sales tax with your state, then turn it on in Shopify", inApp: TAX_STEP },
     ],
-    pros: [
-      "The cheapest plan is already a full store",
-      "Automatic sales tax and discounted shipping labels",
-      "3 days free, then $1 a month for 3 months, for new stores",
-      "Online card fee of 2.9% + 30¢ (more for premium cards and American Express)",
-    ],
-    cons: [
-      "No free plan for a website",
-      "$39 a month if you pay monthly, and your web address, paid designs and apps cost extra",
-      "An extra 2% fee per sale if you use another payment company",
-      "No staff accounts on Basic, so only you can sign in",
+    thingsToKnow: [
+      "$39 a month if you pay monthly instead of yearly.",
+      "New stores can try it 3 days free, then $1 a month for 3 months.",
+      "An extra 2% fee per sale if you use another payment company.",
+      "Premium cards and American Express cost 3.5% + 30¢ on Basic.",
+      "Shopify says web addresses typically start at $9 a year; .com may cost more, and renewals may cost more.",
+      "No staff accounts on Basic, so only you can sign in.",
+      "Paid designs, apps and a card reader are optional extras.",
     ],
     signupUrl: "https://www.shopify.com/pricing",
     sources: [
@@ -579,7 +527,6 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
       { label: "Shopify domains", url: "https://www.shopify.com/domains" },
     ],
     checkedOn: CHECKED,
-    paymentNote: null,
     stepsCheckedOn: STEPS_CHECKED,
     setupSteps: [
       {

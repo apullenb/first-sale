@@ -3,7 +3,7 @@ import type { WebsiteCopy } from "@/lib/website/types";
 import { dollars, itemFor, type SiteDesign, type SiteStyle, shows } from "./design";
 
 // The owner's site as one plain HTML page: no scripts, no outside files, every piece of text escaped.
-// The same code draws the live preview and the published page, so what the owner approves is what goes online.
+// Drawn in the live preview; in the demo, nothing is published.
 
 export interface SiteImage {
   src: string;
@@ -31,7 +31,7 @@ export interface SiteInput {
   anchorBase?: string;
 }
 
-// Scripts, outside requests and form posts are all refused, wherever the page is hosted
+// Scripts, outside requests and form posts are all refused
 export const SITE_CSP = "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'";
 
 export function escapeHtml(text: string): string {

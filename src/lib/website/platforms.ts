@@ -1,6 +1,6 @@
 import type { PlatformId } from "./types";
 
-// Shape of the curated platform facts in src/data/website-platforms.ts. Every price comes from the vendor's own page.
+// Shape of the curated platform facts in src/data/website-platforms.ts. Every price comes from the vendor's own page, except First Sale's demo price.
 
 export interface PlatformPlan {
   name: string;
@@ -11,12 +11,39 @@ export interface PlatformPlan {
   adds: string;
 }
 
-export interface CostItem {
-  item: string;
-  cost: string;
-  why: string;
-  // Where First Sale already helps with it
+// Something the owner does themselves, with where First Sale already helps
+export interface OwnerTask {
+  text: string;
   inApp: { label: string; href: string } | null;
+}
+
+// The owner's own web address, as the platform's pages describe it
+export interface DomainOffer {
+  // A free address on the platform, such as yourname.square.site
+  freeAddress: string | null;
+  // "here": the platform sells web addresses; "elsewhere": bought from another company
+  sold: "here" | "elsewhere";
+  // The lowest first price the platform shows, null when it shows none
+  firstUsd: number | null;
+  // "year" when the page says the price is yearly; null when it doesn't say
+  per: "year" | null;
+  // A "from" or "starting at" price
+  from: boolean;
+  // Free for the first year on the starting plan
+  firstYearFree: boolean;
+  // After the free first year, as the platform's pages give it
+  later: string | null;
+  // Using your own address needs this plan instead of the starting one
+  needsPlan: { name: string; monthlyUsd: number } | null;
+}
+
+// A business email address such as you@yourname.com
+export interface EmailOffer {
+  // "addon": set up through the platform for a fee; "forwarding": free forwarding, a full inbox costs extra; "none": not offered
+  kind: "addon" | "forwarding" | "none";
+  via: string;
+  // Null when the price isn't checked here
+  monthlyUsd: number | null;
 }
 
 // The owner's own things shown ready to copy beside a step
@@ -40,7 +67,6 @@ export interface DnsRecord {
   type: "A" | "AAAA" | "CNAME";
   // "@" is the bare address, such as yourname.com
   host: string;
-  // "{site}" stands for the site's own address on the host, such as yourname.netlify.app
   value: string;
 }
 
@@ -58,25 +84,30 @@ export interface PlatformInfo {
   name: string;
   oneLine: string;
   bestFor: string;
-  // Has its own cart and checkout
-  canSell: boolean;
+  // The starting price is First Sale's own placeholder, not read on a vendor's page
+  demoPrice: boolean;
   startPlan: PlatformPlan;
   otherPlans: PlatformPlan[];
-  // Online card payments on the starting plan; null when the platform has no checkout
-  cardFee: { label: string; percent: number; fixedCents: number } | null;
-  // How customers pay when there's no checkout
-  paymentNote: string | null;
-  domain: { label: string; firstYearUsd: number | null };
+  // Who makes the pages: the owner with the platform's builder, or First Sale from the owner's choices
+  builtBy: "owner" | "first_sale";
+  hosting: boolean;
+  // Its own cart and checkout, or Buy buttons that open a payment provider's page
+  checkout: "built_in" | "payment_links";
+  // Card fee per online sale on the starting plan, or through the payment provider
+  cardFee: { label: string; percent: number; fixedCents: number };
+  domain: DomainOffer;
+  email: EmailOffer;
   includes: string[];
-  notIncluded: CostItem[];
-  pros: string[];
-  cons: string[];
-  signupUrl: string;
+  youDo: OwnerTask[];
+  thingsToKnow: string[];
+  // Null when there's nothing to sign up for elsewhere
+  signupUrl: string | null;
   sources: { label: string; url: string }[];
   // Date the prices and links were read on the vendor's pages
   checkedOn: string;
   setupSteps: SetupStepInfo[];
   // Date the menus, buttons and DNS values were read in the vendor's help
   stepsCheckedOn: string;
-  domainSetup: DomainSetup;
+  // Null when there are no records to add
+  domainSetup: DomainSetup | null;
 }
