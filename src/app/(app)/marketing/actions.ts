@@ -27,7 +27,7 @@ import { OwnerFacingError } from "@/lib/errors";
 import { completeIntake, intakeKey, type MarketingIntake, marketingIntakeSchema } from "@/lib/marketing/intake";
 import { draftMarketingPlan, type MarketingFacts } from "@/lib/marketing/plan";
 import { type MarketingPlan, ROLE_LABELS } from "@/lib/marketing/types";
-import { buildMarketingSteps, type StepContext } from "@/lib/rules/marketing";
+import { buildMarketingSteps, type StepContext, withCurrentBrandSteps } from "@/lib/rules/marketing";
 import { runWorkflow } from "@/lib/workflow-runner";
 
 const NO_BUSINESS = "Tell us about your business first.";
@@ -144,9 +144,10 @@ export async function setMarketingStepAction(input: unknown): Promise<ActionResu
   const parsed = stepSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "That step wasn’t found. Reload the page and try again." };
   const { key, done } = parsed.data;
+  const { context } = await stepContext();
   let missing = false;
   const saved = await updateMyMarketing((latest) => {
-    if (!latest?.steps.some((step) => step.key === key)) {
+    if (!latest || !withCurrentBrandSteps(latest.steps, context).some((step) => step.key === key)) {
       missing = true;
       return null;
     }

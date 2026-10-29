@@ -23,7 +23,7 @@ import { examplesText } from "@/lib/intake/catalog";
 import { BUDGET_LABELS, CHANNEL_LABELS, OFFERING_KIND_LABELS, STATE_NAMES } from "@/lib/intake/options";
 import { completeIntake, intakeKey } from "@/lib/marketing/intake";
 import { type HandHolding, stepAnchor } from "@/lib/marketing/types";
-import { autoDoneSteps, doneSteps, handHolding, type MarketingMove, marketingMove, visibleSteps, withoutPlatforms } from "@/lib/rules/marketing";
+import { autoDoneSteps, doneFacts, doneSteps, handHolding, type MarketingMove, marketingMove, visibleSteps, withCurrentBrandSteps, withoutPlatforms } from "@/lib/rules/marketing";
 import { sectionMetadata } from "@/lib/sections";
 
 export const metadata = sectionMetadata("/marketing");
@@ -118,8 +118,8 @@ async function MarketingView() {
   const approvedAt = marketing?.approvedAt ?? null;
   const exclude = stored?.exclude ?? [];
   // Steps from the last approval stay until a new plan is approved; platforms ruled out since never show
-  const steps = visibleSteps(marketing?.steps ?? [], exclude);
-  const auto = autoDoneSteps(steps, { brandImagesPicked: Boolean(brand && Object.values(brand.images).every(Boolean)) });
+  const steps = visibleSteps(withCurrentBrandSteps(marketing?.steps ?? [], { hasLogo: Boolean(brand), hasWebsite: Boolean(website?.platform) }), exclude);
+  const auto = autoDoneSteps(steps, doneFacts(brand));
   const done = doneSteps(steps, marketing?.stepsDone ?? [], auto);
   const move = marketingMove({ hasProfile: true, intake, plan, current, approved: Boolean(approvedAt), steps, done });
   const pdf = documents.find((doc) => doc.generatedKind === "marketing_plan") ?? null;

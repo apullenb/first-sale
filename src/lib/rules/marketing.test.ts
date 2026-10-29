@@ -5,6 +5,7 @@ import type { MarketingPlanReply, MarketingStep } from "@/lib/marketing/types";
 import {
   autoDoneSteps,
   buildMarketingSteps,
+  doneFacts,
   checkPlan,
   doneSteps,
   handHolding,
@@ -14,6 +15,7 @@ import {
   planTexts,
   type StepContext,
   visibleSteps,
+  withCurrentBrandSteps,
   withoutPlatforms,
 } from "./marketing";
 
@@ -310,7 +312,52 @@ describe("after the owner rules out a platform", () => {
   });
 });
 
+describe("steps saved before brand images moved", () => {
+  const plan = reply({ platforms: [{ platform: "instagram", role: "main", why: "", cadence: "" }] });
+  const built = buildMarketingSteps({ ...plan, simulated: true }, intake({ include: ["instagram"] }), CONTEXT);
+  // As an earlier approval saved them: the old profile picture step, and no brand images step
+  const saved: MarketingStep[] = built
+    .filter((step) => step.kind !== "brand_images")
+    .map((step) =>
+      step.kind === "look"
+        ? { ...step, title: "Download your profile picture and cover", how: ["Open Build your brand in First Sale.", "Download the cover pictures for Facebook and YouTube if you’ll use them."], links: [{ label: "Open Build your brand", href: "/brand", external: false, guide: false }] }
+        : step,
+    );
+
+  it("get today's profile picture step and the brand images step, in place, without the model", () => {
+    const current = withCurrentBrandSteps(saved, { hasLogo: true, hasWebsite: false });
+    expect(current.map((step) => step.key)).toEqual(["look", "brand_images", ...saved.slice(1).map((step) => step.key)]);
+    const text = current.flatMap((step) => [step.title, ...step.how, ...step.links.map((link) => link.href)]).join(" ");
+    expect(text).not.toContain("Build your brand");
+    expect(text).not.toContain("cover pictures");
+    expect(current[0].links.map((link) => link.href)).toEqual(["/logo"]);
+    expect(current[1]).toMatchObject({ kind: "brand_images", by: "rule", practice: true, links: [{ href: "/brand-library#group-brand_images" }] });
+    expect(current.slice(2)).toEqual(saved.slice(1));
+  });
+
+  it("change nothing more when read again", () => {
+    const once = withCurrentBrandSteps(saved, { hasLogo: false, hasWebsite: false });
+    expect(withCurrentBrandSteps(once, { hasLogo: false, hasWebsite: false })).toEqual(once);
+    expect(once[0].links.map((link) => link.href)).toEqual(["/brand", "/logo"]);
+  });
+
+  it("add brand images to an email-only plan only when there's a website", () => {
+    const email = buildMarketingSteps(reply({ platforms: [{ platform: "email_list", role: "main", why: "", cadence: "" }] }), intake({ include: ["email_list"] }), CONTEXT);
+    expect(withCurrentBrandSteps(email, { hasLogo: true, hasWebsite: false })).toEqual(email);
+    expect(withCurrentBrandSteps(email, { hasLogo: true, hasWebsite: true })[0].key).toBe("brand_images");
+  });
+});
+
 describe("doneSteps", () => {
+  it("never counts practice previews as made brand images", () => {
+    const file = { url: "/brand/files/x?view=1", width: 10, height: 10 };
+    const images = { websiteHero: file, facebookCover: file, youtubeBanner: file, linkPreview: file };
+    expect(doneFacts({ images, simulated: false })).toEqual({ brandImagesPicked: true });
+    expect(doneFacts({ images, simulated: true })).toEqual({ brandImagesPicked: false });
+    expect(doneFacts({ images: { ...images, linkPreview: null }, simulated: false })).toEqual({ brandImagesPicked: false });
+    expect(doneFacts(null)).toEqual({ brandImagesPicked: false });
+  });
+
   it("counts the brand images step done once every kind has a picked image, or when ticked", () => {
     const steps = [{ key: "look", kind: "look" }, { key: "brand_images", kind: "brand_images" }] as MarketingStep[];
     expect(autoDoneSteps(steps, { brandImagesPicked: false })).toEqual([]);

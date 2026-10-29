@@ -1,5 +1,6 @@
 import { type MarketingPlatformId, PLATFORM_DATA, type SkillArea } from "@/data/marketing-platforms";
 import { BRAND_IMAGES_HREF } from "@/lib/brand/library";
+import type { BrandKit } from "@/lib/brand/types";
 import type { MarketingIntake, SkillLevel, StoredIntake } from "@/lib/marketing/intake";
 import type { FirstAction, HandHolding, MarketingPlan, MarketingPlanReply, MarketingStep, PlanPlatform, PlatformRole, StepLink } from "@/lib/marketing/types";
 
@@ -398,6 +399,19 @@ export function buildMarketingSteps(
   return visibleSteps(marked, intake.exclude);
 }
 
+// Saved steps get today's profile-picture and brand-image steps, so plans approved earlier never point to old pages.
+// The brand images step is added where buildMarketingSteps would put it. Ticks carry over by key.
+export function withCurrentBrandSteps(steps: readonly MarketingStep[], context: Pick<StepContext, "hasLogo" | "hasWebsite">): MarketingStep[] {
+  const practice = steps.some((step) => step.practice);
+  const fresh = (draft: StepDraft): MarketingStep => ({ ...draft, practice });
+  const current = steps.map((step) => (step.kind === "look" ? fresh(lookStep(context.hasLogo)) : step.kind === "brand_images" ? fresh(brandImagesStep(context.hasLogo)) : step));
+  if (current.some((step) => step.kind === "brand_images")) return current;
+  const look = current.findIndex((step) => step.kind === "look");
+  if (look === -1 && !context.hasWebsite) return current;
+  current.splice(look + 1, 0, fresh(brandImagesStep(context.hasLogo)));
+  return current;
+}
+
 // No step, or line of a step, names a ruled-out platform, whether it came from AI or the catalog.
 // Also run on saved steps, for platforms ruled out after the plan was approved.
 export function visibleSteps(steps: readonly MarketingStep[], exclude: readonly MarketingPlatformId[]): MarketingStep[] {
@@ -411,8 +425,13 @@ export function visibleSteps(steps: readonly MarketingStep[], exclude: readonly 
 
 // What First Sale already knows is finished, apart from the owner's ticks
 export interface DoneFacts {
-  // Every brand image kind has a picked file
+  // Every brand image kind has a picked file, and none is a practice preview
   brandImagesPicked: boolean;
+}
+
+// Practice previews never count: the owner can still tick the step by hand
+export function doneFacts(brand: Pick<BrandKit, "images" | "simulated"> | null): DoneFacts {
+  return { brandImagesPicked: Boolean(brand && !brand.simulated && Object.values(brand.images).every(Boolean)) };
 }
 
 // Steps done by what the owner made in First Sale; they can't be unticked
