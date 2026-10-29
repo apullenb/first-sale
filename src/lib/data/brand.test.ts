@@ -7,7 +7,11 @@ import { createTestDb } from "@/test/db";
 import { seedOwners } from "@/test/fixtures";
 import {
   addAssetForOwner,
+  addUploadedLogoForOwner,
   approveVersionsForOwner,
+  deleteUploadedLogoForOwner,
+  type NewUploadedLogo,
+  setUploadedLogoColorsForOwner,
   assetRoomForOwner,
   BRAND_LIMITS,
   chooseLogoForOwner,
@@ -133,7 +137,7 @@ describe("request keys", () => {
     const { concepts } = await round();
     const data = pngBytes(1536, 1024, 77);
     const id = await add(concepts[0].id, { data, simulated: true });
-    expect(await getAssetFileForOwner(db, "owner-a", id)).toEqual({ kind: "logo", mimeType: "image/png", simulated: true, name: "Rise Bakery", data });
+    expect(await getAssetFileForOwner(db, "owner-a", id)).toEqual({ kind: "logo", origin: "generated", title: null, mimeType: "image/png", simulated: true, name: "Rise Bakery", data });
   });
 });
 
@@ -170,6 +174,7 @@ describe("the brand kit", () => {
       },
       images: { websiteHero: { url: `/brand/files/${hero}?view=1`, width: 1920, height: 1080 }, facebookCover: null, youtubeBanner: null, linkPreview: null },
       simulated: false,
+      uploaded: false,
     });
 
     expect(await unpickImageForOwner(db, "owner-a", "website_hero")).toBe(true);
@@ -240,5 +245,84 @@ describe("removing ideas", () => {
     expect(state.rounds.map((r) => r.id)).toEqual([kept.id]);
     expect(state.assets.map((a) => a.id)).toEqual([logo]);
     expect(await getBrandKitForOwner(db, "owner-a")).not.toBeNull();
+  });
+});
+
+describe("an uploaded logo", () => {
+  function upload(overrides: Partial<NewUploadedLogo> = {}): NewUploadedLogo {
+    const data = pngBytes(800, 400, 30);
+    return { requestKey: `upload:${crypto.randomUUID()}`, title: "Rise logo", words: "Rise", mimeType: "image/png", sha256: "abc", width: 800, height: 400, data, ...overrides };
+  }
+
+  it("is stored byte for byte and chosen at once, clearing versions from the old pick", async () => {
+    const { logo } = await approvedKit();
+    const input = upload();
+    const added = await addUploadedLogoForOwner(db, "owner-a", input);
+    if (!added.ok) throw new Error(added.reason);
+    expect(await addUploadedLogoForOwner(db, "owner-a", input)).toEqual({ ok: true, id: added.id });
+
+    const state = (await getBrandForOwner(db, "owner-a"))!;
+    expect(state.chosenLogoId).toBe(added.id);
+    expect(state.chosenLogoId).not.toBe(logo);
+    expect(state.picks).toEqual({});
+    expect(state.assets.find((asset) => asset.id === added.id)).toMatchObject({ origin: "uploaded", conceptId: null, title: "Rise logo", words: "Rise", simulated: false });
+    expect(await getAssetFileForOwner(db, "owner-a", added.id)).toMatchObject({ origin: "uploaded", title: "Rise logo", name: "Rise Bakery", data: input.data });
+    expect(await getAssetForOwner(db, "owner-a", added.id)).toMatchObject({ concept: null, brief: null, roundSimulated: false });
+  });
+
+  it("makes a kit with the owner's colors and nothing claimed about its lettering", async () => {
+    await saveBriefForOwner(db, "owner-a", testBrief({ tagline: "Baked at dawn" }));
+    const added = await addUploadedLogoForOwner(db, "owner-a", upload());
+    if (!added.ok) throw new Error(added.reason);
+    expect(await getBrandKitForOwner(db, "owner-a")).toMatchObject({ businessName: "Rise Bakery", tagline: "", colors: [], lettering: "", uploaded: true, simulated: false });
+
+    const palette = [{ hex: "#1F3A2E", name: "Dark green" }];
+    expect(await setUploadedLogoColorsForOwner(db, "owner-a", added.id, palette)).toBe(true);
+    expect((await getBrandKitForOwner(db, "owner-a"))!.colors).toEqual(palette);
+    expect(await getAssetFileForOwner(db, "owner-a", added.id)).toMatchObject({ data: upload().data });
+  });
+
+  it("takes versions made from it, but not files from another owner's logo or with no source", async () => {
+    const added = await addUploadedLogoForOwner(db, "owner-a", upload());
+    if (!added.ok) throw new Error(added.reason);
+    const made = await addAssetForOwner(db, "owner-a", asset("", { conceptId: null, kind: "stacked", sourceId: added.id }));
+    expect(made.ok).toBe(true);
+    expect(await addAssetForOwner(db, "owner-a", asset("", { conceptId: null, kind: "stacked", sourceId: null }))).toEqual({ ok: false, reason: "not_found" });
+    expect(await addAssetForOwner(db, "owner-b", asset("", { conceptId: null, kind: "stacked", sourceId: added.id }))).toEqual({ ok: false, reason: "not_found" });
+  });
+
+  it("only changes colors on uploads, and another owner can't touch it", async () => {
+    const { logo } = await approvedKit();
+    expect(await setUploadedLogoColorsForOwner(db, "owner-a", logo, [])).toBe(false);
+    const added = await addUploadedLogoForOwner(db, "owner-a", upload());
+    if (!added.ok) throw new Error(added.reason);
+    expect(await setUploadedLogoColorsForOwner(db, "owner-b", added.id, [])).toBe(false);
+    expect(await deleteUploadedLogoForOwner(db, "owner-b", added.id)).toBe(false);
+    expect(await deleteUploadedLogoForOwner(db, "owner-a", logo)).toBe(false);
+  });
+
+  it("is removed with the files made from it, and the pick is cleared", async () => {
+    const added = await addUploadedLogoForOwner(db, "owner-a", upload());
+    if (!added.ok) throw new Error(added.reason);
+    await addAssetForOwner(db, "owner-a", asset("", { conceptId: null, kind: "profile", sourceId: added.id }));
+    expect(await deleteUploadedLogoForOwner(db, "owner-a", added.id)).toBe(true);
+    const state = (await getBrandForOwner(db, "owner-a"))!;
+    expect(state.assets).toEqual([]);
+    expect(state.chosenLogoId).toBeNull();
+    expect(await getBrandKitForOwner(db, "owner-a")).toBeNull();
+  });
+
+  it("survives removing every idea", async () => {
+    await approvedKit();
+    const added = await addUploadedLogoForOwner(db, "owner-a", upload());
+    if (!added.ok) throw new Error(added.reason);
+    await clearIdeasForOwner(db, "owner-a");
+    const state = (await getBrandForOwner(db, "owner-a"))!;
+    expect(state.rounds).toEqual([]);
+    expect(state.assets.map((each) => each.id)).toEqual([added.id]);
+  });
+
+  it("needs a business", async () => {
+    expect(await addUploadedLogoForOwner(db, "nobody", upload())).toEqual({ ok: false, reason: "no_business" });
   });
 });

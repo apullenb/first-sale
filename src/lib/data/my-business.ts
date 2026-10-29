@@ -33,9 +33,13 @@ import { clearJourneyMarkForOwner, listJourneyMarksForOwner, setJourneyMarkForOw
 import { getSidebarFactsForOwner } from "./sidebar";
 import { getMarketingForOwner, type MarketingPatch, type MarketingRecord, updateMarketingForOwner } from "./marketing";
 import type { NewBrandAsset } from "@/lib/brand/generate";
-import type { AssetCheck, BrandBrief, BrandImageKind, BrandKit, VersionKind } from "@/lib/brand/types";
+import type { AssetCheck, BrandBrief, BrandImageKind, BrandKit, PaletteColor, VersionKind } from "@/lib/brand/types";
 import {
   addAssetForOwner,
+  addUploadedLogoForOwner,
+  deleteUploadedLogoForOwner,
+  type NewUploadedLogo,
+  setUploadedLogoColorsForOwner,
   approveVersionsForOwner,
   assetRoomForOwner,
   chooseLogoForOwner,
@@ -80,6 +84,16 @@ import { createBusinessWithHistoryForOwner, listHistoryForOwner, updateProfileWi
 import { deleteIntakeDraftForOwner, getIntakeDraftForOwner, saveIntakeDraftForOwner } from "./intake-drafts";
 import type { InsightMark, SavedInsights } from "@/lib/insights/types";
 import { getInsightsForOwner, markInsightForOwner, saveInsightsForOwner } from "./insights";
+import {
+  addLibraryFileForOwner,
+  deleteLibraryFileForOwner,
+  getLibraryFileForOwner,
+  libraryUsageForOwner,
+  listLibraryFilesForOwner,
+  type NewLibraryFile,
+} from "./brand-library";
+import { createProductForOwner, deleteProductForOwner, listProductsForOwner, updateProductForOwner } from "./products";
+import type { ProductValues } from "@/lib/rules/products";
 
 // What pages, actions and route handlers call: the owner always comes from the verified session.
 
@@ -392,6 +406,71 @@ export async function unpickMyBrandImage(kind: BrandImageKind) {
 export async function clearMyBrandIdeas() {
   const user = await getCurrentUser();
   return clearIdeasForOwner(getDb(), user.id);
+}
+
+// The owner's own logo, stored byte for byte and chosen at once
+export async function addMyUploadedLogo(input: NewUploadedLogo) {
+  const user = await getCurrentUser();
+  return addUploadedLogoForOwner(getDb(), user.id, input);
+}
+
+export async function setMyUploadedLogoColors(assetId: string, palette: PaletteColor[]) {
+  const user = await getCurrentUser();
+  return setUploadedLogoColorsForOwner(getDb(), user.id, assetId, palette);
+}
+
+export async function deleteMyUploadedLogo(assetId: string) {
+  const user = await getCurrentUser();
+  return deleteUploadedLogoForOwner(getDb(), user.id, assetId);
+}
+
+// Brand Library: pictures the owner added
+
+export async function listMyLibraryFiles() {
+  const user = await getCurrentUser();
+  return listLibraryFilesForOwner(getDb(), user.id);
+}
+
+export async function getMyLibraryFile(fileId: string) {
+  const user = await getCurrentUser();
+  return getLibraryFileForOwner(getDb(), user.id, fileId);
+}
+
+export async function myLibraryUsage() {
+  const user = await getCurrentUser();
+  return libraryUsageForOwner(getDb(), user.id);
+}
+
+export async function addMyLibraryFile(input: NewLibraryFile) {
+  const user = await getCurrentUser();
+  return addLibraryFileForOwner(getDb(), user.id, input);
+}
+
+export async function deleteMyLibraryFile(fileId: string) {
+  const user = await getCurrentUser();
+  return deleteLibraryFileForOwner(getDb(), user.id, fileId);
+}
+
+// Products
+
+export async function listMyProducts() {
+  const user = await getCurrentUser();
+  return listProductsForOwner(getDb(), user.id);
+}
+
+export async function createMyProduct(values: ProductValues) {
+  const user = await getCurrentUser();
+  return createProductForOwner(getDb(), user.id, values);
+}
+
+export async function updateMyProduct(productId: string, values: ProductValues) {
+  const user = await getCurrentUser();
+  return updateProductForOwner(getDb(), user.id, productId, values);
+}
+
+export async function deleteMyProduct(productId: string) {
+  const user = await getCurrentUser();
+  return deleteProductForOwner(getDb(), user.id, productId);
 }
 
 // Intake progress and history

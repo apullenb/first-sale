@@ -59,9 +59,11 @@ describe("pasteFor", () => {
     expect(pasteFor(["logo"], context({ brand }))[0]).toMatchObject({ note: expect.stringMatching(/Practice preview/) });
   });
 
-  it("puts the chosen color first and points to the Brand page when there's no brand", () => {
+  it("puts the chosen color first and points to Create your logo when there's no brand", () => {
     expect(pasteFor(["colors"], context()).map((value) => value.label)).toEqual(["Main color", "Butter"]);
-    expect(pasteFor(["colors", "logo"], context({ brand: null })).map((value) => value.kind)).toEqual(["color", "missing", "missing"]);
+    const missing = pasteFor(["colors", "logo"], context({ brand: null }));
+    expect(missing.map((value) => value.kind)).toEqual(["color", "missing", "missing"]);
+    expect(missing.slice(1).map((value) => ("href" in value ? value.href : null))).toEqual(["/logo", "/logo"]);
   });
 
   it("says where to draft words before there are any", () => {

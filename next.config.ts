@@ -32,6 +32,10 @@ const nextConfig: NextConfig = {
         headers: [{ key: "Content-Security-Policy", value: "sandbox; frame-ancestors 'none'" }],
       },
       {
+        source: "/brand-library/files/:id",
+        headers: [{ key: "Content-Security-Policy", value: "sandbox; frame-ancestors 'none'" }],
+      },
+      {
         source: "/photos/:id/file",
         headers: [{ key: "Content-Security-Policy", value: "sandbox; frame-ancestors 'none'" }],
       },

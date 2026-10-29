@@ -23,7 +23,7 @@ export function KitSection({ kit, guideId }: { kit: BrandKit; guideId: string | 
   ];
   return (
     <section aria-labelledby="kit-heading" className="@container flex flex-col gap-4">
-      <SectionHead id="kit-heading" number={7} title="Your brand kit" lead={`Everything you approved for ${kit.businessName}, in one place, with the files you’ll need. First Sale’s website section uses these too.`}>
+      <SectionHead id="kit-heading" number={3} title="Your brand kit" lead={`Everything you approved for ${kit.businessName}, in one place, with the files you’ll need. Your website and Brand Library use these too.`}>
         {kit.simulated ? (
           <p className="flex flex-wrap items-center gap-2 text-sm text-check">
             <PracticeTag /> Some files are practice previews. Don’t use them as your logo.
@@ -35,6 +35,7 @@ export function KitSection({ kit, guideId }: { kit: BrandKit; guideId: string | 
         <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
           <ActorChip actor="rule" /> Readability on white is worked out from each color’s contrast (the WCAG standard), not by AI.
         </p>
+        {kit.colors.length === 0 ? <p className="text-[15px] text-muted">No colors saved yet. Pick your logo’s colors above, and they’ll show here.</p> : null}
         <ul className="grid gap-2.5 @2xl:grid-cols-2">
           {colorRows(kit.colors).map((color) => (
             <li key={color.hex} className="flex items-start gap-3 rounded-xl border border-line bg-surface p-2.5 shadow-soft">
@@ -55,6 +56,7 @@ export function KitSection({ kit, guideId }: { kit: BrandKit; guideId: string | 
         <LogoFiles
           businessName={kit.businessName}
           simulated={kit.simulated}
+          practice={kit.uploaded ? { primary: false } : undefined}
           colors={kit.colors}
           sources={{ primary: kit.logos.primary?.url ?? null, stacked: kit.logos.stacked?.url ?? null, profile: kit.logos.profile?.url ?? null, solid: kit.logos.solid?.url ?? null }}
         />

@@ -246,9 +246,9 @@ export function SiteStudio(props: Props) {
                 </div>
               ) : (
                 <p className="text-sm text-muted">
-                  Your brand colors show here once you choose a logo on the{" "}
-                  <Link href="/brand" className={TEXT_LINK}>
-                    Brand page
+                  Your brand colors show here once you{" "}
+                  <Link href="/logo" className={TEXT_LINK}>
+                    create or upload your logo
                   </Link>
                   .
                 </p>

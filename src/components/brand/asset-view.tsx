@@ -50,7 +50,11 @@ export function CheckNotes({ check, simulated, checking }: { check: AssetCheck |
       ) : (
         <p className="flex flex-wrap items-center gap-2 text-rule">
           <ActorChip actor="ai" />
-          {check.lettering && check.lettering.read.length ? `AI read “${check.lettering.read.join(" ")}”, which matches.` : "AI found no problems."}
+          {check.lettering && check.lettering.read.length
+            ? `AI read “${check.lettering.read.join(" ")}”, which matches.`
+            : check.lettering
+              ? "AI found no problems."
+              : "AI found no problems. The spelling wasn’t compared, because you didn’t say what words your logo has."}
         </p>
       )}
       {check.lettering?.note ? <p className="text-muted">{check.lettering.note}</p> : null}

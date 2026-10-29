@@ -105,6 +105,8 @@ export const IMAGE_KINDS = ["website_hero", "facebook_cover", "youtube_banner", 
 export type BrandImageKind = (typeof IMAGE_KINDS)[number];
 export const ASSET_KINDS = [...LOGO_KINDS, ...IMAGE_KINDS] as const;
 export type AssetKind = (typeof ASSET_KINDS)[number];
+export const ASSET_ORIGINS = ["generated", "uploaded"] as const;
+export type AssetOrigin = (typeof ASSET_ORIGINS)[number];
 // Approved file ids: the version set together, each brand image on its own
 export type BrandPicks = Partial<Record<VersionKind | BrandImageKind, string>>;
 
@@ -149,4 +151,6 @@ export interface BrandKit {
   images: { websiteHero: BrandFile | null; facebookCover: BrandFile | null; youtubeBanner: BrandFile | null; linkPreview: BrandFile | null };
   // Any file here is a practice preview, not made by Muse
   simulated: boolean;
+  // The main logo is the owner's own upload, so its colors and lettering come from the owner
+  uploaded: boolean;
 }

@@ -1,1 +1,0 @@
-ALTER TABLE "marketing_plans" ADD COLUMN "social" jsonb DEFAULT '{}'::jsonb NOT NULL;

@@ -18,7 +18,8 @@ const MAX_RESULT_BYTES = 25_000_000;
 
 export interface NewBrandAsset {
   kind: AssetKind;
-  conceptId: string;
+  // Null for files made from the owner's uploaded logo
+  conceptId: string | null;
   sourceId: string | null;
   change: string | null;
   // One-click changes this file carries, inherited from the logo it was made from
@@ -61,15 +62,23 @@ export interface ConceptRef {
   brief: BrandBrief;
 }
 
-export interface LogoRef extends ConceptRef {
+// id and concept are null for the owner's uploaded logo, which wasn't drawn from an idea
+export interface LogoRef {
+  id: string | null;
+  concept: ConceptReply | null;
+  brief: BrandBrief;
   logoId: string;
   logo: ImageInput;
   design: BrandDesign | null;
+  // Uploaded logos: the words in it as the owner typed them; "" when it has none or they didn't say
+  words?: string;
 }
+
+export const UPLOAD_UNCHANGED = "First Sale doesn’t redraw a logo you uploaded. To change it, upload a new file, or get logo ideas instead.";
 
 interface Job {
   kind: AssetKind;
-  concept: ConceptRef;
+  concept: LogoRef | ConceptRef;
   sourceId: string | null;
   change: string | null;
   design: BrandDesign | null;
@@ -85,7 +94,13 @@ export interface BatchResult {
   failed: string | null;
 }
 
-const expected = (ref: ConceptRef, kind: AssetKind): Expected => ({ name: ref.brief.name, tagline: ref.brief.tagline, marks: marksFor(ref.concept, kind) });
+// An uploaded logo is checked against the words the owner said it has, if any
+const expected = (ref: LogoRef | ConceptRef, kind: AssetKind): Expected =>
+  ref.concept
+    ? { name: ref.brief.name, tagline: ref.brief.tagline, marks: marksFor(ref.concept, kind) }
+    : { name: ("words" in ref && ref.words) || "", tagline: "", marks: "initials" };
+
+const paletteOf = (ref: LogoRef) => ref.concept?.palette ?? ref.design?.palette ?? [];
 
 async function runOne(models: Models, store: AssetStore, job: Job, now: Date): Promise<string> {
   let result: ImageEditResult;
@@ -100,11 +115,11 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
     // Never shown as a picture: a labeled text wordmark stands in
     const preview = practiceSvg({
       kind: job.kind,
-      conceptKind: job.concept.concept.kind,
+      conceptKind: job.concept.concept?.kind ?? "wordmark",
       name: job.concept.brief.name,
-      tagline: job.concept.brief.tagline,
-      palette: job.concept.concept.palette,
-      typography: job.concept.concept.typography,
+      tagline: job.concept.concept ? job.concept.brief.tagline : "",
+      palette: job.concept.concept?.palette ?? job.design?.palette ?? [],
+      typography: job.concept.concept?.typography ?? "",
     });
     file = { mimeType: "image/svg+xml", data: new TextEncoder().encode(preview.svg), width: preview.width, height: preview.height };
   } else {
@@ -205,10 +220,12 @@ export async function refineLogo(
   store: AssetStore,
   input: { logo: LogoRef; change: string; oneClick?: { lines: string[]; design: BrandDesign }; requestKey: string; userKey?: string; now: Date },
 ): Promise<string> {
+  const concept = input.logo.concept;
+  if (!concept) throw new OwnerFacingError(UPLOAD_UNCHANGED);
   // Drawn and checked as it will be: new colors, lettering or tagline included
-  const logo: LogoRef = input.oneClick
-    ? { ...input.logo, ...applyDesign(input.logo.concept, input.logo.brief, input.oneClick.design), design: input.oneClick.design }
-    : input.logo;
+  const logo = input.oneClick
+    ? { ...input.logo, ...applyDesign(concept, input.logo.brief, input.oneClick.design), design: input.oneClick.design }
+    : { ...input.logo, concept };
   const prompt = refinePrompt(logo.brief, logo.concept, input.oneClick?.lines ?? input.change);
   const job: Job = {
     kind: "logo",
@@ -233,7 +250,7 @@ export async function makeVersions(
 ): Promise<BatchResult> {
   const { logo } = input;
   const jobs = input.kinds.map((kind): Job => {
-    const prompt = versionPrompt(logo.brief, logo.concept, kind);
+    const prompt = versionPrompt(logo.brief, logo.concept, kind, logo.words);
     return {
       kind,
       concept: logo,
@@ -257,7 +274,7 @@ export async function makeBrandImages(
 ): Promise<BatchResult> {
   const { logo } = input;
   const jobs = input.kinds.map((kind): Job => {
-    const prompt = brandImagePrompt(logo.brief, logo.concept, kind, input.change);
+    const prompt = brandImagePrompt(logo.brief, paletteOf(logo), kind, input.change);
     return {
       kind,
       concept: logo,

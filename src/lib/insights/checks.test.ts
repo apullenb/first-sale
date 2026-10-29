@@ -242,12 +242,19 @@ describe("checkInsights", () => {
 
   it("turns links into app pages, ignoring step keys that aren't in the plan", () => {
     const result = checkInsights(
-      reply({ ideas: [item("Show off your logo", { link: "brand" }), item("Start a tasting list", { link: "website", stepKey: "made-up-step" })] }),
+      reply({
+        ideas: [
+          item("Show off your logo", { link: "brand" }),
+          item("Start a tasting list", { link: "website", stepKey: "made-up-step" }),
+          item("Get a simple logo", { link: "logo" }),
+        ],
+      }),
       context(),
     );
     expect(result.items.filter((each) => each.section === "ideas").map((each) => each.link)).toEqual([
       { href: "/brand", label: "Build your brand" },
       { href: "/website", label: "Create your website" },
+      { href: "/logo", label: "Create your logo" },
     ]);
   });
 

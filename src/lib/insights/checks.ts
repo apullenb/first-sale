@@ -16,6 +16,7 @@ export const PAGE_LINKS: Record<InsightPage, InsightLink> = {
   checklist: { href: "/checklist", label: getSection("/checklist").title },
   documents: { href: "/documents", label: getSection("/documents").title },
   business_plan: { href: "/documents/business-plan", label: "Business plan" },
+  logo: { href: "/logo", label: getSection("/logo").title },
   brand: { href: "/brand", label: getSection("/brand").title },
   website: { href: "/website", label: getSection("/website").title },
   photos: { href: "/photos", label: getSection("/photos").title },
