@@ -71,7 +71,7 @@ async function PhotoView({ params, searchParams }: { params: Promise<{ id: strin
   return (
     <>
       <div className="flex flex-col gap-1.5">
-        <p className={EYEBROW}>Run your business · Product photos</p>
+        <p className={EYEBROW}>Marketing and branding · Product photos</p>
         <h1 className={PAGE_TITLE}>{photo.title}</h1>
       </div>
       {editing.state === "practice" ? (

@@ -4,26 +4,34 @@ import { SECTION_TITLE } from "@/components/styles";
 import type { PlanStep } from "@/lib/data/plan";
 import { formatFee } from "@/lib/documents/startup-plan";
 import type { Costs, NextActions } from "@/lib/rules/next-action";
+import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
+import { Lock } from "./lock";
 
 const LIST = new Intl.ListFormat("en-US", { type: "conjunction" });
 const LINK = "flex min-h-11 w-fit items-center font-semibold underline underline-offset-4";
 
-function StepLine({ step, extra }: { step: PlanStep; extra?: string }) {
+function StepLine({ step, extra, locked }: { step: PlanStep; extra?: string; locked?: boolean }) {
   return (
-    <li className="flex flex-col gap-1 rounded-xl bg-surface px-3.5 py-2 ring-1 ring-ink/5">
-      <Link href={`/checklist/${step.id}`} className={LINK}>
+    <li className={`flex flex-col gap-1 rounded-xl px-3.5 py-2 ring-1 ring-ink/5 ${locked ? "bg-ground" : "bg-surface"}`}>
+      <Link href={`/checklist/${step.id}`} className={`${LINK} ${locked ? "gap-2 text-muted" : ""}`}>
+        {locked ? (
+          <span title={extra} className="text-muted">
+            <Lock />
+          </span>
+        ) : null}
         {step.title}
       </Link>
       <div className="flex flex-wrap items-center gap-2 pb-1 text-sm text-muted">
         <RequirementStatusChip status={step.requirementStatus} />
         {step.feeCents !== null ? <span>Fee {formatFee(step.feeCents)}</span> : null}
+        {step.status === "todo" ? <span>About {formatMinutes(stepMinutes(step))}</span> : null}
         {extra ? <span>{extra}</span> : null}
       </div>
     </li>
   );
 }
 
-function Group({ id, title, help, steps, extra }: { id: string; title: string; help: string; steps: PlanStep[]; extra?: (step: PlanStep) => string }) {
+function Group({ id, title, help, steps, extra, locked }: { id: string; title: string; help: string; steps: PlanStep[]; extra?: (step: PlanStep) => string; locked?: boolean }) {
   if (!steps.length) return null;
   return (
     <section aria-labelledby={id} className="flex flex-col gap-2">
@@ -35,7 +43,7 @@ function Group({ id, title, help, steps, extra }: { id: string; title: string; h
       </div>
       <ul className="flex flex-col gap-2">
         {steps.map((step) => (
-          <StepLine key={step.id} step={step} extra={extra?.(step)} />
+          <StepLine key={step.id} step={step} extra={extra?.(step)} locked={locked} />
         ))}
       </ul>
     </section>
@@ -64,10 +72,11 @@ export function NextActionGroups({ actions }: { actions: NextActions<PlanStep> }
       />
       <Group
         id="waiting-heading"
-        title="Waiting on another step"
-        help="These start once the steps they wait on are done."
+        title="Locked until another step is done"
+        help="Each one opens once the step it needs is finished. You can still read ahead."
         steps={actions.waiting.map((each) => each.step)}
-        extra={(step) => `Waits on ${LIST.format(actions.waiting.find((each) => each.step.id === step.id)!.on.map((on) => `“${on.title}”`))}`}
+        extra={(step) => `Finish ${LIST.format(actions.waiting.find((each) => each.step.id === step.id)!.on.map((on) => `“${on.title}”`))} first`}
+        locked
       />
       {actions.later.length || actions.optional.length ? (
         <details className="group rounded-2xl bg-surface p-4 ring-1 ring-ink/5">

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export type SectionGroup = "Start your business" | "Run your business";
+export type SectionGroup = "Start your business" | "Marketing and branding" | "Run your business";
 
 export interface Section {
   href: string;
@@ -60,7 +60,7 @@ export const SECTIONS: Section[] = [
   {
     href: "/brand",
     title: "Branding",
-    group: "Run your business",
+    group: "Marketing and branding",
     step: null,
     milestone: 12,
     summary: "A logo made for your business, its stacked, profile and one-color versions, and matching images for your social pages and website.",
@@ -68,7 +68,7 @@ export const SECTIONS: Section[] = [
   {
     href: "/website",
     title: "Website",
-    group: "Run your business",
+    group: "Marketing and branding",
     step: null,
     milestone: 13,
     summary: "Compare three ways to build your website and what they cost, get a recommendation for your business, then build it step by step.",
@@ -76,7 +76,7 @@ export const SECTIONS: Section[] = [
   {
     href: "/photos",
     title: "Product photos",
-    group: "Run your business",
+    group: "Marketing and branding",
     step: null,
     milestone: 5,
     summary: "Turn an ordinary photo of what you sell into a polished store photo. The product stays exactly as it is, and you approve every photo.",
@@ -84,7 +84,7 @@ export const SECTIONS: Section[] = [
   {
     href: "/products",
     title: "Products and marketing",
-    group: "Run your business",
+    group: "Marketing and branding",
     step: null,
     milestone: 5,
     summary: "Add a product and get a draft listing and social post. Nothing goes out until you approve it.",
@@ -107,7 +107,7 @@ export const SECTIONS: Section[] = [
   },
 ];
 
-export const SECTION_GROUPS: SectionGroup[] = ["Start your business", "Run your business"];
+export const SECTION_GROUPS: SectionGroup[] = ["Start your business", "Marketing and branding", "Run your business"];
 
 export function getSection(href: string): Section {
   const section = SECTIONS.find((candidate) => candidate.href === href);

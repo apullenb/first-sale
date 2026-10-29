@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { ActorLegend } from "@/components/how-it-works";
+import { DashboardWidgets } from "@/components/plan/dashboard-widgets";
 import { JourneyStages, StartHere } from "@/components/plan/journey";
 import { StepBoard } from "@/components/plan/step-board";
 import { CARD, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
@@ -9,10 +10,12 @@ import { getMyBusiness, getMyDetails, getMyPlan, getMyResearch, listMyDocuments,
 import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
 import { formsFor } from "@/lib/documents/form-catalog";
 import { displayName, profileToAnswers, summarize } from "@/lib/intake/answers";
+import { BUDGET_LABELS } from "@/lib/intake/options";
 import { placeOf, structureOf } from "@/lib/research/applicability";
 import { answerChanges } from "@/lib/research/changes";
 import { type JourneyInput, journeyStages, nextMove } from "@/lib/rules/journey";
 import { nextActions, planCosts } from "@/lib/rules/next-action";
+import { budgetCapCents, remainingWork, spentCents } from "@/lib/rules/progress";
 
 const LABEL = "text-xs font-bold uppercase tracking-wider text-muted";
 
@@ -50,6 +53,21 @@ async function Overview() {
   });
   const actions = nextActions(priced);
   const costs = planCosts(priced);
+  const work = remainingWork(priced);
+  const widgets =
+    profile && priced.length ? (
+      <DashboardWidgets
+        left={work.left.length}
+        minutes={work.minutes}
+        waiting={work.waiting.length}
+        spentCents={spentCents(priced)}
+        toGoCents={costs.startupCents}
+        unknownFees={costs.unknown.length}
+        budgetCapCents={budgetCapCents(profile.startupBudget)}
+        budgetLabel={profile.startupBudget ? BUDGET_LABELS[profile.startupBudget] : null}
+        launchDate={profile.launchDate}
+      />
+    ) : null;
   const required = priced.filter((step) => step.timing === "before_selling" && step.requirementStatus !== "optional" && step.requirementStatus !== "outside_coverage");
   const beforeSelling = { total: required.length, done: required.filter((step) => step.status === "done").length };
   const first = actions.first;
@@ -96,7 +114,10 @@ async function Overview() {
 
   return (
     <div className="flex max-w-2xl flex-col gap-4">
+      {/* Widgets above the next step on wider screens, below it on phones; one copy shows at a time */}
+      {widgets ? <div className="hidden sm:block">{widgets}</div> : null}
       <StartHere move={move} step={moveStep} parallel={moveStep && moveStep.timing !== "later" ? Math.max(0, actions.now.length - 1) : 0} />
+      {widgets ? <div className="sm:hidden">{widgets}</div> : null}
 
       {alsoWaiting.length ? (
         <section aria-labelledby="waiting-heading" className="flex flex-col gap-2 rounded-2xl bg-ai-tint p-5 ring-1 ring-ai/15">

@@ -32,6 +32,7 @@ export function testProfile(
     hiringPlans: null,
     experience: null,
     launchTiming: null,
+    launchDate: null,
     category: null,
     productTags: [],
     ownerRelation: null,

@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { businesses, users } from "@/db/schema";
 import { EMPTY_ANSWERS } from "@/lib/intake/answers";
+import { profileKey } from "@/lib/research/requirements";
 import type { IntakeDraftInput } from "@/lib/intake/draft-schema";
 import { createTestDb } from "@/test/db";
 import { seedOwners, testProfile } from "@/test/fixtures";
 import { createBusinessWithHistoryForOwner, listHistoryForOwner, updateProfileWithHistoryForOwner } from "./business-history";
-import { currentKey, deleteIntakeDraftForOwner, getIntakeDraftForOwner, saveIntakeDraftForOwner } from "./intake-drafts";
+import { currentKey, deleteIntakeDraftForOwner, draftKey, getIntakeDraftForOwner, saveIntakeDraftForOwner } from "./intake-drafts";
 
 let db: Awaited<ReturnType<typeof createTestDb>>;
 
@@ -92,5 +93,13 @@ describe("answer history", () => {
 
   it("returns null with no business", async () => {
     expect(await updateProfileWithHistoryForOwner(db, "new-b", testProfile(), [])).toBeNull();
+  });
+});
+
+describe("draftKey", () => {
+  it("matches the research key until a launch date is set, then changes with it", () => {
+    const profile = testProfile();
+    expect(draftKey(profile)).toBe(profileKey(profile));
+    expect(draftKey(testProfile({ launchDate: "2027-01-15" }))).not.toBe(draftKey(testProfile({ launchDate: "2027-02-01" })));
   });
 });

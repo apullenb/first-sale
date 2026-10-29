@@ -66,5 +66,13 @@ describe("planCosts: one form, several steps", () => {
     expect(costs.startup).toEqual([{ title: "vendor", cents: 5000 }]);
     expect(costs.maybe).toEqual([]);
   });
+
+  it("doesn't count a form again once a step filed with it is done", () => {
+    const costs = planCosts([
+      step("name-filed", { feeCents: 2300, formKey: "assumed-name", status: "done" }),
+      step("name-again", { feeCents: 2300, formKey: "assumed-name" }),
+    ]);
+    expect(costs.startupCents).toBe(0);
+  });
 });
 

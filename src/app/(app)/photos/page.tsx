@@ -19,7 +19,7 @@ export default function PhotosPage() {
   return (
     <div className="flex max-w-3xl flex-col gap-6">
       <div className="flex flex-col gap-1.5">
-        <p className={EYEBROW}>Run your business</p>
+        <p className={EYEBROW}>Marketing and branding</p>
         <h1 className={PAGE_TITLE}>Product photos</h1>
         <p className="text-lg text-muted">
           Turn an ordinary photo of what you sell into a polished photo for your online store. Upload it, choose a look, and

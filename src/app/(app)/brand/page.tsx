@@ -24,7 +24,7 @@ export default function BrandPage() {
   return (
     <div className="flex max-w-3xl flex-col gap-8">
       <div className="flex flex-col gap-1.5">
-        <p className={EYEBROW}>Run your business</p>
+        <p className={EYEBROW}>Marketing and branding</p>
         <h1 className={PAGE_TITLE}>Branding</h1>
         <p className="text-lg text-muted">
           Pick the words that fit how your business should feel, and see your brand described back to you. Then AI writes logo ideas from it and draws

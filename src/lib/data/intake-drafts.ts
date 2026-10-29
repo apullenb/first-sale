@@ -2,7 +2,7 @@ import "server-only";
 import { eq } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { businesses, intakeDrafts } from "@/db/schema";
-import { businessProfileSchema } from "@/lib/domain";
+import { type BusinessProfile, businessProfileSchema } from "@/lib/domain";
 import { intakeAnswersSchema, type IntakeDraftInput } from "@/lib/intake/draft-schema";
 import { profileKey } from "@/lib/research/requirements";
 
@@ -56,5 +56,10 @@ export async function currentKey(db: Db, ownerId: string): Promise<string | null
   if (!row) return null;
   const parsed = businessProfileSchema.safeParse(row.profile);
   // Answers that no longer parse are re-answered from scratch
-  return parsed.success ? profileKey(parsed.data) : "unreadable";
+  return parsed.success ? draftKey(parsed.data) : "unreadable";
+}
+
+// The research key plus the launch date, which research ignores but an edit in another tab must not overwrite
+export function draftKey(profile: BusinessProfile): string {
+  return profile.launchDate ? `${profileKey(profile)}:${profile.launchDate}` : profileKey(profile);
 }

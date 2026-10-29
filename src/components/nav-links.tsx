@@ -1,5 +1,9 @@
 import Link from "next/link";
+import { formatMinutes } from "@/lib/rules/progress";
 import { HOME, SECTION_GROUPS, SECTIONS } from "@/lib/sections";
+
+// Steps left on a section, shown like an alert beside it, with the owner's time for them
+export type NavBadges = Partial<Record<string, { count: number; minutes: number }>>;
 
 // Sub-pages like /business/new highlight their section
 function isActive(href: string, activeHref: string | null): boolean {
@@ -8,7 +12,7 @@ function isActive(href: string, activeHref: string | null): boolean {
 }
 
 // One scrollable row on phones, a grouped column from md up
-export function NavLinks({ activeHref }: { activeHref: string | null }) {
+export function NavLinks({ activeHref, badges = {} }: { activeHref: string | null; badges?: NavBadges }) {
   return (
     <nav
       aria-label="Sections"
@@ -27,6 +31,7 @@ export function NavLinks({ activeHref }: { activeHref: string | null }) {
                 href={section.href}
                 title={section.title}
                 active={isActive(section.href, activeHref)}
+                badge={badges[section.href]}
               />
             ))}
           </div>
@@ -36,7 +41,7 @@ export function NavLinks({ activeHref }: { activeHref: string | null }) {
   );
 }
 
-function NavItem({ href, title, active }: { href: string; title: string; active: boolean }) {
+function NavItem({ href, title, active, badge }: { href: string; title: string; active: boolean; badge?: { count: number; minutes: number } }) {
   return (
     <Link
       href={href}
@@ -46,6 +51,19 @@ function NavItem({ href, title, active }: { href: string; title: string; active:
       }`}
     >
       {title}
+      {badge ? (
+        <span className="ml-2 flex items-center gap-1.5 md:ml-auto">
+          <span aria-hidden="true" className="text-xs font-semibold text-muted">
+            {formatMinutes(badge.minutes)}
+          </span>
+          <span aria-hidden="true" className="min-w-6 rounded-full bg-check px-1.5 py-0.5 text-center text-xs font-bold text-white">
+            {badge.count}
+          </span>
+          <span className="sr-only">
+            : {badge.count} {badge.count === 1 ? "step" : "steps"} left, about {formatMinutes(badge.minutes)} of your time
+          </span>
+        </span>
+      ) : null}
     </Link>
   );
 }

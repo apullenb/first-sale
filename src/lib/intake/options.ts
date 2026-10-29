@@ -156,7 +156,7 @@ export const HELP_KIND_LABELS: Record<(typeof HELP_KINDS)[number], string> = {
 };
 
 export const GOAL_LABELS: Record<(typeof GOALS)[number], string> = {
-  test_idea: "Test my idea first",
+  test_idea: "I just want to test my idea with little risk for now",
   side_income: "Extra income on the side",
   full_time: "Make it my full-time work",
   grow: "Grow it bigger, with a team or a shop",

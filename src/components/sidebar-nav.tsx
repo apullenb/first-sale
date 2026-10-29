@@ -2,9 +2,9 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { NavLinks } from "./nav-links";
+import { type NavBadges, NavLinks } from "./nav-links";
 
-export function SidebarNav() {
+export function SidebarNav({ badges }: { badges?: NavBadges }) {
   const pathname = usePathname();
   const ref = useRef<HTMLDivElement>(null);
 
@@ -15,7 +15,7 @@ export function SidebarNav() {
 
   return (
     <div ref={ref}>
-      <NavLinks activeHref={pathname} />
+      <NavLinks activeHref={pathname} badges={badges} />
     </div>
   );
 }

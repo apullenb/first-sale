@@ -36,7 +36,7 @@ export default function WebsitePage() {
   return (
     <div className="flex max-w-5xl flex-col gap-6 wrap-break-word">
       <div className="flex max-w-3xl flex-col gap-1.5">
-        <p className={EYEBROW}>Run your business</p>
+        <p className={EYEBROW}>Marketing and branding</p>
         <h1 className={PAGE_TITLE}>Your website</h1>
         <p className="text-lg text-muted">
           Compare three ways to build a website and what each really costs, pick one, then build it step by step. First Sale writes the
