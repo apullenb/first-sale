@@ -25,7 +25,7 @@ import { profileKey } from "@/lib/research/requirements";
 import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
 import { sectionMetadata } from "@/lib/sections";
 import { guideFor, nameExamples, ownershipExamples, taxExamples } from "@/lib/structure/guide";
-import { optionsFor, relevantLines, structureOption, taxPoints } from "@/lib/structure/options";
+import { recordedStructure, relevantLines, structureOption, taxPoints } from "@/lib/structure/options";
 import {
   basisLines,
   nameNeed,
@@ -85,7 +85,8 @@ async function Structure() {
   const saved = new Map(details.map((detail) => [detail.key, detail.value]));
   const decided = saved.get("structure_choice") ?? "";
   // A recorded structure that no longer fits the number of owners isn't described as if it did
-  const chosen = decided && decided !== "undecided" && optionsFor(owners).some((option) => option.id === decided) ? (decided as BusinessStructure) : null;
+  const recorded = recordedStructure(decided, owners);
+  const chosen = recorded.structure;
   // Name and tax guidance follow the recorded structure, or the suggested one
   const basis = chosen ?? suggestion.option;
   const guide = guideFor(profile, suggestion, basis);
@@ -154,6 +155,12 @@ async function Structure() {
         </a>
       </div>
 
+      {suggestion.mismatch ? (
+        <OwnerMismatch owners={owners} structure={suggestion.mismatch} said="registered" />
+      ) : recorded.status === "no_longer_fits" ? (
+        <OwnerMismatch owners={owners} structure={recorded.was} said="recorded" />
+      ) : null}
+
       {stale ? <StaleDecision decided={decided} then={stale.answers} now={basisLines(profile)} /> : null}
 
       <section aria-labelledby="know-heading" className="flex flex-col gap-5">
@@ -184,7 +191,6 @@ async function Structure() {
 
         <NameInfo
           folded={guide.nameFolded}
-          foldedWhy={profile.alreadyHave.includes("business_name") ? "You already registered a business name" : "You sell under your legal name, so this likely doesn’t apply"}
           forYou={<NameForYou profile={profile} option={basis} pick={namePick} state={state} filings={stateRules.filter((rule) => rule.topic === "name_registration").length} />}
           examples={nameExamples(profile, basis)}
         />
@@ -352,6 +358,25 @@ function StateRules({ state, research, rules }: { state: string; research: Resea
         </Note>
       )}
     </GuideSection>
+  );
+}
+
+// A structure that can't fit the number of owners is never described as if it did
+function OwnerMismatch({ owners, structure, said }: { owners: number; structure: BusinessStructure; said: "registered" | "recorded" }) {
+  const name = STRUCTURE_LABELS[structure].toLowerCase();
+  const needs = structure === "partnership" ? "A partnership needs two or more owners" : "A sole proprietorship has just one owner";
+  return (
+    <Note icon="alert">
+      <p className="font-semibold">
+        {said === "registered" ? `You said you’re registered as a ${name}` : `You recorded a ${name}`}, but your answers say {owners === 1 ? "you’re the only owner" : `there are ${owners} owners`}.
+      </p>
+      <p>
+        {needs}. {said === "registered" ? "This page is based on the options that fit your number of owners until you correct one of these answers." : "Choose again below, or correct your number of owners."}{" "}
+        <Link href="/business/edit" className="font-bold underline underline-offset-4">
+          Correct an answer
+        </Link>
+      </p>
+    </Note>
   );
 }
 

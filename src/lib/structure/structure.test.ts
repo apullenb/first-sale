@@ -52,7 +52,7 @@ describe("suggestPath", () => {
 
   it("asks married co-owners' tax question for a professional, not as an answer", () => {
     const path = suggestPath(testProfile({ owners: { count: 2 }, ownerRelation: "spouse" }));
-    expect(path.askAProfessional.join(" ")).toMatch(/married couple/);
+    expect(path.askAProfessional.join(" ")).toMatch(/married to each other/);
   });
 
   it("counts employees only when the owner picked them", () => {

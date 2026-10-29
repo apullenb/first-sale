@@ -1,7 +1,9 @@
 // Federal facts behind the structure explanations, each with a word-for-word quote from an official page.
-// Quotes were checked against the pages on CHECKED_ON (facts.test.ts re-checks saved copies of the page text).
 // State rules and fees never come from here: they come from the owner's own research, or say they need confirming.
 
+// Day the page text in fixtures/ was saved from the app's own reader; facts.test.ts checks every quote against it
+export const SAVED_ON = "2026-10-27";
+// Last day the live pages were read again with the same reader and matched the saved text exactly
 export const CHECKED_ON = "2026-10-29";
 
 export interface FactSource {
@@ -51,10 +53,6 @@ export const FACTS = {
   },
   sp_definition: { source: "irs-sole-prop", quote: "A sole proprietor is someone who owns an unincorporated business by themselves." },
   sp_schedule_c: { source: "irs-sole-prop", quote: "Schedule C (Form 1040 or 1040-SR), Profit or Loss from Business" },
-  sp_llc_election: {
-    source: "irs-sole-prop",
-    quote: "If you are the sole member of a domestic limited liability company (LLC) and elect to treat the LLC as a corporation, you are not a sole proprietor.",
-  },
   partnership_simplest: {
     source: "sba-business-structure",
     quote: "Partnerships are the simplest structure for two or more people to own a business together.",
@@ -136,6 +134,10 @@ export const FACTS = {
   tax_status: {
     source: "sba-business-structure",
     quote: "Designations like S corp and nonprofit aren’t strictly business structures — they can also be understood as a tax status. It’s possible for an LLC to be taxed as a C corp, S corp, or a nonprofit.",
+  },
+  s_corp_pass_through: {
+    source: "irs-s-corp",
+    quote: "S corporations are corporations that elect to pass corporate income, losses, deductions, and credits through to their shareholders for federal tax purposes.",
   },
   s_corp_election: {
     source: "irs-s-corp",

@@ -6,7 +6,7 @@ import { isAllowedHost } from "@/lib/research/source-pack";
 import { pageWithExcerpt } from "@/lib/research/verify";
 import { FACT_SOURCES, FACTS, type FactSourceId } from "./facts";
 
-// Page text as the app's own reader extracted it on CHECKED_ON
+// Page text as the app's own reader extracted it on SAVED_ON
 const pageText = (id: FactSourceId) => readFileSync(new URL(`./fixtures/${id}.txt`, import.meta.url), "utf8");
 
 describe("structure facts", () => {

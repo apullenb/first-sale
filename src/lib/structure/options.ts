@@ -104,7 +104,7 @@ export const STRUCTURE_OPTIONS: readonly StructureOption[] = [
       { text: "Self-employment tax goes on Schedule SE.", fact: "sp_schedule_se" },
     ],
     cons: [
-      { text: "There’s no separate company, so business debts are your own.", fact: "sp_personally_liable" },
+      { text: "You can be held personally liable for the business’s debts.", fact: "sp_personally_liable" },
       { text: "It can be harder to borrow money or bring in investors.", fact: "sp_money" },
     ],
   },
@@ -167,7 +167,7 @@ export const STRUCTURE_OPTIONS: readonly StructureOption[] = [
     short: "A company owned through shares",
     owners: "any",
     meaning: {
-      text: "A company owned through shares. It pays income tax on its own profits, unless it chooses S corporation status.",
+      text: "A company owned through shares. It pays income tax on its own profits.",
       fact: "corp_tax",
     },
     why: [{ text: "The SBA calls it a fit for businesses that need to raise money or plan to be sold.", fact: "corp_fit" }],
@@ -177,6 +177,7 @@ export const STRUCTURE_OPTIONS: readonly StructureOption[] = [
     ],
     ongoing: () => [
       { text: "More record-keeping and reporting than other structures.", fact: "corp_records" },
+      { text: "It can elect S corporation status, which passes its income through to shareholders for federal tax.", fact: "s_corp_pass_through" },
       { text: "S corporation status takes a separate IRS filing, Form 2553.", fact: "s_corp_election" },
     ],
     cons: [{ text: "More record-keeping and formal steps.", fact: "corp_records" }],
@@ -190,6 +191,31 @@ export function structureOption(id: BusinessStructure): StructureOption {
 // Options that can fit this many owners
 export function optionsFor(owners: number): StructureOption[] {
   return STRUCTURE_OPTIONS.filter((option) => option.owners === "any" || (option.owners === "one") === (owners === 1));
+}
+
+// A partnership needs two or more owners; a sole proprietorship has one
+export function fitsOwners(option: string, owners: number): option is BusinessStructure {
+  return optionsFor(owners).some((fit) => fit.id === option);
+}
+
+export type Recorded =
+  | { status: "none" | "unsure"; structure: null }
+  | { status: "chosen"; structure: BusinessStructure }
+  // Recorded with a different number of owners; it's flagged and chosen again
+  | { status: "no_longer_fits"; structure: null; was: BusinessStructure };
+
+export function recordedStructure(decided: string, owners: number): Recorded {
+  if (!decided) return { status: "none", structure: null };
+  if (decided === "undecided") return { status: "unsure", structure: null };
+  if (fitsOwners(decided, owners)) return { status: "chosen", structure: decided };
+  return STRUCTURE_OPTIONS.some((option) => option.id === decided)
+    ? { status: "no_longer_fits", structure: null, was: decided as BusinessStructure }
+    : { status: "none", structure: null };
+}
+
+// Where the form starts: the recorded answer, unless it no longer fits the owners
+export function startingStructure(decided: string, owners: number): string {
+  return decided === "undecided" || fitsOwners(decided, owners) ? decided : "";
 }
 
 // Lines that matter for these answers: co-owner lines only with co-owners now, or maybe later
@@ -227,7 +253,7 @@ export function compareRows(owners: number): CompareRow[] {
     {
       label: "If the business owes money",
       cells: {
-        sole_proprietorship: { text: "You’re personally responsible", fact: "sp_personally_liable" },
+        sole_proprietorship: { text: "You can be held personally liable", fact: "sp_personally_liable" },
         partnership: { text: "Unlimited personal liability for general partners", fact: "partnership_liability" },
         llc: { text: "You’re protected “in most instances”", fact: "llc_liability" },
         corporation: { text: "It’s a legal entity separate from its owners", fact: "corp_separate" },
@@ -239,7 +265,7 @@ export function compareRows(owners: number): CompareRow[] {
         sole_proprietorship: { text: "On your own return (Schedule C)", fact: "sp_schedule_c" },
         partnership: { text: "Partnership return; each partner reports a share", fact: "partnership_return" },
         llc: owners > 1 ? { text: "Like a partnership, by default", fact: "llc_multi_tax" } : { text: "On your own return, by default", fact: "llc_single_tax" },
-        corporation: { text: "Pays its own, unless it chooses S corp status", fact: "corp_tax" },
+        corporation: { text: "Pays its own income tax", fact: "corp_tax" },
       },
     },
     {
@@ -286,6 +312,8 @@ export function taxPoints(options: readonly BusinessStructure[], spouses: boolea
   const lines: Line[] = [];
   if (options.includes("sole_proprietorship")) lines.push({ text: "Sole proprietors who owe self-employment tax file it on Schedule SE.", fact: "sp_schedule_se" });
   if (options.includes("llc")) lines.push({ text: "LLC members pay self-employment tax too, toward Social Security and Medicare.", fact: "llc_self_employment" });
-  if (spouses) lines.push({ text: "Married couples may choose not to be treated as a partnership. Ask a tax professional whether that fits you.", fact: "married_couples" });
+  if (spouses) {
+    lines.push({ text: "If you’re married to your co-owner, the IRS says married couples may choose not to be a partnership. Ask a tax professional whether that fits.", fact: "married_couples" });
+  }
   return lines;
 }

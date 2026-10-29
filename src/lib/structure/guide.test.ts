@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { STRUCTURE_EXAMPLES } from "@/data/structure-examples";
 import { testProfile } from "@/test/fixtures";
 import { guideFor, nameExamples, ownershipExamples, taxExamples } from "./guide";
-import { compareRows, structureOption, relevantLines, taxPoints } from "./options";
-import { recommendedNamePlan, recommendedTaxPlan, suggestPath, whyRecommended } from "./suggest";
+import { compareRows, recordedStructure, relevantLines, startingStructure, structureOption, taxPoints } from "./options";
+import { nameNeed, recommendedNamePlan, recommendedTaxPlan, suggestPath, whyRecommended } from "./suggest";
 
 // The demo owner: one baker at markets in Austin, testing the idea
 const baker = testProfile({ location: { state: "TX" }, category: "baked_goods", goals: ["test_idea"], mayAddOwners: "no", nameIsLegalName: "no" });
@@ -22,17 +22,24 @@ describe("what the guide shows and folds away", () => {
 
   it("follows the structure the owner recorded, not just the suggestion", () => {
     const legal = testProfile({ name: "Dana Reyes", nameIsLegalName: "yes" });
-    expect(guideFor(legal).nameFolded).toBe(true);
+    expect(guideFor(legal).nameFolded).toMatch(/legal name/);
     // A company's own name is a separate question, so the details stay open
-    expect(guideFor(legal, suggestPath(legal), "llc").nameFolded).toBe(false);
+    expect(guideFor(legal, suggestPath(legal), "llc").nameFolded).toBeNull();
     expect(guideFor(baker, suggestPath(baker), "corporation")).toMatchObject({ main: ["sole_proprietorship", "llc", "corporation"], more: [], otherTaxOpen: true });
   });
 
   it("folds the name details away when the owner uses their legal name or already registered one", () => {
-    expect(guideFor(baker).nameFolded).toBe(false);
-    expect(guideFor(testProfile({ name: "Dana Reyes", nameIsLegalName: "yes" })).nameFolded).toBe(true);
-    expect(guideFor(testProfile({ alreadyHave: ["business_name"] })).nameFolded).toBe(true);
-    expect(guideFor(testProfile({ nameIsLegalName: "unsure" })).nameFolded).toBe(false);
+    expect(guideFor(baker).nameFolded).toBeNull();
+    expect(guideFor(testProfile({ name: "Dana Reyes", nameIsLegalName: "yes" })).nameFolded).toMatch(/legal name/);
+    expect(guideFor(testProfile({ alreadyHave: ["business_name"] })).nameFolded).toMatch(/already registered/);
+    expect(guideFor(testProfile({ nameIsLegalName: "unsure" })).nameFolded).toBeNull();
+  });
+
+  it("doesn't treat a registered name as covering a company's own name", () => {
+    const named = testProfile({ alreadyHave: ["business_name"] });
+    expect(nameNeed(named, "sole_proprietorship").status).toBe("done");
+    expect(nameNeed(named, "llc")).toMatchObject({ status: "maybe", fact: "names_independent" });
+    expect(guideFor(named, suggestPath(named), "llc").nameFolded).toBeNull();
   });
 
   it("opens other tax choices only when worth asking about now", () => {
@@ -43,7 +50,8 @@ describe("what the guide shows and folds away", () => {
   it("notes the married couples' choice only for married co-owners", () => {
     expect(guideFor(testProfile({ owners: { count: 2 }, ownerRelation: "spouse" })).spouseNote).toBe(true);
     expect(guideFor(partners).spouseNote).toBe(false);
-    expect(taxPoints(["partnership", "llc"], true).map((line) => line.fact)).toContain("married_couples");
+    // "Spouse or partner" in intake doesn't mean married, so the note says when it applies
+    expect(taxPoints(["partnership", "llc"], true).find((line) => line.fact === "married_couples")?.text).toMatch(/^If you’re married to your co-owner/);
     expect(taxPoints(["sole_proprietorship", "llc"], false).map((line) => line.fact)).toEqual(["sp_schedule_se", "llc_self_employment"]);
   });
 
@@ -114,8 +122,12 @@ describe("recommendations", () => {
   it("never sends a sole proprietor to ask about S corporation status, which takes forming a company first", () => {
     const big = testProfile({ goals: ["grow"], firstYearSales: "over_100k" });
     expect(recommendedTaxPlan(big, "sole_proprietorship").value).toBe("default");
-    expect(recommendedTaxPlan(big, "sole_proprietorship").reasons.map((reason) => reason.fact)).toContain("sp_llc_election");
+    expect(recommendedTaxPlan(big, "sole_proprietorship").reasons.map((reason) => reason.fact)).toContain("tax_status");
     expect(taxExamples(big, "sole_proprietorship").map((example) => example.id)).toEqual(["tax-sp"]);
+    // Growing with high sales but no added risk still suggests a sole proprietorship
+    const quiet = testProfile({ offeringKinds: ["services"], category: "creative_services", goals: ["grow"], firstYearSales: "over_100k", takesOnDebt: "no" });
+    expect(suggestPath(quiet).option).toBe("sole_proprietorship");
+    expect(suggestPath(quiet).askAProfessional.join(" ")).not.toMatch(/S corporation/);
   });
 
   it("doesn't call high expected sales a reason to keep the default", () => {
@@ -140,8 +152,8 @@ describe("examples", () => {
     expect(ids(ownershipExamples(partners, "llc"))).toEqual(["llc-cleaning", "llc-food-truck"]);
     expect(ownershipExamples(baker, "llc").every((example) => example.owners === "one")).toBe(true);
     expect(ownershipExamples(partners, "llc").every((example) => example.owners === "several")).toBe(true);
-    // The investor story fits any number of owners
-    expect(ids(ownershipExamples(baker, "corporation"))).toEqual(["corp-investors"]);
+    expect(ids(ownershipExamples(baker, "corporation"))).toEqual(["corp-solo"]);
+    expect(ids(ownershipExamples(partners, "corporation"))).toEqual(["corp-investors"]);
   });
 
   it("put the owner's own name situation first, told by owners like them", () => {
@@ -172,5 +184,60 @@ describe("examples", () => {
       expect(example.story.length, example.id).toBeLessThanOrEqual(4);
       expect(text, example.id).not.toMatch(/\$\d|\bdeadline|\bwithin \d|\d+ days/i);
     }
+  });
+});
+
+describe("owner count", () => {
+  it("doesn't build on a registered structure that can't fit the number of owners", () => {
+    const solo = suggestPath(testProfile({ stage: "registered", registeredAs: "partnership" }));
+    expect(solo).toMatchObject({ option: "sole_proprietorship", keepExisting: false, mismatch: "partnership" });
+    expect(solo.headline).not.toMatch(/Keep your/);
+    expect(whyRecommended(testProfile({ stage: "registered", registeredAs: "partnership" })).map((reason) => reason.text).join(" ")).not.toMatch(/partner reports|already registered/);
+
+    const pair = suggestPath(testProfile({ owners: { count: 2 }, stage: "registered", registeredAs: "sole_proprietorship" }));
+    expect(pair.mismatch).toBe("sole_proprietorship");
+    expect(["partnership", "llc"]).toContain(pair.option);
+
+    expect(suggestPath(testProfile({ stage: "registered", registeredAs: "llc" }))).toMatchObject({ option: "llc", keepExisting: true, mismatch: null });
+  });
+
+  it("reads a recorded structure against the number of owners", () => {
+    expect(recordedStructure("", 1)).toEqual({ status: "none", structure: null });
+    expect(recordedStructure("undecided", 1)).toEqual({ status: "unsure", structure: null });
+    expect(recordedStructure("llc", 3)).toEqual({ status: "chosen", structure: "llc" });
+    expect(recordedStructure("partnership", 1)).toEqual({ status: "no_longer_fits", structure: null, was: "partnership" });
+    expect(recordedStructure("sole_proprietorship", 2)).toMatchObject({ status: "no_longer_fits", was: "sole_proprietorship" });
+    expect(recordedStructure("something_else", 1).status).toBe("none");
+  });
+
+  it("starts the form on a recorded Not sure yet, but clears a structure that no longer fits", () => {
+    expect(startingStructure("undecided", 1)).toBe("undecided");
+    expect(startingStructure("llc", 1)).toBe("llc");
+    expect(startingStructure("partnership", 1)).toBe("");
+    expect(startingStructure("sole_proprietorship", 2)).toBe("");
+    expect(startingStructure("", 2)).toBe("");
+  });
+
+  it("bases the guidance on the suggestion when the recorded answer is Not sure yet or no longer fits", () => {
+    for (const decided of ["undecided", "partnership"]) {
+      const recorded = recordedStructure(decided, 1);
+      const path = suggestPath(baker);
+      expect(guideFor(baker, path, recorded.structure ?? path.option)).toEqual(guideFor(baker));
+    }
+  });
+});
+
+describe("tax caveats and S corporation examples", () => {
+  it("marks an unanswered sales question as a caveat", () => {
+    const reasons = recommendedTaxPlan(testProfile({ firstYearSales: "unsure" }), "sole_proprietorship").reasons;
+    expect(reasons.at(-1)).toMatchObject({ caveat: true });
+    expect(reasons.at(-1)?.text).toMatch(/haven’t said how much you expect to sell/);
+  });
+
+  it("shows an S corporation example only for the same structure and number of owners", () => {
+    const growing = { goals: ["grow" as const], firstYearSales: "over_100k" as const };
+    expect(taxExamples(testProfile(growing), "llc").map((example) => example.id)).toEqual(["tax-llc-one", "tax-s-corp"]);
+    expect(taxExamples(testProfile({ ...growing, owners: { count: 2 } }), "llc").map((example) => example.id)).toEqual(["tax-llc-several", "tax-s-corp-partners"]);
+    expect(taxExamples(testProfile(growing), "corporation")).toEqual([]);
   });
 });

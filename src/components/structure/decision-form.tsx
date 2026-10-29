@@ -8,6 +8,7 @@ import { ALERT, PRIMARY, SECONDARY } from "@/components/styles";
 import { Card } from "@/components/ui";
 import { DETAILS, displayDetail, STRUCTURE_LABELS } from "@/lib/details";
 import type { BusinessStructure } from "@/lib/domain";
+import { startingStructure } from "@/lib/structure/options";
 import { ExplainWhy, RecommendedTag } from "./explain";
 
 type Values = { structure_choice: string; name_registration_plan: string; tax_classification_plan: string };
@@ -86,10 +87,8 @@ export function DecisionForm({
   unsure: ReactNode;
 }) {
   const uid = useId();
-  // One owner can't be a partnership, and several can't be a sole proprietorship
-  const fits = (option: string) => (owners === 1 ? option !== "partnership" : option !== "sole_proprietorship");
   // A recorded structure that no longer fits the owners has to be chosen again
-  const [values, setValues] = useState<Values>({ ...current, structure_choice: fits(current.structure_choice) ? current.structure_choice : "" });
+  const [values, setValues] = useState<Values>({ ...current, structure_choice: startingStructure(current.structure_choice, owners) });
   const [confirming, setConfirming] = useState(false);
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);

@@ -13,7 +13,7 @@ export interface StructureExample {
   id: string;
   topic: ExampleTopic;
   structure: BusinessStructure;
-  owners: "one" | "several" | "any";
+  owners: "one" | "several";
   kind: ExampleKind;
   nameCase?: NameCase;
   // Only shown when the owner should ask about another tax status
@@ -40,7 +40,7 @@ export const STRUCTURE_EXAMPLES: readonly StructureExample[] = [
       "She doesn’t form a company: running the business on her own makes her a sole proprietor.",
       "She still checks which food permits apply. That’s a separate step.",
     ],
-    takeaway: "If the business owed money, Dana would be personally responsible. She plans to look at an LLC if she signs a lease or hires help.",
+    takeaway: "Dana can be held personally liable for the business’s debts. She plans to look at an LLC if she signs a lease or hires help.",
     facts: ["sp_automatic", "licenses_separate", "sp_personally_liable", "sp_fit"],
   },
   {
@@ -56,7 +56,7 @@ export const STRUCTURE_EXAMPLES: readonly StructureExample[] = [
       "He works alone, with no employees, no shop and no loan.",
       "He doesn’t form a company, and reports his profit on his own tax return, on Schedule C.",
     ],
-    takeaway: "It’s simple to run, but the business’s debts are Theo’s own.",
+    takeaway: "It’s simple to run, but Theo can be held personally liable for the business’s debts.",
     facts: ["sp_automatic", "sp_schedule_c", "sp_personally_liable"],
   },
   {
@@ -73,7 +73,7 @@ export const STRUCTURE_EXAMPLES: readonly StructureExample[] = [
       "She names a registered agent before filing, and applies for a free EIN after the LLC is formed.",
       "With one owner, the LLC’s profit goes on her own tax return by default.",
     ],
-    takeaway: "The SBA says an LLC protects owners “in most instances”, so she asks a lawyer what it wouldn’t cover, such as a lease she signs personally.",
+    takeaway: "The SBA says an LLC protects owners “in most instances”, so she asks a lawyer what it wouldn’t cover.",
     facts: ["llc_fit", "llc_articles", "registered_agent", "ein_after_forming", "ein_free", "llc_single_tax", "llc_liability"],
   },
   {
@@ -106,7 +106,7 @@ export const STRUCTURE_EXAMPLES: readonly StructureExample[] = [
       "They get a free EIN, and write down who does what and what happens if one of them leaves.",
     ],
     takeaway:
-      "They weighed an LLC too. The SBA lists unlimited personal liability for general partners, so they plan to form an LLC before they buy a truck on credit, and to ask what it wouldn’t cover, such as a loan they sign for personally.",
+      "They weighed an LLC too. The SBA lists unlimited personal liability for general partners, so they plan to form an LLC before they buy a truck on credit, and to ask a lawyer what it wouldn’t cover.",
     facts: ["partnership_contributes", "partnership_definition", "varies_by_state", "ein_partnership", "ein_free", "partnership_liability"],
   },
   {
@@ -145,7 +145,7 @@ export const STRUCTURE_EXAMPLES: readonly StructureExample[] = [
     id: "corp-investors",
     topic: "ownership",
     structure: "corporation",
-    owners: "any",
+    owners: "several",
     kind: "food",
     people: ["Kai", "June"],
     title: "Kai and June plan to raise money from investors",
@@ -153,6 +153,22 @@ export const STRUCTURE_EXAMPLES: readonly StructureExample[] = [
       "Kai and June make packaged snacks and want investors to fund a bigger kitchen.",
       "They file articles of incorporation with their state and name a registered agent.",
       "The corporation pays income tax on its own profits.",
+    ],
+    takeaway: "It means more record-keeping and reporting than the other structures.",
+    facts: ["corp_fit", "corp_articles", "registered_agent", "corp_tax", "corp_records"],
+  },
+  {
+    id: "corp-solo",
+    topic: "ownership",
+    structure: "corporation",
+    owners: "one",
+    kind: "handmade",
+    people: ["Nora"],
+    title: "Nora plans to sell shares to investors",
+    story: [
+      "Nora makes a line of skin care products and is the only owner.",
+      "She wants to raise money by selling shares, so she files articles of incorporation with her state.",
+      "She names a registered agent before filing. The corporation pays income tax on its own profits.",
     ],
     takeaway: "It means more record-keeping and reporting than the other structures.",
     facts: ["corp_fit", "corp_articles", "registered_agent", "corp_tax", "corp_records"],
@@ -236,8 +252,8 @@ export const STRUCTURE_EXAMPLES: readonly StructureExample[] = [
       "Dana reports her market profit on her own tax return, on Schedule C.",
       "Self-employment tax, if she owes it, goes on Schedule SE.",
     ],
-    takeaway: "To choose another tax status, she’d first form a company such as an LLC. Then she’d no longer be a sole proprietor.",
-    facts: ["sp_schedule_c", "sp_schedule_se", "sp_llc_election"],
+    takeaway: "If she forms an LLC later, it can choose another tax status, such as S corp.",
+    facts: ["sp_schedule_c", "sp_schedule_se", "tax_status"],
   },
   {
     id: "tax-llc-one",
@@ -252,7 +268,7 @@ export const STRUCTURE_EXAMPLES: readonly StructureExample[] = [
       "He pays self-employment tax as a member.",
       "He could ask the IRS to tax it as a corporation with Form 8832, but he keeps the default.",
     ],
-    takeaway: "Keeping the default takes no extra IRS form.",
+    takeaway: "Keeping the default means no Form 8832 to file.",
     facts: ["llc_single_tax", "llc_self_employment"],
   },
   {
@@ -299,6 +315,22 @@ export const STRUCTURE_EXAMPLES: readonly StructureExample[] = [
       "She asks a tax professional whether her LLC should be taxed as an S corporation.",
     ],
     takeaway: "The SBA calls S corp a tax status, not strictly a structure. Her company would stay an LLC.",
+    facts: ["tax_status"],
+  },
+  {
+    id: "tax-s-corp-partners",
+    topic: "tax",
+    structure: "llc",
+    owners: "several",
+    kind: "food",
+    otherTaxStatus: true,
+    people: ["Lena", "Rosa"],
+    title: "Lena and Rosa ask about S corporation status",
+    story: [
+      "Their food truck’s sales have grown a lot since they formed their LLC.",
+      "Lena and Rosa ask a tax professional whether the LLC should be taxed as an S corporation.",
+    ],
+    takeaway: "The SBA calls S corp a tax status, not strictly a structure. Their company would stay an LLC.",
     facts: ["tax_status"],
   },
 ];

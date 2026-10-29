@@ -10,11 +10,11 @@ export interface Guide {
   main: BusinessStructure[];
   // Possible but less common, folded away
   more: BusinessStructure[];
-  // Name registration likely doesn't apply: they use their legal name or already registered one
-  nameFolded: boolean;
+  // Why the name details fold away, when they likely don't apply; null keeps them open
+  nameFolded: string | null;
   // Other tax statuses, like S corporation, open only when worth asking about now
   otherTaxOpen: boolean;
-  // Married co-owners may choose not to be a partnership
+  // Co-owners who are spouses or partners; the note says it applies only if they are married
   spouseNote: boolean;
 }
 
@@ -27,18 +27,25 @@ export function guideFor(p: BusinessProfile, path: PathSuggestion = suggestPath(
   return {
     main: options.filter(open),
     more: options.filter((id) => !open(id)),
-    nameFolded: p.alreadyHave.includes("business_name") || nameNeed(p, basis).status === "not_needed",
+    nameFolded: nameFoldedWhy(p, basis),
     otherTaxOpen: recommendedTaxPlan(p, basis).value === "ask_professional",
     spouseNote: p.owners.count > 1 && p.ownerRelation === "spouse",
   };
 }
 
-const fitsOwners = (example: StructureExample, owners: number) => example.owners === "any" || (example.owners === "one") === (owners === 1);
+function nameFoldedWhy(p: BusinessProfile, basis: BusinessStructure): string | null {
+  const status = nameNeed(p, basis).status;
+  if (status === "done") return "You already registered a business name";
+  if (status === "not_needed") return "You sell under your legal name, so this likely doesn’t apply";
+  return null;
+}
+
+const forOwners = (example: StructureExample, owners: number) => (example.owners === "one") === (owners === 1);
 
 // Same number of owners first, then the same kind of business, then the data's order
 function ranked(examples: StructureExample[], p: BusinessProfile): StructureExample[] {
   const score = (example: StructureExample) =>
-    2 * Number(fitsOwners(example, p.owners.count)) + Number((p.offeringKinds as readonly string[]).includes(example.kind));
+    2 * Number(forOwners(example, p.owners.count)) + Number((p.offeringKinds as readonly string[]).includes(example.kind));
   return [...examples].sort((a, b) => score(b) - score(a));
 }
 
@@ -47,7 +54,7 @@ function about(topic: ExampleTopic) {
 }
 
 export function ownershipExamples(p: BusinessProfile, structure: BusinessStructure, limit = 2): StructureExample[] {
-  const fits = about("ownership").filter((example) => example.structure === structure && fitsOwners(example, p.owners.count));
+  const fits = about("ownership").filter((example) => example.structure === structure && forOwners(example, p.owners.count));
   return ranked(fits, p).slice(0, limit);
 }
 
@@ -66,7 +73,9 @@ export function nameExamples(p: BusinessProfile, structure: BusinessStructure): 
 }
 
 export function taxExamples(p: BusinessProfile, structure: BusinessStructure): StructureExample[] {
-  const fits = about("tax").filter((example) => !example.otherTaxStatus && example.structure === structure && fitsOwners(example, p.owners.count));
-  const other = recommendedTaxPlan(p, structure).value === "ask_professional" ? about("tax").filter((example) => example.otherTaxStatus) : [];
-  return [...ranked(fits, p).slice(0, 1), ...other];
+  const fits = about("tax").filter((example) => example.structure === structure && forOwners(example, p.owners.count));
+  const asking = recommendedTaxPlan(p, structure).value === "ask_professional";
+  const base = fits.filter((example) => !example.otherTaxStatus);
+  const other = asking ? fits.filter((example) => example.otherTaxStatus) : [];
+  return [...ranked(base, p).slice(0, 1), ...other];
 }

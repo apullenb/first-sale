@@ -81,20 +81,18 @@ function Folded({ title, summary, open, children }: { title: string; summary: st
 
 export function NameInfo({
   folded,
-  foldedWhy,
   forYou,
   examples,
 }: {
-  // Likely doesn't apply, so the details fold away
-  folded: boolean;
-  foldedWhy: string;
+  // Why the details fold away when they likely don't apply; null keeps them open
+  folded: string | null;
   forYou: ReactNode;
   examples: StructureExample[];
 }) {
   return (
     <GuideSection id="guide-name" icon="tag" title="The name you sell under" lead="Registering a name is separate from your structure. A DBA doesn’t create a company.">
       {folded ? (
-        <Folded title="How business names work" summary={foldedWhy} open={false}>
+        <Folded title="How business names work" summary={folded} open={false}>
           <Points lines={NAME_POINTS} />
         </Folded>
       ) : (

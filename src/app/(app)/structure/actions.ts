@@ -6,7 +6,7 @@ import type { ActionResult } from "@/app/(app)/business/actions";
 import { getMyBusiness, getMyDetails, listMyHistory, recordMyDecisions } from "@/lib/data/my-business";
 import { DETAILS, type DetailKey, detailProblem } from "@/lib/details";
 import { profileKey } from "@/lib/research/requirements";
-import { optionsFor } from "@/lib/structure/options";
+import { fitsOwners } from "@/lib/structure/options";
 import { basisLines, suggestPath } from "@/lib/structure/suggest";
 
 const decisionSchema = z.object({
@@ -26,7 +26,7 @@ export async function recordDecisionsAction(input: unknown): Promise<ActionResul
   const [business, details, history] = await Promise.all([getMyBusiness(), getMyDetails(), listMyHistory({ kind: "decision" })]);
   if (!business?.profile) return { ok: false, message: "Answer the questions about your business first." };
   const structure = parsed.data.structure_choice;
-  if (structure !== "undecided" && !optionsFor(business.profile.owners.count).some((option) => option.id === structure)) {
+  if (structure !== "undecided" && !fitsOwners(structure, business.profile.owners.count)) {
     return { ok: false, message: "That structure doesn’t fit your number of owners. Pick another and try again." };
   }
   const key = profileKey(business.profile);

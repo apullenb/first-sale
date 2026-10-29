@@ -3,6 +3,7 @@ import { categoryFor } from "@/lib/intake/catalog";
 import { STATE_NAMES } from "@/lib/intake/options";
 import { STRUCTURE_LABELS } from "@/lib/details";
 import type { FactId } from "./facts";
+import { fitsOwners } from "./options";
 
 // A suggested starting point from the owner's confirmed answers: rules, not a legal determination.
 // Every suggestion says what it rests on, what it assumes, and what would change it.
@@ -11,6 +12,8 @@ export interface PathSuggestion {
   option: BusinessStructure;
   // They already registered this structure, so the path builds on it
   keepExisting: boolean;
+  // Registered as a structure that can't fit their number of owners; one of the answers needs correcting
+  mismatch: BusinessStructure | null;
   headline: string;
   // Confirmed answers it rests on
   basedOn: string[];
@@ -64,7 +67,13 @@ export function basisLines(p: BusinessProfile): string[] {
 }
 
 export function nameNeed(p: BusinessProfile, option: BusinessStructure): PathSuggestion["name"] {
-  if (p.alreadyHave.includes("business_name")) return { status: "done", text: "You said you already registered a business name." };
+  const company = option === "llc" || option === "corporation";
+  if (p.alreadyHave.includes("business_name")) {
+    // A DBA registered as a sole proprietor or partners isn't a company's own registered name
+    return company
+      ? { status: "maybe", text: "You said you already registered a business name. A company’s name is a separate registration from a DBA, so check which one you have.", fact: "names_independent" }
+      : { status: "done", text: "You said you already registered a business name." };
+  }
   if (p.name === null) {
     return {
       status: "unknown",
@@ -73,7 +82,7 @@ export function nameNeed(p: BusinessProfile, option: BusinessStructure): PathSug
     };
   }
   const name = `“${p.name}”`;
-  if (option === "llc" || option === "corporation") {
+  if (company) {
     return {
       status: "maybe",
       text: `A company’s registered name is how the state knows it. Selling under a different name than the one you register, like ${name} if it differs, usually means a DBA too.`,
@@ -100,7 +109,7 @@ export function taxFor(option: BusinessStructure, owners: number): PathSuggestio
         ? { text: "By default, the IRS treats an LLC with two or more owners as a partnership.", fact: "llc_multi_tax" }
         : { text: "By default, a one-owner LLC goes on your own tax return.", fact: "llc_single_tax" };
     case "corporation":
-      return { text: "A corporation pays income tax on its own profits, unless it chooses S corporation status.", fact: "corp_tax" };
+      return { text: "A corporation pays income tax on its own profits.", fact: "corp_tax" };
   }
 }
 
@@ -129,7 +138,10 @@ export function suggestPath(p: BusinessProfile): PathSuggestion {
   let headline: string;
   const alternatives: PathSuggestion["alternatives"] = [];
 
-  const registered = p.stage === "registered" && p.registeredAs && p.registeredAs !== "unsure" ? p.registeredAs : null;
+  const said = p.stage === "registered" && p.registeredAs && p.registeredAs !== "unsure" ? p.registeredAs : null;
+  // Only a structure that fits the number of owners is built on
+  const registered = said && fitsOwners(said, owners) ? said : null;
+  const mismatch = said && !registered ? said : null;
   if (registered) {
     option = registered;
     keepExisting = true;
@@ -166,18 +178,20 @@ export function suggestPath(p: BusinessProfile): PathSuggestion {
         : { option: "llc", why: "A separate company you form with your state, with protection the SBA describes as “in most instances”.", fact: "llc_liability" },
     );
     askAProfessional.push("How should we split ownership, work and profits, and what happens if one of us leaves?");
-    if (p.ownerRelation === "spouse") askAProfessional.push("As a married couple, can we choose not to be treated as a partnership?");
+    if (p.ownerRelation === "spouse") askAProfessional.push("If we’re married to each other, can we choose not to be treated as a partnership?");
   }
   if (!registered && growing) alternatives.push({ option: "corporation", why: "Usually for raising money from investors or selling the business later.", fact: "corp_fit" });
 
   if (option === "llc") askAProfessional.push("What wouldn’t an LLC cover for us, such as a lease or loan signed personally?");
   if (option === "llc" || option === "corporation") askAProfessional.push(`What does ${STATE_NAMES[p.location.state]} charge to form one, and every year after?`);
-  if (growing && p.firstYearSales === "over_100k") askAProfessional.push("Would choosing S corporation tax treatment make sense at our income?");
+  // A sole proprietor can't elect S corporation status
+  if (option !== "sole_proprietorship" && growing && p.firstYearSales === "over_100k") askAProfessional.push("Would choosing S corporation tax treatment make sense at our income?");
   if (unsure(p.ownerRelation) && owners > 1) assumptions.push("We don’t know how the owners are related; it can matter for taxes.");
 
   return {
     option,
     keepExisting,
+    mismatch,
     headline,
     basedOn: basisLines(p),
     signals,
@@ -247,7 +261,7 @@ export function whyRecommended(p: BusinessProfile, path: PathSuggestion = sugges
           : { text: "You want to test your idea first. The SBA calls a partnership a good choice for that.", fact: "partnership_fit" },
       );
     } else if (solo && p.firstYearSales === "under_5k") {
-      reasons.push({ text: "You expect under $5,000 in sales your first year. The SBA calls a sole proprietorship a good choice for testing an idea.", fact: "sp_fit" });
+      reasons.push({ text: "You expect under $5,000 in sales your first year, so you’re starting small." });
     } else if (!solo) {
       reasons.push({ text: "The SBA calls a partnership the simplest way for two or more people to own a business together.", fact: "partnership_simplest" });
     }
@@ -304,7 +318,8 @@ export function recommendedTaxPlan(p: BusinessProfile, option: BusinessStructure
       value: "ask_professional",
       reasons: [
         { text: tax.text, fact: tax.fact },
-        { text: "S corporation status takes its own IRS form, so it’s worth asking before you file.", fact: "s_corp_election" },
+        { text: "It can elect S corporation status instead, which passes its income through to shareholders.", fact: "s_corp_pass_through" },
+        { text: "That election takes Form 2553, so it’s worth asking before you file.", fact: "s_corp_election" },
       ],
     };
   }
@@ -319,10 +334,8 @@ export function recommendedTaxPlan(p: BusinessProfile, option: BusinessStructure
     };
   }
   const reasons: Reason[] = [{ text: tax.text, fact: tax.fact }];
-  if (option === "sole_proprietorship") {
-    reasons.push({ text: "To choose another tax status, you’d first form a company such as an LLC. Then you’re no longer a sole proprietor, the IRS says.", fact: "sp_llc_election" });
-  }
-  if (option === "llc") reasons.push({ text: "Keeping the default takes no extra IRS form. Being taxed as a corporation would take Form 8832.", fact: tax.fact });
+  if (option === "sole_proprietorship") reasons.push({ text: "If you form an LLC later, it can choose another tax status, such as S corp.", fact: "tax_status" });
+  if (option === "llc") reasons.push({ text: "Keeping the default needs no election form. Choosing to be taxed as a corporation would take Form 8832.", fact: tax.fact });
   if (p.firstYearSales === null || p.firstYearSales === "unsure") {
     reasons.push({ text: "You haven’t said how much you expect to sell. If sales grow large, ask a tax professional about other choices.", caveat: true });
   } else if (p.firstYearSales === "over_100k") {
