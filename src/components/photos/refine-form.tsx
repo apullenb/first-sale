@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useId, useLayoutEffect, useRef, useState } from "react";
 import { refinePhotoAction } from "@/app/(app)/photos/actions";
+import { Icon } from "@/components/icons";
 import { AI_BUTTON, ALERT, INPUT, SECONDARY } from "@/components/styles";
 import { MAX_CHANGE } from "@/lib/photos/instructions";
 import { useRequestKey, Working } from "./working";
@@ -51,7 +52,7 @@ export function RefineForm({ photoId, versionId, versionNumber }: { photoId: str
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
-        <label htmlFor={`${uid}-change`} className="font-semibold">
+        <label htmlFor={`${uid}-change`} className="font-bold">
           Ask for a change to version {versionNumber}
         </label>
         <textarea
@@ -75,6 +76,7 @@ export function RefineForm({ photoId, versionId, versionNumber }: { photoId: str
         ))}
       </div>
       <button type="submit" disabled={pending} className={`${AI_BUTTON} self-start`}>
+        <Icon name="sparkles" size="sm" />
         {pending ? "Making the change…" : "Make this change"}
       </button>
       <Working active={pending} label="Making the change from your original photo, then checking it. This can take a minute or two." />

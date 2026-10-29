@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useState } from "react";
+import { Icon } from "@/components/icons";
 import { PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles";
 import { zipFiles } from "@/lib/brand/archive";
 import { kitColors } from "@/lib/brand/colors";
@@ -16,7 +17,8 @@ interface Props {
   sources: Record<KitSource, string | null>;
 }
 
-const CHECKERBOARD = "bg-[repeating-conic-gradient(#e7e5e0_0_25%,#ffffff_0_50%)] bg-[length:16px_16px]";
+// The usual sign for see-through; it only sits behind the see-through preview
+const CHECKERBOARD = "bg-[repeating-conic-gradient(#eef2f6_0_25%,#ffffff_0_50%)] bg-[length:16px_16px]";
 
 const reasonOf = (error: unknown) => (error instanceof KitFileError ? error.message : "Couldn’t make this file in your browser. Try again, or use a different browser.");
 
@@ -110,8 +112,7 @@ export function LogoFiles({ businessName, simulated, colors, sources }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <h3 className="font-semibold">Logo files</h3>
-        <p className="text-sm text-rule">
+        <p className="text-[15px] text-rule">
           Made in your browser from the logo and versions you approved, at the sizes each place asks for. Nothing new is drawn or charged. See-through files
           are made by removing the plain white background, so white inside your logo becomes see-through too.
         </p>
@@ -119,9 +120,9 @@ export function LogoFiles({ businessName, simulated, colors, sources }: Props) {
       </div>
 
       {primary ? (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 @2xl:grid-cols-2">
           <figure className="flex flex-col gap-1.5">
-            <div className={`flex aspect-[3/2] items-center justify-center rounded-xl p-4 ring-1 ring-ink/10 ${CHECKERBOARD}`}>
+            <div className={`flex aspect-[3/2] items-center justify-center rounded-xl border border-line p-4 ${CHECKERBOARD}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {previews.clear.url ? <img src={previews.clear.url} alt="Your logo with a see-through background" className="max-h-full max-w-full" /> : <span className="text-sm text-muted">{previews.clear.problem ?? "Making a preview…"}</span>}
             </div>
@@ -147,6 +148,7 @@ export function LogoFiles({ businessName, simulated, colors, sources }: Props) {
 
       <div className="flex flex-col items-start gap-2">
         <button type="button" onClick={all} disabled={busy !== null} className={PRIMARY}>
+          <Icon name="download" size="sm" />
           {busy === "all" ? "Making your files…" : `Download all ${recipes.length} logo files (.zip)`}
         </button>
         <p className="text-sm text-muted">Includes a note on which file to use where.</p>
@@ -155,11 +157,11 @@ export function LogoFiles({ businessName, simulated, colors, sources }: Props) {
         </p>
       </div>
 
-      <ul className="grid gap-3 sm:grid-cols-2">
+      <ul className="grid gap-3 @2xl:grid-cols-2">
         {groups.map((group) => (
-          <li key={group} className="flex flex-col gap-3 rounded-xl bg-ground p-4">
+          <li key={group} className="flex flex-col gap-3 rounded-xl border border-line bg-soft p-4">
             <div className="flex flex-col gap-0.5">
-              <h4 className="font-semibold">{KIT_GROUPS[group].title}</h4>
+              <h4 className="font-bold">{KIT_GROUPS[group].title}</h4>
               <p className="text-sm text-muted">{KIT_GROUPS[group].purpose}</p>
             </div>
             <ul className="flex flex-col gap-3">
@@ -174,6 +176,7 @@ export function LogoFiles({ businessName, simulated, colors, sources }: Props) {
                       aria-label={busy === recipe.id ? undefined : `${KIT_GROUPS[group].title}, ${recipe.label}`}
                       className={`${SECONDARY} text-left`}
                     >
+                      <Icon name="download" size="sm" />
                       {busy === recipe.id ? "Making the file…" : recipe.label}
                     </button>
                     <p className="text-sm text-muted">{recipe.use}</p>

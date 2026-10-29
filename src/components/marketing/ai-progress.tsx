@@ -5,17 +5,10 @@ import { useEffect, useLayoutEffect, useState, useTransition } from "react";
 import type { ActionResult } from "@/app/(app)/business/actions";
 import { draftMarketingPlanAction } from "@/app/(app)/marketing/actions";
 import { ActionButton } from "@/components/action-button";
+import { Icon } from "@/components/icons";
 import { AI_BUTTON, ALERT, SECONDARY } from "@/components/styles";
 
 // A progress screen for one AI request. Steps tick off on a timer; the last one waits for the reply.
-
-function Tick() {
-  return (
-    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  );
-}
 
 export function ProgressSteps({ title, steps, estimateMs, finished }: { title: string; steps: string[]; estimateMs: number; finished: boolean }) {
   const [started] = useState(() => Date.now());
@@ -29,22 +22,26 @@ export function ProgressSteps({ title, steps, estimateMs, finished }: { title: s
   const ticked = finished ? steps.length : Math.min(steps.length - 1, Math.floor((now - started) / (estimateMs / steps.length)));
   const seconds = Math.floor((now - started) / 1000);
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-ai-tint p-5 text-ai-ink">
-      <p className="font-display text-lg font-bold">{finished ? "Done" : title}</p>
-      <ol className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6">
+      <p className="font-display text-[22px] leading-snug">{finished ? "Done" : title}</p>
+      <ol className="flex flex-col gap-3">
         {steps.map((step, index) => {
           const state = index < ticked ? "done" : index === ticked ? "now" : "next";
           return (
-            <li key={step} className={`flex items-center gap-2.5 ${state === "next" ? "opacity-60" : ""}`}>
+            <li key={step} className={`flex items-center gap-3 font-semibold ${state === "next" ? "text-muted" : "text-ink"}`}>
               <span
                 aria-hidden="true"
-                className={`flex size-6 shrink-0 items-center justify-center rounded-full ${
-                  state === "done" ? "bg-ai text-white" : state === "now" ? "border-2 border-ai" : "border-2 border-ai/30"
+                className={`grid size-[26px] shrink-0 place-items-center rounded-full ${
+                  state === "done"
+                    ? "bg-accent text-white"
+                    : state === "now"
+                      ? "border-2 border-accent-tint border-t-accent motion-safe:animate-spin"
+                      : "border-[1.5px] border-line-strong"
                 }`}
               >
-                {state === "done" ? <Tick /> : state === "now" ? <span className="size-2.5 animate-pulse rounded-full bg-ai" /> : null}
+                {state === "done" ? <Icon name="check" size="xs" strokeWidth={3} /> : null}
               </span>
-              <span className={state === "now" ? "font-semibold" : ""}>
+              <span>
                 {step}
                 <span className="sr-only">{state === "done" ? " (done)" : state === "now" ? " (working on it)" : ""}</span>
               </span>
@@ -53,7 +50,7 @@ export function ProgressSteps({ title, steps, estimateMs, finished }: { title: s
         })}
       </ol>
       {finished ? null : (
-        <p aria-hidden="true" className="text-sm tabular-nums">
+        <p aria-hidden="true" className="border-t border-line pt-3 text-sm text-muted tabular-nums">
           {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")} · This can take a minute. Keep this page open.
         </p>
       )}
@@ -131,6 +128,7 @@ export function AiProgressButton({ action, label, title, steps, estimateMs, vari
   return (
     <div className="flex flex-col items-start gap-2">
       <button type="button" onClick={run} className={variant === "ai" ? AI_BUTTON : SECONDARY}>
+        {variant === "ai" ? <Icon name="sparkles" size="sm" /> : <Icon name="refresh" size="sm" />}
         {label}
       </button>
       {error ? (

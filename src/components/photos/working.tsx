@@ -17,10 +17,10 @@ export function useRequestKey() {
 // Progress for a long job. Always rendered, so screen readers announce it; the timer isn't read out.
 export function Working({ label, active }: { label: string; active: boolean }) {
   return (
-    <p role="status" className={active ? "flex items-center gap-2.5 rounded-xl bg-ai-tint px-4 py-3 text-[15px] text-ai-ink" : "sr-only"}>
+    <p role="status" className={active ? "flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-[15px] text-rule shadow-soft" : "sr-only"}>
       {active ? (
         <>
-          <span aria-hidden="true" className="size-3 shrink-0 animate-pulse rounded-full bg-ai" />
+          <span aria-hidden="true" className="size-5 shrink-0 rounded-full border-2 border-accent-tint border-t-accent motion-safe:animate-spin" />
           <span>
             {label} <Elapsed />
           </span>

@@ -3,6 +3,8 @@
 import { type FormEvent, useId, useLayoutEffect, useRef, useState } from "react";
 import type { ActionResult } from "@/app/(app)/business/actions";
 import { approveVersionsAction, drawRoundAction, makeImagesAction, makeVersionsAction, moreLikeThisAction, refineLogoAction } from "@/app/(app)/brand/actions";
+import { Icon } from "@/components/icons";
+import { LABEL, PickOption } from "@/components/marketing/pieces";
 import { useRequestKey, Working } from "@/components/photos/working";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { contrast } from "@/lib/brand/colors";
@@ -126,6 +128,7 @@ export function BrandRunButton({ intent, label, pendingLabel, working, variant =
         </div>
       ) : null}
       <button type="button" onClick={run} disabled={pending !== null || Boolean(blocked)} className={variant === "ai" ? AI_BUTTON : SECONDARY}>
+        <Icon name={variant === "ai" ? "sparkles" : "refresh"} size="sm" />
         {pending ? pendingLabel : label}
       </button>
       {cost ? <p className="text-sm text-muted">{cost}</p> : null}
@@ -136,8 +139,10 @@ export function BrandRunButton({ intent, label, pendingLabel, working, variant =
   );
 }
 
-const CHOICE =
-  "flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-field bg-surface px-3 py-2 text-[15px] font-semibold has-checked:border-accent has-checked:bg-accent-tint has-checked:text-accent-ink has-focus-visible:ring-2 has-focus-visible:ring-accent";
+const CHOICES = "grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-2";
+const PART = "flex flex-col gap-2 border-t border-line pt-5";
+// Fieldsets draw their legend on the top border, so the rule goes on a wrapper
+const RULED = "border-t border-line pt-5";
 
 function Swatches({ hexes }: { hexes: string[] }) {
   return (
@@ -214,86 +219,90 @@ export function RefineLogo({ assetId, cost, current, ownerTagline, pickedFamilie
       <p className="text-sm text-muted">Each change makes one new picture from this logo. {cost}</p>
 
       <div className="flex flex-col gap-2">
-        <h4 className="font-semibold">Simpler</h4>
+        <h4 className={LABEL}>Simpler</h4>
         <p className="text-sm text-muted">Fewer details and thicker lines, so it still reads when it’s small.</p>
         <button type="button" onClick={() => send({ refinement: { kind: "simpler" } })} disabled={pending} className={`${SECONDARY} w-fit`}>
           Make it simpler
         </button>
       </div>
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 font-semibold">Different colors</legend>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {families.map((name) => (
-            <label key={name} className={CHOICE}>
-              <input type="radio" name={`${uid}-colors`} checked={family === name} onChange={() => setFamily(name)} className="sr-only" />
-              <Swatches hexes={familyPalette(name, current.palette.length).map((color) => color.hex)} />
-              <span className="pl-1.5">
-                {name}
-                {pickedFamilies.includes(name) ? <span className="ml-1.5 text-sm font-normal text-muted">(you picked)</span> : null}
-              </span>
-            </label>
-          ))}
-          <label className={CHOICE}>
-            <input type="radio" name={`${uid}-colors`} checked={family === "custom"} onChange={() => setFamily("custom")} className="sr-only" />
-            <Swatches hexes={hexes} />
-            <span className="pl-1.5">Pick exact colors</span>
-          </label>
-        </div>
-        {family === "custom" ? (
-          <div className="flex flex-wrap items-end gap-3">
-            {hexes.map((hex, index) => (
-              <label key={index} className="flex flex-col gap-1 text-sm font-semibold">
-                Color {index + 1}
-                <input
-                  type="color"
-                  value={hex.toLowerCase()}
-                  onChange={(event) => setHexes((list) => list.map((each, at) => (at === index ? event.target.value.toUpperCase() : each)))}
-                  className="h-11 w-16 cursor-pointer rounded-lg border border-field bg-surface"
-                />
-              </label>
+      <div className={RULED}>
+        <fieldset className="flex flex-col gap-2">
+          <legend className={`${LABEL} mb-2`}>Different colors</legend>
+          <div className={CHOICES}>
+            {families.map((name) => (
+              <PickOption
+                key={name}
+                type="radio"
+                name={`${uid}-colors`}
+                checked={family === name}
+                onChange={() => setFamily(name)}
+                lead={<Swatches hexes={familyPalette(name, current.palette.length).map((color) => color.hex)} />}
+                label={
+                  <>
+                    {name}
+                    {pickedFamilies.includes(name) ? <span className="ml-1.5 text-sm font-normal text-muted">(you picked)</span> : null}
+                  </>
+                }
+                layout="word"
+              />
             ))}
-            {hexes.length < 3 ? (
-              <button type="button" onClick={() => setHexes((list) => [...list, "#888888"])} className={SECONDARY}>
-                Add a color
-              </button>
-            ) : null}
-            {hexes.length > 1 ? (
-              <button type="button" onClick={() => setHexes((list) => list.slice(0, -1))} className={SECONDARY}>
-                Remove the last color
-              </button>
-            ) : null}
+            <PickOption type="radio" name={`${uid}-colors`} checked={family === "custom"} onChange={() => setFamily("custom")} lead={<Swatches hexes={hexes} />} label="Pick exact colors" layout="word" />
           </div>
-        ) : null}
-        {lightCustom ? <p className="text-sm text-check">These colors are all light, so your name may be hard to read on white.</p> : null}
-        <button
-          type="button"
-          onClick={() => family && send({ refinement: { kind: "colors", colors: family === "custom" ? { hexes } : { family } } })}
-          disabled={pending || !family}
-          className={`${SECONDARY} w-fit`}
-        >
-          Use these colors
-        </button>
-      </fieldset>
+          {family === "custom" ? (
+            <div className="flex flex-wrap items-end gap-3">
+              {hexes.map((hex, index) => (
+                <label key={index} className="flex flex-col gap-1 text-sm font-semibold">
+                  Color {index + 1}
+                  <input
+                    type="color"
+                    value={hex.toLowerCase()}
+                    onChange={(event) => setHexes((list) => list.map((each, at) => (at === index ? event.target.value.toUpperCase() : each)))}
+                    className="h-11 w-16 cursor-pointer rounded-[10px] border border-line-strong bg-surface"
+                  />
+                </label>
+              ))}
+              {hexes.length < 3 ? (
+                <button type="button" onClick={() => setHexes((list) => [...list, "#888888"])} className={SECONDARY}>
+                  Add a color
+                </button>
+              ) : null}
+              {hexes.length > 1 ? (
+                <button type="button" onClick={() => setHexes((list) => list.slice(0, -1))} className={SECONDARY}>
+                  Remove the last color
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          {lightCustom ? <p className="text-sm text-check">These colors are all light, so your name may be hard to read on white.</p> : null}
+          <button
+            type="button"
+            onClick={() => family && send({ refinement: { kind: "colors", colors: family === "custom" ? { hexes } : { family } } })}
+            disabled={pending || !family}
+            className={`${SECONDARY} w-fit`}
+          >
+            Use these colors
+          </button>
+        </fieldset>
+      </div>
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 font-semibold">Different lettering</legend>
-        <p className="text-sm text-muted">Now: {current.typography}</p>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {LETTERING_STYLE_KEYS.map((key) => (
-            <label key={key} className={`${CHOICE} justify-center text-center`}>
-              <input type="radio" name={`${uid}-lettering`} checked={style === key} onChange={() => setStyle(key)} className="sr-only" />
-              {LETTERING_STYLES[key].label}
-            </label>
-          ))}
-        </div>
-        <button type="button" onClick={() => style && send({ refinement: { kind: "lettering", style } })} disabled={pending || !style} className={`${SECONDARY} w-fit`}>
-          Change the lettering
-        </button>
-      </fieldset>
+      <div className={RULED}>
+        <fieldset className="flex flex-col gap-2">
+          <legend className={`${LABEL} mb-1`}>Different lettering</legend>
+          <p className="text-sm text-muted">Now: {current.typography}</p>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-2">
+            {LETTERING_STYLE_KEYS.map((key) => (
+              <PickOption key={key} type="radio" name={`${uid}-lettering`} checked={style === key} onChange={() => setStyle(key)} label={LETTERING_STYLES[key].label} layout="word" />
+            ))}
+          </div>
+          <button type="button" onClick={() => style && send({ refinement: { kind: "lettering", style } })} disabled={pending || !style} className={`${SECONDARY} w-fit`}>
+            Change the lettering
+          </button>
+        </fieldset>
+      </div>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor={`${uid}-tagline`} className="font-semibold">
+      <div className={PART}>
+        <label htmlFor={`${uid}-tagline`} className={LABEL}>
           Tagline
         </label>
         <p className="text-sm text-muted">{current.tagline ? `This logo’s tagline: “${current.tagline}”.` : "This logo has no tagline."}</p>
@@ -315,8 +324,8 @@ export function RefineLogo({ assetId, cost, current, ownerTagline, pickedFamilie
         </div>
       </div>
 
-      <form onSubmit={submit} className="flex flex-col gap-2">
-        <label htmlFor={`${uid}-change`} className="font-semibold">
+      <form onSubmit={submit} className={PART}>
+        <label htmlFor={`${uid}-change`} className={LABEL}>
           Something else
         </label>
         <textarea
@@ -362,12 +371,16 @@ export function ApproveVersions({ ids }: { ids: Record<VersionKind, string> }) {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl bg-accent-tint px-4 py-3">
-      <label htmlFor={`${uid}-confirm`} className="flex min-h-11 cursor-pointer items-start gap-2.5">
-        <input id={`${uid}-confirm`} type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} className="mt-1 size-4 shrink-0 accent-accent" />
-        <span>I checked the spelling myself, and each version matches my logo.</span>
-      </label>
+    <div className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5 shadow-card">
+      <PickOption
+        id={`${uid}-confirm`}
+        type="checkbox"
+        checked={confirmed}
+        onChange={(event) => setConfirmed(event.target.checked)}
+        label="I checked the spelling myself, and each version matches my logo."
+      />
       <button type="button" onClick={approve} disabled={pending} className={`${PRIMARY} w-fit`}>
+        <Icon name="check" size="sm" />
         {pending ? "Approving…" : "Approve these versions"}
       </button>
       <Messages error={error} note={note} />

@@ -1,4 +1,5 @@
 import { ActorChip } from "@/components/actor-chip";
+import { Chip } from "@/components/ui";
 import { PRACTICE_LABEL } from "@/lib/brand/practice";
 import type { AssetCheck, DriftKind } from "@/lib/brand/types";
 
@@ -12,7 +13,7 @@ const DRIFT: Record<DriftKind, string> = {
 };
 
 export function PracticeTag() {
-  return <span className="rounded-full bg-check-tint px-2.5 py-0.5 text-xs font-bold text-check">{PRACTICE_LABEL}</span>;
+  return <Chip tone="warn">{PRACTICE_LABEL}</Chip>;
 }
 
 // Who made it: Muse, or a practice stand-in that must never pass for a drawing
@@ -36,7 +37,7 @@ export function CheckNotes({ check, simulated, checking }: { check: AssetCheck |
   return (
     <div className="flex flex-col gap-1.5 text-sm">
       {problems.length ? (
-        <div className="rounded-lg bg-check-tint px-3 py-2.5 text-check">
+        <div className="rounded-xl border border-check-ring bg-check-tint px-3.5 py-3 text-check">
           <p className="flex flex-wrap items-center gap-2 font-semibold">
             <ActorChip actor="ai" /> Check this before you use it
           </p>

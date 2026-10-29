@@ -21,7 +21,7 @@ export function GuidedImage({ src, alt, width, height, guides, circle }: Props) 
 
   return (
     <figure className="flex flex-col gap-2">
-      <div className="relative w-full overflow-hidden rounded-xl bg-ground ring-1 ring-ink/10" style={{ aspectRatio: `${width} / ${height}` }}>
+      <div className="relative w-full overflow-hidden rounded-xl border border-line bg-soft" style={{ aspectRatio: `${width} / ${height}` }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt={alt} width={width} height={height} className="absolute inset-0 size-full object-cover" />
         {show && circle ? <span aria-hidden="true" className="absolute inset-0 rounded-full shadow-[0_0_0_999px_rgba(28,35,33,0.45)] ring-2 ring-white" /> : null}

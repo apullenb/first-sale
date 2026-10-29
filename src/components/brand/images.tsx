@@ -1,7 +1,10 @@
 import { pickImageAction, unpickImageAction } from "@/app/(app)/brand/actions";
 import { ActionButton } from "@/components/action-button";
 import { ActorChip } from "@/components/actor-chip";
-import { CARD, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
+import { Icon } from "@/components/icons";
+import { Done, SectionHead, SOFT } from "@/components/marketing/pieces";
+import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
+import { Card } from "@/components/ui";
 import { dollars } from "@/lib/brand/cost";
 import { brandFileName, brandFileUrl } from "@/lib/brand/files";
 import { CHECKED, IMAGE_SPECS } from "@/lib/brand/sizes";
@@ -27,20 +30,17 @@ export function ImagesSection({ chosenId, name, assets, picks, practice, running
   const free = "Practice mode: nothing is charged.";
 
   return (
-    <section aria-labelledby="images-heading" className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h2 id="images-heading" className="font-display text-2xl font-bold">
-          6. Make pictures for your pages
-        </h2>
-        <p className="text-rule">
+    <section aria-labelledby="images-heading" className="@container flex flex-col gap-4">
+      <SectionHead id="images-heading" number={6} title="Make pictures for your pages">
+        <p className="max-w-2xl text-muted">
           {practice
             ? "In practice mode each picture is a plain preview. With Muse connected, it makes each one from your logo, in its colors and style, shaped for where it goes."
             : "Muse makes each picture from your logo, in its colors and style, shaped for where it goes."}{" "}
           The boxes show what each site crops or covers. Downloads are resized to the exact size in your browser.
         </p>
-      </div>
+      </SectionHead>
       {missing.length && !running ? (
-        <div className={`${CARD} flex flex-col gap-2`}>
+        <Card>
           <BrandRunButton
             intent={{ kind: "images", kinds: missing }}
             label={missing.length === IMAGE_KINDS.length ? "Make my brand pictures" : "Make the missing pictures"}
@@ -48,11 +48,11 @@ export function ImagesSection({ chosenId, name, assets, picks, practice, running
             working="Making your brand pictures and checking them… this can take two or three minutes"
             cost={practice ? free : `${missing.length} ${missing.length === 1 ? "picture" : "pictures"}: ${dollars(missing.length)}.`}
           />
-        </div>
+        </Card>
       ) : null}
       {running ? <p className="text-muted">Making your pictures…</p> : null}
 
-      <ul className="flex flex-col gap-4">
+      <ul className="grid gap-4 @3xl:grid-cols-2">
         {IMAGE_KINDS.filter((kind) => made(kind).length).map((kind) => {
           const versions = made(kind);
           const latest = versions.at(-1)!;
@@ -72,13 +72,8 @@ function ImageCard({ kind, name, latest, picked, practice, running }: { kind: Br
   const spec = IMAGE_SPECS[kind];
   const headingId = `image-${kind}`;
   return (
-    <article aria-labelledby={headingId} className={`${CARD} flex flex-col gap-3`}>
-      <div className="flex flex-col gap-0.5">
-        <h3 id={headingId} className="font-display text-xl font-bold">
-          {spec.title}
-        </h3>
-        <p className="text-sm text-muted">{spec.purpose}</p>
-      </div>
+    <Card title={spec.title} icon="image" id={headingId} headingLevel={3} className="flex h-full flex-col" bodyClassName="flex-1">
+      <p className="text-sm text-muted">{spec.purpose}</p>
       <GuidedImage
         src={brandFileUrl(latest.id)}
         alt={latest.simulated ? `Practice preview of your ${spec.title.toLowerCase()}` : `Your ${spec.title.toLowerCase()}`}
@@ -90,7 +85,7 @@ function ImageCard({ kind, name, latest, picked, practice, running }: { kind: Br
       <CheckNotes check={latest.check} simulated={latest.simulated} checking={running} />
 
       <div className="flex flex-col gap-1 text-sm text-rule">
-        <ul className="flex list-disc flex-col gap-1 pl-5">
+        <ul className="flex list-disc flex-col gap-1 pl-5 marker:text-accent">
           {spec.facts.map((fact) => (
             <li key={fact}>{fact}</li>
           ))}
@@ -110,20 +105,23 @@ function ImageCard({ kind, name, latest, picked, practice, running }: { kind: Br
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 border-t border-line pt-3">
         {spec.exports.map((exportSpec) => (
           <ExactDownload key={exportSpec.label} src={brandFileUrl(latest.id)} spec={exportSpec} fileName={brandFileName(name, kind, latest.simulated, `${exportSpec.width}x${exportSpec.height}`)} />
         ))}
         <a href={brandFileUrl(latest.id, false)} download className={SECONDARY_LINK}>
+          <Icon name="download" size="sm" />
           {latest.simulated ? "Download the practice preview" : "Download as Muse made it"}
         </a>
       </div>
 
       {picked?.id === latest.id ? (
-        <div className="flex flex-col gap-2 rounded-xl bg-accent-tint px-4 py-3">
-          <p className="flex flex-wrap items-center gap-2 font-semibold text-accent-ink">
-            <ActorChip actor="owner" /> In your brand kit
-          </p>
+        <div className="flex flex-col gap-2">
+          <Done>
+            <span className="flex flex-wrap items-center gap-2">
+              <ActorChip actor="owner" /> In your brand kit
+            </span>
+          </Done>
           <ActionButton action={unpickImageAction.bind(null, kind)} label="Take it out of my kit" pendingLabel="Removing…" />
         </div>
       ) : (
@@ -134,9 +132,13 @@ function ImageCard({ kind, name, latest, picked, practice, running }: { kind: Br
       )}
 
       {!running ? (
-        <details className="rounded-xl bg-ground">
-          <summary className="flex min-h-11 cursor-pointer items-center px-4 font-semibold">Make a new one</summary>
-          <div className="px-4 pb-4">
+        <details className={`group/new ${SOFT}`}>
+          <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-4 py-2 font-semibold [&::-webkit-details-marker]:hidden">
+            <Icon name="refresh" size="sm" className="text-accent" />
+            <span className="flex-1">Make a new one</span>
+            <Icon name="chevron" size="sm" className="text-faint transition-transform group-open/new:rotate-90" />
+          </summary>
+          <div className="border-t border-line bg-surface px-4 py-4">
             <BrandRunButton
               intent={{ kind: "images", kinds: [kind] }}
               label="Make a new one"
@@ -149,6 +151,6 @@ function ImageCard({ kind, name, latest, picked, practice, running }: { kind: Br
           </div>
         </details>
       ) : null}
-    </article>
+    </Card>
   );
 }

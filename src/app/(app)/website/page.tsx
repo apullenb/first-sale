@@ -4,10 +4,13 @@ import { draftWebsiteAction } from "@/app/(app)/website/actions";
 import { findMoreOptionsAction } from "@/app/(app)/website/option-actions";
 import { ActionButton } from "@/components/action-button";
 import { ActorChip } from "@/components/actor-chip";
+import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
+import { Kicker, SectionHead } from "@/components/marketing/pieces";
 import { PracticeBanner } from "@/components/practice-banner";
 import { RunStatus } from "@/components/run-status";
-import { CARD, EYEBROW, PAGE_TITLE, PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
+import { PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
+import { Card, Fold, Note, PageHead } from "@/components/ui";
 import { WebsiteBasics } from "@/components/website/basics";
 import { CopyEditor } from "@/components/website/copy-editor";
 import { DomainFinder } from "@/components/website/domain-finder";
@@ -15,7 +18,6 @@ import { MoreOptionsList } from "@/components/website/more-options";
 import { PlatformCard } from "@/components/website/platform-card";
 import { type ChecklistStep, SetupChecklist } from "@/components/website/setup-checklist";
 import { type LibraryChoice, type PublishPanel, SiteStudio } from "@/components/website/site-studio";
-import { StepHeading } from "@/components/website/step-heading";
 import { PLATFORM_DATA, PLATFORM_ORDER } from "@/data/website-platforms";
 import { getModel } from "@/lib/ai";
 import type { BrandFile } from "@/lib/brand/types";
@@ -38,15 +40,12 @@ export const maxDuration = 300;
 
 export default function WebsitePage({ searchParams }: PageProps<"/website">) {
   return (
-    <div className="flex max-w-6xl flex-col gap-6 wrap-break-word">
-      <div className="flex max-w-3xl flex-col gap-1.5">
-        <p className={EYEBROW}>Marketing and branding</p>
-        <h1 className={PAGE_TITLE}>Your website</h1>
-        <p className="text-lg text-muted">
-          First Sale can build your site here from your words, brand and items, show it to you live, and publish it when you say so. Or pick Square, Wix
-          or Shopify, and follow click-by-click steps with everything ready to paste.
-        </p>
-      </div>
+    <div className="flex max-w-[1000px] flex-col gap-8 wrap-break-word">
+      <PageHead
+        kicker={<Kicker icon="globe">Marketing and branding</Kicker>}
+        title="Your website"
+        lead="First Sale can build your site here from your words, brand and items, show it to you live, and publish it when you say so. Or pick Square, Wix or Shopify, and follow click-by-click steps with everything ready to paste."
+      />
       <Suspense fallback={<p className="text-muted">Loading your website plan…</p>}>
         <WebsitePlanView searchParams={searchParams} />
       </Suspense>
@@ -65,12 +64,13 @@ async function WebsitePlanView({ searchParams }: { searchParams: PageProps<"/web
   if (!site) {
     const business = await getMyBusiness();
     return (
-      <section className={`${CARD} flex max-w-3xl flex-col gap-3`}>
-        <p>Tell us about your business first. Your answers decide which option fits you best.</p>
+      <Card title="Tell us about your business first" icon="store" id="first-heading">
+        <p className="text-muted">Your answers decide which option fits you best.</p>
         <Link href={business ? "/business/edit" : "/business/new"} className={PRIMARY_LINK}>
           {business ? "Update your answers" : "Tell us about your business"}
+          <Icon name="arrow" size="sm" />
         </Link>
-      </section>
+      </Card>
     );
   }
 
@@ -94,32 +94,39 @@ async function WebsitePlanView({ searchParams }: { searchParams: PageProps<"/web
 
   return (
     <>
-      <details open={!chosen} className={`${CARD} group max-w-3xl`}>
-        <summary className="flex min-h-11 cursor-pointer items-center font-display text-xl font-bold">New to websites? Start here</summary>
-        <div className="mt-3">
-          <WebsiteBasics exampleDomain={ideas[0] ?? "yourbusiness.com"} />
-        </div>
-      </details>
+      <Fold open={!chosen} icon="book" title="New to websites? Start here" summary="Four words to know before you pick">
+        <WebsiteBasics exampleDomain={ideas[0] ?? "yourbusiness.com"} />
+      </Fold>
 
-      <section aria-labelledby="step-choose" className="flex flex-col gap-4">
-        <StepHeading number={1} id="step-choose" title="Choose how to build it" />
-        <div className="flex max-w-3xl flex-col gap-2 rounded-2xl bg-accent-tint p-5">
-          <p className="flex flex-wrap items-center gap-2 font-semibold text-accent-ink">
-            <ActorChip actor="rule" /> Suggested for {name}: {PLATFORM_DATA[recommendation.platform].name}
-          </p>
-          <ul className="flex list-disc flex-col gap-1 pl-5 text-accent-ink">
+      <section aria-labelledby="step-choose" className="@container flex flex-col gap-4">
+        <SectionHead id="step-choose" number={1} title="Choose how to build it" />
+        <div className="flex flex-col gap-3 rounded-2xl border border-accent-ring bg-surface p-5 shadow-[0_0_0_4px_var(--color-accent-tint),var(--shadow-card)] sm:p-6">
+          <div className="flex items-center gap-3">
+            <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-accent-ring bg-accent-tint text-accent">
+              <Icon name="sparkles" />
+            </span>
+            <p className="text-[13.5px] font-bold uppercase tracking-[0.08em] text-accent">Suggested for {name}</p>
+            <ActorChip actor="rule" />
+          </div>
+          <p className="font-display text-[22px] leading-snug">{PLATFORM_DATA[recommendation.platform].name}</p>
+          <ul className="flex flex-col gap-1.5">
             {recommendation.reasons.map((reason) => (
-              <li key={reason}>{reason}</li>
+              <li key={reason} className="flex items-start gap-2.5">
+                <span aria-hidden="true" className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-accent-ring bg-accent-tint text-accent">
+                  <Icon name="check" size="xs" strokeWidth={2.6} />
+                </span>
+                <span>{reason}</span>
+              </li>
             ))}
           </ul>
-          <p className="text-sm text-accent-ink">
+          <p className="text-sm text-muted">
             This comes from your answers about what you sell and how. You can pick any option.{" "}
             <Link href="/business/edit" className={TEXT_LINK}>
               Change your answers
             </Link>
           </p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-5 @3xl:grid-cols-2">
           {PLATFORM_ORDER.map((id) => (
             <PlatformCard
               key={id}
@@ -134,8 +141,7 @@ async function WebsitePlanView({ searchParams }: { searchParams: PageProps<"/web
             />
           ))}
         </div>
-        <div className={`${CARD} flex flex-col gap-3`}>
-          <h3 className="font-display text-lg font-bold">Want to see other options?</h3>
+        <Card title="Want to see other options?" icon="search" id="more-options-heading" headingLevel={3}>
           <p className="text-rule">
             These fit most first websites. To compare others, First Sale can search the web for more builders, with their prices, pros and cons.
           </p>
@@ -150,58 +156,65 @@ async function WebsitePlanView({ searchParams }: { searchParams: PageProps<"/web
             variant="ai"
           />
           {plan?.moreOptions ? <MoreOptionsList found={plan.moreOptions} explanations={moreExplanations} /> : null}
-        </div>
+        </Card>
       </section>
 
-      <section aria-labelledby="step-address" className={`${CARD} flex max-w-3xl flex-col gap-3`}>
-        <StepHeading number={2} id="step-address" title="Pick a web address" />
-        <p className="text-rule">
-          Your web address is how people find you, so pick one that’s short and matches your business name.{" "}
-          {builtHere
-            ? "It’s optional: your site works on a free netlify.app address, and you can add your own later."
-            : "You’ll buy it when you set up your site."}
-        </p>
-        <DomainFinder ideas={ideas} checks={plan?.domainChecks ?? []} chosen={plan?.domain ?? null} />
+      <section aria-labelledby="step-address" className="flex flex-col gap-4">
+        <SectionHead
+          id="step-address"
+          number={2}
+          title="Pick a web address"
+          lead={`Your web address is how people find you, so pick one that’s short and matches your business name. ${
+            builtHere ? "It’s optional: your site works on a free netlify.app address, and you can add your own later." : "You’ll buy it when you set up your site."
+          }`}
+        />
+        <Card>
+          <DomainFinder ideas={ideas} checks={plan?.domainChecks ?? []} chosen={plan?.domain ?? null} />
+        </Card>
       </section>
 
-      <section aria-labelledby="step-words" className={`${CARD} flex max-w-3xl flex-col gap-4`}>
-        <StepHeading number={3} id="step-words" title="Write your pages" />
-        <ul aria-label="Who does what" className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
-          <li className="flex items-center gap-2">
-            {content?.simulated ? <ActorChip actor="rule" /> : <ActorChip actor="ai" />}
-            {content?.simulated ? "drafts in practice mode, from a template" : "drafts from your answers, without making up facts"}
-          </li>
-          <li className="flex items-center gap-2">
-            <ActorChip actor="owner" /> edit and approve every word
-          </li>
-        </ul>
-        {run && (run.status === "running" || run.message === CUT_OFF_MESSAGE) ? (
-          <RunStatus status={run.status === "running" ? "running" : "failed"} message={null} what="Writing your website" />
-        ) : null}
-        {!chosen ? (
-          <p className="text-muted">Choose how you’ll build your site in step 1 first, so the words fit how customers will buy.</p>
-        ) : (
-          <>
-            {content?.simulated ? <PracticeBanner what="These words were drafted in practice mode." /> : null}
-            {content && content.platform !== chosen ? (
-              <p role="status" className="rounded-lg bg-check-tint px-3 py-2.5 text-sm text-check">
-                These words were written for {PLATFORM_DATA[content.platform].name}. Draft them again so they fit how customers buy on{" "}
-                {PLATFORM_DATA[chosen].name}.
-              </p>
-            ) : null}
-            <ActionButton
-              action={draftWebsiteAction}
-              label={content ? "Draft my website again" : "Draft my website"}
-              pendingLabel="Writing your website…"
-              pendingStatus="Writing the words for each page from your answers. This can take a minute."
-              variant="ai"
-              confirm={content ? "This replaces your current words, including your edits. Draft again?" : undefined}
-            />
-            {content ? (
-              <CopyEditor copy={copyOf(content)} flags={content.flags} approved={Boolean(plan?.contentApprovedAt)} signature={content.generatedAt} />
-            ) : null}
-          </>
-        )}
+      <section aria-labelledby="step-words" className="flex flex-col gap-4">
+        <SectionHead id="step-words" number={3} title="Write your pages">
+          <ul aria-label="Who does what" className="flex flex-wrap gap-x-5 gap-y-2 pt-1 text-sm text-muted">
+            <li className="flex items-center gap-2">
+              {content?.simulated ? <ActorChip actor="rule" /> : <ActorChip actor="ai" />}
+              {content?.simulated ? "drafts in practice mode, from a template" : "drafts from your answers, without making up facts"}
+            </li>
+            <li className="flex items-center gap-2">
+              <ActorChip actor="owner" /> edit and approve every word
+            </li>
+          </ul>
+        </SectionHead>
+        <Card bodyClassName="gap-4">
+          {run && (run.status === "running" || run.message === CUT_OFF_MESSAGE) ? (
+            <RunStatus status={run.status === "running" ? "running" : "failed"} message={null} what="Writing your website" />
+          ) : null}
+          {!chosen ? (
+            <p className="text-muted">Choose how you’ll build your site in step 1 first, so the words fit how customers will buy.</p>
+          ) : (
+            <>
+              {content?.simulated ? <PracticeBanner what="These words were drafted in practice mode." /> : null}
+              {content && content.platform !== chosen ? (
+                <Note>
+                  <p role="status">
+                    These words were written for {PLATFORM_DATA[content.platform].name}. Draft them again so they fit how customers buy on {PLATFORM_DATA[chosen].name}.
+                  </p>
+                </Note>
+              ) : null}
+              <ActionButton
+                action={draftWebsiteAction}
+                label={content ? "Draft my website again" : "Draft my website"}
+                pendingLabel="Writing your website…"
+                pendingStatus="Writing the words for each page from your answers. This can take a minute."
+                variant="ai"
+                confirm={content ? "This replaces your current words, including your edits. Draft again?" : undefined}
+              />
+              {content ? (
+                <CopyEditor copy={copyOf(content)} flags={content.flags} approved={Boolean(plan?.contentApprovedAt)} signature={content.generatedAt} />
+              ) : null}
+            </>
+          )}
+        </Card>
       </section>
 
       {content && chosen ? (
@@ -269,9 +282,8 @@ function publishPanel(site: LoadedSite, returned: string | null): PublishPanel {
 // Netlify Drop, from https://docs.netlify.com/start/quickstarts/netlify-drop-quickstart/ (read 2026-10-28)
 function DoItYourself({ open }: { open: boolean }) {
   return (
-    <details open={open} className="rounded-xl bg-ground px-4 py-3">
-      <summary className="flex min-h-11 cursor-pointer items-center font-semibold">Or put it online yourself with Netlify Drop</summary>
-      <ol className="mt-2 flex list-decimal flex-col gap-1.5 pl-5 text-rule">
+    <Fold open={open} icon="upload" title="Or put it online yourself with Netlify Drop" summary="Download your site, then drag it onto Netlify">
+      <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-rule marker:font-semibold marker:text-accent">
         <li>Once every check above passes, click “Download my site (.zip)”.</li>
         <li>Unzip it. You’ll get a folder with index.html and an assets folder.</li>
         <li>
@@ -286,7 +298,7 @@ function DoItYourself({ open }: { open: boolean }) {
         <li>Netlify shows your address ending in netlify.app. Open it and check your site.</li>
         <li>To update it later, download again, then drag the new folder into the drop area under Production deploys on your project’s page.</li>
       </ol>
-      <p className="mt-2 text-sm text-muted">
+      <p className="text-sm text-muted">
         From{" "}
         <a href="https://docs.netlify.com/start/quickstarts/netlify-drop-quickstart/" target="_blank" rel="noopener noreferrer" className={TEXT_LINK}>
           Netlify’s Drop guide
@@ -294,7 +306,7 @@ function DoItYourself({ open }: { open: boolean }) {
         </a>
         , checked <LocalDate iso="2026-10-28T12:00:00Z" />.
       </p>
-    </details>
+    </Fold>
   );
 }
 
@@ -338,30 +350,37 @@ function BuildSteps({ site, platformId, number }: { site: LoadedSite; platformId
   const left = site.content ? placeholderCount(site.content) : 0;
 
   return (
-    <section aria-labelledby="step-build" className={`${CARD} flex max-w-3xl flex-col gap-4`}>
-      <StepHeading number={number} id="step-build" title={builtHere ? "Finish what only you can do" : `Build it on ${platform.name}`} />
-      <p className="text-rule">
-        {builtHere
-          ? "First Sale builds and publishes your site, but it can’t make accounts, take payments or buy a web address for you. These steps cover those, with your details ready to paste."
-          : `You set up the site yourself on ${platform.name}; First Sale can’t sign in or pay for you. Each step says where to click, has a “Take me there” link to that page on ${platform.name}, and has your own words, colors, logo and item details ready to paste.`}
-      </p>
-      {!builtHere ? (
-        <a href={platform.signupUrl} target="_blank" rel="noopener noreferrer" className={PRIMARY_LINK}>
-          Open {platform.name}
-          <span className="sr-only"> (opens in a new tab)</span>
-        </a>
-      ) : null}
-      {left && !builtHere ? (
-        <p className="rounded-lg bg-check-tint px-3 py-2.5 text-sm text-check">
-          {left} [bracketed] {left === 1 ? "note is" : "notes are"} still in your words. Fill them in in step 3 before you paste.
+    <section aria-labelledby="step-build" className="flex flex-col gap-4">
+      <SectionHead
+        id="step-build"
+        number={number}
+        title={builtHere ? "Finish what only you can do" : `Build it on ${platform.name}`}
+        lead={
+          builtHere
+            ? "First Sale builds and publishes your site, but it can’t make accounts, take payments or buy a web address for you. These steps cover those, with your details ready to paste."
+            : `You set up the site yourself on ${platform.name}; First Sale can’t sign in or pay for you. Each step says where to click, has a “Take me there” link to that page on ${platform.name}, and has your own words, colors, logo and item details ready to paste.`
+        }
+      />
+      <Card bodyClassName="gap-4">
+        {!builtHere ? (
+          <a href={platform.signupUrl} target="_blank" rel="noopener noreferrer" className={PRIMARY_LINK}>
+            Open {platform.name}
+            <Icon name="external" size="sm" />
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        ) : null}
+        {left && !builtHere ? (
+          <Note>
+            {left} [bracketed] {left === 1 ? "note is" : "notes are"} still in your words. Fill them in in step 3 before you paste.
+          </Note>
+        ) : null}
+        {!site.content ? <p className="text-muted">Draft your pages in step 3, and your words will show up in these steps ready to copy.</p> : null}
+        <SetupChecklist steps={steps} done={done} />
+        <p className="text-sm text-muted">
+          Menus and buttons as {builtHere ? "Netlify, Stripe and Square" : platform.name} name them in their help, checked{" "}
+          <LocalDate iso={`${platform.stepsCheckedOn}T12:00:00Z`} />. If something has moved, each step’s help link has the latest.
         </p>
-      ) : null}
-      {!site.content ? <p className="text-muted">Draft your pages in step 3, and your words will show up in these steps ready to copy.</p> : null}
-      <SetupChecklist steps={steps} done={done} />
-      <p className="text-sm text-muted">
-        Menus and buttons as {builtHere ? "Netlify, Stripe and Square" : platform.name} name them in their help, checked{" "}
-        <LocalDate iso={`${platform.stepsCheckedOn}T12:00:00Z`} />. If something has moved, each step’s help link has the latest.
-      </p>
+      </Card>
     </section>
   );
 }

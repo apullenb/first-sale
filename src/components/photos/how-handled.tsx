@@ -1,4 +1,4 @@
-import { CARD, SECTION_TITLE } from "@/components/styles";
+import { Card } from "@/components/ui";
 import { getImageModel, getModel } from "@/lib/ai";
 
 // Where photos go depends on which AI service this copy of First Sale is set up with
@@ -42,15 +42,12 @@ export function HowPhotosAreHandled() {
     "Nothing is published for you. Approved photos wait in your library until you download them.",
   ];
   return (
-    <section aria-labelledby="photos-handled-heading" className={`${CARD} flex flex-col gap-3`}>
-      <h2 id="photos-handled-heading" className={SECTION_TITLE}>
-        How your photos are handled
-      </h2>
-      <ul className="flex list-disc flex-col gap-1.5 pl-5 text-rule">
+    <Card title="How your photos are handled" icon="lock" tone="gray" id="photos-handled-heading">
+      <ul className="flex list-disc flex-col gap-1.5 pl-5 text-rule marker:text-accent">
         {points.map((point) => (
           <li key={point}>{point}</li>
         ))}
       </ul>
-    </section>
+    </Card>
   );
 }

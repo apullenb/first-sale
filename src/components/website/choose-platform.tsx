@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useState } from "react";
 import { choosePlatformAction } from "@/app/(app)/website/actions";
+import { Icon } from "@/components/icons";
 import { ALERT, PRIMARY, SECONDARY } from "@/components/styles";
 import type { PlatformId } from "@/lib/website/types";
 
@@ -26,6 +27,7 @@ export function ChoosePlatformButton({ platform, name, chosen }: { platform: Pla
   return (
     <div className="flex flex-col items-start gap-2">
       <button type="button" disabled={pending} onClick={choose} className={chosen ? SECONDARY : PRIMARY}>
+        {chosen ? <Icon name="back" size="sm" /> : <Icon name="check" size="sm" />}
         {pending ? "Saving…" : chosen ? "Undo my choice" : `Build it with ${name}`}
       </button>
       {error ? (

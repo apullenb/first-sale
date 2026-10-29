@@ -1,5 +1,3 @@
-import { CARD, SECTION_TITLE } from "@/components/styles";
-
 // Plain-words explainer for owners who've never made a website. The example address uses their own name.
 export function WebsiteBasics({ exampleDomain }: { exampleDomain: string }) {
   const terms = [
@@ -21,18 +19,13 @@ export function WebsiteBasics({ exampleDomain }: { exampleDomain: string }) {
     },
   ];
   return (
-    <section aria-labelledby="basics-heading" className={`${CARD} flex flex-col gap-3`}>
-      <h2 id="basics-heading" className={SECTION_TITLE}>
-        New to websites? Four words to know
-      </h2>
-      <dl className="flex flex-col gap-3">
-        {terms.map((item) => (
-          <div key={item.term} className="flex flex-col gap-0.5">
-            <dt className="font-bold">{item.term}</dt>
-            <dd className="text-rule">{item.text}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
+    <dl className="flex flex-col">
+      {terms.map((item) => (
+        <div key={item.term} className="flex flex-col gap-0.5 border-b border-line py-3 first:pt-0 last:border-b-0 last:pb-0">
+          <dt className="font-bold">{item.term}</dt>
+          <dd className="text-rule">{item.text}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

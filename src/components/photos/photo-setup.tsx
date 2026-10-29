@@ -4,14 +4,15 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useId, useLayoutEffect, useRef, useState } from "react";
 import { generatePhotoAction } from "@/app/(app)/photos/actions";
 import { ActorChip } from "@/components/actor-chip";
+import { Icon } from "@/components/icons";
+import { PICKS, PickOption } from "@/components/marketing/pieces";
 import { AI_BUTTON, ALERT, INPUT } from "@/components/styles";
 import { MAX_ANSWER } from "@/lib/photos/instructions";
 import { CATEGORIES, CROPS, LOOKS } from "@/lib/photos/looks";
 import { PHOTO_CATEGORIES, PHOTO_CROPS, PHOTO_LOOKS, type PhotoCategory, type PhotoCrop, type PhotoLook } from "@/lib/photos/types";
 import { useRequestKey, Working } from "./working";
 
-const CHOICE =
-  "flex min-h-11 cursor-pointer items-start gap-2.5 rounded-lg border border-field bg-surface px-3.5 py-2.5 has-checked:border-accent has-checked:bg-accent-tint has-focus-visible:ring-2 has-focus-visible:ring-accent";
+const LEGEND = "mb-2 text-[17px] font-bold";
 
 interface Props {
   photoId: string;
@@ -74,45 +75,41 @@ export function PhotoSetup({ photoId, objects, question, aiCategory, initial, se
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-5">
+    <form onSubmit={submit} className="flex flex-col gap-6">
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 font-semibold">What kind of product is this?</legend>
-        <p className="text-sm text-muted">
+        <legend className={LEGEND}>What kind of product is this?</legend>
+        <p className="text-[15px] text-muted">
           {aiCategory ? "AI’s guess is picked. Change it if it’s wrong: each kind has its own rules for staying accurate." : "Choose one. Each kind has its own rules for staying accurate."}
         </p>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className={PICKS.wide}>
           {PHOTO_CATEGORIES.map((value) => (
-            <label key={value} className={CHOICE}>
-              <input
-                type="radio"
-                name={`${uid}-category`}
-                checked={category === value}
-                onChange={() => changed(setCategory)(value)}
-                className="mt-1 size-4 shrink-0 accent-accent"
-              />
-              <span className="font-semibold">{CATEGORIES[value]}</span>
-            </label>
+            <PickOption
+              key={value}
+              type="radio"
+              name={`${uid}-category`}
+              checked={category === value}
+              onChange={() => changed(setCategory)(value)}
+              label={CATEGORIES[value]}
+              layout="top"
+            />
           ))}
         </div>
       </fieldset>
 
       {objects.length > 1 ? (
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1 font-semibold">Which of these are you selling?</legend>
-          <p className="text-sm text-muted">Anything you don’t tick is taken out of the photo, so it doesn’t look included.</p>
-          <div className="flex flex-col gap-2">
+          <legend className={LEGEND}>Which of these are you selling?</legend>
+          <p className="text-[15px] text-muted">Anything you don’t tick is taken out of the photo, so it doesn’t look included.</p>
+          <div className={PICKS.cards}>
             {objects.map((object) => (
-              <label key={object.name} className={CHOICE}>
-                <input
-                  type="checkbox"
-                  checked={forSale.includes(object.name)}
-                  onChange={(event) =>
-                    changed(setForSale)(event.target.checked ? [...forSale, object.name] : forSale.filter((name) => name !== object.name))
-                  }
-                  className="mt-1 size-4 shrink-0 accent-accent"
-                />
-                <span>{object.name}</span>
-              </label>
+              <PickOption
+                key={object.name}
+                type="checkbox"
+                checked={forSale.includes(object.name)}
+                onChange={(event) => changed(setForSale)(event.target.checked ? [...forSale, object.name] : forSale.filter((name) => name !== object.name))}
+                label={object.name}
+                layout="top"
+              />
             ))}
           </div>
         </fieldset>
@@ -120,7 +117,7 @@ export function PhotoSetup({ photoId, objects, question, aiCategory, initial, se
 
       {question ? (
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={`${uid}-answer`} className="flex flex-wrap items-center gap-2 font-semibold">
+          <label htmlFor={`${uid}-answer`} className="flex flex-wrap items-center gap-2 text-[17px] font-bold">
             <ActorChip actor="ai" /> {question}
           </label>
           <input
@@ -139,49 +136,49 @@ export function PhotoSetup({ photoId, objects, question, aiCategory, initial, se
       ) : null}
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 font-semibold">Choose a look</legend>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <legend className={LEGEND}>Choose a look</legend>
+        <div className={PICKS.wide}>
           {PHOTO_LOOKS.map((value) => (
-            <label key={value} className={CHOICE}>
-              <input
-                type="radio"
-                name={`${uid}-look`}
-                checked={look === value}
-                onChange={() => changed(setLook)(value)}
-                className="mt-1 size-4 shrink-0 accent-accent"
-              />
-              <span className="flex flex-col">
-                <span className="font-semibold">
+            <PickOption
+              key={value}
+              type="radio"
+              name={`${uid}-look`}
+              checked={look === value}
+              onChange={() => changed(setLook)(value)}
+              label={
+                <>
                   {LOOKS[value].label}
                   {value === "seasonal" ? ` (${season})` : ""}
                   {value === "studio" ? <span className="font-normal text-muted"> · default</span> : null}
-                </span>
-                <span className="text-sm text-muted">{LOOKS[value].hint}</span>
-              </span>
-            </label>
+                </>
+              }
+              description={LOOKS[value].hint}
+              layout="top"
+            />
           ))}
         </div>
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 font-semibold">Shape</legend>
-        <div className="flex flex-wrap gap-2">
+        <legend className={LEGEND}>Shape</legend>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-2">
           {PHOTO_CROPS.map((value) => (
-            <label key={value} className={`${CHOICE} items-center`}>
-              <input
-                type="radio"
-                name={`${uid}-crop`}
-                checked={crop === value}
-                onChange={() => changed(setCrop)(value)}
-                className="size-4 shrink-0 accent-accent"
-              />
-              <span className="font-semibold">
-                {CROPS[value].label} <span className="font-normal text-muted">{CROPS[value].ratio}</span>
-              </span>
-            </label>
+            <PickOption
+              key={value}
+              type="radio"
+              name={`${uid}-crop`}
+              checked={crop === value}
+              onChange={() => changed(setCrop)(value)}
+              label={
+                <>
+                  {CROPS[value].label} <span className="font-normal text-muted">{CROPS[value].ratio}</span>
+                </>
+              }
+              layout="word"
+            />
           ))}
         </div>
-        <p className="text-sm text-muted">The whole product stays in the frame whichever shape you pick.</p>
+        <p className="text-[15px] text-muted">The whole product stays in the frame whichever shape you pick.</p>
       </fieldset>
 
       {blocked ? (
@@ -189,6 +186,7 @@ export function PhotoSetup({ photoId, objects, question, aiCategory, initial, se
       ) : (
         <div className="flex flex-col items-start gap-2">
           <button type="submit" disabled={pending} className={AI_BUTTON}>
+            <Icon name="sparkles" size="sm" />
             {pending ? "Making your photo…" : hasVersions ? "Make another version" : "Make my store photo"}
           </button>
           <p className="text-sm text-muted">Your original photo is kept as it is. Each try is saved as a new version.</p>
