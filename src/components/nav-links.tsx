@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { formatMinutes } from "@/lib/rules/progress";
 import { type PartStatus, sectionState, type SidebarStatus } from "@/lib/rules/section-status";
@@ -10,12 +10,13 @@ import { celebrate, onCelebrate } from "./celebrate";
 
 export interface NavStatus {
   parts: SidebarStatus;
-  // The business, so done steps remembered in this browser stay with it
-  scope: string;
+  // The business, so done steps remembered in this browser stay with it; null before there is one
+  scope: string | null;
 }
 
 const ICONS: Record<string, IconName> = {
   "/insights": "lightbulb",
+  "/documents": "book",
   "/brand-library": "image",
   "/orders": "receipt",
   "/planning-for-help": "users",
@@ -52,18 +53,31 @@ export function NavLinks({ activeHref, status }: { activeHref: string | null; st
   const toggle = (group: SectionGroup) =>
     setToggled({ on: working, groups: Object.fromEntries(SECTION_GROUPS.map((each) => [each, each === group ? !isOpen(group) : false])) });
 
+  // Set before paint, so a new check doesn't flash in full before it pops
   const [fresh, setFresh] = useState<string[]>([]);
-  useEffect(() => onCelebrate(({ hrefs }) => setFresh((current) => [...current, ...hrefs])), []);
+  useLayoutEffect(() => onCelebrate(({ hrefs }) => setFresh((current) => [...current, ...hrefs])), []);
   useCelebrateNewlyDone(status);
 
-  const total = Object.values(parts).reduce((sum, part) => sum + part.count, 0);
-  const insights = SECTIONS.filter((section) => section.group === null);
+  // Plan steps left; documents to check have their own count
+  const total = SECTIONS.filter((section) => section.step !== null).reduce((sum, section) => sum + (parts[section.href]?.count ?? 0), 0);
+  const standalone = SECTIONS.filter((section) => section.group === null);
   return (
     <nav aria-label="Sections" className="flex flex-col gap-0.5">
       <NavItem href={HOME.href} title={HOME.title} icon="home" active={isActive(HOME.href, activeHref)} count={total} />
-      {insights.map((section) => (
-        <NavItem key={section.href} href={section.href} title={section.title} icon={ICONS[section.href] ?? "file"} active={highlighted === section.href} count={0} />
-      ))}
+      {standalone.map((section) => {
+        const count = parts[section.href]?.count ?? 0;
+        return (
+          <NavItem
+            key={section.href}
+            href={section.href}
+            title={section.title}
+            icon={ICONS[section.href] ?? "file"}
+            active={highlighted === section.href}
+            count={count}
+            countLabel={`${count} to check`}
+          />
+        );
+      })}
       {SECTION_GROUPS.map((group) => {
         const sections = SECTIONS.filter((section) => section.group === group && !section.under);
         const steps = sections.filter((section) => section.step !== null);
@@ -92,7 +106,7 @@ export function NavLinks({ activeHref, status }: { activeHref: string | null; st
               aria-expanded={open}
               aria-controls={id}
               onClick={() => toggle(group)}
-              className="mt-1 flex min-h-10 items-center gap-2 rounded-[10px] px-2.5 text-left text-[12.5px] font-bold uppercase tracking-[0.09em] text-white/60 transition hover:bg-white/[0.06] hover:text-white"
+              className="mt-0.5 flex min-h-9 items-center gap-2 rounded-[10px] px-2.5 text-left text-[12.5px] font-bold uppercase tracking-[0.09em] text-white/60 transition hover:bg-white/[0.06] hover:text-white"
             >
               <Icon name={GROUP_ICONS[group]} size="xs" className="text-sky" />
               <span className="flex-1">{group}</span>
@@ -117,25 +131,32 @@ export function NavLinks({ activeHref, status }: { activeHref: string | null; st
   );
 }
 
-// Steps done since this browser last looked get the stamp and a check that draws in; the first look just remembers them
+const NEW_OWNER = "first-sale:new-owner";
+
+// Steps done since this browser last looked get the stamp and a check that draws in. The first look just remembers
+// them, unless this browser saw the owner before they had a business: then their first step gets its stamp too.
 function useCelebrateNewlyDone(status: NavStatus | undefined) {
-  const scope = status?.scope ?? null;
+  const scope = status ? status.scope : undefined;
   const done = status
-    ? Object.entries(status.parts)
-        .filter(([, part]) => part.state === "done")
-        .map(([href]) => href)
+    ? SECTIONS.filter((section) => section.step !== null && status.parts[section.href]?.state === "done")
+        .map((section) => section.href)
         .sort()
         .join(" ")
     : null;
-  useEffect(() => {
-    if (!scope || done === null) return;
-    const key = `first-sale:done:${scope}`;
+  useLayoutEffect(() => {
+    if (scope === undefined || done === null) return;
     const now = done ? done.split(" ") : [];
     let seen: string[] | null = null;
     try {
+      if (scope === null) {
+        window.localStorage.setItem(NEW_OWNER, "1");
+        return;
+      }
+      const key = `first-sale:done:${scope}`;
       const saved = window.localStorage.getItem(key);
-      seen = saved ? (JSON.parse(saved) as string[]) : null;
+      seen = saved ? (JSON.parse(saved) as string[]) : window.localStorage.getItem(NEW_OWNER) ? [] : null;
       window.localStorage.setItem(key, JSON.stringify(now));
+      window.localStorage.removeItem(NEW_OWNER);
     } catch {
       return;
     }
@@ -198,12 +219,12 @@ function Count({ count, label }: { count: number; label: string }) {
   );
 }
 
-function NavItem({ href, title, icon, active, count }: { href: string; title: string; icon: IconName; active: boolean; count: number }) {
+function NavItem({ href, title, icon, active, count, countLabel }: { href: string; title: string; icon: IconName; active: boolean; count: number; countLabel?: string }) {
   return (
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`relative flex min-h-10 items-center gap-3 rounded-[10px] px-2.5 py-1.5 text-[15.5px] font-semibold transition ${
+      className={`relative flex min-h-9 items-center gap-3 rounded-[10px] px-2.5 py-1 text-[15.5px] font-semibold transition ${
         active ? "bg-white/10 text-white" : "text-white/80 hover:bg-white/[0.06] hover:text-white"
       }`}
     >
@@ -212,7 +233,7 @@ function NavItem({ href, title, icon, active, count }: { href: string; title: st
         {title}
         {active ? <Underline /> : null}
       </span>
-      <Count count={count} label={`${count} ${count === 1 ? "step" : "steps"} left`} />
+      <Count count={count} label={countLabel ?? `${count} ${count === 1 ? "step" : "steps"} left`} />
     </Link>
   );
 }
@@ -223,7 +244,8 @@ function PartItem({ section, active, part, fresh }: { section: Section; active: 
     state === "done" ? (
       <span className={`grid size-[18px] place-items-center rounded-full bg-done-bright text-sidebar ${fresh ? "animate-pop" : ""}`}>
         <svg viewBox="0 0 24 24" className={`size-3 ${fresh ? "pen-draw" : ""}`} fill="none" stroke="currentColor" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M5 12.5l4.5 4.5L19 7.5" />
+          {/* Draws in once the circle has popped */}
+          <path d="M5 12.5l4.5 4.5L19 7.5" style={fresh ? { animationDelay: "1.2s" } : undefined} />
         </svg>
       </span>
     ) : state === "waiting" ? (

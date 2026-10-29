@@ -46,7 +46,7 @@ function Header({ name, lead }: { name: string; lead?: ReactNode }) {
       kicker={
         <span className="inline-flex items-center gap-2">
           <Icon name="book" size="sm" />
-          Start your business · Step 5
+          Documents
         </span>
       }
       title={`Your ${name.toLowerCase()}`}

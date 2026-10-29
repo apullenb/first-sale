@@ -15,7 +15,7 @@ export function BackToLibrary() {
     <Link href="/documents" className="inline-flex min-h-11 w-fit items-center gap-1.5 text-[15px] font-semibold text-muted hover:text-accent">
       <Icon name="back" size="sm" />
       <span className="sr-only">Back to </span>
-      My Business Library
+      Documents
     </Link>
   );
 }

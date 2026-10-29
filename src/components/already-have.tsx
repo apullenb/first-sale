@@ -32,11 +32,12 @@ export function AlreadyHave({ markKey, label, help, done, linkLabel, children }:
   const button = useRef<HTMLButtonElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const moved = useRef(false);
-  // Opening or closing swaps the content, so focus moves with it
+  // Opening, closing, saving or undoing swaps the content, so focus moves with it
+  const marked = Boolean(done);
   useEffect(() => {
     if (!moved.current) return;
     (open ? heading : button).current?.focus();
-  }, [open]);
+  }, [open, marked]);
   const toggle = (next: boolean) => {
     moved.current = true;
     setError(null);
@@ -44,6 +45,7 @@ export function AlreadyHave({ markKey, label, help, done, linkLabel, children }:
   };
 
   async function run(work: () => Promise<{ ok: boolean; message?: string }>) {
+    moved.current = true;
     setPending(true);
     setError(null);
     try {

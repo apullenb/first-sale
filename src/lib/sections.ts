@@ -27,6 +27,14 @@ export const SECTIONS: Section[] = [
     summary: "Encouraging feedback on your business idea: what’s strong, what to keep an eye on, tips for success and creative ideas.",
   },
   {
+    href: "/documents",
+    title: "Documents",
+    group: null,
+    step: null,
+    milestone: 8,
+    summary: "Forms you’re working on, with help understanding and filling them in, plus your business plan and other documents First Sale prepared.",
+  },
+  {
     href: "/business",
     title: "Your business",
     group: "Start your business",
@@ -59,14 +67,6 @@ export const SECTIONS: Section[] = [
     step: 4,
     milestone: 4,
     summary: "Your steps in order, with who handles each one, what to gather, checked fees, and what’s still uncertain. Track what’s done.",
-  },
-  {
-    href: "/documents",
-    title: "My Business Library",
-    group: "Start your business",
-    step: 5,
-    milestone: 8,
-    summary: "Forms you’re working on, with help understanding and filling them in, plus your business plan and other documents First Sale prepared.",
   },
   {
     href: "/logo",

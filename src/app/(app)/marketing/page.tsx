@@ -182,7 +182,7 @@ async function MarketingView() {
                 Approved <LocalDate iso={approvedAt.toISOString()} />.{" "}
                 {pdf ? (
                   <Link href={`/documents/${encodeURIComponent(pdf.id)}`} className={TEXT_LINK}>
-                    Open the copy in My Business Library
+                    Open the copy in Documents
                   </Link>
                 ) : null}
               </>
@@ -263,7 +263,7 @@ function NextCard({
   if (move.kind === "approve") {
     return (
       <NextUp id="next-heading" icon="file" kicker="Up next" title="Check your plan and approve it">
-        <p className="text-[16.5px] text-muted">Read it below. Approving saves a copy to My Business Library and makes your steps.</p>
+        <p className="text-[16.5px] text-muted">Read it below. Approving saves a copy to your Documents and makes your steps.</p>
         {runNotice}
         {running ? null : <ApproveOrRewrite approve={approveMarketingPlanAction.bind(null, { draftedAt })} />}
       </NextUp>

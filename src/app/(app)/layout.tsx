@@ -19,7 +19,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
   );
 }
 
-// The step marks and business card are extra: if they can't be read, the menu still shows without them
+// The business card is extra: if it can't be read, the menu still shows without it
 async function SidebarWithData() {
   let sidebar: Awaited<ReturnType<typeof getMySidebarStatus>> = { business: null, status: null };
   try {

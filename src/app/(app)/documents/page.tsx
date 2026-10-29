@@ -31,10 +31,10 @@ export default function DocumentsPage({ searchParams }: { searchParams: SearchPa
         kicker={
           <span className="inline-flex items-center gap-2">
             <Icon name="book" size="sm" />
-            Start your business · Step 5
+            Documents
           </span>
         }
-        title="My Business Library"
+        title="Documents"
         lead="Official forms, your drafted and reviewed answers, receipts, approvals and letters you received, kept by plan step. Originals are never changed."
       />
       <Suspense fallback={<p className="text-muted">Loading your documents…</p>}>

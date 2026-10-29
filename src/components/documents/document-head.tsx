@@ -11,7 +11,7 @@ export function DocumentHead({ documentId, title, children }: { documentId: stri
       <BackToLibrary />
       <p className={`${EYEBROW} mt-2 inline-flex items-center gap-2`}>
         <Icon name="book" size="sm" />
-        Start your business · Step 5
+        Documents
       </p>
       <DocumentTitle key={title} documentId={documentId} title={title} />
       <div className="flex max-w-2xl flex-col gap-1 text-[17px] text-muted">{children}</div>

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { type JourneyFacts, sectionState, sidebarStatus } from "./section-status";
+import type { ActionStep } from "./next-action";
+import { type JourneyFacts, readyPlanSteps, sectionState, sidebarStatus } from "./section-status";
 
-const START = ["/business", "/requirements", "/structure", "/checklist", "/documents"];
+const START = ["/business", "/requirements", "/structure", "/checklist"];
 const BRAND = ["/logo", "/brand", "/website", "/products", "/marketing", "/social"];
 
 const facts = (overrides: Partial<JourneyFacts> = {}): JourneyFacts => ({
@@ -16,6 +17,7 @@ const facts = (overrides: Partial<JourneyFacts> = {}): JourneyFacts => ({
   products: 0,
   marketingApproved: false,
   socialPlatforms: [],
+  socialHave: [],
   marks: new Set(),
   ...overrides,
 });
@@ -38,8 +40,7 @@ describe("sidebarStatus", () => {
     expect(sidebarStatus(facts({ research: "stale" }))["/requirements"].state).toBe("todo");
     expect(sidebarStatus(facts({ plan: { exists: true, proposal: true, ready: 0, left: 0, minutes: 0, waiting: 0 } }))["/checklist"].state).toBe("todo");
     expect(sidebarStatus(facts({ plan: { exists: false, proposal: false, ready: 0, left: 0, minutes: 0, waiting: 0 } }))["/checklist"].state).toBe("todo");
-    expect(sidebarStatus(facts({ libraryToCheck: 1 }))["/documents"].state).toBe("todo");
-    expect(sidebarStatus(facts({ business: false }))["/documents"].state).toBe("todo");
+    expect(sidebarStatus(facts({ libraryToCheck: 2 }))["/documents"]).toEqual({ state: "todo", count: 2, minutes: 0 });
   });
 
   it("counts a brand step done when made here or marked as already done", () => {
@@ -54,9 +55,42 @@ describe("sidebarStatus", () => {
     expect(sidebarStatus(some)["/social"].state).toBe("todo");
     const all = facts({ socialPlatforms: ["instagram", "facebook"], marks: new Set(["social:instagram", "social:facebook"]) });
     expect(sidebarStatus(all)["/social"].state).toBe("done");
+    const had = facts({ socialPlatforms: ["instagram", "facebook"], socialHave: ["facebook"], marks: new Set(["social:instagram"]) });
+    expect(sidebarStatus(had)["/social"].state).toBe("done");
   });
 
   it("leaves a section to do when it has no known steps", () => {
     expect(sectionState({}, ["/nowhere"])).toBe("todo");
+  });
+});
+
+const step = (key: string, overrides: Partial<ActionStep> = {}): ActionStep => ({
+  key,
+  title: key,
+  status: "todo",
+  requirementStatus: "verified",
+  timing: "before_selling",
+  prerequisites: [],
+  feeCents: null,
+  renewal: null,
+  ...overrides,
+});
+
+describe("readyPlanSteps", () => {
+  it("counts nothing ready when every blocked step waits on something sent in", () => {
+    const steps = [step("ein", { status: "submitted" }), step("permit", { prerequisites: ["ein"] }), step("bank", { prerequisites: ["permit"] })];
+    expect(readyPlanSteps(steps)).toBe(0);
+  });
+
+  it("counts an unstarted step that holds up a needed one, even when it's optional or for later", () => {
+    const optional = [step("ein", { requirementStatus: "optional" }), step("permit", { prerequisites: ["ein"] })];
+    expect(readyPlanSteps(optional)).toBe(1);
+    const later = [step("account", { timing: "later" }), step("permit", { prerequisites: ["account"] })];
+    expect(readyPlanSteps(later)).toBe(1);
+  });
+
+  it("counts ready steps once and survives a loop in the plan", () => {
+    const steps = [step("name"), step("a", { prerequisites: ["b"] }), step("b", { prerequisites: ["a"] }), step("c", { prerequisites: ["name"] })];
+    expect(readyPlanSteps(steps)).toBe(1);
   });
 });

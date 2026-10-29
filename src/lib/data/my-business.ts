@@ -30,7 +30,7 @@ import {
 } from "./website";
 import { finishRun, lastRunForOwner, startRunForOwner } from "./workflow-runs";
 import { clearJourneyMarkForOwner, listJourneyMarksForOwner, setJourneyMarkForOwner } from "./journey";
-import { getBrandStepFactsForOwner } from "./sidebar";
+import { getSidebarFactsForOwner } from "./sidebar";
 import { getMarketingForOwner, type MarketingPatch, type MarketingRecord, updateMarketingForOwner } from "./marketing";
 import type { NewBrandAsset } from "@/lib/brand/generate";
 import type { AssetCheck, BrandBrief, BrandImageKind, BrandKit, VersionKind } from "@/lib/brand/types";
@@ -475,8 +475,8 @@ export async function clearMyJourneyMark(key: string) {
   return clearJourneyMarkForOwner(getDb(), user.id, key);
 }
 
-// What the menu needs to show which brand steps are done
-export async function getMyBrandStepFacts() {
+// The few facts the menu needs to show which steps are done
+export async function getMySidebarFacts() {
   const user = await getCurrentUser();
-  return getBrandStepFactsForOwner(getDb(), user.id);
+  return getSidebarFactsForOwner(getDb(), user.id);
 }

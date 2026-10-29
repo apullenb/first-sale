@@ -1,3 +1,6 @@
+import { type ActionStep, nextActions } from "./next-action";
+import { neededBeforeSelling } from "./progress";
+
 // Plain code: whether each step in the sidebar is done, waiting on someone else, or still the owner's to do
 
 export type PartState = "done" | "waiting" | "todo";
@@ -23,8 +26,9 @@ export interface JourneyFacts {
   websiteLive: boolean;
   products: number;
   marketingApproved: boolean;
-  // Accounts the owner picked in their marketing plan
+  // Accounts the owner picked in their marketing plan, and the ones they already have
   socialPlatforms: readonly string[];
+  socialHave: readonly string[];
   // "I already have this" marks by key
   marks: ReadonlySet<string>;
 }
@@ -52,13 +56,17 @@ export function sidebarStatus(facts: JourneyFacts): SidebarStatus {
         : plan.waiting || plan.left
           ? { state: "waiting", count: 0, minutes: 0 }
           : DONE,
-    "/documents": either(facts.business && facts.libraryToCheck === 0),
+    // Not a step: just a count of documents to check
+    "/documents": { state: facts.libraryToCheck ? "todo" : "done", count: facts.libraryToCheck, minutes: 0 },
     "/logo": either(facts.logoChosen || marked("logo")),
     "/brand": either(facts.logoVersionsApproved || marked("brand")),
     "/website": either(facts.websiteLive || marked("website")),
     "/products": either(facts.products > 0 || marked("products")),
     "/marketing": either(facts.marketingApproved || marked("marketing")),
-    "/social": either(marked("social") || (facts.socialPlatforms.length > 0 && facts.socialPlatforms.every((platform) => marked(`social:${platform}`)))),
+    "/social": either(
+      marked("social") ||
+        (facts.socialPlatforms.length > 0 && facts.socialPlatforms.every((platform) => facts.socialHave.includes(platform) || marked(`social:${platform}`))),
+    ),
   };
 }
 
@@ -67,4 +75,25 @@ export function sectionState(status: SidebarStatus, hrefs: readonly string[]): P
   const states = hrefs.flatMap((href) => status[href]?.state ?? []);
   if (!states.length || states.includes("todo")) return "todo";
   return states.includes("waiting") ? "waiting" : "done";
+}
+
+// Plan steps the owner can start now: ready ones, plus any unstarted step that holds up a needed one,
+// even if it's optional or for later. Only steps held up by something sent in are truly waiting.
+export function readyPlanSteps(steps: readonly ActionStep[]): number {
+  const byKey = new Map(steps.map((step) => [step.key, step]));
+  const { now, decide, waiting } = nextActions(steps);
+  const ready = new Set([...now, ...decide].map((step) => step.key));
+  const seen = new Set<string>();
+  const visit = (step: ActionStep) => {
+    if (seen.has(step.key)) return;
+    seen.add(step.key);
+    const open = step.prerequisites.flatMap((key) => byKey.get(key) ?? []).filter((prerequisite) => prerequisite.status !== "done");
+    if (!open.length) {
+      if (step.status === "todo") ready.add(step.key);
+      return;
+    }
+    for (const prerequisite of open) if (prerequisite.status === "todo") visit(prerequisite);
+  };
+  for (const { step } of waiting) if (neededBeforeSelling(step)) visit(step);
+  return ready.size;
 }

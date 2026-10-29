@@ -25,7 +25,7 @@ export default function BusinessPlanPage() {
           kicker={
             <span className="mt-2 inline-flex items-center gap-2">
               <Icon name="book" size="sm" />
-              Start your business · Step 5
+              Documents
             </span>
           }
           title="Your business plan"
