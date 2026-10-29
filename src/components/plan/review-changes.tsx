@@ -2,7 +2,8 @@
 
 import { useId, useLayoutEffect, useState } from "react";
 import { reviewPlanAction } from "@/app/(app)/checklist/actions";
-import { PRIMARY, SECONDARY } from "@/components/styles";
+import { ALERT, PRIMARY, SECONDARY } from "@/components/styles";
+import { Chip, IconTile } from "@/components/ui";
 import type { PlanChange } from "@/lib/rules/plan";
 
 const KIND = { added: "New step", removed: "No longer in the plan", changed: "Changed" } as const;
@@ -32,18 +33,22 @@ export function ReviewChanges({ checkedAt, changes, from = "recheck" }: { checke
   }
 
   return (
-    <section aria-labelledby={`${uid}-title`} className="flex flex-col gap-3 rounded-2xl bg-ai-tint p-5 ring-1 ring-ai/15">
-      <h2 id={`${uid}-title`} className="font-display text-xl font-bold text-ai-ink">
+    <section aria-labelledby={`${uid}-title`} className="flex flex-col gap-3.5 rounded-2xl border border-accent-ring bg-surface p-5 shadow-[0_0_0_4px_var(--color-accent-tint),var(--shadow-card)] sm:p-6">
+      <div className="flex items-center gap-3">
+        <IconTile icon="refresh" />
+        <p className="text-[13.5px] font-bold uppercase tracking-[0.08em] text-accent">Needs your OK</p>
+      </div>
+      <h2 id={`${uid}-title`} className="font-display text-[22px] leading-snug">
         {from === "replan" ? "Your decisions changed. Review the changes to your plan." : "Your requirements were re-checked. Review the changes."}
       </h2>
-      <p className="text-ai-ink">Pick the changes to make to your plan. Steps you’ve finished stay finished either way.</p>
+      <p className="text-muted">Pick the changes to make to your plan. Steps you’ve finished stay finished either way.</p>
       <ul className="flex flex-col gap-2">
         {changes.map((change) => (
           <li key={change.key}>
-            <label className="flex min-h-11 items-start gap-3 rounded-xl bg-surface px-3.5 py-3 ring-1 ring-ink/5">
+            <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-line-strong bg-surface px-3.5 py-3 shadow-soft transition hover:border-muted has-checked:border-accent has-checked:shadow-[0_0_0_3px_var(--color-accent-tint)] motion-reduce:transition-none">
               <input
                 type="checkbox"
-                className="mt-1 size-5 accent-accent"
+                className="mt-0.5 size-5 shrink-0 accent-accent"
                 checked={accepted.has(change.key)}
                 onChange={(event) =>
                   setAccepted((current) => {
@@ -54,8 +59,10 @@ export function ReviewChanges({ checkedAt, changes, from = "recheck" }: { checke
                   })
                 }
               />
-              <span className="flex flex-col gap-0.5">
-                <span className="text-sm font-semibold text-muted">{KIND[change.kind]}</span>
+              <span className="flex min-w-0 flex-col gap-1">
+                <Chip tone={change.kind === "added" ? "accent" : "gray"} icon={change.kind === "added" ? "plus" : change.kind === "removed" ? "minus" : "pencil"}>
+                  {KIND[change.kind]}
+                </Chip>
                 <span className="font-semibold">{change.title}</span>
                 {change.kind === "changed" ? <span className="text-sm text-rule">What changed: {change.what.join(", ")}</span> : null}
                 {change.kind === "removed" && change.done ? (
@@ -72,7 +79,7 @@ export function ReviewChanges({ checkedAt, changes, from = "recheck" }: { checke
         ))}
       </ul>
       {error ? (
-        <p role="alert" className="rounded-lg bg-check-tint px-3 py-2.5 text-sm text-check">
+        <p role="alert" className={ALERT}>
           {error}
         </p>
       ) : null}

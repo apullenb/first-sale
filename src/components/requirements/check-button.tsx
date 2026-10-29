@@ -2,11 +2,10 @@
 
 import { useLayoutEffect, useState } from "react";
 import { checkRequirementsAction } from "@/app/(app)/requirements/actions";
+import { Icon } from "@/components/icons";
+import { ALERT, PRIMARY, SECONDARY } from "@/components/styles";
 
-const STYLES = {
-  primary: "min-h-12 rounded-lg bg-accent px-5 font-bold text-white hover:bg-accent-ink disabled:opacity-60",
-  secondary: "min-h-11 rounded-lg border border-field bg-surface px-4 font-semibold hover:border-muted disabled:opacity-60",
-};
+const STYLES = { primary: PRIMARY, secondary: SECONDARY };
 
 export function CheckRequirementsButton({ label, variant }: { label: string; variant: keyof typeof STYLES }) {
   const [pending, setPending] = useState(false);
@@ -31,6 +30,7 @@ export function CheckRequirementsButton({ label, variant }: { label: string; var
   return (
     <div className="flex flex-col items-start gap-2">
       <button type="button" onClick={check} disabled={pending} className={STYLES[variant]}>
+        <Icon name={variant === "primary" ? "search" : "refresh"} size="sm" />
         {pending ? "Checking official sources…" : label}
       </button>
       {/* Always rendered, so screen readers announce the change */}
@@ -38,7 +38,7 @@ export function CheckRequirementsButton({ label, variant }: { label: string; var
         {pending ? "Reading official government pages and checking each requirement. This can take a minute or two." : ""}
       </p>
       {error ? (
-        <p role="alert" className="rounded-lg bg-check-tint px-3 py-2.5 text-sm text-check">
+        <p role="alert" className={ALERT}>
           {error}
         </p>
       ) : null}

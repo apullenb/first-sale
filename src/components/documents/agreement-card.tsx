@@ -11,7 +11,7 @@ import type { OutdatedFact } from "@/lib/documents/autofill";
 export function AgreementCard({ name, owners, doc, outdated }: { name: string; owners: number; doc: StoredDocument | null; outdated: OutdatedFact[] }) {
   const approvedAt = doc?.draft?.approvedAt ?? null;
   return (
-    <Card title={`Your ${name.toLowerCase()}`} icon="scale" id="agreement-card-heading" action={<ActorChip actor="rule" />}>
+    <Card title={`Your ${name.toLowerCase()}`} icon="users" id="agreement-card-heading" action={<ActorChip actor="rule" />}>
       <p className="text-rule">
         The owners’ own rules for the business: who owns what, who runs it, and how decisions and money are handled. It isn’t filed with the state.{" "}
         {owners > 1 ? "Every owner signs it, and you keep it with your records." : "You sign it and keep it with your records."} Banks often ask for it when you open a
@@ -19,11 +19,13 @@ export function AgreementCard({ name, owners, doc, outdated }: { name: string; o
       </p>
       {doc ? (
         approvedAt ? (
-          <Chip tone="accent" icon="check">
+          <Chip tone="done" icon="check">
             Approved <LocalDate iso={approvedAt} />
           </Chip>
         ) : (
-          <Chip tone="gray">Prepared, not approved yet</Chip>
+          <Chip tone="gray" icon="pencil">
+            Prepared, not approved yet
+          </Chip>
         )
       ) : null}
       {outdated.length ? (
@@ -32,8 +34,8 @@ export function AgreementCard({ name, owners, doc, outdated }: { name: string; o
         </Note>
       ) : null}
       <Link href="/documents/agreement" className={doc ? SECONDARY_LINK : PRIMARY_LINK}>
-        <Icon name="pencil" size="sm" />
         {doc ? `Open your ${name.toLowerCase()}` : `Prepare your ${name.toLowerCase()}`}
+        <Icon name="arrow" size="sm" />
       </Link>
     </Card>
   );

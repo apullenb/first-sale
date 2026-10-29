@@ -3,22 +3,24 @@
 import { useId, useLayoutEffect, useState } from "react";
 import { setStepStatusAction } from "@/app/(app)/checklist/actions";
 import { LocalDate } from "@/components/local-date";
-import { INPUT, PRIMARY, SECONDARY } from "@/components/styles";
+import { Icon } from "@/components/icons";
+import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import type { TaskStatus } from "@/lib/domain";
 
 interface Props {
   stepId: string;
   status: TaskStatus;
   note: string | null;
-  completedAt: string | null;
   submittedAt: string | null;
   submissionNote: string | null;
   // Something is sent to an office, so submitting and approval are recorded separately
   filing: boolean;
 }
 
+const UNDO = "inline-flex min-h-11 items-center px-1 font-semibold text-accent underline decoration-[1.5px] underline-offset-[3px] hover:text-accent-ink disabled:opacity-60";
+
 // The owner records what they actually did; opening a link or a form never changes this
-export function StepStatus({ stepId, status, note, completedAt, submittedAt, submissionNote, filing }: Props) {
+export function StepStatus({ stepId, status, note, submittedAt, submissionNote, filing }: Props) {
   const uid = useId();
   const [confirmed, setConfirmed] = useState(false);
   const [text, setText] = useState("");
@@ -45,49 +47,39 @@ export function StepStatus({ stepId, status, note, completedAt, submittedAt, sub
   }
 
   const alert = error ? (
-    <p role="alert" className="rounded-lg bg-check-tint px-3 py-2.5 text-sm text-check">
+    <p role="alert" className={ALERT}>
       {error}
     </p>
   ) : null;
 
   const noteField = (placeholder: string) => (
-    <>
+    <div className="flex w-full max-w-xl flex-col gap-1.5">
       <label htmlFor={`${uid}-note`} className="font-semibold">
         Note for your records <span className="font-normal text-muted">(optional)</span>
       </label>
       <input id={`${uid}-note`} type="text" maxLength={500} value={text} onChange={(event) => setText(event.target.value)} placeholder={placeholder} className={INPUT} />
       <p className="text-sm text-muted">Leave out Social Security and tax id numbers.</p>
-    </>
+    </div>
   );
 
   const confirm = (words: string) => (
     <label className="flex min-h-11 items-start gap-3">
-      <input type="checkbox" className="mt-1 size-5 accent-accent" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
+      <input type="checkbox" className="mt-1 size-5 shrink-0 accent-accent" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
       <span>{words}</span>
     </label>
   );
 
   if (status === "done") {
     return (
-      <div className="flex flex-col items-start gap-2.5">
+      <div className="flex flex-col items-start gap-1.5">
         {submittedAt ? (
           <p className="text-rule">
             Submitted on <LocalDate iso={submittedAt} />
             {submissionNote ? `: ${submissionNote}` : "."}
           </p>
         ) : null}
-        <p className="font-semibold text-accent-ink">
-          {filing ? "Approved or finished" : "You marked this done"}
-          {completedAt ? (
-            <>
-              {" "}
-              on <LocalDate iso={completedAt} />
-            </>
-          ) : null}
-          .
-        </p>
         {note ? <p className="text-rule">Your note: {note}</p> : null}
-        <button type="button" disabled={pending} onClick={() => save("todo")} className={SECONDARY}>
+        <button type="button" disabled={pending} onClick={() => save("todo")} className={UNDO}>
           {pending ? "Saving…" : "Mark as not done"}
         </button>
         {alert}
@@ -98,7 +90,7 @@ export function StepStatus({ stepId, status, note, completedAt, submittedAt, sub
   if (status === "submitted") {
     return (
       <div className="flex flex-col items-start gap-3">
-        <p className="font-semibold text-ai-ink">
+        <p className="text-rule">
           You submitted this{submittedAt ? <> on <LocalDate iso={submittedAt} /></> : null}. Waiting to hear back.
         </p>
         {submissionNote ? <p className="text-rule">Your note: {submissionNote}</p> : null}
@@ -106,6 +98,7 @@ export function StepStatus({ stepId, status, note, completedAt, submittedAt, sub
         {noteField("For example: license number arrived by email on May 10")}
         <div className="flex flex-wrap gap-2.5">
           <button type="button" disabled={pending || !confirmed} onClick={() => save("done")} className={PRIMARY}>
+            <Icon name="check" size="sm" />
             {pending ? "Saving…" : "Mark as approved"}
           </button>
           <button type="button" disabled={pending} onClick={() => save("todo")} className={SECONDARY}>
@@ -123,6 +116,7 @@ export function StepStatus({ stepId, status, note, completedAt, submittedAt, sub
       {noteField(filing ? "For example: filed online on May 3, confirmation emailed" : "For example: checked the rules on May 3")}
       <div className="flex flex-wrap gap-2.5">
         <button type="button" disabled={pending || !confirmed} onClick={() => save(filing ? "submitted" : "done")} className={PRIMARY}>
+          <Icon name="check" size="sm" />
           {pending ? "Saving…" : filing ? "I submitted it" : "Mark as done"}
         </button>
         {filing ? (

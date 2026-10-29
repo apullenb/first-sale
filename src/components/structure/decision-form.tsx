@@ -1,10 +1,11 @@
 "use client";
 
-import { useId, useState } from "react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { recordDecisionsAction } from "@/app/(app)/structure/actions";
-import { ActorChip } from "@/components/actor-chip";
+import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { ALERT, PRIMARY, SECONDARY } from "@/components/styles";
+import { Card, Chip } from "@/components/ui";
 import { DETAILS, displayDetail, STRUCTURE_LABELS } from "@/lib/details";
 import type { BusinessStructure } from "@/lib/domain";
 
@@ -12,24 +13,60 @@ type Values = { structure_choice: string; name_registration_plan: string; tax_cl
 type Key = keyof Values;
 
 const KEYS: Key[] = ["structure_choice", "name_registration_plan", "tax_classification_plan"];
+const SHORT: Record<Key, string> = { structure_choice: "How it’s owned", name_registration_plan: "Name you sell under", tax_classification_plan: "Taxes" };
+const MISSING: Record<Key, string> = {
+  structure_choice: "Pick how your business will be owned.",
+  name_registration_plan: "Pick the name you’ll sell under.",
+  tax_classification_plan: "Pick how you’re taxed.",
+};
 
-// The owner's own decision: pick, see exactly what will be recorded and what it touches, then confirm
+export interface StructureChoice {
+  id: BusinessStructure;
+  suggested: boolean;
+  // The option's sourced details, rendered on the server
+  details: ReactNode;
+}
+
+export interface PlanChange {
+  title: string;
+  fee: string | null;
+}
+
+const FOCUS = "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent";
+// A real radio, so the choice shows in every color mode; the card's ring shows focus
+const RADIO = "size-5 shrink-0 cursor-pointer accent-accent focus-visible:outline-none";
+
+
+// The owner's own decision: pick from option cards, see exactly what will be recorded and what it changes, then confirm
 export function DecisionForm({
   current,
-  suggested,
   owners,
   basis,
   stale,
   recordedAt,
+  choices,
+  extra,
+  nameText,
+  taxText,
+  changes,
+  unsure,
 }: {
   current: Values;
-  suggested: BusinessStructure;
   owners: number;
   basis: string[];
   // Recorded with answers that have changed since, so it can be confirmed again unchanged
   stale: boolean;
   // When the structure was last recorded
   recordedAt: string | null;
+  choices: StructureChoice[];
+  // A less common option, folded away
+  extra: StructureChoice | null;
+  // What each structure means for the name and taxes, from the rules
+  nameText: Partial<Record<string, string>>;
+  taxText: Partial<Record<string, string>>;
+  // Plan steps each structure keeps and leaves out; null before requirements are checked
+  changes: Partial<Record<string, { kept: PlanChange[]; left: PlanChange[] }>> | null;
+  unsure: ReactNode;
 }) {
   const uid = useId();
   // One owner can't be a partnership, and several can't be a sole proprietorship
@@ -41,14 +78,30 @@ export function DecisionForm({
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const structures = (Object.keys(STRUCTURE_LABELS) as (BusinessStructure | "undecided")[]).filter(fits);
-  const options: Record<Key, [string, string][]> = {
-    structure_choice: structures.map((option) => [option, STRUCTURE_LABELS[option]]),
-    name_registration_plan: DETAILS.name_registration_plan.options.map(([v, l]) => [v, l]),
-    tax_classification_plan: DETAILS.tax_classification_plan.options.map(([v, l]) => [v, l]),
+  // The view swaps between the options and the review, so focus moves with it
+  const reviewHeading = useRef<HTMLHeadingElement>(null);
+  const reviewButton = useRef<HTMLButtonElement>(null);
+  const moved = useRef(false);
+  useEffect(() => {
+    if (!moved.current) return;
+    const target = confirming ? reviewHeading.current : reviewButton.current;
+    target?.focus();
+    target?.scrollIntoView({ block: "center" });
+  }, [confirming]);
+  const show = (next: boolean) => {
+    moved.current = true;
+    setConfirming(next);
+  };
+
+  const pick = (key: Key, value: string) => {
+    setValues({ ...values, [key]: value });
+    setDone(false);
   };
   const complete = KEYS.every((key) => values[key]);
   const changed = KEYS.filter((key) => values[key] !== current[key]);
+  const missing = KEYS.find((key) => !values[key]);
+  const structure = values.structure_choice;
+  const structureName = structure && structure !== "undecided" ? STRUCTURE_LABELS[structure as BusinessStructure] : null;
 
   async function confirm() {
     setPending(true);
@@ -58,7 +111,7 @@ export function DecisionForm({
       if (!result.ok) setError(result.message);
       else {
         setDone(true);
-        setConfirming(false);
+        show(false);
       }
     } catch {
       setError("Couldn’t reach First Sale. Check your connection and try again.");
@@ -67,102 +120,261 @@ export function DecisionForm({
     }
   }
 
-  return (
-    <section aria-labelledby={`${uid}-title`} className="flex flex-col gap-4 rounded-2xl bg-surface p-5 ring-1 ring-ink/5">
-      <div className="flex flex-wrap items-center gap-2.5">
-        <h2 id={`${uid}-title`} className="font-display text-2xl font-bold">
-          Your decision
-        </h2>
-        <ActorChip actor="owner" />
-      </div>
-      {recordedAt ? (
-        <p className="text-[15px] text-rule">
-          Last recorded <LocalDate iso={recordedAt} />. Each change is kept in your decision history below.
-        </p>
-      ) : null}
-      {!confirming ? (
-        <>
-          {KEYS.map((key) => (
-            <fieldset key={key} className="flex flex-col gap-2">
-              <legend className="mb-1 font-bold">{DETAILS[key].label}</legend>
-              <p className="text-[15px] text-rule">{DETAILS[key].help}</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {options[key].map(([value, label]) => (
-                  <label
-                    key={value}
-                    className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl bg-surface px-3.5 py-2.5 ring-1 ring-ink/10 has-checked:bg-accent-tint has-checked:ring-2 has-checked:ring-accent"
-                  >
-                    <input
-                      type="radio"
-                      name={`${uid}-${key}`}
-                      value={value}
-                      checked={values[key] === value}
-                      onChange={() => {
-                        setValues({ ...values, [key]: value });
-                        setDone(false);
-                      }}
-                      className="size-5 shrink-0 accent-accent"
-                    />
-                    <span className="flex flex-wrap items-center gap-2 font-semibold">
-                      {label}
-                      {key === "structure_choice" && value === suggested ? (
-                        <span className="rounded-full bg-accent-tint px-2 py-0.5 text-xs font-bold text-accent-ink">Suggested</span>
-                      ) : null}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          ))}
-          <div className="flex flex-col items-start gap-2">
-            <button type="button" onClick={() => setConfirming(true)} disabled={!complete || (!changed.length && !stale)} className={PRIMARY}>
-              {!changed.length && stale ? "Keep it with my new answers" : "Review my decision"}
-            </button>
-            <p role="status" className={done ? "text-sm font-semibold text-accent-ink" : "sr-only"}>
-              {done ? "Recorded. You can change it any time, and the history keeps each change." : ""}
-            </p>
-          </div>
-        </>
-      ) : (
-        <div className="flex flex-col gap-3">
-          <h3 className="font-bold">You’re about to record</h3>
-          <ul className="flex flex-col gap-1.5">
-            {KEYS.map((key) => (
-              <li key={key} className="text-[15px]">
-                <span className="font-semibold">{DETAILS[key].label}:</span> {displayDetail(key, values[key])}
-                {changed.includes(key) ? (
-                  <span className="ml-1.5 text-sm text-muted">(was {current[key] ? displayDetail(key, current[key]) : "not decided"})</span>
-                ) : null}
+  if (confirming) {
+    const plan = changes?.[structure];
+    return (
+      <section aria-labelledby={`${uid}-review`} className="flex flex-col gap-5">
+        <button type="button" onClick={() => show(false)} disabled={pending} className="inline-flex min-h-11 w-fit items-center gap-1.5 text-[15px] font-semibold text-muted hover:text-accent">
+          <Icon name="back" size="sm" />
+          Back to your options
+        </button>
+        <div className="flex flex-col gap-2">
+          <p className="flex items-center gap-2 text-[13.5px] font-bold uppercase tracking-[0.08em] text-accent">
+            <Icon name="stamp" size="sm" />
+            Review
+          </p>
+          <h2 id={`${uid}-review`} ref={reviewHeading} tabIndex={-1} className="font-display text-[28px] leading-tight focus:outline-none sm:text-[32px]">
+            Ready to record your decision?
+          </h2>
+          <p className="max-w-2xl text-lg text-muted">Check what you’re choosing and what it changes. Nothing changes until you record it.</p>
+        </div>
+
+        <div className="grid items-start gap-5 md:grid-cols-2">
+          <Card title="You’re choosing" icon="scale" id={`${uid}-choosing`} bodyClassName="gap-0 pt-1">
+            <dl className="flex flex-col">
+              {KEYS.map((key) => (
+                <div key={key} className="flex flex-col gap-0.5 border-b border-line py-2.5 last:border-b-0">
+                  <dt className="text-[15px] text-muted">{SHORT[key]}</dt>
+                  <dd className="font-semibold">
+                    {displayDetail(key, values[key])}
+                    {changed.includes(key) ? (
+                      <span className="ml-1.5 text-sm font-normal text-muted">(was {current[key] ? displayDetail(key, current[key]) : "not decided"})</span>
+                    ) : null}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Card>
+          <Card title="What recording does" icon="check" id={`${uid}-does`}>
+            <ul className="flex flex-col gap-2 text-[15px]">
+              {[
+                "Saves it as your decision. Your startup plan’s structure step and your forms can use it.",
+                "Files nothing. Forming a company or registering a name is a step you take yourself.",
+                "Keeps a dated record, with these answers, in your history.",
+              ].map((line) => (
+                <li key={line} className="flex items-start gap-2.5">
+                  <span aria-hidden="true" className="mt-px grid size-6 shrink-0 place-items-center rounded-[7px] border border-accent-ring bg-accent-tint text-accent">
+                    <Icon name="check" size="xs" strokeWidth={2.4} />
+                  </span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </div>
+
+        <Card title="What changes in your plan" icon="list" id={`${uid}-changes`}>
+          {!changes ? (
+            <p className="text-muted">Your requirements aren’t checked yet, so no steps change.</p>
+          ) : !plan ? (
+            <p className="text-muted">Steps for each structure stay “Depends on something” until you decide.</p>
+          ) : plan.kept.length || plan.left.length ? (
+            <ul className="flex flex-col gap-1.5">
+              {plan.kept.map((step) => (
+                <li key={`k-${step.title}`} className="flex items-start gap-2.5">
+                  <span aria-hidden="true" className="mt-px grid size-6 shrink-0 place-items-center rounded-[7px] border border-accent-ring bg-accent-tint text-accent">
+                    <Icon name="plus" size="xs" strokeWidth={2.4} />
+                  </span>
+                  <span>
+                    <span className="sr-only">In your plan: </span>
+                    {step.title}
+                    {step.fee ? ` (${step.fee})` : ""}
+                  </span>
+                </li>
+              ))}
+              {plan.left.map((step) => (
+                <li key={`l-${step.title}`} className="flex items-start gap-2.5">
+                  <span aria-hidden="true" className="mt-px grid size-6 shrink-0 place-items-center rounded-[7px] border border-line bg-wash text-muted">
+                    <Icon name="minus" size="xs" strokeWidth={2.4} />
+                  </span>
+                  <span>
+                    <span className="sr-only">Left out: </span>
+                    {step.title}
+                    {step.fee ? ` (${step.fee})` : ""} <span className="text-muted">· comes back if you change</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted">None of your steps depend on this choice.</p>
+          )}
+          {changes ? (
+            <p className="text-sm text-muted">Your startup plan shows these for you to review before anything changes. Steps you’ve finished stay finished.</p>
+          ) : null}
+        </Card>
+
+        <Card title="Based on these answers" icon="info" id={`${uid}-basis`}>
+          <ul className="flex flex-wrap gap-2">
+            {basis.map((line) => (
+              <li key={line} className="rounded-full border border-line bg-soft px-3 py-1 text-[14.5px] text-rule">
+                {line}
               </li>
             ))}
           </ul>
-          <h3 className="font-bold">Based on these answers</h3>
-          <ul className="flex list-disc flex-col gap-1 pl-5 text-[15px] text-rule">
-            {basis.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-          <h3 className="font-bold">What this does</h3>
-          <ul className="flex list-disc flex-col gap-1 pl-5 text-[15px] text-rule">
-            <li>Saves it as your decision. Your startup plan’s structure step and your forms can use it.</li>
-            <li>Files nothing. Forming a company or registering a name is a step you take yourself.</li>
-            <li>Keeps a dated record, with these answers, in your history.</li>
-          </ul>
-          {error ? (
-            <p role="alert" className={ALERT}>
-              {error}
-            </p>
-          ) : null}
-          <div className="flex flex-wrap gap-2.5">
-            <button type="button" onClick={confirm} disabled={pending} className={PRIMARY}>
-              {pending ? "Saving…" : "Confirm and record"}
-            </button>
-            <button type="button" onClick={() => setConfirming(false)} disabled={pending} className={SECONDARY}>
-              Go back
-            </button>
-          </div>
+          <p className="text-sm text-muted">If these answers change later, First Sale tells you this choice was made with older answers.</p>
+        </Card>
+
+        {error ? (
+          <p role="alert" className={ALERT}>
+            {error}
+          </p>
+        ) : null}
+        <div className="flex flex-wrap gap-2.5">
+          <button type="button" onClick={confirm} disabled={pending} className={PRIMARY}>
+            <Icon name="stamp" size="sm" />
+            {pending ? "Saving…" : "Record my decision"}
+          </button>
+          <button type="button" onClick={() => show(false)} disabled={pending} className={SECONDARY}>
+            <Icon name="back" size="sm" />
+            Go back
+          </button>
         </div>
-      )}
-    </section>
+      </section>
+    );
+  }
+
+  const optionCard = (choice: StructureChoice) => {
+    const checked = structure === choice.id;
+    return (
+      <div
+        key={choice.id}
+        className={`relative flex flex-col gap-3 rounded-[14px] border bg-surface p-5 shadow-card transition motion-reduce:transition-none [&_a]:relative [&_a]:z-10 [&_summary]:relative [&_summary]:z-10 ${FOCUS} ${
+          checked ? "border-accent shadow-[0_0_0_3px_var(--color-accent-tint),var(--shadow-card)]" : "border-line hover:border-line-strong"
+        }`}
+      >
+        <label className="flex cursor-pointer items-start gap-3 after:absolute after:inset-0 after:rounded-[14px]">
+          <input
+            type="radio"
+            name={`${uid}-structure_choice`}
+            value={choice.id}
+            checked={checked}
+            onChange={() => pick("structure_choice", choice.id)}
+            className={`relative z-10 mt-1.5 ${RADIO}`}
+          />
+          <span className="flex min-w-0 flex-col gap-1.5">
+            <span className="font-display text-xl leading-snug">{STRUCTURE_LABELS[choice.id]}</span>
+            {choice.suggested ? (
+              <Chip tone="accent" icon="lightbulb">
+                Suggested for you
+              </Chip>
+            ) : null}
+          </span>
+        </label>
+        {choice.details}
+      </div>
+    );
+  };
+
+  const smallChoice = (key: Key, value: string, label: string) => {
+    const checked = values[key] === value;
+    return (
+      <label
+        key={value}
+        className={`flex min-h-[50px] cursor-pointer items-center gap-3 rounded-xl border bg-surface px-3.5 py-2.5 font-semibold leading-snug shadow-soft transition motion-reduce:transition-none ${FOCUS} ${
+          checked ? "border-accent shadow-[0_0_0_3px_var(--color-accent-tint)]" : "border-line-strong hover:border-muted"
+        }`}
+      >
+        <input type="radio" name={`${uid}-${key}`} value={value} checked={checked} onChange={() => pick(key, value)} className={RADIO} />
+        <span>{label}</span>
+      </label>
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-8">
+      {recordedAt ? (
+        <p className="flex items-start gap-2.5 rounded-xl border border-line bg-surface px-3.5 py-3 text-[15px] text-muted shadow-soft">
+          <Icon name="check" size="sm" className="mt-0.5 text-done" />
+          <span>
+            Saved <LocalDate iso={recordedAt} />
+            {current.structure_choice ? `: ${displayDetail("structure_choice", current.structure_choice)}` : ""}. Change anything below and record it again. Each change is kept in your
+            decision history.
+          </span>
+        </p>
+      ) : null}
+
+      <fieldset className="flex flex-col gap-3">
+        <legend className="mb-3 font-display text-[22px] leading-snug">1. How will your business be owned?</legend>
+        <p className="-mt-1 text-[15px] text-muted">{DETAILS.structure_choice.help}</p>
+        <div className="grid items-start gap-4 md:grid-cols-2">{choices.map(optionCard)}</div>
+        {extra ? (
+          <details open={structure === extra.id} className="group/extra rounded-[14px] border border-line bg-surface shadow-soft">
+            <summary className="flex min-h-[58px] cursor-pointer list-none items-center gap-3 px-[18px] py-3.5 [&::-webkit-details-marker]:hidden">
+              <span className="grid min-w-0 flex-1 gap-px">
+                <b className="text-[16.5px] font-bold">Also possible: {STRUCTURE_LABELS[extra.id].toLowerCase()}</b>
+                <small className="text-[14.5px] text-muted">Less common for a first business</small>
+              </span>
+              <Icon name="chevron" className="text-faint transition-transform group-open/extra:rotate-90 motion-reduce:transition-none" />
+            </summary>
+            <div className="px-[18px] pb-[18px]">{optionCard(extra)}</div>
+          </details>
+        ) : null}
+        <div className="max-w-sm">{smallChoice("structure_choice", "undecided", STRUCTURE_LABELS.undecided)}</div>
+      </fieldset>
+
+      <fieldset className="flex flex-col gap-3">
+        <legend className="mb-3 font-display text-[22px] leading-snug">2. What name will you sell under?</legend>
+        <p className="-mt-1 text-[15px] text-muted">{DETAILS.name_registration_plan.help}</p>
+        {structureName && nameText[structure] ? (
+          <p className="rounded-xl border border-line bg-soft px-3.5 py-3 text-[15px] text-rule">
+            <span className="font-semibold">For a {structureName.replace(/ \(LLC\)$/, "").toLowerCase()}:</span> {nameText[structure]}
+          </p>
+        ) : null}
+        <div className="grid gap-2 sm:grid-cols-2">{DETAILS.name_registration_plan.options.map(([value, label]) => smallChoice("name_registration_plan", value, label))}</div>
+      </fieldset>
+
+      <fieldset className="flex flex-col gap-3">
+        <legend className="mb-3 font-display text-[22px] leading-snug">3. How you’re taxed</legend>
+        <p className="-mt-1 text-[15px] text-muted">{DETAILS.tax_classification_plan.help}</p>
+        {structureName && taxText[structure] ? (
+          <p className="rounded-xl border border-line bg-soft px-3.5 py-3 text-[15px] text-rule">
+            <span className="font-semibold">The default for a {structureName.replace(/ \(LLC\)$/, "").toLowerCase()}:</span> {taxText[structure]}
+          </p>
+        ) : null}
+        <div className="grid gap-2 sm:grid-cols-2">{DETAILS.tax_classification_plan.options.map(([value, label]) => smallChoice("tax_classification_plan", value, label))}</div>
+      </fieldset>
+
+      <details className="group/unsure rounded-[14px] border border-line bg-surface shadow-soft">
+        <summary className="flex min-h-[58px] cursor-pointer list-none items-center gap-3 px-[18px] py-3.5 [&::-webkit-details-marker]:hidden">
+          <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-accent-ring bg-accent-tint text-accent">
+            <Icon name="question" />
+          </span>
+          <span className="grid min-w-0 flex-1 gap-px">
+            <b className="text-[16.5px] font-bold">Not sure yet?</b>
+            <small className="text-[14.5px] text-muted">Questions to take to a professional, and where to get free help</small>
+          </span>
+          <Icon name="chevron" className="text-faint transition-transform group-open/unsure:rotate-90 motion-reduce:transition-none" />
+        </summary>
+        <div className="px-[18px] pb-[18px]">{unsure}</div>
+      </details>
+
+      <div className="flex flex-col items-start gap-2">
+        <button ref={reviewButton} type="button" onClick={() => show(true)} disabled={!complete || (!changed.length && !stale)} className={PRIMARY}>
+          {!changed.length && stale ? "Keep it with my new answers" : "Review my choice"}
+          <Icon name="arrow" size="sm" />
+        </button>
+        {missing ? <p className="text-[14.5px] text-muted">{MISSING[missing]}</p> : !changed.length && !stale ? <p className="text-[14.5px] text-muted">Change something above to record it again.</p> : null}
+        <p role="status" className={done ? "flex items-center gap-1.5 text-[15px] font-semibold text-done" : "sr-only"}>
+          {done ? (
+            <>
+              <Icon name="check" size="sm" />
+              Recorded. You can change it any time, and the history keeps each change.
+            </>
+          ) : (
+            ""
+          )}
+        </p>
+      </div>
+    </div>
   );
 }
