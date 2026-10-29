@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { replaceDocumentAction } from "@/app/(app)/documents/form-actions";
-import { SECONDARY } from "@/components/styles";
+import { Icon } from "@/components/icons";
+import { ALERT, SECONDARY } from "@/components/styles";
+import { SubFold } from "./parts";
 
 // Uploads a newer file as the next version; the one shown now stays in the history
 export function ReplaceFile({ documentId, accept }: { documentId: string; accept: string }) {
@@ -31,11 +33,10 @@ export function ReplaceFile({ documentId, accept }: { documentId: string; accept
   }
 
   return (
-    <details className="group">
-      <summary className="flex min-h-11 w-fit cursor-pointer items-center font-semibold text-accent-ink underline underline-offset-4">Replace with a newer file</summary>
-      <form action={submit} className="mt-2 flex flex-col gap-2">
+    <SubFold summary="Replace with a newer file">
+      <form action={submit} className="flex flex-col gap-2.5">
         <input type="hidden" name="documentId" value={documentId} />
-        <label htmlFor={`${uid}-file`} className="font-semibold">
+        <label htmlFor={`${uid}-file`} className="text-[15.5px] font-semibold">
           New file <span className="font-normal text-muted">(PDF or photo, up to 4 MB)</span>
         </label>
         <input
@@ -45,17 +46,18 @@ export function ReplaceFile({ documentId, accept }: { documentId: string; accept
           required
           accept={accept}
           onChange={() => (requestKey.current = null)}
-          className="min-h-11 max-w-full text-sm"
+          className="min-h-12 w-full rounded-[10px] border border-dashed border-line-strong bg-soft px-3 py-2.5 text-[15px] file:mr-3 file:min-h-9 file:cursor-pointer file:rounded-lg file:border file:border-line-strong file:bg-surface file:px-3 file:font-semibold file:text-ink"
         />
         <button type="submit" disabled={pending} className={`${SECONDARY} w-fit`}>
+          <Icon name="upload" size="sm" />
           {pending ? "Uploading…" : "Upload as a new version"}
         </button>
         {error ? (
-          <p role="alert" className="rounded-lg bg-check-tint px-3 py-2.5 text-sm text-check">
+          <p role="alert" className={ALERT}>
             {error}
           </p>
         ) : null}
       </form>
-    </details>
+    </SubFold>
   );
 }

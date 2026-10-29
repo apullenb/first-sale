@@ -1,17 +1,44 @@
-import { getSection } from "@/lib/sections";
+import Link from "next/link";
+import { Icon, type IconName } from "@/components/icons";
+import { SECONDARY_LINK } from "@/components/styles";
+import { Card, PageHead } from "@/components/ui";
+import { getSection, HOME } from "@/lib/sections";
+
+const ICONS: Record<string, IconName> = {
+  "/orders": "receipt",
+  "/planning-for-help": "users",
+  "/products": "tag",
+};
+
+const GROUP_ICONS: Record<string, IconName> = {
+  "Start your business": "flag",
+  "Marketing and branding": "megaphone",
+  "Run your business": "building",
+};
 
 export function SectionPlaceholder({ href }: { href: string }) {
   const section = getSection(href);
   const eyebrow = section.step !== null ? `${section.group} · Step ${section.step}` : section.group;
 
   return (
-    <div className="flex flex-col gap-3">
-      <p className="text-sm font-semibold text-accent-ink">{eyebrow}</p>
-      <h1 className="font-display text-4xl font-bold leading-tight tracking-tight">{section.title}</h1>
-      <p className="max-w-2xl text-lg text-muted">{section.summary}</p>
-      <p className="w-fit rounded-full bg-rule-tint px-3 py-1 text-sm font-semibold text-rule">
-        Not built yet · milestone {section.milestone}
-      </p>
+    <div className="flex max-w-3xl flex-col gap-6">
+      <PageHead
+        kicker={
+          <span className="inline-flex items-center gap-2">
+            <Icon name={GROUP_ICONS[section.group] ?? "flag"} size="sm" />
+            {eyebrow}
+          </span>
+        }
+        title={section.title}
+        lead={section.summary}
+      />
+      <Card title="Not built yet" icon={ICONS[href] ?? "file"} tone="gray" id="placeholder-heading">
+        <p className="text-rule">Planned for milestone {section.milestone}.</p>
+        <Link href={HOME.href} className={SECONDARY_LINK}>
+          <Icon name="home" size="sm" className="text-muted" />
+          Back to {HOME.title}
+        </Link>
+      </Card>
     </div>
   );
 }

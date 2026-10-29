@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { deleteDocumentAction, explainReceivedAction, linkStepAction } from "@/app/(app)/documents/actions";
 import { ActionButton } from "@/components/action-button";
-import { ActorChip } from "@/components/actor-chip";
+import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { PracticeBanner } from "@/components/practice-banner";
-import { CARD, EYEBROW, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
+import { SECONDARY_LINK } from "@/components/styles";
+import { Card, Fold, Note } from "@/components/ui";
 import type { StoredDocument } from "@/lib/data/documents";
 import type { RunState } from "@/lib/data/workflow-runs";
 import type { TaskStatus } from "@/lib/domain";
 import { ROLE_LABELS, roleOf } from "@/lib/documents/library";
 import type { ReceivedGuide } from "@/lib/documents/types";
 import { AnchorNote } from "./anchor-note";
-import { DocumentTitle } from "./document-title";
+import { DocumentHead } from "./document-head";
 import { fileHref, isReadable } from "./labels";
+import { docIcon, Tag, VersionList, WhoDoesWhat } from "./parts";
 import { ReplaceFile } from "./replace-file";
 import { RunNotice } from "./run-notice";
 import { StepLink } from "./step-link";
@@ -38,26 +40,26 @@ export function ReceivedView({ doc, steps, run, matched, versions, acceptedTypes
 
   return (
     <div className="flex max-w-3xl flex-col gap-6">
-      <div className="flex flex-col gap-3">
-        <Link href="/documents" className={`${TEXT_LINK} flex min-h-11 w-fit items-center`}>
-          Back to your documents
-        </Link>
-        <p className={EYEBROW}>Start your business · Step 5</p>
-        <DocumentTitle key={doc.title} documentId={doc.id} title={doc.title} />
-        <p className="text-rule">
+      <DocumentHead documentId={doc.id} title={doc.title}>
+        <p>
           {ROLE_LABELS[roleOf(doc)]}. You uploaded it on <LocalDate iso={doc.createdAt.toISOString()} />.
         </p>
+      </DocumentHead>
+
+      <Card title="This document" icon={docIcon(doc)} tone="gray" id="document-heading">
         {steps.length ? <StepLink key={doc.taskId ?? ""} documentId={doc.id} stepId={doc.taskId} steps={steps} /> : null}
-        <div className="flex flex-wrap items-start gap-2">
+        <div className={`flex flex-wrap items-start justify-between gap-2 ${steps.length ? "border-t border-line pt-4" : ""}`}>
           {doc.hasFile ? (
-            <>
+            <div className="flex flex-wrap gap-2">
               <a href={fileHref(doc.id, true)} target="_blank" rel="noopener noreferrer" className={SECONDARY_LINK}>
+                <Icon name="eye" size="sm" className="text-muted" />
                 Preview<span className="sr-only"> (opens in a new tab)</span>
               </a>
               <a href={fileHref(doc.id)} className={SECONDARY_LINK}>
+                <Icon name="download" size="sm" className="text-muted" />
                 Download
               </a>
-            </>
+            </div>
           ) : null}
           <ActionButton
             action={deleteDocumentAction.bind(null, doc.id)}
@@ -68,31 +70,24 @@ export function ReceivedView({ doc, steps, run, matched, versions, acceptedTypes
             doneHref="/documents"
           />
         </div>
-      </div>
+      </Card>
 
       {simulated ? <PracticeBanner what="This document was explained in practice mode." /> : null}
 
-      <section aria-labelledby="explain-heading" className={`${CARD} flex flex-col gap-4`}>
-        <h2 id="explain-heading" className={SECTION_TITLE}>
-          What this document is
-        </h2>
-        <ul className="flex flex-col gap-2 text-sm text-rule">
-          <li className="flex items-start gap-2.5">
-            <ActorChip actor="ai" />
-            <span>AI explains it in plain words, using only what the document says.</span>
-          </li>
-          <li className="flex items-start gap-2.5">
-            <ActorChip actor="rule" />
-            <span>Quotes, deadlines and amounts are checked against its text, and web addresses against the official .gov list.</span>
-          </li>
-        </ul>
+      <Card title="What this document is" icon="lightbulb" id="explain-heading">
+        <WhoDoesWhat
+          items={[
+            ["ai", "AI explains it in plain words, using only what the document says."],
+            ["rule", "Quotes, deadlines and amounts are checked against its text, and web addresses against the official .gov list."],
+          ]}
+        />
         <RunNotice run={run} what="Explaining this document" />
         {received ? (
           <Explanation received={received} flags={doc.guide?.flags ?? []} explainedAt={doc.guide?.createdAt ?? null} matched={matched} doc={doc} />
         ) : (
           <div className="flex flex-col gap-1.5 text-rule">
             <p>Not sure what this is? Get a plain-language explanation: what it is, who sent it, what it means for your business, and anything you need to do.</p>
-            <p className="text-sm text-muted">It goes to the AI service only when you click. Social Security, tax ID and card numbers are left out of the explanation.</p>
+            <p className="text-[14.5px] text-muted">It goes to the AI service only when you click. Social Security, tax ID and card numbers are left out of the explanation.</p>
           </div>
         )}
         <ActionButton
@@ -102,44 +97,27 @@ export function ReceivedView({ doc, steps, run, matched, versions, acceptedTypes
           pendingStatus="Reading it and writing an explanation… this can take a minute"
           variant={received ? "secondary" : "ai"}
         />
-      </section>
+      </Card>
 
-      <section aria-labelledby="versions-heading" className={`${CARD} flex flex-col gap-2.5`}>
-        <h2 id="versions-heading" className={SECTION_TITLE}>
-          Versions
-        </h2>
+      <Card title="Versions" icon="clock" tone="gray" id="versions-heading">
         <p className="text-[15px] text-rule">
           This is version {doc.version}, added <LocalDate iso={doc.createdAt.toISOString()} />.
         </p>
         {versions.length ? (
-          <ul className="flex flex-col">
-            {versions.map((version) => (
-              <li key={version.id}>
-                <Link href={`/documents/${encodeURIComponent(version.id)}`} className={`flex min-h-11 w-fit items-center ${TEXT_LINK}`}>
-                  Version {version.version}, <LocalDate iso={version.createdAt.toISOString()} />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <VersionList versions={versions.map((version) => ({ id: version.id, label: `Version ${version.version}`, createdAt: version.createdAt }))} />
         ) : null}
         <ReplaceFile documentId={doc.id} accept={acceptedTypes} />
-      </section>
+      </Card>
 
       {isReadable(doc.content) ? (
-        <details className={`group ${CARD}`}>
-          <summary className="flex min-h-11 w-fit cursor-pointer items-center font-semibold text-accent-ink underline underline-offset-4">
-            <span className="group-open:hidden">See the text we read</span>
-            <span className="hidden group-open:inline">Hide the text</span>
-          </summary>
-          <div className="mt-1 flex flex-col gap-3">
-            {doc.content.pages.map((page) => (
-              <div key={page.number} className="flex flex-col gap-1 rounded-xl bg-ground px-3.5 py-3">
-                <p className="text-sm font-semibold text-muted">Page {page.number}</p>
-                <p className="whitespace-pre-wrap break-words text-sm text-rule">{page.text || "No text on this page."}</p>
-              </div>
-            ))}
-          </div>
-        </details>
+        <Fold title="The text we read" summary={doc.content.pages.length === 1 ? "1 page, as First Sale read it" : `${doc.content.pages.length} pages, as First Sale read it`} icon="search">
+          {doc.content.pages.map((page) => (
+            <div key={page.number} className="flex flex-col gap-1 border-t border-line pt-3 first:border-0 first:pt-0">
+              <p className="text-[13.5px] font-bold uppercase tracking-[0.08em] text-muted">Page {page.number}</p>
+              <p className="whitespace-pre-wrap break-words text-[15px] text-rule">{page.text || "No text on this page."}</p>
+            </div>
+          ))}
+        </Fold>
       ) : null}
     </div>
   );
@@ -155,55 +133,71 @@ interface ExplanationProps {
 
 function Explanation({ received, flags, explainedAt, matched, doc }: ExplanationProps) {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 border-t border-line pt-4">
       {flags.length ? (
-        <ul className="flex flex-col gap-1 rounded-lg bg-check-tint px-3 py-2.5 text-sm text-check">
-          {flags.map((flag) => (
-            <li key={flag}>{flag}</li>
-          ))}
-        </ul>
+        <Note>
+          <ul className="flex flex-col gap-1">
+            {flags.map((flag) => (
+              <li key={flag}>{flag}</li>
+            ))}
+          </ul>
+        </Note>
       ) : null}
 
       <div className="flex flex-col gap-1">
-        <p className="font-display text-xl font-bold leading-snug">{received.whatItIs}</p>
+        <p className="font-display text-[22px] leading-snug">{received.whatItIs}</p>
         <AnchorNote anchor={received.whatItIsAnchor} on={ON} missing={MISSING} />
       </div>
 
       {received.notGovernment ? (
-        <div className="flex flex-col gap-1.5 rounded-xl bg-check-tint px-4 py-3 text-check">
+        <Note>
           <p className="font-semibold">It says it isn’t from a government office</p>
           <AnchorNote anchor={received.notGovernment} on={ON} />
-          <p className="text-sm">Mail like this can look official. Before you pay, look the office up yourself and check with them directly.</p>
-        </div>
+          <p className="mt-1 text-[14.5px]">Mail like this can look official. Before you pay, look the office up yourself and check with them directly.</p>
+        </Note>
       ) : null}
 
-      <div className="flex flex-col gap-1">
-        <h3 className="font-bold">Who sent it</h3>
-        <p className="text-rule">{received.from}</p>
-      </div>
+      <dl className="flex flex-col">
+        <div className="flex flex-wrap gap-x-4 gap-y-0.5 border-b border-line py-2.5">
+          <dt className="w-44 shrink-0 text-[15px] text-muted">Who sent it</dt>
+          <dd className="min-w-0 flex-1 basis-56 font-semibold">{received.from}</dd>
+        </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-0.5 py-2.5">
+          <dt className="w-44 shrink-0 text-[15px] text-muted">What it means for you</dt>
+          <dd className="min-w-0 flex-1 basis-56">{received.meaning}</dd>
+        </div>
+      </dl>
 
-      <div className="flex flex-col gap-1">
-        <h3 className="font-bold">What it means for you</h3>
-        <p className="text-rule">{received.meaning}</p>
-      </div>
-
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5">
         <h3 className="font-bold">What to do</h3>
         {received.todo.length ? (
-          <ul className="flex flex-col gap-2.5">
+          <ol className="flex flex-col gap-2.5">
             {received.todo.map((entry, index) => (
-              <li key={index} className="flex flex-col gap-1 border-l-2 border-line pl-3">
-                <span>{entry.text}</span>
-                {entry.deadline || entry.amount ? (
-                  <span className="flex flex-wrap gap-2 text-sm">
-                    {entry.deadline ? <span className="rounded-full bg-check-tint px-2.5 py-0.5 font-semibold text-check">Deadline: {entry.deadline}</span> : null}
-                    {entry.amount ? <span className="rounded-full bg-rule-tint px-2.5 py-0.5 font-semibold text-rule">Amount: {entry.amount}</span> : null}
-                  </span>
-                ) : null}
-                <AnchorNote anchor={entry.anchor} on={ON} missing={MISSING} />
+              <li key={index} className="grid grid-cols-[30px_minmax(0,1fr)] items-start gap-3 rounded-xl border border-line bg-surface p-3.5">
+                <span aria-hidden="true" className="grid size-[30px] place-items-center rounded-full border border-accent-ring bg-accent-tint font-display text-accent">
+                  {index + 1}
+                </span>
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <span className="font-semibold leading-snug">{entry.text}</span>
+                  {entry.deadline || entry.amount ? (
+                    <span className="flex flex-wrap gap-1.5">
+                      {entry.deadline ? (
+                        <Tag tone="warn" icon="calendar">
+                          Deadline: {entry.deadline}
+                        </Tag>
+                      ) : null}
+                      {entry.amount ? (
+                        <Tag tone="gray" icon="dollar">
+                          Amount: {entry.amount}
+                        </Tag>
+                      ) : null}
+                    </span>
+                  ) : null}
+                  <AnchorNote anchor={entry.anchor} on={ON} missing={MISSING} />
+                </div>
               </li>
             ))}
-          </ul>
+          </ol>
         ) : (
           <p className="text-rule">The explanation found nothing this document asks you to do.</p>
         )}
@@ -212,13 +206,16 @@ function Explanation({ received, flags, explainedAt, matched, doc }: Explanation
       {received.sites.length ? (
         <div className="flex flex-col gap-2">
           <h3 className="font-bold">Websites on it</h3>
-          <ul className="flex flex-col gap-1.5">
+          <ul className="flex flex-col gap-2">
             {received.sites.map((site) => (
-              <li key={site.host} className="text-[15px] text-rule">
-                <span className="font-semibold break-all">{site.host}</span>
-                {site.government
-                  ? `: an official government website (${site.government}).`
-                  : ": not on the official .gov list. Some real offices still use older addresses, so look the office up yourself before you pay or share anything."}
+              <li key={site.host} className="flex items-start gap-2.5 text-[15px] text-rule">
+                <Icon name={site.government ? "badge" : "info"} size="sm" className={`mt-0.5 ${site.government ? "text-done" : "text-check"}`} />
+                <span className="min-w-0">
+                  <span className="font-semibold break-all text-ink">{site.host}</span>
+                  {site.government
+                    ? `: an official government website (${site.government}).`
+                    : ": not on the official .gov list. Some real offices still use older addresses, so look the office up yourself before you pay or share anything."}
+                </span>
               </li>
             ))}
           </ul>
@@ -226,8 +223,11 @@ function Explanation({ received, flags, explainedAt, matched, doc }: Explanation
       ) : null}
 
       {matched ? (
-        <div className="flex flex-col gap-2 rounded-xl bg-accent-tint px-4 py-3">
-          <h3 className="font-bold text-accent-ink">In your plan</h3>
+        <div className="flex flex-col gap-2 rounded-xl border border-accent-ring bg-accent-tint px-4 py-3.5">
+          <h3 className="flex items-center gap-2 font-bold text-accent-ink">
+            <Icon name="flag" size="sm" />
+            In your plan
+          </h3>
           <p className="text-accent-ink">
             This looks like the record for your step{" "}
             <Link href={`/checklist/${matched.id}`} className="font-semibold underline underline-offset-4">
@@ -248,7 +248,7 @@ function Explanation({ received, flags, explainedAt, matched, doc }: Explanation
         </div>
       ) : null}
 
-      <p className="text-sm text-muted">
+      <p className="text-[14.5px] text-muted">
         {explainedAt ? (
           <>
             Explained <LocalDate iso={explainedAt} />.{" "}

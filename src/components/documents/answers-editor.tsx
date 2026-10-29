@@ -3,8 +3,9 @@
 import { type ReactNode, useId, useLayoutEffect, useState } from "react";
 import { draftAnswersAction, saveAnswersAction } from "@/app/(app)/documents/actions";
 import { refreshDraftAction } from "@/app/(app)/documents/form-actions";
-import { ActorChip } from "@/components/actor-chip";
+import { Icon } from "@/components/icons";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
+import { WhoDoesWhat } from "./parts";
 import type { FieldKind } from "@/lib/documents/types";
 
 export interface EditorField {
@@ -116,28 +117,26 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
 
   return (
     <div className="flex flex-col gap-4">
-      <ul className="flex flex-col gap-2 text-sm text-rule">
-        <li className="flex items-start gap-2.5">
-          {practice || rules ? <ActorChip actor="rule" /> : <ActorChip actor="ai" />}
-          <span>
-            {rules
+      <WhoDoesWhat
+        items={[
+          [
+            practice || rules ? "rule" : "ai",
+            rules
               ? "First Sale’s checked rules for this form filled blanks from your business details. Nothing is guessed, and blanks your details don’t answer stay empty."
               : practice
                 ? "Practice mode matched blanks to your business details with simple word matching, not AI. Check every one closely."
-                : "AI matched blanks to your business details. It never makes up an answer."}
-          </span>
-        </li>
-        <li className="flex items-start gap-2.5">
-          <ActorChip actor="owner" />
-          <span>You check and confirm each one. Only confirmed answers go into a filled copy.</span>
-        </li>
-      </ul>
+                : "AI matched blanks to your business details. It never makes up an answer.",
+          ],
+          ["owner", "You check and confirm each one. Only confirmed answers go into a filled copy."],
+        ]}
+      />
 
       {draftBlocked ? (
         <p className="text-sm text-muted">{draftBlocked}</p>
       ) : (
         <div className="flex flex-col items-start gap-2">
           <button type="button" onClick={draft} disabled={pending} className={rules ? SECONDARY : AI_BUTTON}>
+            {rules ? null : <Icon name="sparkles" size="sm" />}
             {status === "drafting"
               ? "Drafting answers…"
               : rules
@@ -149,9 +148,11 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
         </div>
       )}
 
-      <p className="text-sm text-muted">
-        {answered} of {editable.length} {editable.length === 1 ? "blank" : "blanks"} answered, {confirmed} confirmed. Leave
-        Social Security and tax id numbers for the form itself: First Sale doesn’t store them.
+      <p className="text-[14.5px] text-muted">
+        <span className="font-semibold text-rule">
+          {answered} of {editable.length} {editable.length === 1 ? "blank" : "blanks"} answered, {confirmed} confirmed.
+        </span>{" "}
+        Leave Social Security and tax id numbers for the form itself: First Sale doesn’t store them.
       </p>
 
       <ol className="flex flex-col gap-3">
@@ -185,8 +186,8 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
             {status === "saving" ? "Saving…" : "Save answers"}
           </button>
         </div>
-        {dirty && status !== "saving" ? <p className="text-sm text-check">You have changes that aren’t saved yet.</p> : null}
-        <p role="status" className={status === "idle" ? "sr-only" : "text-sm text-muted"}>
+        {dirty && status !== "saving" ? <p className="text-[14.5px] font-semibold text-check">You have changes that aren’t saved yet.</p> : null}
+        <p role="status" className={status === "idle" ? "sr-only" : "text-[14.5px] text-muted"}>
           {status === "drafting"
             ? "Matching the form’s blanks to your business details. This can take a minute."
             : status === "saving"
@@ -220,22 +221,22 @@ function FieldRow({ uid, field, row, typed, sourceLabel, detailOptions, onChange
   const empty = !row.value.trim();
 
   return (
-    <li className="flex flex-col gap-2 rounded-xl bg-ground px-3.5 py-3">
+    <li className={`flex flex-col gap-2.5 rounded-xl border px-4 py-3.5 shadow-soft ${field.fillYourself ? "border-line bg-soft" : "border-line bg-surface"}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         {field.fillYourself ? (
-          <p className="font-semibold">{field.label}</p>
+          <p className="text-[15.5px] font-semibold">{field.label}</p>
         ) : (
-          <label htmlFor={inputId} className="font-semibold">
+          <label htmlFor={inputId} className="text-[15.5px] font-semibold">
             {field.label}
           </label>
         )}
-        <span className="text-sm text-muted">Page {field.page}</span>
+        <span className="text-[13.5px] font-semibold text-faint">Page {field.page}</span>
       </div>
       {field.printedText && field.printedText !== field.label ? (
-        <p className="text-sm text-muted">On the form: “{field.printedText}”</p>
+        <p className="-mt-1 text-[14.5px] text-muted">On the form: “{field.printedText}”</p>
       ) : null}
       {field.lowConfidence ? (
-        <p className="rounded-lg bg-check-tint px-3 py-2 text-sm text-check">We may have misread this blank. Check it against the form.</p>
+        <p className="rounded-lg border border-check-ring bg-check-tint px-3 py-2 text-[14.5px] text-check">We may have misread this blank. Check it against the form.</p>
       ) : null}
 
       {field.fillYourself ? (
@@ -264,7 +265,7 @@ function FieldRow({ uid, field, row, typed, sourceLabel, detailOptions, onChange
           </label>
           {typed && detailOptions.length ? (
             <div className="flex flex-col gap-1.5">
-              <label htmlFor={`${inputId}-save`} className="text-sm font-semibold">
+              <label htmlFor={`${inputId}-save`} className="text-[15px] font-semibold">
                 Also save to my business details as… <span className="font-normal text-muted">(optional)</span>
               </label>
               <select id={`${inputId}-save`} value={row.saveAs} onChange={(event) => onChange({ saveAs: event.target.value })} className={INPUT}>
@@ -275,7 +276,7 @@ function FieldRow({ uid, field, row, typed, sourceLabel, detailOptions, onChange
                   </option>
                 ))}
               </select>
-              <p className="text-sm text-muted">Saved details can be used on your other forms. You can change them later.</p>
+              <p className="text-[14.5px] text-muted">Saved details can be used on your other forms. You can change them later.</p>
             </div>
           ) : null}
         </>
@@ -319,12 +320,12 @@ function ValueInput({ id, field, value, onChange }: { id: string; field: EditorF
 }
 
 const TONES = {
-  ai: "bg-ai-tint text-ai-ink",
-  owner: "bg-accent-tint text-accent-ink",
-  check: "bg-check-tint text-check",
-  rule: "bg-rule-tint text-rule",
+  ai: "border-ai/20 bg-ai-tint text-ai-ink",
+  owner: "border-accent-ring bg-accent-tint text-accent-ink",
+  check: "border-check-ring bg-check-tint text-check",
+  rule: "border-line bg-wash text-rule",
 };
 
 function SourceChip({ tone, children }: { tone: keyof typeof TONES; children: ReactNode }) {
-  return <p className={`w-fit rounded-lg px-2.5 py-1 text-sm font-semibold ${TONES[tone]}`}>{children}</p>;
+  return <p className={`w-fit max-w-full rounded-lg border px-2.5 py-1 text-[13.5px] font-semibold leading-snug ${TONES[tone]}`}>{children}</p>;
 }
