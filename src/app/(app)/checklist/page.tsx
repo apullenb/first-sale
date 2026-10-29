@@ -2,23 +2,21 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ActionButton } from "@/components/action-button";
 import { ActorChip } from "@/components/actor-chip";
-import { LocalDate } from "@/components/local-date";
-import { NextActionGroups, PlanCosts } from "@/components/plan/next-actions";
-import { NextStep, PlanProgress } from "@/components/plan/plan-summary";
+import { Icon } from "@/components/icons";
+import { NextActionGroups, PlanCosts, StepGroup } from "@/components/plan/next-actions";
+import { NextStep } from "@/components/plan/plan-summary";
 import { ReviewChanges } from "@/components/plan/review-changes";
-import { type StepState, StepStateLabel, stepStates } from "@/components/plan/step-state";
+import { stepStates } from "@/components/plan/step-state";
+import { PenCheck, StepRow } from "@/components/plan/step-row";
 import { PracticeBanner } from "@/components/practice-banner";
-import { RequirementStatusChip } from "@/components/requirements/requirement-status";
-import { StatusChip } from "@/components/requirements/requirement-card";
 import { ResearchRunStatus } from "@/components/requirements/research-run";
-import { CARD, EYEBROW, PAGE_TITLE, PRIMARY_LINK, SECTION_TITLE } from "@/components/styles";
+import { PRIMARY_LINK } from "@/components/styles";
+import { Card, Chip, Fold, IconTile, PageHead } from "@/components/ui";
 import { OFFICIAL_FORMS } from "@/data/official-forms";
 import { getMyBusiness, getMyDetails, getMyPlan, getMyResearch, lastMyRun } from "@/lib/data/my-business";
 import type { PlanStep } from "@/lib/data/plan";
 import type { BusinessStructure } from "@/lib/domain";
 import { formsFor } from "@/lib/documents/form-catalog";
-import { formatFee } from "@/lib/documents/startup-plan";
-import { LEVEL_LABELS, TOPIC_LABELS } from "@/lib/labels";
 import { placeOf, STRUCTURE_NAMES, structureOf } from "@/lib/research/applicability";
 import { type ActionStep, type NextActions, nextActions, planCosts } from "@/lib/rules/next-action";
 import { formatMinutes, remainingWork } from "@/lib/rules/progress";
@@ -30,12 +28,17 @@ export const metadata = sectionMetadata("/checklist");
 
 export default function ChecklistPage() {
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
-        <p className={EYEBROW}>Start your business · Step 4</p>
-        <h1 className={PAGE_TITLE}>Your startup plan</h1>
-        <p className="text-lg text-muted">What to do next, what can happen at the same time, and what it costs, from your researched requirements.</p>
-      </div>
+    <div className="flex max-w-4xl flex-col gap-6">
+      <PageHead
+        kicker={
+          <span className="inline-flex items-center gap-2">
+            <Icon name="checklist" size="sm" />
+            Step 4 of 5
+          </span>
+        }
+        title="Your startup plan"
+        lead="What to do next, what can happen at the same time, and what it costs, from your researched requirements."
+      />
       <Suspense fallback={<p className="text-muted">Loading your plan…</p>}>
         <Plan />
       </Suspense>
@@ -48,12 +51,13 @@ async function Plan() {
 
   if (!business || !plan) {
     return (
-      <section className={`flex flex-col gap-3 ${CARD}`}>
+      <Card>
         <p>Tell us about your business first. Your answers decide which steps go in your plan.</p>
         <Link href="/business/new" className={PRIMARY_LINK}>
           Tell us about your business
+          <Icon name="arrow" size="sm" />
         </Link>
-      </section>
+      </Card>
     );
   }
 
@@ -96,11 +100,18 @@ async function Plan() {
       ) : null}
 
       {decided ? (
-        <section aria-labelledby="decided-heading" className="flex flex-col gap-3 rounded-2xl bg-ai-tint p-5 ring-1 ring-ai/15">
-          <h2 id="decided-heading" className="font-display text-xl font-bold text-ai-ink">
+        <section
+          aria-labelledby="decided-heading"
+          className="flex flex-col gap-3 rounded-2xl border border-accent-ring bg-surface p-5 shadow-[0_0_0_4px_var(--color-accent-tint),var(--shadow-card)] sm:p-6"
+        >
+          <div className="flex items-center gap-3">
+            <IconTile icon="scale" />
+            <p className="text-[13.5px] font-bold uppercase tracking-[0.08em] text-accent">Needs your OK</p>
+          </div>
+          <h2 id="decided-heading" className="font-display text-[22px] leading-snug">
             Your business structure changed
           </h2>
-          <p className="text-ai-ink">
+          <p className="text-muted">
             Your plan was built for {structureName(research.structure)}, and you’ve now chosen {structureName(decision)}. Update the plan to see which
             formation steps change. You review every change first.
           </p>
@@ -110,7 +121,7 @@ async function Plan() {
 
       {plan.steps.length === 0 ? (
         plan.proposal ? null : (
-          <section className={`flex flex-col gap-3 ${CARD}`}>
+          <Card>
             <p>
               {research
                 ? "Your last check didn’t turn up any steps. Check your requirements again to build your plan."
@@ -118,59 +129,87 @@ async function Plan() {
             </p>
             <Link href="/requirements" className={PRIMARY_LINK}>
               Find my requirements
+              <Icon name="arrow" size="sm" />
             </Link>
-          </section>
+          </Card>
         )
       ) : (
         <>
-          <ul aria-label="Who did what" className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
-            <li className="flex items-center gap-2">
-              {practice ? (
-                <>
-                  <ActorChip actor="rule" /> drafted the steps in practice mode
-                </>
-              ) : (
-                <>
-                  <ActorChip actor="ai" /> drafted the steps from official pages
-                </>
-              )}
-            </li>
-            <li className="flex items-center gap-2">
-              <ActorChip actor="rule" /> decided what applies and the order
-            </li>
-            <li className="flex items-center gap-2">
-              <ActorChip actor="owner" /> submit each one and record it
-            </li>
-          </ul>
+          <div className="-mt-2 flex flex-wrap items-center gap-2">
+            <Chip tone="done" icon="check">
+              {doneCount} of {plan.steps.length} done
+            </Chip>
+            {work.left.length ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-[13.5px] font-semibold leading-tight text-rule">
+                <Icon name="clock" size="xs" />
+                {work.left.length} left before your first sale · about {formatMinutes(work.minutes)} of your time
+              </span>
+            ) : null}
+            {work.waiting.length ? (
+              <Chip tone="warn" icon="hourglass">
+                {work.waiting.length} waiting to hear back
+              </Chip>
+            ) : null}
+          </div>
+          <div aria-hidden="true" className="-mt-2 h-1.5 overflow-hidden rounded-full bg-wash">
+            <div className="h-full rounded-full bg-accent" style={{ width: `${Math.round((doneCount / plan.steps.length) * 100)}%` }} />
+          </div>
 
-          <PlanProgress done={doneCount} total={plan.steps.length} />
-          {work.left.length ? (
-            <p className="-mt-2 text-muted">
-              {work.left.length} left before your first sale, about {formatMinutes(work.minutes)} of your own time. Time waiting on an office isn’t counted.
-            </p>
-          ) : null}
           {actions.first ? (
             <NextStep step={plan.steps.find((step) => step.id === actions.first!.id)!} parallel={Math.max(0, actions.now.length - 1)} />
           ) : doneCount === plan.steps.length ? (
-            <p className="rounded-2xl bg-accent-tint p-5 font-semibold text-accent-ink">You’ve finished every step in your plan.</p>
+            <section aria-label="Plan finished" className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-lift">
+              <span className="grid size-11 shrink-0 place-items-center rounded-full border-[1.5px] border-done/25 bg-done-tint text-done">
+                <PenCheck size={26} />
+              </span>
+              <p className="font-display text-[22px] leading-snug">You’ve finished every step in your plan.</p>
+            </section>
           ) : null}
 
           <NextActionGroups actions={{ ...actions, ...byId(plan.steps, actions) }} />
           <PlanCosts costs={costs} />
 
-          <details className="group">
-            <summary className="flex min-h-11 w-fit cursor-pointer items-center font-semibold underline underline-offset-4">All steps in order ({plan.steps.length})</summary>
-            <ol className="mt-2 flex flex-col gap-2.5">
-              {plan.steps.map((step, index) => (
-                <StepItem key={step.id} step={step} number={index + 1} state={states.get(step.key)} />
-              ))}
+          <Fold title={`All steps in order (${plan.steps.length})`} summary="Every step, numbered in the order they come" icon="list">
+            <ol className="grid gap-2.5">
+              {plan.steps.map((step, index) => {
+                const state = states.get(step.key);
+                return (
+                  <StepRow
+                    key={step.id}
+                    step={step}
+                    number={index + 1}
+                    state={!state || state.state === "ready" ? "ready" : state.state === "waiting" ? "locked" : state.state}
+                    lockedBy={state?.state === "waiting" ? state.waitingOn : []}
+                  />
+                );
+              })}
             </ol>
-          </details>
+          </Fold>
 
-          <section aria-labelledby="save-plan" className={`flex flex-col gap-3 ${CARD}`}>
-            <h2 id="save-plan" className={SECTION_TITLE}>
-              Keep a copy
-            </h2>
+          <Fold title="How this plan was made" summary="Who drafted the steps, and who decides" icon="info">
+            <ul aria-label="Who did what" className="flex flex-col gap-2 text-[15px]">
+              <li className="flex items-center gap-2.5">
+                {practice ? (
+                  <>
+                    <ActorChip actor="rule" /> drafted the steps in practice mode
+                  </>
+                ) : (
+                  <>
+                    <ActorChip actor="ai" /> drafted the steps from official pages
+                  </>
+                )}
+              </li>
+              <li className="flex items-center gap-2.5">
+                <ActorChip actor="rule" /> decided what applies and the order
+              </li>
+              <li className="flex items-center gap-2.5">
+                <ActorChip actor="owner" /> submit each one and record it
+              </li>
+            </ul>
+            <p className="text-sm text-muted">Times are rough estimates of your own hands-on time. Time waiting on an office isn’t counted.</p>
+          </Fold>
+
+          <Card title="Keep a copy" icon="file" id="save-plan">
             <p className="text-muted">Save your plan as a PDF to print or bring along. A copy goes in your Documents.</p>
             <ActionButton
               action={savePlanPdfAction}
@@ -179,35 +218,26 @@ async function Plan() {
               pendingStatus="Making a PDF of your plan. It opens when it’s ready."
               openDocument
             />
-          </section>
+          </Card>
         </>
       )}
 
       {plan.retired.length ? (
-        <section aria-labelledby="retired-steps" className="flex flex-col gap-2.5">
-          <h2 id="retired-steps" className={SECTION_TITLE}>
-            Finished steps no longer in your plan
-          </h2>
-          <p className="text-muted">A later check of your requirements left these out. You’d already finished them, so they stay here for your records.</p>
-          <ul className="flex flex-col gap-2">
+        <StepGroup
+          level={2}
+          id="retired-steps"
+          title="Finished steps no longer in your plan"
+          help="A later check left these out. You’d already finished them, so they stay here for your records."
+          icon="check"
+          tone="done"
+          count={plan.retired.length}
+        >
+          <ul className="grid gap-2.5">
             {plan.retired.map((step) => (
-              <li key={step.id} className="flex flex-col gap-0.5 rounded-2xl bg-surface px-4 py-2 ring-1 ring-ink/5 sm:px-5">
-                <Link href={`/checklist/${step.id}`} className="flex min-h-11 w-fit items-center font-semibold underline underline-offset-4">
-                  {step.title}
-                </Link>
-                <p className="pb-1 text-sm text-muted">
-                  Done
-                  {step.completedAt ? (
-                    <>
-                      {" "}
-                      on <LocalDate iso={step.completedAt.toISOString()} />
-                    </>
-                  ) : null}
-                </p>
-              </li>
+              <StepRow key={step.id} step={step} state="done" />
             ))}
           </ul>
-        </section>
+        </StepGroup>
       ) : null}
     </>
   );
@@ -230,27 +260,4 @@ function byId(steps: readonly PlanStep[], actions: NextActions<ActionStep & { id
     done: actions.done.map((step) => find(step.id)),
     first: actions.first ? find(actions.first.id) : null,
   };
-}
-
-function StepItem({ step, number, state }: { step: PlanStep; number: number; state: StepState | undefined }) {
-  const facts = [TOPIC_LABELS[step.topic], LEVEL_LABELS[step.level], step.feeCents === null ? null : `Fee: ${formatFee(step.feeCents)}`].filter(Boolean);
-  const done = state?.state === "done";
-  return (
-    <li className="flex gap-3.5 rounded-2xl bg-surface px-4 py-3 ring-1 ring-ink/5 sm:px-5">
-      <span className={`mt-2 flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${done ? "bg-accent text-white" : "bg-rule-tint text-rule"}`}>
-        {number}
-      </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <Link href={`/checklist/${step.id}`} className="flex min-h-11 w-fit items-center text-[17px] font-bold leading-snug underline underline-offset-4">
-          {step.title}
-        </Link>
-        <p className="text-sm text-muted">{facts.join(" · ")}</p>
-        <div className="flex flex-wrap items-center gap-2 pb-1">
-          <RequirementStatusChip status={step.requirementStatus} />
-          <StatusChip sourced={step.verification === "sourced"} />
-          <StepStateLabel state={state} />
-        </div>
-      </div>
-    </li>
-  );
 }
