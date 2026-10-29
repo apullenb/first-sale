@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { type CompletionRequest, getModel, type ModelProvider } from "@/lib/ai";
-import { cleanTaglines, MAX_TAGLINES, suggestTaglines } from "./tagline";
+import { cleanTaglines, MAX_TAGLINES, suggestTaglines, TAGLINE_RULES } from "./tagline";
 import { testBrief } from "./test-fixtures";
 
 function model(taglines: string[]) {
@@ -50,6 +50,27 @@ describe("tagline suggestions", () => {
       "   ",
     ];
     expect(cleanTaglines(raw, "Rise Bakery")).toEqual(["Warm bread, slow mornings", "Small batches"]);
+  });
+
+  it("fit under a logo: 2 to 6 words and at most 40 characters", () => {
+    const fits = "Warm loaves for slow Sunday mornings";
+    expect(fits.length).toBeLessThanOrEqual(TAGLINE_RULES.maxChars);
+    expect(cleanTaglines(["Welcome", "Come early, stay late, bring friends, share bread", "Slow mornings and warm kitchens for everybody", fits], "Rise Bakery")).toEqual([fits]);
+  });
+
+  it("lose emoji, keeping the words", () => {
+    expect(cleanTaglines(["Warm welcome 🍞✨", "👋 Come say hello!"], "Rise Bakery")).toEqual(["Warm welcome", "Come say hello"]);
+  });
+
+  it("drop diet, origin and craft claims unless the owner's own answers make them", () => {
+    const raw = ["Gluten-free and good", "All-natural sweet treats", "Vegan treats daily", "Your local sweet spot", "Handmade with care", "Made by hand daily", "Homemade every morning", "Artisan breads daily"];
+    expect(cleanTaglines(raw, "Rise Bakery")).toEqual([]);
+    expect(cleanTaglines(raw, "Rise Bakery", "Gluten-free cookies for local markets")).toEqual(["Gluten-free and good", "Your local sweet spot"]);
+  });
+
+  it("drop any recognizable word of the business name, not only the whole name", () => {
+    const raw = ["Rise early with us", "Shine on, neighbor", "Your bakery next door", "The good stuff, daily", "Good mornings start here"];
+    expect(cleanTaglines(raw, "Rise & Shine Bakery")).toEqual(["The good stuff, daily", "Good mornings start here"]);
   });
 
   it("keep at most a handful", () => {
