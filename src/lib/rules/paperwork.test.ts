@@ -2,7 +2,20 @@ import { describe, expect, it } from "vitest";
 import { PLAN_TOPICS } from "@/lib/domain";
 import { placeOf, type StructureDecision } from "@/lib/research/applicability";
 import { testProfile } from "@/test/fixtures";
-import { answerFor, groupKeyOf, nextTaskAfter, type PaperStep, type PaperworkContext, paperwork, type SavedAnswer, splitByTime, standingOf, summaryOf } from "./paperwork";
+import {
+  answerFor,
+  groupKeyOf,
+  nextTaskAfter,
+  type PaperStep,
+  type PaperworkContext,
+  paperwork,
+  type SavedAnswer,
+  splitByTime,
+  standingOf,
+  stepLinks,
+  stillToSettle,
+  summaryOf,
+} from "./paperwork";
 import { MAX_SITTING_MINUTES, stepMinutes } from "./progress";
 
 const profile = testProfile({ location: { state: "TX", county: "Travis", city: "Austin", insideCityLimits: "yes" } });
@@ -80,11 +93,20 @@ describe("what counts as a task", () => {
     expect(inclusion(step("structure", { topic: "structure" }))).toBe("structure_choice");
   });
 
-  it("points rules for an unknown place to the owner's answers", () => {
+  it("turns a rule for an unknown place into a step to find out, never a dead end", () => {
     const city = step("city", { level: "city", requirementStatus: "needs_confirmation", verification: "needs_verification" });
     const unknown = placeOf(testProfile({ location: { state: "TX", county: "Travis", city: "Austin", insideCityLimits: "unsure" } }));
-    expect(inclusion(city, { place: unknown })).toBe("place");
+    expect(standingOf(city, context({ place: unknown }))).toMatchObject({ inclusion: "check_place", requirementStatus: "conditional" });
+    expect(standingOf(city, context({ place: unknown })).conditions[0]).toMatch(/inside Austin city limits/);
     expect(inclusion(city)).toBe("confirm");
+    const noCounty = placeOf(testProfile({ location: { state: "TX", county: "", city: "Austin", insideCityLimits: "unsure" } }));
+    const view = paperwork([city, step("county", { level: "county" })], context({ place: noCounty }));
+    expect(view.tasks.map((task) => [task.step.key, task.kind, task.state])).toEqual([
+      ["city", "check_place", "ready"],
+      ["county", "check_place", "ready"],
+    ]);
+    expect(view.open).toEqual([]);
+    expect(view.first?.kind).toBe("check_place");
   });
 
   it("reads plans saved before questions were kept", () => {
@@ -227,13 +249,44 @@ describe("locks", () => {
     expect(view.tasks).toEqual([]);
   });
 
-  it("lists questions and unknown places still open, but not being outside city limits", () => {
+  it("lists only the quick questions as open; places become steps or, outside city limits, maybes", () => {
     const outside = placeOf(testProfile({ location: { state: "TX", county: "Travis", city: "Austin", insideCityLimits: "no" } }));
     const steps = [conditional("food"), step("city", { level: "city" }), step("county", { level: "county" })];
     expect(paperwork(steps, context()).open.map((each) => each.step.key)).toEqual(["food"]);
     expect(paperwork(steps, context({ place: outside })).open.map((each) => each.step.key)).toEqual(["food"]);
+    expect(stillToSettle(paperwork(steps, context({ place: outside }))).map((each) => each.step.key)).toEqual(["food", "city"]);
     const unknown = placeOf(testProfile({ location: { state: "TX", county: "", city: "Austin", insideCityLimits: "unsure" } }));
-    expect(paperwork(steps, context({ place: unknown })).open.map((each) => each.step.key)).toEqual(["food", "city", "county"]);
+    expect(paperwork(steps, context({ place: unknown })).open.map((each) => each.step.key)).toEqual(["food"]);
+  });
+
+  it("says what's missing about the place when a step waits on it, and sends the owner to their answers", () => {
+    const noCounty = placeOf(testProfile({ location: { state: "TX", county: "", city: "Austin", insideCityLimits: "yes" } }));
+    const steps = [step("county-permit", { level: "county" }), step("after", { prerequisites: ["county-permit"] })];
+    const after = paperwork(steps, context({ place: noCounty })).tasks.find((task) => task.step.key === "after")!;
+    expect(after).toMatchObject({ state: "locked", blockers: [{ title: "Add your county to your answers", href: "/business/edit", where: "Your business", taskKey: null }] });
+  });
+});
+
+describe("stepLinks", () => {
+  it("lists a step's prerequisites by the same rules as the locks", () => {
+    const steps = [
+      conditional("permit", { topic: "tax_registration" }),
+      step("extra", { requirementStatus: "optional" }),
+      step("llc", { topic: "structure", forStructures: ["llc"], feeCents: 30_000 }),
+      step("sent", { status: "submitted" }),
+      step("finished", { status: "done" }),
+      step("returns", { prerequisites: ["permit", "extra", "llc", "sent", "finished", "retired-step"] }),
+    ];
+    const sole = context({ answers: [said("permit", "no")], decision: { structure: "sole_proprietorship", from: "decision" } });
+    const view = paperwork(steps, sole);
+    const links = stepLinks(view, steps[5], sole.place);
+    // A no, an optional rule, another structure and a step gone from the plan never hold it up
+    expect(links.before.map((each) => [each.title, each.done, each.office])).toEqual([
+      ["Step sent", false, true],
+      ["Step finished", true, false],
+    ]);
+    expect(view.tasks.find((task) => task.step.key === "returns")?.blockers.map((each) => each.title)).toEqual(["Step sent"]);
+    expect(stepLinks(view, steps[3], sole.place).after.map((task) => task.step.key)).toEqual(["returns"]);
   });
 });
 

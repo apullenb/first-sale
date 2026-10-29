@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { requirementDraft, testProfile } from "@/test/fixtures";
-import { classify, placeConditions, placeOf, structureOf } from "./applicability";
-import { writtenInquiry } from "./inquiry";
+import { classify, placeConditions, placeGap, placeOf, structureOf } from "./applicability";
+import { findOutInquiry, placeInquiry, writtenInquiry } from "./inquiry";
 
 const profile = testProfile({ location: { state: "OH", county: "Franklin County", city: " Columbus ", insideCityLimits: "yes" } });
 const place = placeOf(profile);
@@ -108,5 +108,35 @@ describe("writtenInquiry", () => {
     expect(inquiry.body).toContain("[Your name]");
     expect(inquiry.body).not.toMatch(/\d{5}/);
     expect(inquiry.body).not.toMatch(/call/i);
+  });
+});
+
+describe("findOutInquiry", () => {
+  it("asks about the very condition the owner wasn't sure of, then the office's follow-ups", () => {
+    const inquiry = findOutInquiry({
+      title: "Get a Texas sales and use tax permit",
+      condition: "Only if you sell anything Texas taxes. ",
+      questions: ["Are the foods I sell taxable?"],
+      profile: testProfile({ firstItems: "Cookies" }),
+      place,
+    });
+    expect(inquiry.body).toContain("1. Does this apply to my business? I understand it depends on this: Only if you sell anything Texas taxes.");
+    expect(inquiry.body).toContain("2. Are the foods I sell taxable?");
+    expect(inquiry.body).not.toMatch(/call/i);
+  });
+});
+
+describe("placeGap", () => {
+  it("says what's missing about the owner's place, how to fix it, and who to ask in writing", () => {
+    const unsure = placeOf(testProfile({ location: { county: "Franklin", city: "Columbus", insideCityLimits: "unsure" } }));
+    const gap = placeGap("city", unsure)!;
+    expect(gap.action).toBe("Confirm whether you’re inside Columbus city limits");
+    expect(gap.office).toBe("the Franklin County property or planning office");
+    const inquiry = placeInquiry({ title: "Home occupation permit", question: gap.question, profile: testProfile(), place: unsure });
+    expect(inquiry.body).toContain("1. My business address is [your address]. Is it inside the city limits of Columbus?");
+    expect(inquiry.body).toContain("2. If so, does “Home occupation permit” apply to my business?");
+    expect(placeGap("county", placeOf(testProfile({ location: { county: "" } })))?.action).toBe("Add your county to your answers");
+    expect(placeGap("state", unsure)).toBeNull();
+    expect(placeGap("city", place)).toBeNull();
   });
 });

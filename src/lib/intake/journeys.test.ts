@@ -186,7 +186,7 @@ describe("three beginner journeys", () => {
     });
     expect(impact.changes.map((change) => change.label)).toEqual(expect.arrayContaining(["Where", "Inside city limits"]));
     const effects = impact.effects.map((effect) => effect.title);
-    expect(effects).toEqual(expect.arrayContaining(["What applies to you", "Licenses and registrations", "Vendor license application"]));
+    expect(effects).toEqual(expect.arrayContaining(["What applies to you", "Start your business", "Vendor license application"]));
     expect(effects).not.toContain("EIN answer sheet");
   });
 

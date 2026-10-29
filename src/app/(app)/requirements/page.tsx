@@ -25,7 +25,7 @@ import { classify, type Place, placeLabel, placeOf, STRUCTURE_NAMES } from "@/li
 import { answerChanges } from "@/lib/research/changes";
 import { writtenInquiry } from "@/lib/research/inquiry";
 import { profileKey } from "@/lib/research/requirements";
-import { type PaperworkGroup, placeOpen, type Standing, summaryOf } from "@/lib/rules/paperwork";
+import { type PaperworkGroup, type Standing, summaryOf } from "@/lib/rules/paperwork";
 import { CHECK_MINUTES, formatMinutes, MAX_SITTING_MINUTES } from "@/lib/rules/progress";
 import { sectionMetadata } from "@/lib/sections";
 import { replanAction } from "./actions";
@@ -182,7 +182,8 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
   const questions = by("question");
   const answered = view.standings.filter((standing) => standing.answer === "yes" || standing.answer === "unsure");
   const said = by("no");
-  const places = by("place");
+  // Unknown places are steps to find out; being outside city limits is listed, not asked
+  const places = [...by("check_place"), ...by("place")];
   const structureWait = by("structure");
   const optional = by("optional");
   const outside = by("outside");
@@ -283,12 +284,21 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
             <ul className="flex flex-col gap-2.5">
               {places.map((standing) => (
                 <li key={standing.step.id} className="flex flex-col gap-0.5">
-                  <span className="font-semibold">{standing.step.title}</span>
+                  {standing.inclusion === "check_place" ? (
+                    <Link href={`/checklist/${standing.step.id}`} className={`w-fit ${TEXT_LINK}`}>
+                      {standing.step.title}
+                    </Link>
+                  ) : (
+                    <span className="font-semibold">{standing.step.title}</span>
+                  )}
                   <span className="text-[15px] text-rule">{standing.place[0]}</span>
+                  {standing.inclusion === "check_place" ? (
+                    <span className="text-sm text-muted">Added to your paperwork as a step to find out where you are.</span>
+                  ) : null}
                 </li>
               ))}
             </ul>
-            {places.some((standing) => placeOpen(standing, place)) ? (
+            {places.some((standing) => standing.inclusion === "check_place") ? (
               <Link href="/business/edit" className={SECONDARY_LINK}>
                 <Icon name="pencil" size="sm" />
                 Confirm your place

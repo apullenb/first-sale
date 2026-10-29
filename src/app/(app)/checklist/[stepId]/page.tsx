@@ -10,7 +10,6 @@ import { AlreadyDone } from "@/components/plan/already-done";
 import { FilingSteps } from "@/components/plan/filing-steps";
 import { type FormDoc, OfficialFormCard } from "@/components/plan/official-form-card";
 import { RecordUpload } from "@/components/plan/record-upload";
-import { StepStateLabel, stepStates } from "@/components/plan/step-state";
 import { PenCheck, TOPIC_ICONS } from "@/components/plan/step-row";
 import { StepStatus } from "@/components/plan/step-status";
 import { StructureDecision } from "@/components/plan/structure-decision";
@@ -33,11 +32,11 @@ import { formatFee } from "@/lib/documents/startup-plan";
 import { ACCEPTED_TYPES } from "@/lib/documents/upload";
 import { LEVEL_LABELS, TOPIC_LABELS } from "@/lib/labels";
 import type { BusinessProfile } from "@/lib/domain";
-import { jurisdictionName, type Place, placeOf, structureOf } from "@/lib/research/applicability";
-import { writtenInquiry } from "@/lib/research/inquiry";
+import { jurisdictionName, type Place, placeGap, placeOf, structureOf } from "@/lib/research/applicability";
+import { findOutInquiry, placeInquiry, writtenInquiry } from "@/lib/research/inquiry";
 import { filingSteps } from "@/lib/rules/filing";
-import { choosesStructure, followingSteps } from "@/lib/rules/plan";
-import { nextTaskAfter, type Standing } from "@/lib/rules/paperwork";
+import { choosesStructure } from "@/lib/rules/plan";
+import { nextTaskAfter, type Standing, stepLinks } from "@/lib/rules/paperwork";
 import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
 
 export const metadata: Metadata = { title: "Paperwork step" };
@@ -73,10 +72,10 @@ async function StepDetail({ params }: { params: Params }) {
   const group = task ? (paper?.view.groups.find((each) => each.key === task.group) ?? null) : null;
   const step = standing ? { ...stored, requirementStatus: standing.requirementStatus, conditions: standing.conditions } : stored;
 
-  const states = stepStates(all);
-  const byKey = new Map(all.map((candidate) => [candidate.key, candidate]));
-  const before = step.prerequisites.flatMap((key) => byKey.get(key) ?? []);
-  const after = followingSteps(all.filter((candidate) => !candidate.retired), step.key);
+  // Prerequisites by the same rules as the locks: steps that don't apply never hold this one up
+  const links = paper && !stored.retired ? stepLinks(paper.view, stored, paper.context.place) : { before: [], after: [] };
+  const before = links.before;
+  const after = links.after.map((each) => each.step);
   const linked = documents.filter((doc) => doc.taskId === step.id);
   const sourced = step.verification === "sourced";
   // Undecided owners see every form that fits, each saying who it's for
@@ -138,7 +137,7 @@ async function StepDetail({ params }: { params: Params }) {
     links: step.links,
     prepare: step.prepare,
     doneWhen: step.doneWhen,
-    waitingOn: before.filter((prerequisite) => prerequisite.status !== "done").map((prerequisite) => prerequisite.title),
+    waitingOn: before.filter((prerequisite) => !prerequisite.done).map((prerequisite) => prerequisite.title),
     following: after.map((following) => following.title),
     form,
     missing,
@@ -172,7 +171,10 @@ async function StepDetail({ params }: { params: Params }) {
   );
   const steps = <FilingSteps steps={how} extras={{ form: formsHere, receipt }} />;
   const locked = blockers.length > 0;
-  const findOut = task?.kind === "find_out";
+  const checkPlace = task?.kind === "check_place";
+  const gap = checkPlace && paper ? placeGap(step.level, paper.context.place) : null;
+  // Finding out comes before doing: whether it applies, or where the business is
+  const findOut = task?.kind === "find_out" || checkPlace;
   const confirm = task?.kind === "confirm";
   const ready = !step.retired && step.status === "todo" && !locked;
   const confirming = step.links.find((link) => link.confirms) ?? null;
@@ -320,9 +322,13 @@ async function StepDetail({ params }: { params: Params }) {
           {findOut ? (
             <>
               <h2 id="part-heading" className={STATE_TITLE}>
-                Ask the office whether this applies to you
+                {gap ? "Find out where your business is" : "Ask the office whether this applies to you"}
               </h2>
-              {profile && place ? <FindOut step={step} profile={profile} place={place} question={standing?.question ?? ""} /> : null}
+              {profile && place && gap ? (
+                <PlaceFindOut step={step} profile={profile} place={place} gap={gap} condition={step.conditions[0] ?? ""} />
+              ) : profile && place ? (
+                <FindOut step={step} profile={profile} place={place} question={standing?.question ?? ""} />
+              ) : null}
               <p id="progress-heading" className="border-t border-line pt-4 text-[15px] text-muted">
                 If it applies, it becomes a step here, and how to do it is under “How to do it yourself” below.
               </p>
@@ -462,7 +468,12 @@ async function StepDetail({ params }: { params: Params }) {
         {before.length || after.length ? (
           <Fold
             title="What comes before and after"
-            summary={[before.length ? `Finish ${before.length} first` : null, after.length ? `${before.length ? "unlocks" : "Unlocks"} ${after.length}` : null].filter(Boolean).join(" · ")}
+            summary={[
+              before.length ? `Finish ${before.length} first` : null,
+              after.length ? `${before.length ? "unlocks" : "Unlocks"} ${after.length}` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
             icon="branch"
           >
             <div className="grid gap-4 sm:grid-cols-2">
@@ -473,11 +484,11 @@ async function StepDetail({ params }: { params: Params }) {
                   </h3>
                   <ul className="flex flex-col gap-1">
                     {before.map((prerequisite) => (
-                      <li key={prerequisite.id} className="flex flex-col pb-1">
-                        <Link href={`/checklist/${prerequisite.id}`} className={LINK_ITEM}>
+                      <li key={prerequisite.href} className="flex flex-col pb-1">
+                        <Link href={prerequisite.href} className={LINK_ITEM}>
                           {prerequisite.title}
                         </Link>
-                        <StepStateLabel state={states.get(prerequisite.key)} />
+                        <PrerequisiteState done={prerequisite.done} office={prerequisite.office} />
                       </li>
                     ))}
                   </ul>
@@ -626,7 +637,7 @@ function NotOnList({ standing }: { standing: Standing<PlanStep> }) {
   );
 }
 
-// "Not sure" became a step: ask in writing, then answer once the office replies
+// A "find out" step: ask in writing, then answer once the office replies
 function FindOut({ step, profile, place, question }: { step: PlanStep; profile: BusinessProfile; place: Place; question: string }) {
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-line bg-soft p-4">
@@ -635,7 +646,7 @@ function FindOut({ step, profile, place, question }: { step: PlanStep; profile: 
         call.
       </p>
       <WrittenInquiry
-        inquiry={writtenInquiry({ title: step.title, questions: step.whatToAsk, profile, place })}
+        inquiry={findOutInquiry({ title: step.title, condition: question, questions: step.whatToAsk, profile, place })}
         office={step.whoToCall || step.agency}
         link={step.links[0] ? { title: step.links[0].title, url: step.links[0].url } : null}
       />
@@ -646,5 +657,51 @@ function FindOut({ step, profile, place, question }: { step: PlanStep; profile: 
         <AnswerButtons stepKey={step.key} condition={question} current="unsure" labelledBy="found-out" />
       </div>
     </div>
+  );
+}
+
+// Where the business is isn't known yet: add it to the answers, or ask in writing
+function PlaceFindOut({ step, profile, place, gap, condition }: { step: PlanStep; profile: BusinessProfile; place: Place; gap: NonNullable<ReturnType<typeof placeGap>>; condition: string }) {
+  return (
+    <div className="flex flex-col gap-4 rounded-xl border border-line bg-soft p-4">
+      <p>
+        Whether this applies depends on where your business is: <span className="font-semibold">{condition}</span>
+      </p>
+      <div className="flex flex-col gap-2">
+        <p className="font-semibold">Know the answer?</p>
+        <Link href="/business/edit" className={`${SECONDARY_LINK} w-fit`}>
+          <Icon name="pencil" size="sm" />
+          {gap.action}
+        </Link>
+        <p className="text-sm text-muted">Then check again on What applies to you, and this step updates.</p>
+      </div>
+      <div className="flex flex-col gap-2 border-t border-line pt-3">
+        <p className="font-semibold">Not sure? Ask in writing. You never have to call.</p>
+        <WrittenInquiry inquiry={placeInquiry({ title: step.title, question: gap.question, profile, place })} office={gap.office} link={null} />
+      </div>
+    </div>
+  );
+}
+
+function PrerequisiteState({ done, office }: { done: boolean; office: boolean }) {
+  if (done) {
+    return (
+      <Chip tone="done" icon="check">
+        Done
+      </Chip>
+    );
+  }
+  if (office) {
+    return (
+      <Chip tone="warn" icon="hourglass">
+        Submitted, waiting to hear back
+      </Chip>
+    );
+  }
+  return (
+    <span className="inline-flex w-fit items-center gap-1.5 text-sm text-muted">
+      <Icon name="lock" size="xs" />
+      Not done yet
+    </span>
   );
 }

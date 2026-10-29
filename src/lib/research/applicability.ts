@@ -153,6 +153,30 @@ export function placeConditions(level: JurisdictionLevel, place: Place): string[
   return [];
 }
 
+// What's missing about the owner's place for a rule at this level: the fix, and a written question for whoever can tell them
+export function placeGap(level: JurisdictionLevel, place: Place): { action: string; question: string; office: string } | null {
+  const county = place.county ? `${place.county} County` : "county";
+  if (level === "county" && !place.county) {
+    return { action: "Add your county to your answers", question: "My business address is [your address]. Which county is it in?", office: "your county’s property tax office" };
+  }
+  if (level !== "city") return null;
+  if (!place.city) {
+    return {
+      action: "Add your city to your answers",
+      question: "My business address is [your address]. Is it inside a city’s limits, and which city?",
+      office: `the ${county} planning office`,
+    };
+  }
+  if (place.insideCity === "unknown") {
+    return {
+      action: `Confirm whether you’re inside ${place.city} city limits`,
+      question: `My business address is [your address]. Is it inside the city limits of ${place.city}?`,
+      office: `the ${county} property or planning office`,
+    };
+  }
+  return null;
+}
+
 const ALREADY: { have: BusinessProfile["alreadyHave"][number]; topics: PlanTopic[]; pattern: RegExp; label: string }[] = [
   { have: "ein", topics: ["tax_registration", "employer"], pattern: /\bein\b|employer identification/i, label: "an EIN" },
   { have: "sales_tax", topics: ["tax_registration", "license_permit"], pattern: /sales tax|vendor/i, label: "a sales tax permit" },

@@ -14,7 +14,8 @@ export interface InsightInputs {
   profile: BusinessProfile;
   decisions: { label: string; value: string }[];
   research: { checkedAt: string; requirements: { title: string; status: string; level: string }[]; openQuestions: number } | null;
-  steps: { id: string; key: string; title: string; status: TaskStatus; timing: "before_selling" | "later"; optional: boolean }[];
+  // mayApply: a rule still to settle, not a step yet
+  steps: { id: string; key: string; title: string; status: TaskStatus; timing: "before_selling" | "later"; optional: boolean; mayApply: boolean }[];
   planAnswers: { question: string; answer: string }[];
   brand: { story: string; feel: string[]; tagline: string; customers: string; logoChosen: boolean; colors: string[] } | null;
   website: { platform: string | null; domain: string | null; words: "not drafted" | "drafted" | "approved"; setupStepsDone: number } | null;
@@ -30,7 +31,16 @@ export interface InsightSources {
     openQuestions: readonly unknown[];
     requirements: readonly { title: string; status: RequirementStatus; level: string; fitsStructure: boolean }[];
   } | null;
-  steps: readonly { id: string; key: string; title: string; status: TaskStatus; timing: "before_selling" | "later"; requirementStatus: string | null; retired: boolean }[];
+  steps: readonly {
+    id: string;
+    key: string;
+    title: string;
+    status: TaskStatus;
+    timing: "before_selling" | "later";
+    requirementStatus: string | null;
+    retired: boolean;
+    mayApply?: boolean;
+  }[];
   planInputs: Record<string, string> | null;
   brand: { brief: { story: string; storyApproved: boolean; vibes: readonly string[]; tagline: string; customers: string } | null; chosenLogoId: string | null } | null;
   brandColors: readonly { name: string }[];
@@ -67,6 +77,7 @@ export function buildInputs(sources: InsightSources): InsightInputs {
         status: step.status,
         timing: step.timing,
         optional: step.requirementStatus === "optional" || step.requirementStatus === "outside_coverage",
+        mayApply: Boolean(step.mayApply),
       })),
     planAnswers: Object.entries(PLAN_ANSWER_LABELS).flatMap(([key, question]) => {
       const answer = sources.planInputs?.[key]?.trim();
@@ -142,7 +153,7 @@ function answerRows(profile: BusinessProfile) {
 }
 
 function planCounts(inputs: InsightInputs) {
-  const required = inputs.steps.filter((step) => step.timing === "before_selling" && !step.optional);
+  const required = inputs.steps.filter((step) => step.timing === "before_selling" && !step.optional && !step.mayApply);
   return { stepsBeforeSelling: required.length, stepsBeforeSellingDone: required.filter((step) => step.status === "done").length };
 }
 
@@ -188,7 +199,7 @@ export function factsMessage(inputs: InsightInputs, feedback: InsightFeedback, t
       ? {
           ...planCounts(inputs),
           // Ids stay out: the model names a step by its key
-          steps: inputs.steps.map(({ key, title, status, timing, optional }) => ({ key, title, status, timing, optional })),
+          steps: inputs.steps.map(({ key, title, status, timing, optional, mayApply }) => ({ key, title, status, timing, optional, ...(mayApply ? { mayApply } : {}) })),
         }
       : "No licenses and registrations listed yet",
     businessPlanAnswers: inputs.planAnswers.length ? inputs.planAnswers : "No business plan yet",

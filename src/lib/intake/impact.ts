@@ -64,7 +64,7 @@ export function profileImpact(before: BusinessProfile, after: BusinessProfile, c
     );
     if (context.planSteps > 0) {
       effects.push({
-        title: "Licenses and registrations",
+        title: "Start your business",
         detail: "Checking again may add or remove steps. You’ll review any change first, and steps you’ve finished stay finished.",
         href: "/start",
       });

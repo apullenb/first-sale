@@ -15,7 +15,7 @@ import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
 import { displayName, profileToAnswers, summarize } from "@/lib/intake/answers";
 import { BUDGET_LABELS } from "@/lib/intake/options";
 import { answerChanges } from "@/lib/research/changes";
-import { type JourneyInput, journeyStages, nextMove } from "@/lib/rules/journey";
+import { type JourneyInput, journeyStages, nextMove, readyForFirstSale } from "@/lib/rules/journey";
 import { planCosts } from "@/lib/rules/next-action";
 import { nextTaskAfter } from "@/lib/rules/paperwork";
 import { budgetCapCents, remainingWork, spentCents } from "@/lib/rules/progress";
@@ -83,7 +83,7 @@ async function Overview() {
             later: first.step.timing === "later", group: { name: groupOf(first.group)!.name, href: groupOf(first.group)!.href },
           }
         : null,
-      waitsOnStructure: Boolean(view?.standings.some((standing) => standing.inclusion === "structure")),
+      waitsOnStructure: Boolean(view?.waitsOnStructure),
     },
     documents: { total: documents.length, waiting: new Set([...outdated, ...toCheck].map((doc) => doc.id)).size },
   };
@@ -123,7 +123,7 @@ async function Overview() {
         name={user.name.trim().split(/\s+/)[0] || null}
         business={profile?.name ?? null}
         launchDate={profile?.launchDate ?? null}
-        ready={Boolean(profile) && !changes.length && !paper?.plan.proposal && !input.questions && priced.length > 0 && beforeSelling.done === beforeSelling.total}
+        ready={readyForFirstSale(input)}
       />
 
       {/* "Do this next" comes first on phones too */}

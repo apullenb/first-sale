@@ -36,6 +36,7 @@ export const KIND_LABELS: Record<TaskKind, string | null> = {
   task: null,
   confirm: "Confirm with the office first",
   find_out: "Find out if this applies",
+  check_place: "Find out if this applies",
 };
 
 const MARKS: Record<TaskState, string> = {

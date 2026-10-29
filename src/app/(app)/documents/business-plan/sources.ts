@@ -6,6 +6,7 @@ import { formsFor } from "@/lib/documents/form-catalog";
 import type { PlanSources } from "@/lib/documents/plan-facts";
 import { placeOf, structureOf } from "@/lib/research/applicability";
 import { planCosts } from "@/lib/rules/next-action";
+import { stillToSettle } from "@/lib/rules/paperwork";
 
 // Everything First Sale already knows that a business plan can use, read for the signed-in owner
 export async function myPlanSources(): Promise<PlanSources | null> {
@@ -45,7 +46,11 @@ export async function myPlanSources(): Promise<PlanSources | null> {
     brand: brief ? { customers: brief.customers, tagline: brief.tagline, story: brief.storyApproved ? brief.story : "" } : null,
     marketing: approvedMarketing ? { summary: approvedMarketing.summary, audience: approvedMarketing.audience.who } : null,
     fees: costs ? { confirmed: costs.startup, maybe: costs.maybe, unconfirmed: costs.unknown } : null,
-    steps: steps.map((step) => ({ title: step.title, done: step.status === "done", conditional: step.requirementStatus === "conditional" })),
+    // Rules still to settle are listed as "if it applies", never as steps
+    steps: [
+      ...steps.map((step) => ({ title: step.title, done: step.status === "done", conditional: step.requirementStatus === "conditional" })),
+      ...(paper?.basis ? stillToSettle(paper.view) : []).map((standing) => ({ title: standing.step.title, done: false, conditional: true })),
+    ],
     progress: steps.length ? { done: steps.filter((step) => step.status === "done").length, total: steps.length } : null,
     purpose: details.find((detail) => detail.key === "business_purpose")?.value.trim() || null,
   };

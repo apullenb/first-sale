@@ -53,10 +53,25 @@ export interface NextMove {
 
 const PAPERWORK = "/start";
 
+// Ready means nothing is left before the first sale: no question, review or structure-dependent filing either
+export function readyForFirstSale(input: JourneyInput): boolean {
+  const { plan } = input;
+  return (
+    input.business === "done" &&
+    input.researched &&
+    !input.answersChanged &&
+    !plan.proposal &&
+    !input.questions &&
+    !plan.waitsOnStructure &&
+    plan.steps > 0 &&
+    plan.beforeSelling.done === plan.beforeSelling.total
+  );
+}
+
 export function journeyStages(input: JourneyInput): Stage[] {
   const stage = (href: string, state: StageState, detail: string, title = getSection(href).title): Stage => ({ href, title, state, detail });
   const { plan, structure, documents } = input;
-  const ready = plan.beforeSelling.done === plan.beforeSelling.total;
+  const ready = plan.beforeSelling.done === plan.beforeSelling.total && !plan.waitsOnStructure;
   const paperwork = (state: StageState, detail: string) => stage(PAPERWORK, state, detail, PAPERWORK_PLACEHOLDER.title);
 
   const stages = [
@@ -81,7 +96,9 @@ export function journeyStages(input: JourneyInput): Stage[] {
             : stage("/requirements", "done", "Checked on official government sites, and every question answered."),
     !plan.steps
       ? paperwork("todo", input.researched ? (plan.waitsOnStructure ? "Your filings wait on your business structure." : "Nothing to file has turned up yet.") : "Shows up once you find what applies to you.")
-      : ready
+      : plan.waitsOnStructure && plan.beforeSelling.done === plan.beforeSelling.total
+        ? paperwork("todo", "Some filings wait on your business structure.")
+        : ready
         ? paperwork("done", plan.beforeSelling.total ? `All ${plan.beforeSelling.total} steps before your first sale are done.` : "Nothing has to come before your first sale.")
         : paperwork("todo", `${plan.beforeSelling.done} of ${plan.beforeSelling.total} steps done before your first sale.`),
     documents.waiting
