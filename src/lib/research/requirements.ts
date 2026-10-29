@@ -7,8 +7,9 @@ import { OwnerFacingError } from "@/lib/errors";
 import { STATE_NAMES } from "@/lib/intake/options";
 import { buildPlan, type PlanTaskDraft } from "@/lib/rules/plan";
 import { type Classified, classify, placeOf, structureOf } from "./applicability";
+import { checkClaims } from "./claims";
 import { categoriesOfTopics, type CoverageCell, coverageFor } from "./coverage";
-import { discoverOfficialPages, type SearchGap } from "./discover";
+import { discoverOfficialPages, type SearchCache, type SearchGap } from "./discover";
 import { mockResearch } from "./mock-research";
 import { governmentFor } from "./official-sites";
 import { type RetrievedPage, retrieveSources, type SourceToRead, type UnreadSource } from "./retrieve";
@@ -136,9 +137,14 @@ const INTAKE_FIELDS = new Set([
   "goals",
 ]);
 
+// Answers that never change requirements or decisions, so changing one doesn't make research look out of date
+const NOT_KEYED = new Set(["launchDate"]);
+
 export function profileKey(profile: BusinessProfile): string {
   const unanswered = (value: unknown) => value === null || (Array.isArray(value) && value.length === 0);
-  const kept = Object.fromEntries(Object.entries(profile).filter(([key, value]) => !(INTAKE_FIELDS.has(key) && unanswered(value))));
+  const kept = Object.fromEntries(
+    Object.entries(profile).filter(([key, value]) => !NOT_KEYED.has(key) && !(INTAKE_FIELDS.has(key) && unanswered(value))),
+  );
   return createHash("sha256").update(JSON.stringify(kept)).digest("hex");
 }
 
@@ -151,6 +157,7 @@ export interface ResearchOptions {
   userKey?: string;
   // Saved business details, for the owner's decisions
   details?: readonly { key: string; value: string }[];
+  searchCache?: SearchCache;
 }
 
 // Finds official pages, reads them, has the model list requirements, then checks every citation in code
@@ -160,6 +167,7 @@ export async function researchRequirements(
   options: ResearchOptions = {},
 ): Promise<ResearchResult> {
   const now = options.now ?? new Date();
+  const started = Date.now();
   const packs = packsFor(profile, options.packs);
   const decision = structureOf(profile, options.details ?? []);
   const place = placeOf(profile);
@@ -176,8 +184,8 @@ export async function researchRequirements(
     })),
   );
 
-  // Search takes at most ~45 s, page reads 20 s, and two model attempts 2 × 100 s: inside the page's 300 s limit
-  const discovery = await discoverOfficialPages(model, profile, { timeoutMs: 45_000, userKey: options.userKey });
+  // Search takes at most ~45 s, page reads 20 s, and two model attempts 2 × 100 s, retries included: inside the page's 300 s limit
+  const discovery = await discoverOfficialPages(model, profile, { timeoutMs: 45_000, userKey: options.userKey, cache: options.searchCache });
   const { pages, unread } = await retrieveSources([...listed, ...discovery.sources], options.fetchImpl, now);
   if (pages.length === 0) {
     throw new ResearchError("We couldn’t reach the official government sites just now. Try again in a few minutes.");
@@ -192,6 +200,8 @@ export async function researchRequirements(
     stream: true,
     timeoutMs: 100_000,
     userKey: options.userKey,
+    // Starts with official pages, public text many owners share
+    retainCache: true,
     messages: [
       { role: "system", content: SYSTEM },
       { role: "user", content: researchMessage(profile, pages, options.existingKeys ?? [], decision.structure) },
@@ -204,7 +214,11 @@ export async function researchRequirements(
   }
 
   const allowedHosts = [...new Set([...packs.flatMap((pack) => pack.allowedHosts), ...discovery.sources.flatMap((s) => s.allowedHosts)])];
-  const requirements = verifyRequirements(reply.requirements, pages, allowedHosts).map((requirement) => ({
+  const verified = verifyRequirements(reply.requirements, pages, allowedHosts);
+  // The claims check gets what's left of the page's 300 s; when too little is left, code checks stand alone
+  const left = 270_000 - (Date.now() - started);
+  const judged = left >= 20_000 ? (await checkClaims(model, verified, { userKey: options.userKey, timeoutMs: Math.min(30_000, left) })).requirements : verified;
+  const requirements = judged.map((requirement) => ({
     ...requirement,
     ...classify(requirement, profile, place, decision),
   }));
@@ -274,14 +288,17 @@ export function researchMessage(
     .join(", ");
   // "<" escaped so the owner's own text can't close the tag
   const answers = JSON.stringify({ ...profile, place }, null, 2).replace(/</g, "\\u003c");
-  const blocks = pages.map(
+  // Pages first, broadest government first, and the owner's answers last: owners in the same state share a cacheable prefix
+  const blocks = [...pages].sort((a, b) => LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level)).map(
     (page) =>
-      `<source id="${attr(page.id)}" level="${page.level}" government="${attr(page.government)}" title="${attr(page.title)}">\n${page.text.replace(/<(\/?)source/gi, "< $1source")}\n</source>`,
+      `<source id="${attr(page.id)}" level="${page.level}" government="${attr(page.government)}" title="${attr(page.title)}">\n${page.text.replace(/<(\/?)(source|profile|decisions|existing_keys)/gi, "< $1$2")}\n</source>`,
   );
   const keys = existingKeys.length ? `\n\n<existing_keys>${existingKeys.map(attr).join(", ")}</existing_keys>` : "";
   const decisions = `\n\n<decisions>${JSON.stringify({ structure: structure ?? "not decided yet" })}</decisions>`;
-  return `<profile>\n${answers}\n</profile>${decisions}${keys}\n\n${blocks.join("\n\n")}`;
+  return `${blocks.join("\n\n")}\n\n<profile>\n${answers}\n</profile>${decisions}${keys}`;
 }
+
+const LEVEL_ORDER: readonly RetrievedPage["level"][] = ["federal", "state", "county", "city"];
 
 function attr(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -290,9 +307,9 @@ function attr(value: string): string {
 registerMockFixture(RESEARCH_SCHEMA_NAME, (request) => {
   const last = request.messages.findLast((message) => message.role === "user");
   const text = typeof last?.content === "string" ? last.content : "";
-  const profileJson = text.match(/^<profile>\n([\s\S]*?)\n<\/profile>/)?.[1];
+  const profileJson = [...text.matchAll(/<profile>\n([\s\S]*?)\n<\/profile>/g)].at(-1)?.[1];
   const profile = businessProfileSchema.parse(JSON.parse(profileJson ?? "null"));
-  const decided = text.match(/<decisions>(.*?)<\/decisions>/)?.[1];
+  const decided = [...text.matchAll(/<decisions>(.*?)<\/decisions>/g)].at(-1)?.[1];
   const chosen = decided ? (JSON.parse(decided) as { structure: string }).structure : null;
   const structure = (BUSINESS_STRUCTURES as readonly string[]).includes(chosen ?? "") ? (chosen as BusinessStructure) : null;
   const sources = new Map(
