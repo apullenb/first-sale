@@ -218,6 +218,8 @@ describe("saved site checks", () => {
   const file = (id: string) => ({ url: brandFileUrl(id), width: 10, height: 10 });
   const brand: BrandKit = {
     businessName: "Rise Bakery",
+    tagline: "",
+    lettering: "",
     colors: [{ hex: "#1e6b52", name: "Forest" }],
     logos: { primary: file("logo"), stacked: null, profile: file("icon"), solid: null },
     images: { websiteHero: file("hero"), facebookCover: null, youtubeBanner: null, linkPreview: null },
