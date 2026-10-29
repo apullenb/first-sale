@@ -2,10 +2,11 @@ import { ImageEditError, type ImageEditResult, type ImageInput, type ImageModel,
 import { OwnerFacingError } from "@/lib/errors";
 import { imageInfo } from "@/lib/photos/image-info";
 import { checkBrandImage, checkLogo, checkVersion, type Expected, failedCheck, marksFor, skippedCheck } from "./checks";
-import { isSerif, practiceSvg } from "./practice";
+import { practiceSvg } from "./practice";
 import { brandImagePrompt, logoPrompt, refinePrompt, versionPrompt } from "./prompts";
+import { applyDesign, inherited } from "./refine";
 import { sizeFor } from "./sizes";
-import type { AssetCheck, AssetKind, BrandBrief, BrandImageKind, ConceptReply, VersionKind } from "./types";
+import type { AssetCheck, AssetKind, BrandBrief, BrandDesign, BrandImageKind, ConceptReply, VersionKind } from "./types";
 
 // Each file is saved only once its bytes check out, so a failed try leaves nothing behind.
 // Limits are checked before paying, and a request key already used returns the saved file instead of paying again.
@@ -20,6 +21,8 @@ export interface NewBrandAsset {
   conceptId: string;
   sourceId: string | null;
   change: string | null;
+  // One-click changes this file carries, inherited from the logo it was made from
+  design: BrandDesign | null;
   prompt: string;
   model: string;
   simulated: boolean;
@@ -51,7 +54,7 @@ export interface Models {
   vision: ModelProvider;
 }
 
-// The concept a file belongs to, with the brief it was written from
+// The concept a file belongs to, with the brief it was written from; for a logo, with its one-click changes applied
 export interface ConceptRef {
   id: string;
   concept: ConceptReply;
@@ -61,6 +64,7 @@ export interface ConceptRef {
 export interface LogoRef extends ConceptRef {
   logoId: string;
   logo: ImageInput;
+  design: BrandDesign | null;
 }
 
 interface Job {
@@ -68,6 +72,7 @@ interface Job {
   concept: ConceptRef;
   sourceId: string | null;
   change: string | null;
+  design: BrandDesign | null;
   prompt: string;
   requestKey: string;
   call: () => Promise<ImageEditResult>;
@@ -93,7 +98,14 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
   let file: { mimeType: string; data: Uint8Array; width: number; height: number };
   if (models.image.simulated) {
     // Never shown as a picture: a labeled text wordmark stands in
-    const preview = practiceSvg({ kind: job.kind, name: job.concept.brief.name, palette: job.concept.concept.palette, serif: isSerif(job.concept.concept.typography) });
+    const preview = practiceSvg({
+      kind: job.kind,
+      conceptKind: job.concept.concept.kind,
+      name: job.concept.brief.name,
+      tagline: job.concept.brief.tagline,
+      palette: job.concept.concept.palette,
+      typography: job.concept.concept.typography,
+    });
     file = { mimeType: "image/svg+xml", data: new TextEncoder().encode(preview.svg), width: preview.width, height: preview.height };
   } else {
     const info = result.data.byteLength <= MAX_RESULT_BYTES ? imageInfo(result.data) : null;
@@ -107,6 +119,7 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
     conceptId: job.concept.id,
     sourceId: job.sourceId,
     change: job.change,
+    design: job.design,
     prompt: job.prompt,
     model: models.image.model,
     simulated: models.image.simulated,
@@ -174,6 +187,7 @@ export async function drawConcepts(models: Models, store: AssetStore, input: { c
       concept,
       sourceId: null,
       change: null,
+      design: null,
       prompt,
       requestKey: drawKey(concept.id),
       call: () => generate({ prompt, size: sizeFor("logo"), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
@@ -185,19 +199,23 @@ export async function drawConcepts(models: Models, store: AssetStore, input: { c
 
 export const drawKey = (conceptId: string) => `draw:${conceptId}`;
 
-// The draft goes back as image 1 with the owner's words
+// The draft goes back as image 1, with the owner's words or a one-click change (refine.ts)
 export async function refineLogo(
   models: Models,
   store: AssetStore,
-  input: { logo: LogoRef; change: string; requestKey: string; userKey?: string; now: Date },
+  input: { logo: LogoRef; change: string; oneClick?: { lines: string[]; design: BrandDesign }; requestKey: string; userKey?: string; now: Date },
 ): Promise<string> {
-  const { logo } = input;
-  const prompt = refinePrompt(logo.brief, logo.concept, input.change);
+  // Drawn and checked as it will be: new colors, lettering or tagline included
+  const logo: LogoRef = input.oneClick
+    ? { ...input.logo, ...applyDesign(input.logo.concept, input.logo.brief, input.oneClick.design), design: input.oneClick.design }
+    : input.logo;
+  const prompt = refinePrompt(logo.brief, logo.concept, input.oneClick?.lines ?? input.change);
   const job: Job = {
     kind: "logo",
     concept: logo,
     sourceId: logo.logoId,
     change: input.change,
+    design: input.oneClick ? input.oneClick.design : inherited(logo.design),
     prompt,
     requestKey: input.requestKey,
     call: () => models.image.edit({ instruction: prompt, images: [logo.logo], size: sizeFor("logo"), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
@@ -221,6 +239,7 @@ export async function makeVersions(
       concept: logo,
       sourceId: logo.logoId,
       change: null,
+      design: inherited(logo.design),
       prompt,
       // Tied to the logo, so a key kept from another logo's try can't return that logo's files
       requestKey: `${logo.logoId}:${input.requestKey}:${kind}`,
@@ -244,6 +263,7 @@ export async function makeBrandImages(
       concept: logo,
       sourceId: logo.logoId,
       change: input.change,
+      design: inherited(logo.design),
       prompt,
       requestKey: `${logo.logoId}:${input.requestKey}:${kind}`,
       call: () => models.image.edit({ instruction: prompt, images: [logo.logo], size: sizeFor(kind), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),

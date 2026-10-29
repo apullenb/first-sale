@@ -53,6 +53,7 @@ function asset(conceptId: string, overrides: Partial<NewBrandAsset> = {}): NewBr
     conceptId,
     sourceId: null,
     change: null,
+    design: null,
     prompt: "x",
     model: "test-image",
     simulated: false,
@@ -158,7 +159,9 @@ describe("the brand kit", () => {
 
     expect(await getBrandKitForOwner(db, "owner-a")).toEqual({
       businessName: "Rise Bakery",
+      tagline: "",
       colors: testConcept().palette,
+      lettering: testConcept().typography,
       logos: {
         primary: { url: `/brand/files/${logo}?view=1`, width: 1536, height: 1024 },
         stacked: { url: `/brand/files/${ids.stacked}?view=1`, width: 1024, height: 1024 },
@@ -171,6 +174,15 @@ describe("the brand kit", () => {
 
     expect(await unpickImageForOwner(db, "owner-a", "website_hero")).toBe(true);
     expect((await getBrandKitForOwner(db, "owner-a"))!.images.websiteHero).toBeNull();
+  });
+
+  it("follows a one-click change to the chosen logo's colors, lettering and tagline", async () => {
+    const { concepts } = await round();
+    const palette = [{ hex: "#5B2A86", name: "Purple" }];
+    const logo = await add(concepts[0].id, { design: { palette, typography: "bold, chunky display lettering", tagline: "Sourdough daily", preset: "colors" } });
+    expect((await getAssetForOwner(db, "owner-a", logo))!.design).toMatchObject({ palette, preset: "colors" });
+    await chooseLogoForOwner(db, "owner-a", logo);
+    expect(await getBrandKitForOwner(db, "owner-a")).toMatchObject({ colors: palette, lettering: "bold, chunky display lettering", tagline: "Sourdough daily" });
   });
 
   it("is marked practice when any file in it is a practice preview", async () => {

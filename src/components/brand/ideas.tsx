@@ -6,6 +6,9 @@ import { CARD, SECTION_TITLE } from "@/components/styles";
 import { dollars, IDEAS } from "@/lib/brand/cost";
 import { brandFileUrl } from "@/lib/brand/files";
 import { CONCEPT_KINDS_TEXT } from "@/lib/brand/prompts";
+import { applyDesign } from "@/lib/brand/refine";
+import type { BrandBrief } from "@/lib/brand/types";
+import type { ColorFamily } from "@/lib/brand/vibes";
 import type { AssetSummary, ConceptRow, RoundSummary } from "@/lib/data/brand";
 import { CheckNotes, MadeBy, PracticeTag } from "./asset-view";
 import { BrandRunButton, RefineLogo } from "./controls";
@@ -17,9 +20,21 @@ interface Props {
   practice: boolean;
   // Round ids with drawing still running
   drawing: Set<string>;
+  // From the owner's saved brief, for one-click changes
+  ownerTagline: string;
+  pickedFamilies: ColorFamily[];
 }
 
-export function IdeasSection({ rounds, assets, chosenLogoId, practice, drawing }: Props) {
+interface Shared {
+  assets: AssetSummary[];
+  chosenLogoId: string | null;
+  practice: boolean;
+  ownerTagline: string;
+  pickedFamilies: ColorFamily[];
+}
+
+export function IdeasSection({ rounds, drawing, ...shared }: Props) {
+  const { practice } = shared;
   const titles = new Map(rounds.flatMap((round) => round.concepts.map((concept) => [concept.id, concept.concept.title])));
   const [latest, ...older] = rounds;
   return (
@@ -30,17 +45,17 @@ export function IdeasSection({ rounds, assets, chosenLogoId, practice, drawing }
         </h2>
         <p className="text-rule">
           {practice
-            ? "In practice mode these ideas are placeholders and each logo is a plain text preview. Connect Muse to get ideas written and drawn for your business."
-            : "Each idea was written for your business and drawn by Muse. Choose the one you like, change it in your own words, or ask for more like it."}
+            ? "In practice mode these ideas are placeholders and each logo is a plain labeled preview. Connect Muse to get ideas written and drawn for your business."
+            : "Each idea was written for your business and drawn by Muse. Choose the one you like, change it with one click or in your own words, or ask for more like it."}
         </p>
       </div>
-      {latest ? <Round key={latest.id} round={latest} assets={assets} chosenLogoId={chosenLogoId} practice={practice} drawing={drawing.has(latest.id)} basedOn={titles.get(latest.basedOnConceptId ?? "")} /> : null}
+      {latest ? <Round key={latest.id} round={latest} {...shared} drawing={drawing.has(latest.id)} basedOn={titles.get(latest.basedOnConceptId ?? "")} /> : null}
       {older.length ? (
         <details className="rounded-2xl bg-surface ring-1 ring-ink/5">
           <summary className="flex min-h-12 cursor-pointer items-center px-5 font-semibold">Earlier ideas ({older.length} {older.length === 1 ? "round" : "rounds"})</summary>
           <div className="flex flex-col gap-4 p-3">
             {older.map((round) => (
-              <Round key={round.id} round={round} assets={assets} chosenLogoId={chosenLogoId} practice={practice} drawing={drawing.has(round.id)} basedOn={titles.get(round.basedOnConceptId ?? "")} />
+              <Round key={round.id} round={round} {...shared} drawing={drawing.has(round.id)} basedOn={titles.get(round.basedOnConceptId ?? "")} />
             ))}
           </div>
         </details>
@@ -49,7 +64,8 @@ export function IdeasSection({ rounds, assets, chosenLogoId, practice, drawing }
   );
 }
 
-function Round({ round, assets, chosenLogoId, practice, drawing, basedOn }: { round: RoundSummary; assets: AssetSummary[]; chosenLogoId: string | null; practice: boolean; drawing: boolean; basedOn?: string }) {
+function Round({ round, drawing, basedOn, ...shared }: Shared & { round: RoundSummary; drawing: boolean; basedOn?: string }) {
+  const { assets, practice } = shared;
   const undrawn = round.concepts.filter((concept) => !assets.some((asset) => asset.kind === "logo" && asset.conceptId === concept.id && asset.sourceId === null));
   return (
     <div className="flex flex-col gap-3">
@@ -74,10 +90,10 @@ function Round({ round, assets, chosenLogoId, practice, drawing, basedOn }: { ro
         {round.concepts.map((concept) => (
           <li key={concept.id}>
             <ConceptCard
+              {...shared}
               concept={concept}
+              brief={round.brief}
               drafts={assets.filter((asset) => asset.kind === "logo" && asset.conceptId === concept.id)}
-              chosenLogoId={chosenLogoId}
-              practice={practice}
               drawing={drawing}
             />
           </li>
@@ -87,7 +103,8 @@ function Round({ round, assets, chosenLogoId, practice, drawing, basedOn }: { ro
   );
 }
 
-function ConceptCard({ concept, drafts, chosenLogoId, practice, drawing }: { concept: ConceptRow; drafts: AssetSummary[]; chosenLogoId: string | null; practice: boolean; drawing: boolean }) {
+function ConceptCard({ concept, brief, drafts, drawing, ...shared }: Shared & { concept: ConceptRow; brief: BrandBrief; drafts: AssetSummary[]; drawing: boolean }) {
+  const { chosenLogoId, practice } = shared;
   const idea = concept.concept;
   const headingId = `concept-${concept.id}`;
   return (
@@ -120,7 +137,7 @@ function ConceptCard({ concept, drafts, chosenLogoId, practice, drawing }: { con
         <ul className="flex flex-col gap-4">
           {drafts.map((draft, index) => (
             <li key={draft.id} className="flex flex-col gap-3">
-              <Draft draft={draft} number={index + 1} chosen={draft.id === chosenLogoId} hasChoice={chosenLogoId !== null} practice={practice} />
+              <Draft {...shared} draft={draft} drawn={applyDesign(idea, brief, draft.design)} number={index + 1} chosen={draft.id === chosenLogoId} hasChoice={chosenLogoId !== null} />
             </li>
           ))}
         </ul>
@@ -142,14 +159,24 @@ function ConceptCard({ concept, drafts, chosenLogoId, practice, drawing }: { con
   );
 }
 
-function Draft({ draft, number, chosen, hasChoice, practice }: { draft: AssetSummary; number: number; chosen: boolean; hasChoice: boolean; practice: boolean }) {
+function Draft({
+  draft,
+  drawn,
+  number,
+  chosen,
+  hasChoice,
+  practice,
+  ownerTagline,
+  pickedFamilies,
+}: Shared & { draft: AssetSummary; drawn: ReturnType<typeof applyDesign>; number: number; chosen: boolean; hasChoice: boolean }) {
+  const src = brandFileUrl(draft.id);
   return (
     <>
       <figure className="flex flex-col gap-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={brandFileUrl(draft.id)}
-          alt={draft.simulated ? "Practice preview: your business name in plain lettering, not a logo" : `Logo draft ${number}`}
+          src={src}
+          alt={draft.simulated ? "Practice preview: a plain placeholder with your business name, not a logo" : `Logo draft ${number}`}
           width={draft.width}
           height={draft.height}
           loading="lazy"
@@ -157,11 +184,18 @@ function Draft({ draft, number, chosen, hasChoice, practice }: { draft: AssetSum
         />
         <figcaption className="flex flex-col gap-1">
           <span className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-semibold">{draft.change ? `Changed: “${draft.change}”` : `Draft ${number}`}</span>
+            <span className="font-semibold">{draft.change ? (draft.design?.preset ? `Changed: ${draft.change}` : `Changed: “${draft.change}”`) : `Draft ${number}`}</span>
             <MadeBy simulated={draft.simulated} />
           </span>
         </figcaption>
       </figure>
+      <div className="flex flex-wrap items-end gap-3 text-sm text-muted">
+        <span>How it looks small:</span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt="" className="h-12 w-auto rounded bg-white ring-1 ring-ink/10" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt="" className="h-6 w-auto rounded bg-white ring-1 ring-ink/10" />
+      </div>
       <CheckNotes check={draft.check} simulated={draft.simulated} />
       {chosen ? (
         <p className="flex w-fit items-center gap-2 rounded-xl bg-accent-tint px-3 py-2 font-semibold text-accent-ink">
@@ -179,7 +213,13 @@ function Draft({ draft, number, chosen, hasChoice, practice }: { draft: AssetSum
       <details className="rounded-xl bg-ground">
         <summary className="flex min-h-11 cursor-pointer items-center px-4 font-semibold">Change this logo</summary>
         <div className="px-4 pb-4">
-          <RefineLogo assetId={draft.id} cost={practice ? "Practice mode: nothing is charged." : `One picture: ${dollars(1)}.`} />
+          <RefineLogo
+            assetId={draft.id}
+            cost={practice ? "Practice mode: nothing is charged." : `One picture: ${dollars(1)}.`}
+            current={{ palette: drawn.concept.palette, typography: drawn.concept.typography, tagline: drawn.brief.tagline.trim() }}
+            ownerTagline={ownerTagline}
+            pickedFamilies={pickedFamilies}
+          />
         </div>
       </details>
     </>

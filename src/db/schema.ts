@@ -43,7 +43,7 @@ import type { FormVerification } from "@/lib/documents/official-forms";
 import type { MoreOptions, OptionExplanation } from "@/lib/website/options";
 import { type DomainCheck, PLATFORMS, type WebsiteContent } from "@/lib/website/types";
 import { PHOTO_CATEGORIES, PHOTO_CROPS, PHOTO_LOOKS, type PhotoCheck, type PhotoReview } from "@/lib/photos/types";
-import { ASSET_KINDS, type AssetCheck, type BrandBrief, type BrandPicks, type ConceptReply } from "@/lib/brand/types";
+import { ASSET_KINDS, type AssetCheck, type BrandBrief, type BrandDesign, type BrandPicks, type ConceptReply } from "@/lib/brand/types";
 import type { IntakeAnswers, Marks } from "@/lib/intake/answers";
 import type { DecisionBasis } from "@/lib/structure/types";
 import type { WebSearchHit } from "@/lib/ai/types";
@@ -575,8 +575,10 @@ export const brandAssets = pgTable(
       .references(() => brandConcepts.id, { onDelete: "cascade" }),
     // The logo it was made from: the one refined, or the chosen logo
     sourceId: text("source_id"),
-    // The owner's requested change, in their words
+    // The owner's requested change, in their words, or what a one-click change did
     change: text("change"),
+    // Colors, lettering or tagline a one-click change set; null when drawn as the idea describes
+    design: jsonb("design").$type<BrandDesign>(),
     prompt: text("prompt").notNull(),
     model: text("model").notNull(),
     // Practice preview, not made by the image service

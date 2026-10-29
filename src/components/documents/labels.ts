@@ -11,6 +11,7 @@ export const GENERATED_LABELS: Record<GeneratedKind, string> = {
   website_copy: "Website words",
   answer_guide: "Answer guide",
   owners_agreement: "Owners’ agreement",
+  logo_guide: "Logo guide",
 };
 
 export const READ_METHOD_LABELS: Record<DocumentContent["readMethod"], string> = {

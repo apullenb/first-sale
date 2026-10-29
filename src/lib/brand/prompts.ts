@@ -7,13 +7,14 @@ import { LEANINGS, type LeaningKey } from "./vibes";
 
 export const MAX_CHANGE = 300;
 
-export const CONCEPT_KINDS_TEXT: Record<ConceptKind, { label: string; describe: string }> = {
-  wordmark: { label: "Wordmark", describe: "A wordmark: the business name itself in distinctive custom lettering, with no separate symbol" },
-  monogram: { label: "Monogram", describe: "A monogram: the business’s initials formed into one distinctive mark, with the full name beside or below it" },
-  emblem: { label: "Badge", describe: "An emblem: the name and a simple symbol together inside a badge, seal or stamp shape" },
-  illustrative: { label: "Drawn symbol", describe: "A simple drawn symbol next to the business name" },
-  abstract: { label: "Abstract symbol", describe: "A simple abstract shape that suggests the idea, next to the business name" },
-  lettermark_symbol: { label: "Letter and symbol", describe: "One letter of the name combined with a simple symbol, next to the full name" },
+// label and plain are owner-facing; describe goes to Muse Image
+export const CONCEPT_KINDS_TEXT: Record<ConceptKind, { label: string; plain: string; describe: string }> = {
+  wordmark: { label: "Wordmark", plain: "Just your name, in special lettering", describe: "A wordmark: the business name itself in distinctive custom lettering, with no separate symbol" },
+  monogram: { label: "Monogram", plain: "Your initials made into a mark", describe: "A monogram: the business’s initials formed into one distinctive mark, with the full name beside or below it" },
+  emblem: { label: "Badge", plain: "Your name inside a badge or stamp", describe: "An emblem: the name and a simple symbol together inside a badge, seal or stamp shape" },
+  illustrative: { label: "Drawn symbol", plain: "A small drawing beside your name", describe: "A simple drawn symbol next to the business name" },
+  abstract: { label: "Abstract symbol", plain: "A simple shape beside your name", describe: "A simple abstract shape that suggests the idea, next to the business name" },
+  lettermark_symbol: { label: "Letter and symbol", plain: "One letter combined with a little picture", describe: "One letter of the name combined with a simple symbol, next to the full name" },
 };
 
 export const QUALITY_RULES = [
@@ -109,11 +110,11 @@ export function logoPrompt(brief: BrandBrief, concept: ConceptReply): string {
     .join("\n");
 }
 
-// Image 1 is the draft being changed
-export function refinePrompt(brief: BrandBrief, concept: ConceptReply, change: string): string {
+// Image 1 is the draft being changed: in the owner's words, or a one-click change written by code (refine.ts)
+export function refinePrompt(brief: BrandBrief, concept: ConceptReply, change: string | string[]): string {
   return [
-    "Image 1 is a logo draft. Change it as the owner asks below, and keep everything else about the design the same.",
-    `The owner’s change: “${clean(change, MAX_CHANGE)}”`,
+    "Image 1 is a logo draft. Change it as described below, and keep everything else about the design the same.",
+    ...(typeof change === "string" ? [`The owner’s change: “${clean(change, MAX_CHANGE)}”`] : change),
     "",
     ...lettering(brief),
     "",

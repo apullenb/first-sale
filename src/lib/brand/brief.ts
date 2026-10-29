@@ -40,6 +40,8 @@ export function briefDefaults(profile: BusinessProfile | null, saved: BrandBrief
     avoidColors: "",
     symbolIdea: "",
     avoid: "",
+    logoKinds: [],
+    logoLikes: "",
     story: "",
     storyByOwner: false,
     storyApproved: false,

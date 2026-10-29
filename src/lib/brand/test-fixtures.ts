@@ -15,6 +15,8 @@ export function testBrief(overrides: Partial<BrandBrief> = {}): BrandBrief {
     avoidColors: "pink",
     symbolIdea: "a wheat stalk",
     avoid: "cupcakes",
+    logoKinds: [],
+    logoLikes: "",
     story: "Rise Bakery is a porch swing on an old wooden back porch. A customer could expect the owner to come out with sweet tea while they shop.",
     storyByOwner: false,
     storyApproved: true,

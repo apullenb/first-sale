@@ -37,7 +37,7 @@ describe("logo ideas wait for the brand picture", () => {
 describe("saved briefs", () => {
   it("read with empty values for fields added since", () => {
     const old = { name: "Rise Bakery", tagline: "", sells: "Bread", customers: "", personality: ["warm"], style: "handmade" };
-    expect(readBrief(old)).toMatchObject({ name: "Rise Bakery", sells: "Bread", vibes: [], colors: [], story: "", storyApproved: false, leanings: { era: null } });
+    expect(readBrief(old)).toMatchObject({ name: "Rise Bakery", sells: "Bread", vibes: [], colors: [], logoKinds: [], logoLikes: "", story: "", storyApproved: false, leanings: { era: null } });
     expect(readBrief(null).name).toBe("");
   });
 });

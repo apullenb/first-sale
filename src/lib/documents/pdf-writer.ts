@@ -117,7 +117,7 @@ export async function writePdf(spec: PdfSpec): Promise<Uint8Array> {
   return doc.save();
 }
 
-function wrap(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
+export function wrap(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
   const lines: string[] = [];
   for (const paragraph of text.split("\n")) {
     let line = "";

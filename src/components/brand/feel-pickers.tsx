@@ -1,7 +1,8 @@
 "use client";
 
-import { useId } from "react";
-import type { Leanings } from "@/lib/brand/types";
+import { type ReactNode, useId } from "react";
+import { CONCEPT_KINDS_TEXT } from "@/lib/brand/prompts";
+import { CONCEPT_KINDS, type ConceptKind, type Leanings } from "@/lib/brand/types";
 import { COLOR_FAMILIES, type ColorFamily, LEANINGS, type LeaningKey, MAX_COLOR_FAMILIES, VIBE_GROUPS, VIBE_LIMITS, type Vibe } from "@/lib/brand/vibes";
 
 const CHIP =
@@ -99,6 +100,91 @@ export function ColorPicker({ picked, onToggle }: { picked: ColorFamily[]; onTog
                 ))}
               </span>
               <span className="pl-1.5">{family}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Simple outlines of each kind, not real logos
+function KindSketch({ kind }: { kind: ConceptKind }) {
+  const bar = (x: number, w: number) => <rect x={x} y="17" width={w} height="6" rx="3" fill="currentColor" />;
+  const shapes: Record<ConceptKind, ReactNode> = {
+    wordmark: (
+      <>
+        {bar(6, 36)}
+        <path d="M6 28 q18 6 36 0" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      </>
+    ),
+    monogram: (
+      <>
+        <circle cx="13" cy="20" r="9" fill="none" stroke="currentColor" strokeWidth="2.5" />
+        <path d="M9 24 v-8 l4 5 l4 -5 v8" stroke="currentColor" strokeWidth="2" fill="none" />
+        {bar(26, 18)}
+      </>
+    ),
+    emblem: (
+      <>
+        <rect x="5" y="7" width="38" height="26" rx="8" fill="none" stroke="currentColor" strokeWidth="2.5" />
+        {bar(12, 24)}
+      </>
+    ),
+    illustrative: (
+      <>
+        <path d="M6 28 c4 -14 10 -14 14 0 M13 28 v-6" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        {bar(24, 20)}
+      </>
+    ),
+    abstract: (
+      <>
+        <rect x="7" y="12" width="12" height="12" rx="2" transform="rotate(45 13 18)" fill="currentColor" />
+        {bar(24, 20)}
+      </>
+    ),
+    lettermark_symbol: (
+      <>
+        <path d="M7 28 v-16 h7 a5 5 0 0 1 0 10 h-7" stroke="currentColor" strokeWidth="2.5" fill="none" />
+        <circle cx="19" cy="11" r="3" fill="currentColor" />
+        {bar(26, 18)}
+      </>
+    ),
+  };
+  return (
+    <svg aria-hidden="true" viewBox="0 0 48 40" className="h-10 w-12 shrink-0">
+      {shapes[kind]}
+    </svg>
+  );
+}
+
+const KIND_CARD =
+  "flex min-h-14 items-center gap-3 rounded-lg border border-field bg-surface px-3 py-2 text-left text-[15px] hover:border-muted aria-pressed:border-accent aria-pressed:bg-accent-tint aria-pressed:text-accent-ink";
+
+// Any number of kinds; none picked means a mix
+export function LogoKindPicker({ picked, onChange }: { picked: ConceptKind[]; onChange: (kinds: ConceptKind[]) => void }) {
+  return (
+    <div role="group" aria-label="Kinds of logo" className="flex flex-col gap-2">
+      <p className="text-sm text-muted">Optional. Pick the kinds you’d like to see, or leave it on a mix to see different kinds.</p>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <button type="button" aria-pressed={picked.length === 0} onClick={() => onChange([])} className={KIND_CARD}>
+          <span aria-hidden="true" className="flex h-10 w-12 shrink-0 items-center justify-center text-2xl font-bold">
+            ?
+          </span>
+          <span className="flex flex-col">
+            <span className="font-semibold">Show me a mix</span>
+            <span className="text-sm text-muted">Different kinds, so you can compare</span>
+          </span>
+        </button>
+        {CONCEPT_KINDS.map((kind) => {
+          const on = picked.includes(kind);
+          return (
+            <button key={kind} type="button" aria-pressed={on} onClick={() => onChange(on ? picked.filter((each) => each !== kind) : [...picked, kind])} className={KIND_CARD}>
+              <KindSketch kind={kind} />
+              <span className="flex flex-col">
+                <span className="font-semibold">{CONCEPT_KINDS_TEXT[kind].label}</span>
+                <span className="text-sm text-muted">{CONCEPT_KINDS_TEXT[kind].plain}</span>
+              </span>
             </button>
           );
         })}

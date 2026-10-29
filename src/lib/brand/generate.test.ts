@@ -5,6 +5,7 @@ import { pngBytes } from "@/lib/photos/test-images";
 import { type AssetStore, drawConcepts, drawKey, type LogoRef, makeBrandImages, makeVersions, type NewBrandAsset, refineLogo } from "./generate";
 import { PRACTICE_LABEL } from "./practice";
 import { logoPrompt } from "./prompts";
+import { applyDesign, planRefinement } from "./refine";
 import { testBrief, testConcept } from "./test-fixtures";
 import type { AssetCheck } from "./types";
 
@@ -55,7 +56,7 @@ const vision: ModelProvider = {
 
 const concepts = [1, 2, 3].map((n) => ({ id: `concept-${n}`, concept: testConcept({ title: `Idea ${n}` }), brief: testBrief() }));
 const chosenBytes = pngBytes(1536, 1024, 42);
-const logo: LogoRef = { ...concepts[0], logoId: "logo-1", logo: { mimeType: "image/png", data: chosenBytes } };
+const logo: LogoRef = { ...concepts[0], logoId: "logo-1", logo: { mimeType: "image/png", data: chosenBytes }, design: null };
 
 describe("drawing logo ideas", () => {
   it("draws each idea from code-built instructions and keeps the bytes exactly as returned", async () => {
@@ -134,6 +135,39 @@ describe("changes, versions and brand images start from the logo itself", () => 
     expect(saved[0]).toMatchObject({ kind: "logo", sourceId: "logo-1", change: "Thicker letters", requestKey: "r1" });
   });
 
+  it("draws and checks a one-click change as the logo will be, and records what changed", async () => {
+    const { model, edit } = imageModel();
+    const { store, saved } = memoryStore();
+    const plan = planRefinement({ kind: "tagline", text: "Baked at dawn" }, logo);
+    if (!plan.ok) throw new Error(plan.message);
+    await refineLogo({ image: model, vision }, store, { logo, change: plan.label, oneClick: { lines: plan.lines, design: plan.design }, requestKey: "t1", now });
+    const instruction = edit.mock.calls[0][0].instruction;
+    expect(instruction).toContain("Add the tagline “Baked at dawn” under the name");
+    expect(instruction).toContain("Tagline, smaller than the name and spelled exactly: “Baked at dawn”");
+    expect(instruction).not.toContain("The owner’s change");
+    expect(saved[0]).toMatchObject({ change: "Tagline added: “Baked at dawn”", design: { tagline: "Baked at dawn", preset: "tagline" } });
+    // The vision model reads only the name, so the new tagline is reported missing
+    expect(saved[0].check?.lettering?.status).toBe("misspelled");
+  });
+
+  it("keeps earlier one-click changes on a change in the owner's words, without claiming it was one-click", async () => {
+    const { model } = imageModel();
+    const { store, saved } = memoryStore();
+    const design = { tagline: "", preset: "tagline" as const };
+    await refineLogo({ image: model, vision }, store, { logo: { ...logo, design }, change: "Thicker letters", requestKey: "w1", now });
+    expect(saved[0].design).toEqual({ tagline: "" });
+  });
+
+  it("makes versions in a changed logo's colors and keeps its changes on them", async () => {
+    const { model, edit } = imageModel();
+    const { store, saved } = memoryStore();
+    const design = { palette: [{ hex: "#5B2A86", name: "Purple" }], preset: "colors" as const };
+    const recolored: LogoRef = { ...logo, ...applyDesign(logo.concept, logo.brief, design), design };
+    await makeVersions({ image: model, vision }, store, { logo: recolored, kinds: ["solid"], requestKey: "v2", now });
+    expect(edit.mock.calls[0][0].instruction).not.toContain("#1F3A2E");
+    expect(saved[0].design).toEqual({ palette: design.palette });
+  });
+
   it("makes every version from the chosen logo, once per request key", async () => {
     const { model, edit } = imageModel();
     const { store, saved } = memoryStore();
@@ -183,6 +217,20 @@ describe("practice mode", () => {
     expect(svg).toContain(PRACTICE_LABEL.toUpperCase());
     expect(svg).toContain("Rise Bakery");
     expect(saved[0].check).toMatchObject({ method: "skipped" });
+  });
+
+  it("shows one-click changes in the preview, so practice mode demonstrates them", async () => {
+    const { store, saved } = memoryStore();
+    const plan = planRefinement({ kind: "colors", colors: { hexes: ["#5B2A86"] } }, logo);
+    if (!plan.ok) throw new Error(plan.message);
+    const tagged = planRefinement({ kind: "tagline", text: "Baked at dawn" }, { ...logo, ...applyDesign(logo.concept, logo.brief, plan.design), design: plan.design });
+    if (!tagged.ok) throw new Error(tagged.message);
+    await refineLogo({ image: getImageModel({})!, vision: getModel({}) }, store, { logo, change: tagged.label, oneClick: { lines: tagged.lines, design: tagged.design }, requestKey: "p1", now });
+    const svg = new TextDecoder().decode(saved[0].data);
+    expect(svg).toContain("Baked at dawn");
+    expect(svg).toContain("#5B2A86");
+    expect(svg).not.toContain("#1F3A2E");
+    expect(svg).toContain(PRACTICE_LABEL.toUpperCase());
   });
 
   it("escapes the business name in the preview", async () => {
