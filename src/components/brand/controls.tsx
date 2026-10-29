@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, type ReactNode, useId, useLayoutEffect, useRef, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { ActionResult } from "@/app/(app)/business/actions";
 import { drawRoundAction, editPictureAction, makeImagesAction, makeVersionsAction, moreLikeThisAction, refineLogoAction } from "@/app/(app)/brand/actions";
 import { Icon } from "@/components/icons";
@@ -49,8 +49,9 @@ function Messages({ error, note }: { error: string | null; note: string | null }
 export type Intent =
   | { kind: "more"; conceptId: string }
   | { kind: "draw"; roundId: string }
-  | { kind: "versions"; kinds: VersionKind[] }
-  | { kind: "images"; kinds: BrandImageKind[] };
+  // logoId: the chosen logo the page showed, so a stale page can't make files from another logo
+  | { kind: "versions"; logoId: string; kinds: VersionKind[] }
+  | { kind: "images"; logoId: string; kinds: BrandImageKind[] };
 
 // Runs one paid job. One key per intended request, kept across retries, so a retry never pays twice.
 function useBrandRun(intent: Intent, blocked?: string | null) {
@@ -79,9 +80,9 @@ function useBrandRun(intent: Intent, blocked?: string | null) {
       } else if (intent.kind === "draw") {
         result = await drawRoundAction(intent.roundId);
       } else if (intent.kind === "versions") {
-        result = await makeVersionsAction({ requestKey: requestKey.get(), kinds: intent.kinds });
+        result = await makeVersionsAction({ requestKey: requestKey.get(), logoId: intent.logoId, kinds: intent.kinds });
       } else {
-        result = await makeImagesAction({ requestKey: requestKey.get(), kinds: intent.kinds, change: change?.trim() || null });
+        result = await makeImagesAction({ requestKey: requestKey.get(), logoId: intent.logoId, kinds: intent.kinds, change: change?.trim() || null });
       }
       if (!result.ok) {
         setError(result.message);
@@ -205,17 +206,34 @@ interface EditProps {
   working: string;
   // Said once the new file is made
   done: string;
+  // The newest file in this slot: the note shows only while it's the one this edit made, so a Regenerate clears it
+  latestId?: string;
 }
 
 // "Edit": asks what to change, then makes a new file from the owner's words and keeps this one
-export function EditPrompt({ target, label = "Edit", cost, working, done }: EditProps) {
+export function EditPrompt({ target, label = "Edit", cost, working, done, latestId }: EditProps) {
   const uid = useId();
   const requestKey = useRequestKey();
   const [open, setOpen] = useState(false);
   const [change, setChange] = useState("");
   const [pending, setPending] = useState(false);
+  const [made, setMade] = useState<string | null>(null);
   const inFlight = useRef(false);
-  const { error, setError, note: made, setNote: setMade } = useMessages();
+  const button = useRef<HTMLButtonElement>(null);
+  // Focus goes back to the Edit button when the form closes, not to the page
+  const refocus = useRef(false);
+  const { error, setError } = useMessages();
+  useLayoutEffect(() => () => setMade(null), []);
+  useEffect(() => {
+    if (open || !refocus.current) return;
+    refocus.current = false;
+    button.current?.focus();
+  }, [open]);
+
+  function close() {
+    refocus.current = true;
+    setOpen(false);
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -231,8 +249,8 @@ export function EditPrompt({ target, label = "Edit", cost, working, done }: Edit
       if (!result.ok) return setError(result.message);
       requestKey.clear();
       setChange("");
-      setOpen(false);
-      setMade(done);
+      setMade(result.value);
+      close();
     } catch {
       setError(OFFLINE);
     } finally {
@@ -241,8 +259,9 @@ export function EditPrompt({ target, label = "Edit", cost, working, done }: Edit
     }
   }
 
+  const showMade = made !== null && (latestId === undefined || latestId === made);
   return (
-    <div className={`flex flex-col items-start gap-2 ${open || made || error ? "w-full basis-full" : ""}`}>
+    <div className={`flex flex-col items-start gap-2 ${open || showMade || error ? "w-full basis-full" : ""}`}>
       {open ? (
         <form onSubmit={submit} className="flex w-full flex-col gap-2 rounded-xl border border-line bg-soft p-3.5">
           <label htmlFor={`${uid}-change`} className="font-semibold">
@@ -264,17 +283,19 @@ export function EditPrompt({ target, label = "Edit", cost, working, done }: Edit
           />
           <p className="text-sm text-muted">A new picture is made from your words. This one is kept, so you can pick either. {cost}</p>
           <div className="flex flex-wrap gap-2">
-            <button type="submit" disabled={pending} className={AI_BUTTON}>
+            {/* aria-disabled, not disabled: a disabled button drops focus */}
+            <button type="submit" aria-disabled={pending} className={`${AI_BUTTON} aria-disabled:opacity-60`}>
               <Icon name="sparkles" size="sm" />
               {pending ? "Making the change…" : "Make this change"}
             </button>
-            <button type="button" onClick={() => setOpen(false)} disabled={pending} className={SECONDARY}>
+            <button type="button" onClick={() => !inFlight.current && close()} aria-disabled={pending} className={`${SECONDARY} aria-disabled:opacity-60`}>
               Cancel
             </button>
           </div>
         </form>
       ) : (
         <button
+          ref={button}
           type="button"
           onClick={() => {
             setOpen(true);
@@ -287,10 +308,10 @@ export function EditPrompt({ target, label = "Edit", cost, working, done }: Edit
         </button>
       )}
       <Working label={working} active={pending} />
-      {made ? (
+      {showMade ? (
         <p role="status" className="flex items-start gap-2 text-[15px] font-semibold text-done">
           <Icon name="check" size="sm" strokeWidth={2.4} className="mt-0.5" />
-          {made}
+          {done}
         </p>
       ) : null}
       <Messages error={error} note={null} />

@@ -153,6 +153,7 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
             <div className="flex flex-wrap items-start gap-2 border-t border-line pt-3">
               <BrandRunButton intent={intent} label="Regenerate" pendingLabel="Making a new one…" working={`Making a new ${lower}… this can take a minute or two`} variant="secondary" cost={one} />
               <EditPrompt
+                latestId={newest.id}
                 target={{ kind: "picture", assetId: newest.id }}
                 cost={one}
                 working={`Changing your ${lower}… this can take a minute or two`}
@@ -229,7 +230,7 @@ export function VersionSlots({ chosenId, name, assets, picks, practice, running 
               purpose={spec.purpose}
               size={spec.size}
               slot={slot}
-              intent={{ kind: "versions", kinds: [slot.kind] }}
+              intent={{ kind: "versions", logoId: chosenId, kinds: [slot.kind] }}
               name={name}
               practice={practice}
               running={running.has(slot.kind)}
@@ -272,7 +273,7 @@ export function ImageSlots({
               purpose={spec.purpose}
               size={spec.size}
               slot={slot}
-              intent={{ kind: "images", kinds: [slot.kind] }}
+              intent={{ kind: "images", logoId: chosenId ?? "", kinds: [slot.kind] }}
               name={name}
               practice={practice}
               running={running.has(slot.kind)}

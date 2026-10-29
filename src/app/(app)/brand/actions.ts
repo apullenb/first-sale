@@ -51,6 +51,7 @@ const OFF = "Logo drawing isn’t turned on for First Sale yet.";
 const PRACTICE_FILE = "This is a practice preview, not a logo Muse drew. Choose one of the logos Muse made.";
 const PRACTICE_IDEAS = "These ideas are practice placeholders, not written for your business. Choose “Generate logo ideas” to have Muse write real ones.";
 const SAY_CHANGE = "Say what you’d like changed, such as “Make the letters thicker”.";
+const LOGO_CHANGED = "Your logo changed. Reload the page.";
 const id = z.string().min(1).max(60);
 
 function imageModel(): ImageModel | null {
@@ -206,11 +207,17 @@ export async function moreLikeThisAction(input: unknown): Promise<ActionResult<s
   if (existing) return { ok: true, value: existing };
   const concept = await getMyBrandConcept(parsed.data.conceptId);
   if (!concept) return { ok: false, message: NOT_FOUND };
+  // The same check as "Generate logo ideas": new ideas need the approved description
+  const saved = await savedBrief();
+  if (!saved) return { ok: false, message: NO_BUSINESS };
+  const unready = storyProblem(saved);
+  if (unready) return { ok: false, message: unready };
+  const checked = briefFrom(saved);
+  if (!checked.ok) return checked;
   const problem = await ideasProblem();
   if (problem) return { ok: false, message: problem };
-  const state = await getMyBrandState();
 
-  return writeRound(parsed.data.requestKey, state?.brief ?? concept.brief, { id: concept.id, concept: concept.concept });
+  return writeRound(parsed.data.requestKey, checked.brief, { id: concept.id, concept: concept.concept });
 }
 
 function batchResult(result: { ok: true; value: BatchResult } | { ok: false; message: string }): ActionResult<string | null> {
@@ -306,9 +313,11 @@ export async function chooseLogoAction(assetId: unknown): Promise<ActionResult> 
   return { ok: true, value: null };
 }
 
-async function chosenLogo(image: ImageModel): Promise<LogoRef | string> {
+// shownFor: the logo the page showed when the owner asked; a different chosen logo since then is refused
+async function chosenLogo(image: ImageModel, shownFor?: string): Promise<LogoRef | string> {
   const state = await getMyBrandState();
   if (!state?.chosenLogoId) return "Choose or upload your logo first.";
+  if (shownFor !== undefined && shownFor !== state.chosenLogoId) return LOGO_CHANGED;
   return logoRef(state.chosenLogoId, image);
 }
 
@@ -317,14 +326,14 @@ const slotSubject = (logoId: string, kinds: readonly string[]) => (kinds.length 
 
 // --- Versions
 
-const versionsSchema = z.object({ requestKey: z.uuid(), kinds: z.array(z.enum(VERSION_KINDS)).min(1).max(3) });
+const versionsSchema = z.object({ requestKey: z.uuid(), logoId: id, kinds: z.array(z.enum(VERSION_KINDS)).min(1).max(3) });
 
 export async function makeVersionsAction(input: unknown): Promise<ActionResult<string | null>> {
   const parsed = versionsSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
   const image = imageModel();
   if (!image) return { ok: false, message: OFF };
-  const logo = await chosenLogo(image);
+  const logo = await chosenLogo(image, parsed.data.logoId);
   if (typeof logo === "string") return { ok: false, message: logo };
   const kinds = [...new Set(parsed.data.kinds)];
 
@@ -339,6 +348,7 @@ export async function makeVersionsAction(input: unknown): Promise<ActionResult<s
 
 const imagesSchema = z.object({
   requestKey: z.uuid(),
+  logoId: id,
   kinds: z.array(z.enum(IMAGE_KINDS)).min(1).max(IMAGE_KINDS.length),
   change: z.string().max(MAX_CHANGE * 2).nullable(),
 });
@@ -348,7 +358,7 @@ export async function makeImagesAction(input: unknown): Promise<ActionResult<str
   if (!parsed.success) return { ok: false, message: `Describe the change in up to ${MAX_CHANGE} characters.` };
   const image = imageModel();
   if (!image) return { ok: false, message: OFF };
-  const logo = await chosenLogo(image);
+  const logo = await chosenLogo(image, parsed.data.logoId);
   if (typeof logo === "string") return { ok: false, message: logo };
   const change = parsed.data.change ? ownerText(parsed.data.change, MAX_CHANGE) || null : null;
   const kinds = [...new Set(parsed.data.kinds)];
@@ -377,7 +387,8 @@ export async function editPictureAction(input: unknown): Promise<ActionResult<st
   if (typeof logo === "string") return { ok: false, message: logo };
   const asset = await getMyBrandAsset(parsed.data.assetId);
   const file = asset ? await getMyBrandAssetFile(asset.id) : null;
-  if (!asset || !file || !PICTURE_KINDS.includes(asset.kind) || asset.sourceId !== logo.logoId) return { ok: false, message: NOT_FOUND };
+  if (!asset || !file || !PICTURE_KINDS.includes(asset.kind)) return { ok: false, message: NOT_FOUND };
+  if (asset.sourceId !== logo.logoId) return { ok: false, message: LOGO_CHANGED };
   if (asset.simulated && !image.simulated) return { ok: false, message: "This is a practice preview. Make a new one with the button above instead." };
   const kind = asset.kind as VersionKind | BrandImageKind;
 

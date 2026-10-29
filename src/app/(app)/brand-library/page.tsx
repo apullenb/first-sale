@@ -191,7 +191,7 @@ async function Library() {
         group === "brand_images" ? (
           <Group key={group} group={group} items={groups[group]} count={counts[group]} uploadsTitle="Brand images you added">
             {chosen ? null : <NoLogoYet />}
-            <ImageSlots chosenId={chosen?.id ?? null} name={state?.brief?.name || business.profile?.name || ""} assets={state?.assets ?? []} picks={state?.picks ?? {}} practice={practice} running={running} />
+            <ImageSlots key={chosen?.id ?? "none"} chosenId={chosen?.id ?? null} name={state?.brief?.name || business.profile?.name || ""} assets={state?.assets ?? []} picks={state?.picks ?? {}} practice={practice} running={running} />
           </Group>
         ) : (
           <Group key={group} group={group} items={groups[group]} count={counts[group]} />

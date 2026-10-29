@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { drawRoundAction, getIdeasAction, suggestTaglinesAction } from "@/app/(app)/brand/actions";
 import { Icon } from "@/components/icons";
 import { PickTile, SectionHead, SOFT } from "@/components/marketing/pieces";
@@ -38,6 +38,15 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [taglineError, setTaglineError] = useState<string | null>(null);
+  const taglineInput = useRef<HTMLInputElement>(null);
+  const addButton = useRef<HTMLButtonElement>(null);
+  // Where focus goes after the tagline box opens or closes, so it isn't lost
+  const focusNext = useRef<"input" | "add" | null>(null);
+  useEffect(() => {
+    const target = focusNext.current === "input" ? taglineInput.current : focusNext.current === "add" ? addButton.current : null;
+    focusNext.current = null;
+    target?.focus();
+  }, [addingTagline]);
   useLayoutEffect(
     () => () => {
       setError(null);
@@ -69,6 +78,7 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
   }
 
   function suggest() {
+    if (inFlight.current) return;
     setTaglineError(null);
     return run("suggesting", async () => {
       const result = await suggestTaglinesAction({ name: choices.name });
@@ -97,13 +107,6 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
   }
 
   const busy = phase !== "idle";
-  const suggestButton = (
-    <button type="button" onClick={suggest} disabled={busy} aria-label="Suggest taglines from your brand" className={`${AI_BUTTON} shrink-0 px-3.5`}>
-      <Icon name="sparkles" size="sm" />
-      {phase === "suggesting" ? "Suggesting…" : "Suggest"}
-    </button>
-  );
-
   return (
     <section aria-labelledby={`${uid}-heading`} className="flex flex-col gap-4">
       <SectionHead id={`${uid}-heading`} number={number} title="What your logo shows" lead="Only about the logo itself. How your brand feels comes from your description above." />
@@ -127,57 +130,57 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
         </div>
 
         <div className="flex flex-col gap-2 border-t border-line pt-6">
+          {/* One row whose second child is always Suggest, so it keeps focus while the first child changes */}
+          <p id={`${uid}-tagline-label`} className="font-semibold">
+            Tagline <span className="font-normal text-muted">(optional)</span>
+          </p>
+          <div className="flex items-stretch gap-2">
+            {addingTagline ? (
+              <input
+                ref={taglineInput}
+                id={`${uid}-tagline`}
+                type="text"
+                value={choices.tagline}
+                maxLength={BRIEF_LIMITS.tagline}
+                placeholder="Such as “Sourdough and pastries”"
+                aria-labelledby={`${uid}-tagline-label`}
+                onChange={(event) => set("tagline", event.target.value)}
+                className={`${INPUT} min-w-0 flex-1`}
+              />
+            ) : (
+              <button
+                ref={addButton}
+                type="button"
+                onClick={() => {
+                  setAddingTagline(true);
+                  focusNext.current = "input";
+                }}
+                className={SECONDARY}
+              >
+                <Icon name="plus" size="sm" />
+                Add a tagline
+              </button>
+            )}
+            {/* aria-disabled, not disabled: a disabled button drops focus */}
+            <button type="button" onClick={suggest} aria-disabled={busy} aria-label="Suggest taglines from your brand" className={`${AI_BUTTON} shrink-0 px-3.5 aria-disabled:opacity-60`}>
+              <Icon name="sparkles" size="sm" />
+              {phase === "suggesting" ? "Suggesting…" : "Suggest"}
+            </button>
+          </div>
+          <p className="text-sm text-muted">A few words under your name, such as “Sourdough and pastries”. Type your own, or choose Suggest for ideas from your brand.</p>
           {addingTagline ? (
-            <>
-              <label htmlFor={`${uid}-tagline`} className="font-semibold">
-                Tagline <span className="font-normal text-muted">(optional)</span>
-              </label>
-              <div className="flex items-stretch gap-2">
-                <input
-                  id={`${uid}-tagline`}
-                  type="text"
-                  value={choices.tagline}
-                  maxLength={BRIEF_LIMITS.tagline}
-                  placeholder="Such as “Sourdough and pastries”"
-                  onChange={(event) => set("tagline", event.target.value)}
-                  className={`${INPUT} min-w-0 flex-1`}
-                />
-                {suggestButton}
-              </div>
-              <p className="text-sm text-muted">A few words under your name. Type your own, or choose Suggest for ideas from your brand.</p>
-              {choices.tagline ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    set("tagline", "");
-                    setAddingTagline(false);
-                  }}
-                  className="min-h-11 w-fit text-[15px] font-semibold text-accent underline decoration-[1.5px] underline-offset-[3px] hover:text-accent-ink"
-                >
-                  No tagline
-                </button>
-              ) : null}
-            </>
-          ) : (
-            <>
-              <p className="font-semibold">Tagline</p>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAddingTagline(true);
-                    window.setTimeout(() => document.getElementById(`${uid}-tagline`)?.focus(), 0);
-                  }}
-                  className={SECONDARY}
-                >
-                  <Icon name="plus" size="sm" />
-                  Add a tagline
-                </button>
-                {suggestButton}
-              </div>
-              <p className="text-sm text-muted">Optional: a few words under your name, such as “Sourdough and pastries”.</p>
-            </>
-          )}
+            <button
+              type="button"
+              onClick={() => {
+                set("tagline", "");
+                setAddingTagline(false);
+                focusNext.current = "add";
+              }}
+              className="min-h-11 w-fit text-[15px] font-semibold text-accent underline decoration-[1.5px] underline-offset-[3px] hover:text-accent-ink"
+            >
+              No tagline
+            </button>
+          ) : null}
           <Working label="Suggesting taglines from your brand… this takes a few seconds" active={phase === "suggesting"} />
           {taglineError ? (
             <p role="alert" className={ALERT}>
