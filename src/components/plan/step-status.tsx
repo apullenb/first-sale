@@ -2,6 +2,7 @@
 
 import { useId, useLayoutEffect, useState } from "react";
 import { setStepStatusAction } from "@/app/(app)/checklist/actions";
+import { celebrate } from "@/components/celebrate";
 import { LocalDate } from "@/components/local-date";
 import { Icon } from "@/components/icons";
 import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
@@ -9,6 +10,7 @@ import type { TaskStatus } from "@/lib/domain";
 
 interface Props {
   stepId: string;
+  title: string;
   status: TaskStatus;
   note: string | null;
   submittedAt: string | null;
@@ -20,7 +22,7 @@ interface Props {
 const UNDO = "inline-flex min-h-11 items-center px-1 font-semibold text-accent underline decoration-[1.5px] underline-offset-[3px] hover:text-accent-ink disabled:opacity-60";
 
 // The owner records what they actually did; opening a link or a form never changes this
-export function StepStatus({ stepId, status, note, submittedAt, submissionNote, filing }: Props) {
+export function StepStatus({ stepId, title, status, note, submittedAt, submissionNote, filing }: Props) {
   const uid = useId();
   const [confirmed, setConfirmed] = useState(false);
   const [text, setText] = useState("");
@@ -38,6 +40,7 @@ export function StepStatus({ stepId, status, note, submittedAt, submissionNote, 
       else {
         setConfirmed(false);
         setText("");
+        if (next === "done") celebrate(title);
       }
     } catch {
       setError("Couldn’t reach First Sale. Check your connection and try again.");

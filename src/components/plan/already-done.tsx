@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { type RefObject, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { setStepStatusAction } from "@/app/(app)/checklist/actions";
 import { uploadRecordAction } from "@/app/(app)/documents/form-actions";
+import { celebrate } from "@/components/celebrate";
 import { Icon } from "@/components/icons";
 import { ALERT, PRIMARY, SECONDARY } from "@/components/styles";
 import { RecordUpload } from "./record-upload";
@@ -14,7 +15,7 @@ const PANEL = "flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5
 type Panel = "done" | "upload" | null;
 
 // The two buttons at the top of a step: mark it done if it was finished elsewhere, or save a document to it
-export function AlreadyDone({ stepId, accept, markDone }: { stepId: string; accept: string; markDone: boolean }) {
+export function AlreadyDone({ stepId, title, accept, markDone }: { stepId: string; title: string; accept: string; markDone: boolean }) {
   const uid = useId();
   const [open, setOpen] = useState<Panel>(null);
   // Opening or cancelling swaps the content, so focus moves with it
@@ -31,7 +32,7 @@ export function AlreadyDone({ stepId, accept, markDone }: { stepId: string; acce
     setOpen(next);
   };
 
-  if (open === "done") return <MarkDone uid={uid} stepId={stepId} accept={accept} heading={heading} onCancel={() => toggle(null)} />;
+  if (open === "done") return <MarkDone uid={uid} stepId={stepId} title={title} accept={accept} heading={heading} onCancel={() => toggle(null)} />;
   if (open === "upload") {
     return (
       <section aria-labelledby={`${uid}-upload`} className={`basis-full ${PANEL}`}>
@@ -65,7 +66,21 @@ export function AlreadyDone({ stepId, accept, markDone }: { stepId: string; acce
   );
 }
 
-function MarkDone({ uid, stepId, accept, heading, onCancel }: { uid: string; stepId: string; accept: string; heading: RefObject<HTMLHeadingElement | null>; onCancel: () => void }) {
+function MarkDone({
+  uid,
+  stepId,
+  title,
+  accept,
+  heading,
+  onCancel,
+}: {
+  uid: string;
+  stepId: string;
+  title: string;
+  accept: string;
+  heading: RefObject<HTMLHeadingElement | null>;
+  onCancel: () => void;
+}) {
   const router = useRouter();
   const file = useRef<HTMLInputElement>(null);
   // One per file chosen, kept for retries, so a lost connection can't save it twice
@@ -94,7 +109,10 @@ function MarkDone({ uid, stepId, accept, heading, onCancel }: { uid: string; ste
       }
       const result = await setStepStatusAction({ stepId, status: "done", note: "Done before or outside First Sale", confirmed });
       if (!result.ok) setError(result.message);
-      else router.refresh();
+      else {
+        celebrate(title);
+        router.refresh();
+      }
     } catch {
       setError("Couldn’t reach First Sale. Check your connection and try again.");
     } finally {

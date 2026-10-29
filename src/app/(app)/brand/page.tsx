@@ -27,7 +27,7 @@ export default function BrandPage() {
   return (
     <div className="flex max-w-[1000px] flex-col gap-8">
       <PageHead
-        kicker={<Kicker icon="palette">Marketing and branding</Kicker>}
+        kicker={<Kicker icon="palette">Build your brand · Step 2</Kicker>}
         title="Branding"
         lead="Pick the words that fit how your business should feel, and see your brand described back to you. Then AI writes logo ideas from it and draws them. You choose one, fine-tune it, get the versions and files you’ll need, and make matching pictures for your pages. Nothing is used until you approve it."
       />

@@ -1,33 +1,36 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { formatMinutes } from "@/lib/rules/progress";
-import { HOME, SECTION_GROUPS, SECTIONS, type Section } from "@/lib/sections";
+import { type PartStatus, sectionState, type SidebarStatus } from "@/lib/rules/section-status";
+import { HOME, SECTION_GROUPS, SECTIONS, type Section, type SectionGroup } from "@/lib/sections";
+import { celebrate, onCelebrate } from "./celebrate";
 
-// Steps left on a section, shown like an alert beside it, with the owner's time for them
-export type NavBadges = Partial<Record<string, { count: number; minutes: number }>>;
+export interface NavStatus {
+  parts: SidebarStatus;
+  // The business, so done steps remembered in this browser stay with it
+  scope: string;
+}
 
 const ICONS: Record<string, IconName> = {
-  "/": "home",
-  "/business": "store",
   "/insights": "lightbulb",
-  "/requirements": "clipboard",
-  "/structure": "scale",
-  "/checklist": "checklist",
-  "/documents": "book",
-  "/marketing": "megaphone",
-  "/brand": "palette",
-  "/website": "globe",
-  "/photos": "camera",
-  "/products": "tag",
+  "/brand-library": "image",
   "/orders": "receipt",
   "/planning-for-help": "users",
 };
 
-const GROUP_ICONS: Record<string, IconName> = {
+const GROUP_ICONS: Record<SectionGroup, IconName> = {
   "Start your business": "flag",
-  "Marketing and branding": "megaphone",
+  "Build your brand": "palette",
   "Run your business": "building",
 };
+
+// Sections that are steps to finish, in order
+const JOURNEY: SectionGroup[] = ["Start your business", "Build your brand"];
+
+const stepsOf = (group: SectionGroup) => SECTIONS.filter((section) => section.group === group && section.step !== null).map((section) => section.href);
 
 // Sub-pages like /business/new highlight their section
 function isActive(href: string, activeHref: string | null): boolean {
@@ -35,42 +38,145 @@ function isActive(href: string, activeHref: string | null): boolean {
   return activeHref === href || (href !== "/" && activeHref.startsWith(`${href}/`));
 }
 
-export function NavLinks({ activeHref, badges = {} }: { activeHref: string | null; badges?: NavBadges }) {
-  const total = Object.values(badges).reduce((sum, badge) => sum + (badge?.count ?? 0), 0);
+export function NavLinks({ activeHref, status }: { activeHref: string | null; status?: NavStatus }) {
+  const parts = status?.parts ?? {};
+  const page = SECTIONS.find((section) => isActive(section.href, activeHref)) ?? null;
+  const highlighted = page?.under ?? page?.href ?? null;
+  // Open where the owner is working: this page's section, or the first with something left
+  const working = page?.group ?? JOURNEY.find((group) => sectionState(parts, stepsOf(group)) === "todo") ?? null;
+  // Opened or closed by hand, until the owner moves to another section
+  const [toggled, setToggled] = useState<{ on: SectionGroup | null; groups: Partial<Record<SectionGroup, boolean>> }>({ on: working, groups: {} });
+  if (toggled.on !== working) setToggled({ on: working, groups: {} });
+  const isOpen = (group: SectionGroup) => toggled.groups[group] ?? group === working;
+  // One section open at a time, so the menu fits without scrolling
+  const toggle = (group: SectionGroup) =>
+    setToggled({ on: working, groups: Object.fromEntries(SECTION_GROUPS.map((each) => [each, each === group ? !isOpen(group) : false])) });
+
+  const [fresh, setFresh] = useState<string[]>([]);
+  useEffect(() => onCelebrate(({ hrefs }) => setFresh((current) => [...current, ...hrefs])), []);
+  useCelebrateNewlyDone(status);
+
+  const total = Object.values(parts).reduce((sum, part) => sum + part.count, 0);
+  const insights = SECTIONS.filter((section) => section.group === null);
   return (
     <nav aria-label="Sections" className="flex flex-col gap-0.5">
       <NavItem href={HOME.href} title={HOME.title} icon="home" active={isActive(HOME.href, activeHref)} count={total} />
+      {insights.map((section) => (
+        <NavItem key={section.href} href={section.href} title={section.title} icon={ICONS[section.href] ?? "file"} active={highlighted === section.href} count={0} />
+      ))}
       {SECTION_GROUPS.map((group) => {
-        const sections = SECTIONS.filter((section) => section.group === group);
-        const parts = sections.filter((section) => section.step !== null);
+        const sections = SECTIONS.filter((section) => section.group === group && !section.under);
+        const steps = sections.filter((section) => section.step !== null);
         const others = sections.filter((section) => section.step === null);
-        return (
-          <div key={group} className="flex flex-col gap-0.5">
-            <p className="flex items-center gap-2 px-2.5 pb-1.5 pt-4 text-[12.5px] font-bold uppercase tracking-[0.09em] text-white/55">
-              <Icon name={GROUP_ICONS[group] ?? "flag"} size="xs" className="text-sky" />
-              {group}
-            </p>
-            {parts.length ? (
-              <ol className="relative flex flex-col gap-0.5 before:absolute before:bottom-6 before:left-[25px] before:top-6 before:w-[1.5px] before:bg-white/15">
-                {parts.map((section) => (
-                  <PartItem key={section.href} section={section} active={isActive(section.href, activeHref)} badge={badges[section.href]} />
+        const open = isOpen(group);
+        const id = `nav-${group.toLowerCase().replaceAll(" ", "-")}`;
+        const body = (
+          <>
+            {steps.length ? (
+              <ol className="relative flex flex-col gap-0.5 before:absolute before:bottom-5 before:left-[25px] before:top-5 before:w-[1.5px] before:bg-white/15">
+                {steps.map((section) => (
+                  <PartItem key={section.href} section={section} active={highlighted === section.href} part={parts[section.href]} fresh={fresh.includes(section.href)} />
                 ))}
               </ol>
             ) : null}
             {others.map((section) => (
-              <NavItem
-                key={section.href}
-                href={section.href}
-                title={section.title}
-                icon={ICONS[section.href] ?? "file"}
-                active={isActive(section.href, activeHref)}
-                count={badges[section.href]?.count ?? 0}
-              />
+              <NavItem key={section.href} href={section.href} title={section.title} icon={ICONS[section.href] ?? "file"} active={highlighted === section.href} count={0} />
             ))}
+          </>
+        );
+        const stepHrefs = steps.map((section) => section.href);
+        return (
+          <div key={group} className="flex flex-col">
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-controls={id}
+              onClick={() => toggle(group)}
+              className="mt-1 flex min-h-10 items-center gap-2 rounded-[10px] px-2.5 text-left text-[12.5px] font-bold uppercase tracking-[0.09em] text-white/60 transition hover:bg-white/[0.06] hover:text-white"
+            >
+              <Icon name={GROUP_ICONS[group]} size="xs" className="text-sky" />
+              <span className="flex-1">{group}</span>
+              {stepHrefs.length ? (
+                <SectionMark state={status ? sectionState(parts, stepHrefs) : null} done={stepHrefs.filter((href) => parts[href]?.state === "done").length} of={stepHrefs.length} />
+              ) : null}
+              <Icon name="chevron" size="xs" className={`text-white/45 transition-transform duration-300 motion-reduce:transition-none ${open ? "rotate-90" : ""}`} />
+            </button>
+            <div
+              id={id}
+              inert={!open}
+              className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+            >
+              <div className="-mx-1 min-h-0 overflow-hidden px-1">
+                <div className="flex flex-col gap-0.5 py-1">{body}</div>
+              </div>
+            </div>
           </div>
         );
       })}
     </nav>
+  );
+}
+
+// Steps done since this browser last looked get the stamp and a check that draws in; the first look just remembers them
+function useCelebrateNewlyDone(status: NavStatus | undefined) {
+  const scope = status?.scope ?? null;
+  const done = status
+    ? Object.entries(status.parts)
+        .filter(([, part]) => part.state === "done")
+        .map(([href]) => href)
+        .sort()
+        .join(" ")
+    : null;
+  useEffect(() => {
+    if (!scope || done === null) return;
+    const key = `first-sale:done:${scope}`;
+    const now = done ? done.split(" ") : [];
+    let seen: string[] | null = null;
+    try {
+      const saved = window.localStorage.getItem(key);
+      seen = saved ? (JSON.parse(saved) as string[]) : null;
+      window.localStorage.setItem(key, JSON.stringify(now));
+    } catch {
+      return;
+    }
+    const added = seen ? now.filter((href) => !seen.includes(href)) : [];
+    if (!added.length) return;
+    const finished = JOURNEY.find((group) => {
+      const hrefs = stepsOf(group);
+      return hrefs.some((href) => added.includes(href)) && hrefs.every((href) => now.includes(href));
+    });
+    const last = SECTIONS.filter((section) => added.includes(section.href)).at(-1);
+    celebrate(finished ?? last?.title ?? "Step", added);
+  }, [scope, done]);
+}
+
+function SectionMark({ state, done, of }: { state: PartStatus["state"] | null; done: number; of: number }) {
+  if (state === "done") {
+    return (
+      <span title="All done" className="grid size-4 place-items-center rounded-full bg-done-bright text-sidebar">
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="size-2.5" fill="none" stroke="currentColor" strokeWidth={3.4} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12.5l4.5 4.5L19 7.5" />
+        </svg>
+        <span className="sr-only">, all done</span>
+      </span>
+    );
+  }
+  if (state === "waiting") {
+    return (
+      <span title="Waiting to hear back on something you sent in" className="grid size-4 place-items-center rounded-full bg-check-ring text-sidebar">
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="size-3" fill="none" stroke="currentColor" strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 7v5l3 2" />
+        </svg>
+        <span className="sr-only">, waiting to hear back</span>
+      </span>
+    );
+  }
+  if (state === null) return null;
+  return (
+    <span className="text-[12px] font-semibold normal-case tracking-normal text-white/45 tabular-nums">
+      {done} of {of}
+      <span className="sr-only"> steps done</span>
+    </span>
   );
 }
 
@@ -97,7 +203,7 @@ function NavItem({ href, title, icon, active, count }: { href: string; title: st
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`relative flex min-h-[46px] items-center gap-3 rounded-[10px] px-2.5 py-2 text-[15.5px] font-semibold transition ${
+      className={`relative flex min-h-10 items-center gap-3 rounded-[10px] px-2.5 py-1.5 text-[15.5px] font-semibold transition ${
         active ? "bg-white/10 text-white" : "text-white/80 hover:bg-white/[0.06] hover:text-white"
       }`}
     >
@@ -111,32 +217,56 @@ function NavItem({ href, title, icon, active, count }: { href: string; title: st
   );
 }
 
-function PartItem({ section, active, badge }: { section: Section; active: boolean; badge?: { count: number; minutes: number } }) {
+function PartItem({ section, active, part, fresh }: { section: Section; active: boolean; part?: PartStatus; fresh: boolean }) {
+  const state = part?.state ?? null;
+  const marker =
+    state === "done" ? (
+      <span className={`grid size-[18px] place-items-center rounded-full bg-done-bright text-sidebar ${fresh ? "animate-pop" : ""}`}>
+        <svg viewBox="0 0 24 24" className={`size-3 ${fresh ? "pen-draw" : ""}`} fill="none" stroke="currentColor" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12.5l4.5 4.5L19 7.5" />
+        </svg>
+      </span>
+    ) : state === "waiting" ? (
+      <Icon name="clock" size="xs" strokeWidth={2.2} />
+    ) : (
+      section.step
+    );
+  const label = state === "done" ? "done" : state === "waiting" ? "waiting to hear back" : null;
   return (
     <li>
       <Link
         href={section.href}
         aria-current={active ? "page" : undefined}
-        className={`relative grid min-h-[50px] grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-x-3 rounded-[10px] px-2.5 py-2 transition ${
+        className={`relative grid min-h-[38px] grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-x-3 rounded-[10px] px-2.5 py-1 transition ${
           active ? "bg-white/10" : "hover:bg-white/[0.06]"
         }`}
       >
         <span
           aria-hidden="true"
-          className={`relative z-10 grid size-7 place-items-center rounded-full border-[1.5px] text-sm font-bold ${
-            active ? "border-sky bg-sky text-sidebar" : "border-white/30 bg-sidebar text-white/70"
+          className={`relative z-10 grid size-[26px] place-items-center rounded-full border-[1.5px] text-[13px] font-bold ${
+            state === "done"
+              ? "border-transparent bg-sidebar"
+              : state === "waiting"
+                ? "border-check-ring bg-sidebar text-check-ring"
+                : active
+                  ? "border-sky bg-sky text-sidebar"
+                  : "border-white/30 bg-sidebar text-white/70"
           }`}
         >
-          {section.step}
+          {marker}
         </span>
         <span className="flex min-w-0 flex-col">
           <span className={`relative w-fit font-display text-[16px] leading-tight ${active ? "text-white" : "text-white/85"}`}>
             {section.title}
             {active ? <Underline /> : null}
+            {label ? <span className="sr-only">, {label}</span> : null}
           </span>
-          {badge ? <span className="mt-1 text-[13px] text-white/55">~{formatMinutes(badge.minutes)} of your time</span> : null}
+          {part?.count ? <span className="mt-0.5 text-[12.5px] text-white/55">~{formatMinutes(part.minutes)} of your time</span> : null}
         </span>
-        <Count count={badge?.count ?? 0} label={badge ? `${badge.count} ${badge.count === 1 ? "step" : "steps"} left, about ${formatMinutes(badge.minutes)} of your time` : ""} />
+        <Count
+          count={part?.count ?? 0}
+          label={part ? `${part.count} ${part.count === 1 ? "step" : "steps"} left, about ${formatMinutes(part.minutes)} of your time` : ""}
+        />
       </Link>
     </li>
   );

@@ -42,8 +42,8 @@ export default function WebsitePage({ searchParams }: PageProps<"/website">) {
   return (
     <div className="flex max-w-[1000px] flex-col gap-8 wrap-break-word">
       <PageHead
-        kicker={<Kicker icon="globe">Marketing and branding</Kicker>}
-        title="Your website"
+        kicker={<Kicker icon="globe">Build your brand · Step 3</Kicker>}
+        title="Create your website"
         lead="First Sale can build your site here from your words, brand and items, show it to you live, and publish it when you say so. Or pick Square, Wix or Shopify, and follow click-by-click steps with everything ready to paste."
       />
       <Suspense fallback={<p className="text-muted">Loading your website plan…</p>}>

@@ -33,8 +33,8 @@ export default function MarketingPage() {
   return (
     <div className="flex max-w-[1000px] flex-col gap-6 wrap-break-word">
       <PageHead
-        kicker={<Kicker icon="megaphone">Marketing and branding</Kicker>}
-        title="Build your marketing plan"
+        kicker={<Kicker icon="megaphone">Build your brand · Step 5</Kicker>}
+        title="Create your marketing plan"
         lead="Answer a few questions, get a plan made for your business, then follow it one step at a time."
       />
       <Suspense fallback={<p className="text-muted">Loading your marketing plan…</p>}>

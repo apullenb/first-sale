@@ -174,6 +174,7 @@ async function StepDetail({ params }: { params: Params }) {
     <StepStatus
       key={`${step.id}-${step.status}`}
       stepId={step.id}
+      title={step.title}
       status={step.status}
       note={step.evidenceNote}
       submittedAt={step.submittedAt?.toISOString() ?? null}
@@ -212,7 +213,7 @@ async function StepDetail({ params }: { params: Params }) {
           <h1 className={PAGE_TITLE}>{step.title}</h1>
           {step.timing === "later" ? <p className="text-[15px] text-muted">This comes later: you don’t need it before your first sale.</p> : null}
         </div>
-        {step.retired ? null : <AlreadyDone key={step.status} stepId={step.id} accept={accept} markDone={step.status === "todo" && step.topic !== "structure"} />}
+        {step.retired ? null : <AlreadyDone key={step.status} stepId={step.id} title={step.title} accept={accept} markDone={step.status === "todo" && step.topic !== "structure"} />}
       </div>
 
       <div className="-mt-1 flex flex-wrap gap-2">

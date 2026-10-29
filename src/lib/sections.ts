@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 
-export type SectionGroup = "Start your business" | "Marketing and branding" | "Run your business";
+export type SectionGroup = "Start your business" | "Build your brand" | "Run your business";
 
 export interface Section {
   href: string;
   title: string;
-  group: SectionGroup;
-  // Position in the formation journey; run-your-business sections have none
+  // Null: shown on its own under Today
+  group: SectionGroup | null;
+  // Position in its section's steps; null for the rest
   step: number | null;
+  // A page inside another section: kept out of the menu, which highlights that section instead
+  under?: string;
   milestone: number;
   summary: string;
 }
@@ -16,20 +19,20 @@ export const HOME = { href: "/", title: "Today" } as const;
 
 export const SECTIONS: Section[] = [
   {
+    href: "/insights",
+    title: "Business insights",
+    group: null,
+    step: null,
+    milestone: 14,
+    summary: "Encouraging feedback on your business idea: what’s strong, what to keep an eye on, tips for success and creative ideas.",
+  },
+  {
     href: "/business",
     title: "Your business",
     group: "Start your business",
     step: 1,
     milestone: 2,
     summary: "Questions about where you are, who owns it, what you sell, how you sell it, and your budget.",
-  },
-  {
-    href: "/insights",
-    title: "Business insights",
-    group: "Start your business",
-    step: null,
-    milestone: 14,
-    summary: "Encouraging feedback on your business idea: what’s strong, what to keep an eye on, tips for success and creative ideas.",
   },
   {
     href: "/requirements",
@@ -66,44 +69,69 @@ export const SECTIONS: Section[] = [
     summary: "Forms you’re working on, with help understanding and filling them in, plus your business plan and other documents First Sale prepared.",
   },
   {
-    href: "/marketing",
-    title: "Build your marketing plan",
-    group: "Marketing and branding",
-    step: null,
-    milestone: 5,
-    summary: "A few questions about where you want to show up and what you already know, then a marketing plan made for your business and steps to carry it out.",
+    href: "/logo",
+    title: "Create your logo",
+    group: "Build your brand",
+    step: 1,
+    milestone: 12,
+    summary: "Pick the words that fit how your business should feel, get logo ideas drawn from them, and choose one. Or upload the logo you already have.",
   },
   {
     href: "/brand",
-    title: "Branding",
-    group: "Marketing and branding",
-    step: null,
+    title: "Build your brand",
+    group: "Build your brand",
+    step: 2,
     milestone: 12,
-    summary: "A logo made for your business, its stacked, profile and one-color versions, and matching images for your social pages and website.",
+    summary: "Your logo’s stacked, profile and one-color versions, your colors and lettering, and matching images for your social pages and website.",
   },
   {
     href: "/website",
-    title: "Website",
-    group: "Marketing and branding",
-    step: null,
+    title: "Create your website",
+    group: "Build your brand",
+    step: 3,
     milestone: 13,
     summary: "Compare three ways to build your website and what they cost, get a recommendation for your business, then build it step by step.",
   },
   {
+    href: "/products",
+    title: "Add your products",
+    group: "Build your brand",
+    step: 4,
+    milestone: 5,
+    summary: "What you sell, with prices and photos, ready for your website and your posts.",
+  },
+  {
     href: "/photos",
     title: "Product photos",
-    group: "Marketing and branding",
+    group: "Build your brand",
     step: null,
+    under: "/products",
     milestone: 5,
     summary: "Turn an ordinary photo of what you sell into a polished store photo. The product stays exactly as it is, and you approve every photo.",
   },
   {
-    href: "/products",
-    title: "Products and marketing",
-    group: "Marketing and branding",
-    step: null,
+    href: "/marketing",
+    title: "Create your marketing plan",
+    group: "Build your brand",
+    step: 5,
     milestone: 5,
-    summary: "Add a product and get a draft listing and social post. Nothing goes out until you approve it.",
+    summary: "A few questions about where you want to show up and what you already know, then a marketing plan made for your business and steps to carry it out.",
+  },
+  {
+    href: "/social",
+    title: "Set up social media",
+    group: "Build your brand",
+    step: 6,
+    milestone: 15,
+    summary: "Set up the accounts in your marketing plan, with a name, bio, profile picture and cover ready for each. You sign up; First Sale never posts for you.",
+  },
+  {
+    href: "/brand-library",
+    title: "Your Brand Library",
+    group: "Build your brand",
+    step: null,
+    milestone: 16,
+    summary: "Your logos, brand images, product photos and other pictures, kept together and sorted.",
   },
   {
     href: "/orders",
@@ -123,7 +151,7 @@ export const SECTIONS: Section[] = [
   },
 ];
 
-export const SECTION_GROUPS: SectionGroup[] = ["Start your business", "Marketing and branding", "Run your business"];
+export const SECTION_GROUPS: SectionGroup[] = ["Start your business", "Build your brand", "Run your business"];
 
 export function getSection(href: string): Section {
   const section = SECTIONS.find((candidate) => candidate.href === href);

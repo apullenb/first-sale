@@ -246,8 +246,8 @@ describe("checkInsights", () => {
       context(),
     );
     expect(result.items.filter((each) => each.section === "ideas").map((each) => each.link)).toEqual([
-      { href: "/brand", label: "Branding" },
-      { href: "/website", label: "Website" },
+      { href: "/brand", label: "Build your brand" },
+      { href: "/website", label: "Create your website" },
     ]);
   });
 

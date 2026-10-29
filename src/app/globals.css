@@ -20,6 +20,8 @@
   --color-accent-ring: #b9e1ec;
   --color-done: #15803d;
   --color-done-tint: #ecf8f0;
+  /* Done checks on the dark sidebar */
+  --color-done-bright: #6ee7b7;
   --color-alert: #dc2626;
   --color-ai: #2f57c8;
   --color-ai-tint: #eef2fc;
@@ -39,10 +41,36 @@
 
   --animate-pen: pen 0.55s 0.05s cubic-bezier(0.6, 0.1, 0.3, 1) forwards;
   --animate-turn: turn 0.34s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-stamp: stamp 2.3s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  --animate-pop: pop 0.5s 0.9s cubic-bezier(0.3, 1.6, 0.5, 1) both;
 
   @keyframes pen {
     to {
       stroke-dashoffset: 0;
+    }
+  }
+  @keyframes stamp {
+    0% {
+      opacity: 0;
+      transform: scale(1.8) rotate(-15deg);
+    }
+    12% {
+      opacity: 1;
+      transform: scale(0.93) rotate(-7deg);
+    }
+    18%,
+    80% {
+      opacity: 1;
+      transform: scale(1) rotate(-8deg);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1) rotate(-8deg);
+    }
+  }
+  @keyframes pop {
+    from {
+      transform: scale(0.3);
     }
   }
   @keyframes turn {
@@ -87,12 +115,27 @@ body {
   animation: var(--animate-pen);
 }
 
+@keyframes fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  10%,
+  85% {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pen-draw path {
     animation: none;
     stroke-dashoffset: 0;
   }
-  .animate-turn {
+  .animate-turn,
+  .animate-pop {
     animation: none;
+  }
+  .animate-stamp {
+    animation: fade 2.3s both;
   }
 }

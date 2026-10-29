@@ -74,7 +74,7 @@ async function PhotoView({ params, searchParams }: { params: Promise<{ id: strin
 
   return (
     <>
-      <PageHead kicker={<Kicker icon="camera">Marketing and branding · Product photos</Kicker>} title={photo.title} />
+      <PageHead kicker={<Kicker icon="camera">Build your brand · Product photos</Kicker>} title={photo.title} />
       {editing.state === "practice" ? (
         <PracticeBanner what="Photos made here are development previews, not made by Muse: each one is your original photo, unchanged." />
       ) : null}

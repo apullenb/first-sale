@@ -22,7 +22,7 @@ export default function PhotosPage() {
   return (
     <div className="flex max-w-[1000px] flex-col gap-8">
       <PageHead
-        kicker={<Kicker icon="camera">Marketing and branding</Kicker>}
+        kicker={<Kicker icon="camera">Build your brand · Add your products</Kicker>}
         title="Product photos"
         lead="Turn an ordinary photo of what you sell into a polished photo for your online store. Upload it, choose a look, and First Sale does the rest. Your product stays exactly as it is, and nothing is used until you approve it."
       />

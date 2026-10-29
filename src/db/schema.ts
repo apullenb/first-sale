@@ -7,6 +7,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   serial,
   text,
   timestamp,
@@ -682,3 +683,17 @@ export const businessInsights = pgTable("business_insights", {
   feedback: jsonb("feedback").$type<InsightFeedback>().notNull().default({}),
   updatedAt: updatedAt(),
 });
+
+// "I already have this" for a step done outside First Sale, with the owner's link or note. A row means done.
+export const journeyMarks = pgTable(
+  "journey_marks",
+  {
+    businessId: businessId(),
+    // A step key such as "logo", or "social:instagram" for one account
+    key: text("key").notNull(),
+    url: text("url"),
+    note: text("note"),
+    createdAt: createdAt(),
+  },
+  (table) => [primaryKey({ columns: [table.businessId, table.key] })],
+);

@@ -29,6 +29,8 @@ import {
   type WebsitePlan,
 } from "./website";
 import { finishRun, lastRunForOwner, startRunForOwner } from "./workflow-runs";
+import { clearJourneyMarkForOwner, listJourneyMarksForOwner, setJourneyMarkForOwner } from "./journey";
+import { getBrandStepFactsForOwner } from "./sidebar";
 import { getMarketingForOwner, type MarketingPatch, type MarketingRecord, updateMarketingForOwner } from "./marketing";
 import type { NewBrandAsset } from "@/lib/brand/generate";
 import type { AssetCheck, BrandBrief, BrandImageKind, BrandKit, VersionKind } from "@/lib/brand/types";
@@ -454,4 +456,27 @@ export async function saveMyInsights(insights: SavedInsights) {
 export async function markMyInsight(key: string, mark: InsightMark | null) {
   const user = await getCurrentUser();
   return markInsightForOwner(getDb(), user.id, key, mark);
+}
+
+// Steps the owner did outside First Sale
+
+export async function listMyJourneyMarks() {
+  const user = await getCurrentUser();
+  return listJourneyMarksForOwner(getDb(), user.id);
+}
+
+export async function setMyJourneyMark(mark: { key: string; url: string | null; note: string | null }) {
+  const user = await getCurrentUser();
+  return setJourneyMarkForOwner(getDb(), user.id, mark);
+}
+
+export async function clearMyJourneyMark(key: string) {
+  const user = await getCurrentUser();
+  return clearJourneyMarkForOwner(getDb(), user.id, key);
+}
+
+// What the menu needs to show which brand steps are done
+export async function getMyBrandStepFacts() {
+  const user = await getCurrentUser();
+  return getBrandStepFactsForOwner(getDb(), user.id);
 }

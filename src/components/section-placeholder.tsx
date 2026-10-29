@@ -12,20 +12,20 @@ const ICONS: Record<string, IconName> = {
 
 const GROUP_ICONS: Record<string, IconName> = {
   "Start your business": "flag",
-  "Marketing and branding": "megaphone",
+  "Build your brand": "palette",
   "Run your business": "building",
 };
 
 export function SectionPlaceholder({ href }: { href: string }) {
   const section = getSection(href);
-  const eyebrow = section.step !== null ? `${section.group} · Step ${section.step}` : section.group;
+  const eyebrow = section.group && section.step !== null ? `${section.group} · Step ${section.step}` : (section.group ?? "First Sale");
 
   return (
     <div className="flex max-w-3xl flex-col gap-6">
       <PageHead
         kicker={
           <span className="inline-flex items-center gap-2">
-            <Icon name={GROUP_ICONS[section.group] ?? "flag"} size="sm" />
+            <Icon name={(section.group && GROUP_ICONS[section.group]) || "flag"} size="sm" />
             {eyebrow}
           </span>
         }

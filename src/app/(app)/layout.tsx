@@ -2,36 +2,33 @@ import { unstable_rethrow } from "next/navigation";
 import { Suspense } from "react";
 import { AccountMenu } from "@/components/account-menu";
 import { SidebarFallback, SidebarNav, type SidebarBusiness } from "@/components/sidebar-nav";
-import { getMyBusiness, getMyPlan } from "@/lib/data/my-business";
 import { displayName, formatLaunchDate } from "@/lib/intake/answers";
-import { remainingWork } from "@/lib/rules/progress";
+import { getMySidebarStatus } from "@/lib/sidebar-status";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="mx-auto w-full max-w-[1360px] flex-1 px-4 pb-24 sm:px-6 md:grid md:grid-cols-[288px_minmax(0,1fr)] md:items-start md:gap-7 md:pt-5">
+    <div className="mx-auto w-full max-w-[1360px] flex-1 px-4 pb-24 sm:px-6 md:grid md:grid-cols-[288px_minmax(0,1fr)] md:items-start md:gap-7 md:pt-3">
       {/* The fallback reads no route, so pages with unknown params still prerender */}
       <Suspense fallback={<SidebarFallback />}>
         <SidebarWithData />
       </Suspense>
-      <main id="main" className="min-w-0 pt-5 md:pt-1">
+      <main id="main" className="min-w-0 pt-5 md:pt-3">
         {children}
       </main>
     </div>
   );
 }
 
-// The counts and business card are extra: if they can't be read, the menu still shows without them
+// The step marks and business card are extra: if they can't be read, the menu still shows without them
 async function SidebarWithData() {
-  let plan: Awaited<ReturnType<typeof getMyPlan>> = null;
-  let business: Awaited<ReturnType<typeof getMyBusiness>> = null;
+  let sidebar: Awaited<ReturnType<typeof getMySidebarStatus>> = { business: null, status: null };
   try {
-    [plan, business] = await Promise.all([getMyPlan(), getMyBusiness()]);
+    sidebar = await getMySidebarStatus();
   } catch (error) {
     unstable_rethrow(error);
     console.error("Sidebar details skipped:", error instanceof Error ? error.name : "unknown error");
   }
-  const work = remainingWork(plan?.steps ?? []);
-  const profile = business?.profile ?? null;
+  const profile = sidebar.business?.profile ?? null;
   const card: SidebarBusiness | null = profile
     ? {
         name: displayName(profile),
@@ -41,7 +38,7 @@ async function SidebarWithData() {
     : null;
   return (
     <SidebarNav
-      badges={work.left.length ? { "/checklist": { count: work.left.length, minutes: work.minutes } } : {}}
+      status={sidebar.status ?? undefined}
       business={card}
       account={
         // Also the session check: an expired session redirects to log in
