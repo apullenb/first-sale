@@ -45,6 +45,8 @@ import { type DomainCheck, PLATFORMS, type WebsiteContent } from "@/lib/website/
 import { PHOTO_CATEGORIES, PHOTO_CROPS, PHOTO_LOOKS, type PhotoCheck, type PhotoReview } from "@/lib/photos/types";
 import { ASSET_KINDS, type AssetCheck, type BrandBrief, type BrandPicks, type ConceptReply } from "@/lib/brand/types";
 import type { IntakeAnswers, Marks } from "@/lib/intake/answers";
+import type { StoredIntake } from "@/lib/marketing/intake";
+import type { MarketingPlan, MarketingStep } from "@/lib/marketing/types";
 import type { DecisionBasis } from "@/lib/structure/types";
 import type { WebSearchHit } from "@/lib/ai/types";
 
@@ -514,6 +516,20 @@ export const websitePlans = pgTable("website_plans", {
   moreOptions: jsonb("more_options").$type<MoreOptions>(),
   // "Explain more" answers, by option key, so each is written once
   explanations: jsonb("explanations").$type<Record<string, OptionExplanation>>().notNull().default({}),
+  updatedAt: updatedAt(),
+});
+
+// The owner's marketing answers, the drafted plan, and the steps made when they approve it. One per business.
+export const marketingPlans = pgTable("marketing_plans", {
+  businessId: text("business_id")
+    .primaryKey()
+    .references(() => businesses.id, { onDelete: "cascade" }),
+  intake: jsonb("intake").$type<StoredIntake>(),
+  plan: jsonb("plan").$type<MarketingPlan>(),
+  // Set when the owner approves the plan; a new draft clears it
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  steps: jsonb("steps").$type<MarketingStep[]>().notNull().default([]),
+  stepsDone: jsonb("steps_done").$type<string[]>().notNull().default([]),
   updatedAt: updatedAt(),
 });
 

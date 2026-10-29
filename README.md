@@ -20,7 +20,7 @@ Open http://localhost:3000, create an account and answer the intake questions. T
 
 Without an AI key the app runs in **practice mode**: built-in rules stand in for the model, nothing is searched, and photos and scans can't be read. Every result made this way carries a "Practice mode" label, so it's never mistaken for real research.
 
-AI requests (intake suggestions, research, reading and explaining forms, drafting answers and business plans, product photos, logos and brand pictures, and website words and explanations) are limited to 10 an hour and 50 a day per owner, and 500 a day across everyone (`AI_DAILY_LIMIT`), to cap cost.
+AI requests (intake suggestions, research, reading and explaining forms, drafting answers, business plans and marketing plans, product photos, logos and brand pictures, and website words and explanations) are limited to 10 an hour and 50 a day per owner, and 500 a day across everyone (`AI_DAILY_LIMIT`), to cap cost.
 
 The local database is PGlite in `.pglite/`, and only one process can use it at a time. Stop `npm run dev` before running `db:migrate`. If `db:migrate` fails with "already exists", or with "is duplicated" (an account made more than one business before the one-per-owner rule), your local `.pglite/` predates the current migrations: delete it and run `db:migrate` again.
 
@@ -180,6 +180,34 @@ It also drafts a business plan from the owner's answers. Numbers the owner didn'
 - Search requests set `store: false`.
 - Logs record only which job failed, never document text or answers.
 - No Social Security or tax id numbers are stored: inputs that look like one are refused.
+
+## Marketing plan
+
+"Build your marketing plan" is the first page under Marketing and branding.
+
+1. **Questions.** Three short screens. Each question has a "Why we ask" line.
+   - Where to show up: Instagram, Facebook, Google Business Profile, TikTok, Pinterest, YouTube, Nextdoor, Yelp, LinkedIn or an email list, with the note "It’s okay if you don’t have these accounts. We’ll set them up together." Then which accounts they already have, and which they don’t want at all.
+   - How familiar they are with social media, how much they know about SEO, and how much marketing content (photos, video, writing) they’ve made.
+   - What they’ve done for marketing so far.
+
+   What First Sale already knows (name, what they sell and how, where, budget, launch date, logo, website) isn’t asked again. Answers are saved per business and can be changed later.
+2. **Plan.** Muse Spark reads the business answers, the business plan’s customer, difference, price and monthly-goal answers, the brand brief, the website choice, approved photos and startup plan progress. It drafts goals, who to reach, platforms with reasons and how often, things to post about, a weekly rhythm and first actions, behind a progress screen that ticks off each part. Code then checks the draft (`checkPlan` in `src/lib/rules/marketing.ts`):
+   - Platforms the owner ruled out are removed, along with every sentence that names them (plurals and other names, like “IG”, too).
+   - Platforms they didn’t pick stay only as up to two suggestions, and every one they picked gets a place. If they picked none, the top suggestion leads.
+   - One platform always leads, and someone new to social media gets only one.
+   - Dollar amounts they didn’t give are flagged.
+
+   The owner approves it, which saves a PDF to My Business Library. If their answers change, the plan says so until it’s written again, and anything naming a platform they’ve since ruled out is hidden.
+3. **Steps.** Approving makes the steps, in order, by rules (`buildMarketingSteps`): a profile picture, setting up each platform the plan uses now (or tidying one they already have), photos, two weeks of posts, search words for their website if they chose one, then the plan’s first actions. How much help a step gets follows the owner’s answer for its area:
+   - New to it: every step, open, with a "Take me there" link.
+   - A little: a short checklist, with the step-by-step one tap away.
+   - Confident: a short checklist.
+
+   Setup steps follow each platform’s own help page, with the date checked (`src/data/marketing-platforms.ts`). TikTok’s page couldn’t be read, so its steps say they’re general. The email list step quotes the FTC’s rule that marketing emails need a postal address and a way to opt out. The owner ticks steps off. Writing the plan again keeps the current steps until the new plan is approved, and ticks carry over to steps that stay.
+
+**Stored:** `marketing_plans` holds the answers, the plan, when it was approved, the steps and which are done. Saved plans carry a `version` and are read leniently, so new sections can be added later without breaking them.
+
+**Practice mode:** the plan is a template built from the owner’s answers, labeled on the plan, the steps and the PDF.
 
 ## Product photos
 

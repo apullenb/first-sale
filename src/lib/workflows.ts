@@ -171,6 +171,14 @@ export const WORKFLOWS = {
     timeLimitMs: 6 * MINUTE,
     offeredFor: [],
   },
+  marketing_plan: {
+    title: "Write my marketing plan",
+    summary: "Reviews everything you’ve told First Sale and drafts a marketing plan: goals, who to reach, where, what to post and what to do first.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 6 * MINUTE,
+    offeredFor: [],
+  },
   official_form: {
     title: "Get the official form",
     summary: "Downloads the form from the agency’s own site, checks it’s the right one, keeps it unchanged, and fills in what your details answer.",

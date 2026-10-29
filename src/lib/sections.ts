@@ -58,6 +58,14 @@ export const SECTIONS: Section[] = [
     summary: "Forms you’re working on, with help understanding and filling them in, plus your business plan and other documents First Sale prepared.",
   },
   {
+    href: "/marketing",
+    title: "Build your marketing plan",
+    group: "Marketing and branding",
+    step: null,
+    milestone: 5,
+    summary: "A few questions about where you want to show up and what you already know, then a marketing plan made for your business and steps to carry it out.",
+  },
+  {
     href: "/brand",
     title: "Branding",
     group: "Marketing and branding",
