@@ -18,7 +18,7 @@ import {
   type NewDocument,
   updateDocumentForOwner,
 } from "./documents";
-import { completeStructureStepsForOwner, getPlanForOwner, getStepForOwner, replanForOwner, reviewPlanForOwner, setStepStatusForOwner } from "./plan";
+import { getPlanForOwner, getStepForOwner, replanForOwner, reviewPlanForOwner, setStepStatusForOwner } from "./plan";
 import { getResearchForOwner, type ResearchSnapshot, saveResearchForOwner } from "./research";
 import {
   getHostConnectionForOwner,
@@ -94,6 +94,8 @@ import {
 } from "./brand-library";
 import { createProductForOwner, deleteProductForOwner, listProductsForOwner, updateProductForOwner } from "./products";
 import type { ProductValues } from "@/lib/rules/products";
+import { structureOf } from "@/lib/research/applicability";
+import { choosesStructure, settleStructureChoice } from "@/lib/rules/plan";
 
 // What pages, actions and route handlers call: the owner always comes from the verified session.
 
@@ -135,9 +137,19 @@ export async function myAiKey(): Promise<string> {
   return createHash("sha256").update(`first-sale:${user.id}`).digest("hex").slice(0, 32);
 }
 
+// A structure chosen on Business structure, or registered before, settles the plan's step for choosing one
+async function structureKnown(ownerId: string, steps: readonly { topic?: string; forStructures?: readonly string[] | null; feeCents?: number | null; status: string }[]) {
+  if (!steps.some((step) => choosesStructure(step) && step.status !== "done")) return false;
+  const [row, details] = await Promise.all([getBusinessForOwner(getDb(), ownerId), getDetailsForOwner(getDb(), ownerId)]);
+  const profile = row ? checked(row).profile : null;
+  return Boolean(profile && structureOf(profile, details).structure);
+}
+
 export async function getMyPlan() {
   const user = await getCurrentUser();
-  return getPlanForOwner(getDb(), user.id);
+  const plan = await getPlanForOwner(getDb(), user.id);
+  if (!plan) return plan;
+  return { ...plan, steps: settleStructureChoice(plan.steps, await structureKnown(user.id, plan.steps)) };
 }
 
 export async function reviewMyPlan(input: { checkedAt: Date; acceptedKeys: readonly string[] }) {
@@ -145,14 +157,13 @@ export async function reviewMyPlan(input: { checkedAt: Date; acceptedKeys: reado
   return reviewPlanForOwner(getDb(), user.id, input);
 }
 
-export async function completeMyStructureSteps() {
-  const user = await getCurrentUser();
-  return completeStructureStepsForOwner(getDb(), user.id);
-}
-
 export async function getMyStep(stepId: string) {
   const user = await getCurrentUser();
-  return getStepForOwner(getDb(), user.id, stepId);
+  const found = await getStepForOwner(getDb(), user.id, stepId);
+  if (!found) return found;
+  const known = await structureKnown(user.id, found.all);
+  const all = settleStructureChoice(found.all, known);
+  return { step: all.find((step) => step.id === found.step.id) ?? settleStructureChoice([found.step], known)[0], all };
 }
 
 export async function setMyStepStatus(input: { stepId: string; status: TaskStatus; note: string | null }) {

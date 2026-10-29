@@ -174,7 +174,8 @@ async function Overview() {
         </>
       ) : null}
 
-      {priced.length ? <StepBoard actions={actions} costs={costs} skip={moveStep?.id ?? null} /> : null}
+      {/* The step in "Do this next" isn't listed again, including choosing a structure, which links to its own page */}
+      {priced.length ? <StepBoard actions={actions} costs={costs} skip={moveStep?.id ?? (input.plan.first?.structure ? input.plan.first.id : null)} /> : null}
       {priced.some((step) => step.simulated) ? <PracticeBanner what="These steps came from practice results." /> : null}
 
       <div className={`grid items-start gap-5 ${business ? "@3xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]" : ""}`}>

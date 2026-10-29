@@ -26,8 +26,7 @@ async function statusFor(business: MyBusiness): Promise<NavStatus> {
   const [plan, details, saved] = await Promise.all([getMyPlan(), getMyDetails(), getMySidebarFacts()]);
   const profile = business.profile;
   const structureChosen = Boolean(profile && structureOf(profile, details).structure);
-  // A chosen structure, even one registered before First Sale, settles the plan's structure step
-  const steps = (plan?.steps ?? []).map((step) => (choosesStructure(step) && structureChosen ? { ...step, status: "done" as const } : step));
+  const steps = plan?.steps ?? [];
   // Choosing a structure belongs to Business structure; it still holds up the steps after it
   const work = remainingWork(steps.filter((step) => !choosesStructure(step)));
   const structureWork = remainingWork(steps.filter(choosesStructure));

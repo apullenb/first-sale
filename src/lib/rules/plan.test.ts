@@ -3,11 +3,13 @@ import { verifiedRequirement } from "@/test/fixtures";
 import {
   applyPlan,
   buildPlan,
+  choosesStructure,
   type CurrentTask,
   diffPlan,
   followingSteps,
   type PlanTaskDraft,
   type ReadSource,
+  settleStructureChoice,
   slugKey,
 } from "./plan";
 
@@ -176,6 +178,22 @@ describe("buildPlan", () => {
       doneWhen: "You have your EIN.",
     });
     expect(step).not.toHaveProperty("id");
+  });
+});
+
+describe("choosing a structure", () => {
+  const choose = { topic: "structure", forStructures: [], feeCents: null, status: "todo" };
+  const formLlc = { topic: "structure", forStructures: ["llc"], feeCents: 30000, status: "todo" };
+  const unnamedFiling = { topic: "structure", forStructures: [], feeCents: 30000, status: "todo" };
+  const ein = { topic: "tax_registration", forStructures: [], feeCents: 0, status: "todo" };
+
+  it("is only the step with no structure named and no fee", () => {
+    expect([choose, formLlc, unnamedFiling, ein].map(choosesStructure)).toEqual([true, false, false, false]);
+  });
+
+  it("is settled by a known structure, and stays open while undecided", () => {
+    expect(settleStructureChoice([choose, formLlc, ein], true).map((step) => step.status)).toEqual(["done", "todo", "todo"]);
+    expect(settleStructureChoice([choose, formLlc, ein], false).map((step) => step.status)).toEqual(["todo", "todo", "todo"]);
   });
 });
 

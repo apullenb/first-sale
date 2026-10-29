@@ -203,9 +203,17 @@ function latest(dates: readonly string[]): string | null {
 }
 
 // Steps that wait on this one
-// The step that chooses a structure, done on Business structure. Filings for one structure, like forming an LLC, are paperwork.
-export function choosesStructure(step: { topic?: string; forStructures?: readonly string[] | null }): boolean {
-  return step.topic === "structure" && !step.forStructures?.length;
+// The step that chooses a structure, done on Business structure. Filings, like forming an LLC, name a structure or carry a fee.
+export function choosesStructure(step: { topic?: string; forStructures?: readonly string[] | null; feeCents?: number | null }): boolean {
+  return step.topic === "structure" && !step.forStructures?.length && !step.feeCents;
+}
+
+// A known structure, chosen or already registered, settles that step; saying "not decided yet" leaves it open
+export function settleStructureChoice<T extends { topic?: string; forStructures?: readonly string[] | null; feeCents?: number | null; status: string }>(
+  steps: readonly T[],
+  known: boolean,
+): T[] {
+  return steps.map((step) => (known && choosesStructure(step) && step.status !== "done" ? { ...step, status: "done" } : step));
 }
 
 export function followingSteps<T extends { key: string; prerequisites: readonly string[] }>(tasks: readonly T[], key: string): T[] {

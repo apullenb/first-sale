@@ -3,7 +3,7 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
-import { completeMyStructureSteps, getMyBusiness, getMyDetails, listMyHistory, recordMyDecisions } from "@/lib/data/my-business";
+import { getMyBusiness, getMyDetails, listMyHistory, recordMyDecisions } from "@/lib/data/my-business";
 import { DETAILS, type DetailKey, detailProblem } from "@/lib/details";
 import { profileKey } from "@/lib/research/requirements";
 import { basisLines, suggestPath } from "@/lib/structure/suggest";
@@ -36,7 +36,6 @@ export async function recordDecisionsAction(input: unknown): Promise<ActionResul
     stale,
   );
   if (!saved) return { ok: false, message: "Your business wasn’t found. Reload the page and try again." };
-  if (values.some(([detailKey]) => detailKey === "structure_choice")) await completeMyStructureSteps();
   refresh();
   return { ok: true, value: null };
 }

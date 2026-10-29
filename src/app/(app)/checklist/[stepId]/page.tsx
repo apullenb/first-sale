@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ActorChip } from "@/components/actor-chip";
 import { AgreementCard } from "@/components/documents/agreement-card";
@@ -67,8 +67,6 @@ async function StepDetail({ params }: { params: Params }) {
   const [found, documents, business, details] = await Promise.all([getMyStep(stepId), listMyDocuments(), getMyBusiness(), getMyDetails()]);
   if (!found) notFound();
   const { step, all } = found;
-  // Choosing a structure is step 3, on its own page
-  if (choosesStructure(step) && !step.retired) redirect("/structure");
   const profile = business?.profile ?? null;
 
   const states = stepStates(all);
@@ -113,7 +111,7 @@ async function StepDetail({ params }: { params: Params }) {
           ),
         ]
       : [];
-  const filing = step.topic !== "structure";
+  const filing = !choosesStructure(step);
   const state = states.get(step.key);
   const lockedBy = state?.state === "waiting" && step.status === "todo" ? state.waitingOn : [];
   const next = step.retired ? null : nextStepAfter(orderSteps(all.filter((each) => !each.retired)), step.key);
@@ -215,7 +213,7 @@ async function StepDetail({ params }: { params: Params }) {
           <h1 className={PAGE_TITLE}>{step.title}</h1>
           {step.timing === "later" ? <p className="text-[15px] text-muted">This comes later: you don’t need it before your first sale.</p> : null}
         </div>
-        {step.retired ? null : <AlreadyDone key={step.status} stepId={step.id} title={step.title} accept={accept} markDone={step.status === "todo" && step.topic !== "structure"} />}
+        {step.retired ? null : <AlreadyDone key={step.status} stepId={step.id} title={step.title} accept={accept} markDone={step.status === "todo" && !choosesStructure(step)} />}
       </div>
 
       <div className="-mt-1 flex flex-wrap gap-2">
@@ -263,11 +261,10 @@ async function StepDetail({ params }: { params: Params }) {
               <h2 id="progress-heading" className={STATE_TITLE}>
                 Done{step.completedAt ? <> on <LocalDate iso={step.completedAt.toISOString()} /></> : null}
               </h2>
-              <p className="text-muted">{filing ? "Approved or finished." : "You marked this done."}</p>
+              <p className="text-muted">{choosesStructure(step) ? "You recorded your choice on Business structure." : filing ? "Approved or finished." : "You marked this done."}</p>
             </div>
           </div>
-          {step.topic === "structure" ? <StructureDecision key={step.id} current={details.find((detail) => detail.key === "structure_choice")?.value ?? null} /> : null}
-          {progress}
+          {choosesStructure(step) ? <StructureDecision key={step.id} current={details.find((detail) => detail.key === "structure_choice")?.value ?? null} /> : progress}
           <NextUp next={next} />
         </section>
       ) : locked ? (
@@ -281,7 +278,7 @@ async function StepDetail({ params }: { params: Params }) {
           </h2>
           <p className="text-muted">
             You can read ahead. This step opens once that’s done.
-            {step.topic === "structure" ? "" : " Already did it on your own? Use “I’ve already done this” at the top."}
+            {choosesStructure(step) ? "" : " Already did it on your own? Use “I’ve already done this” at the top."}
           </p>
           <Link href={`/checklist/${lockedBy[0].id}`} className={PRIMARY_LINK}>
             Take me there
@@ -306,25 +303,33 @@ async function StepDetail({ params }: { params: Params }) {
             Your part · about {minutes}
           </p>
           <h2 id="part-heading" className={STATE_TITLE}>
-            {step.topic === "structure"
+            {choosesStructure(step)
               ? "Choose how your business is owned"
               : fileable
                 ? "First Sale fills in the blanks your details answer. You check, sign and send it yourself."
                 : "Here’s how to do it yourself"}
           </h2>
-          {step.topic === "structure" ? (
+          {choosesStructure(step) ? (
             <StructureDecision key={step.id} current={details.find((detail) => detail.key === "structure_choice")?.value ?? null} />
           ) : (
             steps
           )}
-          <div className="flex flex-col gap-3 border-t border-line pt-4">
-            <h3 id="progress-heading" className="flex scroll-mt-4 items-center gap-2.5 font-bold">
-              Record what you did
-              <ActorChip actor="owner" />
-            </h3>
-            {progress}
-          </div>
-          <p className="text-sm text-muted">Opening a link or a form never changes this. You record what you did. First Sale never files anything for you.</p>
+          {choosesStructure(step) ? (
+            <p id="progress-heading" className="border-t border-line pt-4 text-[15px] text-muted">
+              This step is done once you record your choice on Business structure.
+            </p>
+          ) : (
+            <>
+              <div className="flex flex-col gap-3 border-t border-line pt-4">
+                <h3 id="progress-heading" className="flex scroll-mt-4 items-center gap-2.5 font-bold">
+                  Record what you did
+                  <ActorChip actor="owner" />
+                </h3>
+                {progress}
+              </div>
+              <p className="text-sm text-muted">Opening a link or a form never changes this. You record what you did. First Sale never files anything for you.</p>
+            </>
+          )}
         </section>
       )}
 
@@ -338,7 +343,7 @@ async function StepDetail({ params }: { params: Params }) {
       ) : null}
 
       <div className="flex flex-col gap-3">
-        {ready && step.topic !== "structure" ? null : (
+        {ready && !choosesStructure(step) ? null : (
           <Fold
             title="How to do it yourself"
             summary={`${step.status === "done" || step.retired ? "The steps" : `Read ahead: ${how.length} steps`}${howSourced ? ", with official sources" : ""}`}

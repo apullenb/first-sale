@@ -13,7 +13,7 @@ export function ResearchRunStatus({ run, retryHref }: { run: RunState | null; re
       <RunStatus status={cutOff ? "failed" : "running"} message={null} what="Your requirements check" />
       {cutOff && retryHref ? (
         <Link href={retryHref} className={`flex min-h-11 items-center ${TEXT_LINK}`}>
-          Try again from Requirements
+          Try again from Regulations
         </Link>
       ) : null}
     </div>
