@@ -27,7 +27,8 @@ const facts = (overrides: Partial<JourneyFacts> = {}): JourneyFacts => ({
   libraryToCheck: 0,
   logoChosen: false,
   brandDescribed: false,
-  websiteLive: false,
+  websiteFinished: false,
+  websiteConnected: false,
   products: 0,
   marketingApproved: false,
   socialPlatforms: [],
@@ -153,6 +154,13 @@ describe("sidebarStatus", () => {
     const status = sidebarStatus(facts({ logoChosen: true, products: 2, marks: new Set(["brand", "website", "marketing", "social"]) }));
     expect(BRAND.map((href) => status[href].state)).toEqual(["done", "done", "done", "done", "done", "done"]);
     expect(sectionState(status, BRAND)).toBe("done");
+  });
+
+  it("counts the website done after the demo finish, a connected site or the already-have mark", () => {
+    expect(sidebarStatus(facts())["/website"].state).toBe("todo");
+    expect(sidebarStatus(facts({ websiteFinished: true }))["/website"].state).toBe("done");
+    expect(sidebarStatus(facts({ websiteConnected: true }))["/website"].state).toBe("done");
+    expect(sidebarStatus(facts({ marks: new Set(["website"]) }))["/website"].state).toBe("done");
   });
 
   it("counts Build your brand done once the owner approves their brand description", () => {

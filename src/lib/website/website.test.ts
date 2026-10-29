@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { siteAddress } from "./existing-site";
 import type { CompletionRequest } from "@/lib/ai";
 import { createMockProvider } from "@/lib/ai/providers/mock";
 import { testProfile } from "@/test/fixtures";
@@ -6,6 +7,20 @@ import { copyFlags, draftWebsite, factsMessage, placeholderCount } from "./conte
 import { checkDomain, domainIdeas, normalizeDomain } from "./domains";
 import { recommendPlatform } from "./recommend";
 import type { WebsiteCopy } from "./types";
+
+describe("siteAddress", () => {
+  it("keeps a plain web address, adding https:// when it's left off", () => {
+    expect(siteAddress("risebakery.com")).toBe("https://risebakery.com");
+    expect(siteAddress(" https://shop.risebakery.com/menu/ ")).toBe("https://shop.risebakery.com/menu");
+    expect(siteAddress("http://risebakery.com")).toBe("http://risebakery.com");
+  });
+
+  it("refuses anything that isn't one, or carries sign-in details", () => {
+    for (const bad of ["", "rise bakery", "localhost", "ftp://risebakery.com", "https://me:secret@risebakery.com", "javascript:alert(1)"]) {
+      expect(siteAddress(bad)).toBeNull();
+    }
+  });
+});
 
 describe("normalizeDomain", () => {
   it("accepts .com and .net names typed the way people type them", () => {

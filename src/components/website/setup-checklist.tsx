@@ -83,14 +83,10 @@ function Paste({ value }: { value: PasteValue }) {
                     <td className="py-1.5 pr-3 font-mono">{record.type}</td>
                     <td className="py-1.5 pr-3 font-mono">{record.host}</td>
                     <td className="py-1.5">
-                      {record.pending ? (
-                        <span className="text-check">{record.value}: shown in Netlify once your site is published</span>
-                      ) : (
-                        <span className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono break-all">{record.value}</span>
-                          <CopyButton text={record.value} label={`${record.type} record value`} />
-                        </span>
-                      )}
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono break-all">{record.value}</span>
+                        <CopyButton text={record.value} label={`${record.type} record value`} />
+                      </span>
                     </td>
                   </tr>
                 ))}

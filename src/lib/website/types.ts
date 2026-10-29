@@ -1,6 +1,6 @@
 // Stored shapes for the website section. Plain types, so the schema can import them.
 
-// "first_sale": First Sale builds the site here and publishes it to a host the owner connects
+// "first_sale": First Sale builds and hosts the site from the owner's choices (a demo for now)
 export const PLATFORMS = ["first_sale", "square", "wix", "shopify"] as const;
 export type PlatformId = (typeof PLATFORMS)[number];
 
@@ -41,4 +41,21 @@ export interface WebsiteContent extends WebsiteCopy {
   platform: PlatformId;
   generatedAt: string;
   simulated: boolean;
+}
+
+// The demo finish of the site First Sale builds. Nothing goes online.
+export interface SiteFinish {
+  at: string;
+  // The version finished, so the page can tell when there are newer changes
+  signature: string;
+}
+
+// A site the owner already has, and its demo connection
+export const EXISTING_PLATFORMS = ["square", "wix", "shopify", "other"] as const;
+export type ExistingPlatform = (typeof EXISTING_PLATFORMS)[number];
+
+export interface ExistingSite {
+  platform: ExistingPlatform;
+  url: string;
+  connectedAt: string;
 }

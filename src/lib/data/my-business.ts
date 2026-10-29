@@ -22,7 +22,6 @@ import { getPlanForOwner, getStepForOwner, replanForOwner, reviewPlanForOwner, s
 import { getResearchBasisForOwner, getResearchForOwner, type ResearchBasis, type ResearchSnapshot, saveResearchForOwner } from "./research";
 import { listConditionAnswersForOwner, setConditionAnswerForOwner } from "./condition-answers";
 import {
-  getHostConnectionForOwner,
   getWebsitePlanForOwner,
   saveWebsitePlanForOwner,
   updateWebsitePlanForOwner,
@@ -370,12 +369,6 @@ export async function getMyMarketing() {
 export async function updateMyMarketing(update: (current: MarketingRecord | null) => MarketingPatch | null) {
   const user = await getCurrentUser();
   return updateMarketingForOwner(getDb(), user.id, update);
-}
-
-// For publishing only; the token inside stays on the server
-export async function getMyHostConnection() {
-  const user = await getCurrentUser();
-  return getHostConnectionForOwner(getDb(), user.id);
 }
 
 // Branding

@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { type ReactNode, useDeferredValue, useId, useLayoutEffect, useState } from "react";
-import { checkPublishAction, disconnectHostAction, publishSiteAction, saveSiteDesignAction } from "@/app/(app)/website/site-actions";
+import { finishSiteAction, saveSiteDesignAction } from "@/app/(app)/website/site-actions";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { Done, LABEL, PickOption, PickTile, SectionHead, Segmented, SOFT } from "@/components/marketing/pieces";
-import { ALERT, INPUT, PRIMARY, SECONDARY, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
+import { ALERT, INPUT, PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles";
 import { Card } from "@/components/ui";
 import {
   buyLinkProblem,
@@ -14,14 +14,16 @@ import {
   isKnownPaymentLink,
   itemFor,
   parseDollars,
+  productPrice,
   SECTION_LABELS,
   SITE_SECTIONS,
   SITE_STYLES,
   type SiteDesign,
   type SiteItem,
+  type SiteProduct,
   STYLE_LABELS,
+  withProducts,
 } from "@/lib/website/site/design";
-import { NETLIFY_CREDITS } from "@/data/netlify-credits";
 import { renderSite, type SiteImage } from "@/lib/website/site/render";
 import type { WebsiteCopy } from "@/lib/website/types";
 import { SiteFrame } from "./site-frame";
@@ -36,23 +38,12 @@ export interface LibraryChoice {
   simulated: boolean;
 }
 
-export interface PublishPanel {
+export interface FinishPanel {
   signature: string;
   blockers: string[];
   notes: string[];
-  // A Netlify app is registered on this copy of First Sale
-  configured: boolean;
-  connected: boolean;
-  // Netlify sent the owner back: "connected" or "failed"
-  returned: string | null;
-  hosting: {
-    url: string;
-    adminUrl: string | null;
-    simulated: boolean;
-    state: "ready" | "processing" | "failed";
-    publishedAt: string;
-    upToDate: boolean;
-  } | null;
+  // The last demo finish; upToDate when nothing has changed since
+  finished: { at: string; upToDate: boolean } | null;
 }
 
 interface Props {
@@ -62,14 +53,15 @@ interface Props {
   images: { logo: SiteImage | null; hero: SiteImage | null; favicon: SiteImage | null };
   library: LibraryChoice[];
   brandColors: { hex: string; name: string }[];
+  products: SiteProduct[];
   contact: { email: string | null; phone: string | null };
   year: number;
   domain: string | null;
   practiceBrand: boolean;
   stepNumber: number;
-  publish: PublishPanel | null;
-  // Shown under the publish controls: doing it by hand
-  publishHelp?: ReactNode;
+  finish: FinishPanel;
+  // Shown under the finish step
+  after?: ReactNode;
 }
 
 const PART = "flex flex-col gap-2.5 border-t border-line pt-5";
@@ -99,26 +91,29 @@ function itemsFrom(drafts: Record<string, ItemDraft>, copy: WebsiteCopy, library
   });
 }
 
-// Step 4 (look and live preview) and, for the site First Sale builds, step 5 (publish)
+// The First Sale site: look and live preview, then the demo finish
 export function SiteStudio(props: Props) {
-  const { copy, saved, library, publish } = props;
+  const { saved, library, finish, products } = props;
   const uid = useId();
   const [design, setDesign] = useState(saved);
+  // The items to edit: the drafted words' items, then saved products that are turned on
+  const copy = withProducts(props.copy, products, design).copy;
+  const savedCopy = withProducts(props.copy, products, saved).copy;
   const [drafts, setDrafts] = useState(() => draftsFrom(saved, copy));
   // Compared by value: other actions on the page refresh it without changing these
   const savedKey = JSON.stringify(saved);
   const namesKey = JSON.stringify(copy.offerings.map((offering) => offering.name));
   const [seen, setSeen] = useState({ saved: savedKey, names: namesKey });
   const [device, setDevice] = useState<"phone" | "computer">("computer");
-  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "publishing">("idle");
-  const [error, setError] = useState<{ at: "design" | "publish"; message: string } | null>(null);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "finishing">("idle");
+  const [error, setError] = useState<{ at: "design" | "finish"; message: string } | null>(null);
   useLayoutEffect(() => () => setError(null), []);
 
   // A newer saved design replaces the editor's contents; new words keep what's typed for items still there
   if (seen.saved !== savedKey) {
     setSeen({ saved: savedKey, names: namesKey });
     setDesign(saved);
-    setDrafts(draftsFrom(saved, copy));
+    setDrafts(draftsFrom(saved, savedCopy));
   } else if (seen.names !== namesKey) {
     setSeen({ saved: savedKey, names: namesKey });
     setDrafts((before) => ({
@@ -134,13 +129,14 @@ export function SiteStudio(props: Props) {
     return problem ? [`${offering.name}: ${problem}`] : [];
   });
   // Items for words that changed since don't count as edits
-  const dirty = JSON.stringify(current) !== JSON.stringify({ ...saved, items: itemsFrom(draftsFrom(saved, copy), copy, library) });
+  const dirty = JSON.stringify(current) !== JSON.stringify({ ...saved, items: itemsFrom(draftsFrom(saved, savedCopy), savedCopy, library) });
 
+  const shown = withProducts(props.copy, products, current);
   const preview = useDeferredValue(
     renderSite({
       name: props.name,
-      copy,
-      design: current,
+      copy: shown.copy,
+      design: shown.design,
       images: { ...props.images, photos: Object.fromEntries(library.map((photo) => [photo.versionId, photo])) },
       contact: props.contact,
       year: props.year,
@@ -159,8 +155,8 @@ export function SiteStudio(props: Props) {
     if (status === "saved") setStatus("idle");
   }
 
-  async function run(next: "saving" | "publishing", action: () => Promise<{ ok: boolean; message?: string }>) {
-    const at = next === "saving" ? "design" : "publish";
+  async function run(next: "saving" | "finishing", action: () => Promise<{ ok: boolean; message?: string }>) {
+    const at = next === "saving" ? "design" : "finish";
     setStatus(next);
     setError(null);
     try {
@@ -181,18 +177,12 @@ export function SiteStudio(props: Props) {
     await run("saving", () => saveSiteDesignAction(current));
   }
 
-  async function publishNow() {
-    if (!publish) return;
-    const real = publish.connected;
-    const question = real
-      ? `Put your site online now? Anyone on the internet will be able to see it. On Netlify’s Free plan, each publish uses ${NETLIFY_CREDITS.perPublish} of your ${NETLIFY_CREDITS.freeMonthly} credits for the month.`
-      : "Run a practice publish? First Sale checks everything, but nothing goes online.";
-    if (!window.confirm(question)) return;
-    // Sent with the publish, so the server refuses if the connection changed since
-    await run("publishing", () => publishSiteAction({ signature: publish.signature, real }));
+  async function finishNow() {
+    // Sent with the finish, so the server refuses a version that changed since
+    await run("finishing", () => finishSiteAction({ signature: finish.signature }));
   }
 
-  const pending = status === "saving" || status === "publishing";
+  const pending = status === "saving" || status === "finishing";
 
   return (
     <>
@@ -200,12 +190,8 @@ export function SiteStudio(props: Props) {
         <SectionHead
           id="step-design"
           number={props.stepNumber}
-          title={publish ? "Design it and see it live" : "See how it could look"}
-          lead={
-            publish
-              ? "This is your real site, drawn from your approved words, brand and items. Change the look below and the preview updates as you go. Nothing goes online until you publish in the next step."
-              : "A preview from your words and brand. Your real site will use the design you pick on your platform, but the prices, photos and colors you set here are copied into the steps below."
-          }
+          title="Design it and see it live"
+          lead="First Sale builds your site from your approved words, brand and items. Make your choices and the preview updates as you go."
         />
         <div className="grid items-start gap-5 @4xl:grid-cols-[minmax(0,21rem)_minmax(0,1fr)]">
           <Card title="Your design" icon="palette" id="design-controls-heading" headingLevel={3} bodyClassName="gap-5">
@@ -278,6 +264,18 @@ export function SiteStudio(props: Props) {
                   onChange={(on) => change({ hidden: on ? design.hidden.filter((each) => each !== section) : [...design.hidden, section] })}
                 />
               ))}
+              {products
+                .filter((product) => !props.copy.offerings.some((offering) => offering.name.trim().toLowerCase() === product.name.trim().toLowerCase()))
+                .map((product) => (
+                  <Check
+                    key={product.id}
+                    label={`${product.name} (from your products)`}
+                    checked={!design.hiddenProducts.includes(product.id)}
+                    onChange={(on) =>
+                      change({ hiddenProducts: on ? design.hiddenProducts.filter((each) => each !== product.id) : [...design.hiddenProducts, product.id] })
+                    }
+                  />
+                ))}
               {props.contact.email ? <Check label={`Email button (${props.contact.email})`} checked={design.showEmail} onChange={(showEmail) => change({ showEmail })} /> : null}
               {props.contact.phone ? <Check label={`Call button (${props.contact.phone})`} checked={design.showPhone} onChange={(showPhone) => change({ showPhone })} /> : null}
               {!props.contact.email && !props.contact.phone ? (
@@ -295,7 +293,7 @@ export function SiteStudio(props: Props) {
               <fieldset className="flex flex-col gap-3 border-t border-line pt-5">
                 <legend className={`${LABEL} float-left mb-2.5 w-full`}>Your items</legend>
                 <p className="text-sm text-muted">
-                  Prices show only if you type them. A buy link opens your own payment page: make one in Stripe or Square (see the steps below), then paste it here.
+                  Prices show only if you type them here or saved them on Add your products. A buy link opens your own payment page from a payment provider like Stripe or Square (see the steps below).
                 </p>
                 {copy.offerings.map((offering, index) => {
                   const draft = drafts[offering.name] ?? { price: "", buyUrl: "", photo: "" };
@@ -320,6 +318,9 @@ export function SiteStudio(props: Props) {
                       />
                       {priceBad ? <p className="text-sm text-danger">Type a dollar amount, like 12 or 12.50.</p> : null}
                       {!priceBad && draft.price.trim() ? <p className="text-sm text-muted">Shows as {dollars(parseDollars(draft.price) ?? 0)}</p> : null}
+                      {!draft.price.trim() && productPrice(products, offering.name) != null ? (
+                        <p className="text-sm text-muted">Shows {dollars(productPrice(products, offering.name) ?? 0)} from your products. Type a price to change it here.</p>
+                      ) : null}
                       <label htmlFor={`${id}-link`} className="text-sm font-semibold">
                         Buy link (optional)
                       </label>
@@ -390,7 +391,7 @@ export function SiteStudio(props: Props) {
                   disabled={pending || !dirty}
                   onClick={() => {
                     setDesign(saved);
-                    setDrafts(draftsFrom(saved, copy));
+                    setDrafts(draftsFrom(saved, savedCopy));
                     setError(null);
                   }}
                   className={SECONDARY}
@@ -432,22 +433,18 @@ export function SiteStudio(props: Props) {
         </div>
       </section>
 
-      {publish ? (
-        <section aria-labelledby="step-publish" className="flex flex-col gap-4">
-          <SectionHead id="step-publish" number={props.stepNumber + 1} title="Publish it" />
-          <Card bodyClassName="gap-4">
-            <PublishControls
-              publish={publish}
-              dirty={dirty}
-              pending={pending}
-              publishing={status === "publishing"}
-              error={error?.at === "publish" ? error.message : null}
-              onPublish={publishNow}
-            />
-          </Card>
-          {props.publishHelp}
-        </section>
-      ) : null}
+      <section aria-labelledby="step-finish" className="flex flex-col gap-4">
+        <SectionHead
+          id="step-finish"
+          number={props.stepNumber + 1}
+          title="Finish your site"
+          lead="First Sale checks your site is ready. This is a demo: nothing is published online."
+        />
+        <Card bodyClassName="gap-4">
+          <FinishControls finish={finish} dirty={dirty} pending={pending} finishing={status === "finishing"} error={error?.at === "finish" ? error.message : null} onFinish={finishNow} />
+        </Card>
+        {props.after}
+      </section>
     </>
   );
 }
@@ -456,103 +453,46 @@ function Check({ label, checked, onChange }: { label: string; checked: boolean; 
   return <PickOption type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} label={label} layout="word" />;
 }
 
-function PublishControls({
-  publish,
+function FinishControls({
+  finish,
   dirty,
   pending,
-  publishing,
+  finishing,
   error,
-  onPublish,
+  onFinish,
 }: {
-  publish: PublishPanel;
+  finish: FinishPanel;
   dirty: boolean;
   pending: boolean;
-  publishing: boolean;
+  finishing: boolean;
   error: string | null;
-  onPublish: () => void;
+  onFinish: () => void;
 }) {
-  const [busy, setBusy] = useState<"disconnecting" | "checking" | null>(null);
-  const [problem, setProblem] = useState<string | null>(null);
-  const { hosting } = publish;
-  const realSite = hosting && !hosting.simulated;
-  const upToDate = Boolean(realSite && hosting.upToDate);
-  const blocked = publish.blockers.length > 0;
-
-  async function act(kind: "disconnecting" | "checking", action: () => Promise<{ ok: boolean; message?: string }>) {
-    setBusy(kind);
-    setProblem(null);
-    try {
-      const result = await action();
-      if (!result.ok) setProblem(result.message ?? "That didn’t work. Try again.");
-    } catch {
-      setProblem("Couldn’t reach First Sale. Check your connection and try again.");
-    } finally {
-      setBusy(null);
-    }
-  }
-
+  const blocked = finish.blockers.length > 0;
+  const { finished } = finish;
   return (
     <div className="flex flex-col gap-4">
-      {publish.returned === "connected" && publish.connected ? (
-        <div role="status">
-          <Done>Netlify is connected. You can publish when you’re ready.</Done>
+      {finished ? (
+        <div role="status" className="flex flex-col gap-1.5 rounded-xl border border-accent-ring bg-accent-tint px-4 py-3.5 text-accent-ink">
+          <p className="flex items-start gap-2.5 font-semibold">
+            <Icon name="check" size="sm" className="mt-1" strokeWidth={2.4} />
+            <span>Your site is ready (demo, not published online).</span>
+          </p>
+          <p className="text-sm">
+            Finished <LocalDate iso={finished.at} />. This step counts as done.
+            {finished.upToDate ? "" : " You’ve changed your site since; finish again to check the new version."}
+          </p>
         </div>
       ) : null}
-      {publish.returned === "failed" ? (
-        <p role="alert" className={ALERT}>
-          Netlify didn’t finish connecting. Try again, and click Authorize on Netlify’s page.
-        </p>
-      ) : null}
 
-      {hosting ? (
-        hosting.simulated ? (
-          <div className="rounded-xl border border-check-ring bg-check-tint px-4 py-3 text-[15px] text-check">
-            <p>
-              <strong>Practice publish</strong> on <LocalDate iso={hosting.publishedAt} />: every check passed, but nothing went online. Connected to Netlify, your site
-              would get an address like <span className="font-mono break-all">{hosting.url}</span>.
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-1.5 rounded-xl border border-accent-ring bg-accent-tint px-4 py-3 text-accent-ink">
-            <p>
-              <strong>
-                {hosting.state === "ready" ? "Your site is online" : hosting.state === "processing" ? "Netlify is putting your site online" : "Your last publish didn’t go live"}
-              </strong>{" "}
-              at{" "}
-              <a href={hosting.url} target="_blank" rel="noopener noreferrer" className={`${TEXT_LINK} break-all`}>
-                {hosting.url}
-                <span className="sr-only"> (opens in a new tab)</span>
-              </a>
-              . {hosting.state === "failed" ? "Tried" : "Published"} <LocalDate iso={hosting.publishedAt} />.
-            </p>
-            {hosting.state === "failed" ? <p className="text-sm">Netlify has your site, but not this version yet. Publish again to finish.</p> : null}
-            {hosting.state === "processing" ? (
-              <div className="flex flex-wrap items-center gap-3 text-sm">
-                <span>Netlify was still finishing when First Sale last asked. It usually takes under a minute.</span>
-                <button type="button" disabled={busy !== null} onClick={() => act("checking", checkPublishAction)} className={SECONDARY}>
-                  {busy === "checking" ? "Checking…" : "Check again"}
-                </button>
-              </div>
-            ) : null}
-            {hosting.state === "ready" && !hosting.upToDate ? <p className="text-sm font-semibold">You’ve changed your site since. Publish again to update it.</p> : null}
-            {hosting.adminUrl ? (
-              <a href={hosting.adminUrl} target="_blank" rel="noopener noreferrer" className={`${TEXT_LINK} w-fit text-sm`}>
-                Open it in Netlify
-                <span className="sr-only"> (opens in a new tab)</span>
-              </a>
-            ) : null}
-          </div>
-        )
-      ) : null}
-
-      {publish.blockers.length ? (
+      {blocked ? (
         <div className="flex flex-col gap-1.5 rounded-xl border border-check-ring bg-check-tint px-4 py-3 text-check">
           <p className="flex items-center gap-2 font-bold">
             <Icon name="info" size="sm" />
-            Before you can publish
+            Before you can finish
           </p>
           <ul className="flex list-disc flex-col gap-1 pl-5">
-            {publish.blockers.map((blocker) => (
+            {finish.blockers.map((blocker) => (
               <li key={blocker}>{blocker}</li>
             ))}
           </ul>
@@ -560,90 +500,28 @@ function PublishControls({
       ) : (
         <Done>Everything First Sale checks is ready.</Done>
       )}
-      {publish.notes.length ? (
+      {finish.notes.length ? (
         <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-rule">
-          {publish.notes.map((note) => (
+          {finish.notes.map((note) => (
             <li key={note}>{note}</li>
           ))}
         </ul>
       ) : null}
 
-      <div className={`${SOFT} flex flex-col gap-2 px-4 py-3.5`}>
-        <p className={LABEL}>Where it goes online</p>
-        {publish.connected ? (
-          <>
-            <p className="text-rule">Connected to your Netlify account. Publishing puts your site there, on Netlify’s Free plan.</p>
-            <p className="text-sm text-rule">
-              The Free plan gives {NETLIFY_CREDITS.freeMonthly} credits a month. Each publish uses {NETLIFY_CREDITS.perPublish}, and visits use a little more. If
-              they run out, Netlify pauses the site until the next month, so publish when you’ve finished a round of changes.{" "}
-              <a href={NETLIFY_CREDITS.source} target="_blank" rel="noopener noreferrer" className={TEXT_LINK}>
-                Netlify pricing
-                <span className="sr-only"> (opens in a new tab)</span>
-              </a>
-              , checked <LocalDate iso={`${NETLIFY_CREDITS.checkedOn}T12:00:00Z`} />.
-            </p>
-            <button
-              type="button"
-              disabled={pending || busy !== null}
-              onClick={() => {
-                if (!window.confirm("Disconnect Netlify? Your site stays online in your Netlify account, but First Sale can’t update it until you connect again.")) return;
-                void act("disconnecting", disconnectHostAction);
-              }}
-              className={`${SECONDARY} w-fit`}
-            >
-              {busy === "disconnecting" ? "Disconnecting…" : "Disconnect Netlify"}
-            </button>
-            <p className="text-sm text-muted">To remove First Sale’s access completely, revoke it in Netlify under your user settings, Applications.</p>
-          </>
-        ) : publish.configured ? (
-          <>
-            <p className="text-rule">
-              Make a free Netlify account (the first item in the next step), then connect it here. On Netlify’s page, click Authorize. First Sale only publishes when you
-              click Publish.
-            </p>
-            <a href="/website/netlify/connect" className={SECONDARY_LINK}>
-              Connect Netlify
-            </a>
-          </>
-        ) : (
-          <p className="text-rule">
-            This copy of First Sale isn’t set up to publish to Netlify for you, so Publish runs every check as a practice run. To put your site online now,
-            download it and drop it on Netlify yourself: the steps are below.
-          </p>
-        )}
-      </div>
-
-      {error || problem ? (
+      {error ? (
         <p role="alert" className={ALERT}>
-          {error ?? problem}
+          {error}
         </p>
       ) : null}
-      {dirty ? <p className="text-sm text-check">Save your design changes in step 4 first, so you publish what you see.</p> : null}
-      {publish.connected && upToDate && !dirty ? (
-        <p className="text-sm text-muted">Nothing has changed since your last publish. Publishing again still uses Netlify credits.</p>
-      ) : null}
+      {dirty ? <p className="text-sm text-check">Save your design changes first, so you finish what you see.</p> : null}
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" disabled={blocked || dirty || pending} onClick={onPublish} className={PRIMARY}>
-          <Icon name="globe" size="sm" />
-          {publishing
-            ? "Publishing…"
-            : publish.connected
-              ? upToDate
-                ? "Publish again"
-                : realSite
-                  ? "Publish my changes"
-                  : "Publish my site"
-              : "Practice publish"}
+        <button type="button" disabled={blocked || dirty || pending || Boolean(finished?.upToDate)} onClick={onFinish} className={PRIMARY}>
+          <Icon name="flag" size="sm" />
+          {finishing ? "Finishing…" : finished ? "Finish again (demo)" : "Finish my site (demo)"}
         </button>
-        {!blocked && !dirty ? (
-          <a href="/website/download" download className={SECONDARY_LINK}>
-            <Icon name="download" size="sm" />
-            Download my site (.zip)
-          </a>
-        ) : null}
       </div>
       <p role="status" className="sr-only">
-        {publishing ? "Publishing your site. This can take a minute." : ""}
+        {finishing ? "Checking your site." : ""}
       </p>
     </div>
   );

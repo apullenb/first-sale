@@ -5,7 +5,7 @@ import type { BusinessProfile } from "@/lib/domain";
 import { knownNumbers, numberFlags } from "@/lib/documents/business-plan";
 import { OwnerFacingError } from "@/lib/errors";
 import { CHANNEL_LABELS, OFFERING_KIND_LABELS, STATE_NAMES } from "@/lib/intake/options";
-import { firstYearCost } from "./costs";
+import { costSummary } from "./costs";
 import type { PlatformInfo } from "./platforms";
 import { sellsProducts } from "./recommend";
 
@@ -85,7 +85,7 @@ const EXPLAIN_SYSTEM = `You explain one website option to a first-time small bus
 - overview: what it is, in two or three sentences.
 - whatItsLike: what building and running a site with it is like day to day.
 - goodFit: why it might fit this owner's business, tied to their answers. watchOut: what might not fit, honestly.
-- firstYear: what the first year could cost, using only prices in <option>. Show the arithmetic. If prices aren't given, say to check the option's own pricing page.
+- firstYear: what the first year could cost, using only prices in <option>. Show the arithmetic. If prices aren't given, say to check the option's own pricing page. If demoPrice is true, say the price is a demo price, not final.
 - stillNeed: things the owner will still need that the option doesn't include, from <option>.
 - Use only facts given. Never invent prices, fees, features, limits or promises.`;
 
@@ -106,9 +106,9 @@ export function factsKey(facts: unknown): string {
   return createHash("sha256").update(JSON.stringify(facts)).digest("hex").slice(0, 16);
 }
 
-// What "Explain more" gets for a built-in option: the card's facts and first-year total, without the setup steps
+// What "Explain more" gets for a built-in option: the card's facts and cost totals, without the setup steps
 export function platformFacts(info: PlatformInfo) {
-  return { ...info, firstYear: firstYearCost(info), setupSteps: undefined, sources: undefined, domainSetup: undefined, stepsCheckedOn: undefined };
+  return { ...info, costs: costSummary(info), setupSteps: undefined, sources: undefined, domainSetup: undefined, stepsCheckedOn: undefined };
 }
 
 export function explanationKey(profile: BusinessProfile, facts: unknown): string {
@@ -262,13 +262,13 @@ registerMockFixture(EXPLAIN_SCHEMA_NAME, (request) => {
   const text = typeof last?.content === "string" ? last.content : "";
   const name = text.match(/<option name="([^"]*)">/)?.[1] ?? "This option";
   const factsJson = text.match(/<option[^>]*>\n([\s\S]*?)\n<\/option>/)?.[1];
-  const facts = factsJson ? (JSON.parse(factsJson) as { oneLine?: string; notIncluded?: { item: string }[] }) : {};
+  const facts = factsJson ? (JSON.parse(factsJson) as { oneLine?: string; youDo?: { text: string }[] }) : {};
   return JSON.stringify({
     overview: `${name}. ${facts.oneLine ?? ""} Practice mode can’t explain options in depth; connect the AI service for a full explanation.`.trim(),
     whatItsLike: "[Practice mode: no explanation]",
     goodFit: "[Practice mode: no explanation]",
     watchOut: "[Practice mode: no explanation]",
     firstYear: "See the prices listed on this option.",
-    stillNeed: (facts.notIncluded ?? []).map((item) => item.item).slice(0, 6),
+    stillNeed: (facts.youDo ?? []).map((task) => task.text).slice(0, 6),
   });
 });

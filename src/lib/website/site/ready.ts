@@ -2,8 +2,8 @@ import { placeholderCount } from "@/lib/website/words";
 import type { PlatformId, WebsiteContent } from "@/lib/website/types";
 import { buyLinkProblem, itemFor, type SiteDesign, shows } from "./design";
 
-// Plain rules for whether the built site can go online. Blockers stop publishing, practice runs and downloads alike;
-// notes are shown, not enforced.
+// Plain rules for whether the site First Sale builds can be finished (a demo: nothing goes online).
+// Blockers stop the finish; notes are shown, not enforced.
 
 export interface PublishCheck {
   platform: PlatformId | null;
@@ -29,7 +29,7 @@ export function publishReadiness(check: PublishCheck): Readiness {
   const blockers: string[] = [];
   const notes: string[] = [];
 
-  if (check.platform !== "first_sale") blockers.push("Choose “First Sale site” in step 1 to publish from here.");
+  if (check.platform !== "first_sale") blockers.push("Choose “First Sale site” in step 1 to finish it here.");
   if (!check.named) blockers.push("Give your business a name in your answers first.");
   if (!content) {
     blockers.push("Draft your words in step 3.");
@@ -53,11 +53,12 @@ export function publishReadiness(check: PublishCheck): Readiness {
     blockers.push("Show a way for customers to reach you: turn on the Contact part, with your words, email or phone.");
   }
 
+  // Fine for a demo; a real site would need its own pictures
   if (check.practiceBrand) {
-    blockers.push("Your logo or header picture is a practice preview, not made for your business. Turn it off in step 4, or make or upload a real one on the Create your logo page.");
+    notes.push("Your logo or header picture is a practice preview, not made for your business. Replace it before a real launch.");
   }
   if (check.practicePhotos) {
-    blockers.push(`${check.practicePhotos} item ${check.practicePhotos === 1 ? "photo is a practice preview" : "photos are practice previews"}. Pick another photo or none.`);
+    notes.push(`${check.practicePhotos} item ${check.practicePhotos === 1 ? "photo is a practice preview" : "photos are practice previews"}. Replace ${check.practicePhotos === 1 ? "it" : "them"} before a real launch.`);
   }
 
   if (items.length && !items.some(({ item }) => item?.buyUrl)) {

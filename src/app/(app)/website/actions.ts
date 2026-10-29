@@ -31,7 +31,9 @@ const NO_BUSINESS = "Tell us about your business first.";
 export async function choosePlatformAction(platform: unknown): Promise<ActionResult> {
   const parsed = z.enum(PLATFORMS).nullable().safeParse(platform);
   if (!parsed.success) return { ok: false, message: "Pick one of the options." };
-  if (!(await saveMyWebsitePlan({ platform: parsed.data }))) return { ok: false, message: NO_BUSINESS };
+  // A demo finish belongs to the First Sale site
+  const patch = parsed.data === "first_sale" ? { platform: parsed.data } : { platform: parsed.data, finished: null };
+  if (!(await saveMyWebsitePlan(patch))) return { ok: false, message: NO_BUSINESS };
   refresh();
   return { ok: true, value: null };
 }

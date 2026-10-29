@@ -5,12 +5,10 @@ import type { WebsiteContent, WebsiteCopy } from "@/lib/website/types";
 import { placeholderCount } from "@/lib/website/words";
 import type { BrandKit } from "@/lib/brand/types";
 import { testProfile } from "@/test/fixtures";
-import { bundleSite } from "./bundle";
 import { publishCheck, type SiteState, siteSignature } from "./check";
-import { buyLinkProblem, defaultDesign, dollars, isKnownPaymentLink, parseDollars, readDesign, type SiteDesign } from "./design";
+import { buyLinkProblem, defaultDesign, dollars, isKnownPaymentLink, itemFor, parseDollars, productPrice, readDesign, type SiteDesign, withProducts } from "./design";
 import { publishReadiness, type PublishCheck } from "./ready";
 import { emailHref, phoneHref, renderSite, type SiteInput } from "./render";
-import { crc32, zipFiles } from "./zip";
 
 const copy: WebsiteCopy = {
   headline: "Fresh bread in Columbus",
@@ -68,6 +66,26 @@ describe("site design rules", () => {
     const read = readDesign({ style: "bold", color: "red", hidden: ["faq"], items: "nope" }, "#AABBCC");
     expect(read).toMatchObject({ style: "bold", color: "#aabbcc", hidden: ["faq"], items: [], showLogo: true });
     expect(readDesign(null, "not a color").color).toBe("#1e6b52");
+  });
+
+  it("adds saved products after the drafted items, unless turned off or already there", () => {
+    const products = [
+      { id: "p1", name: "Country sourdough loaf", description: "Naturally leavened.", priceCents: 950 },
+      { id: "p2", name: "sourdough", description: "Same as the drafted one.", priceCents: 800 },
+    ];
+    const shown = withProducts(copy, products, design());
+    expect(shown.copy.offerings.map((offering) => offering.name)).toEqual(["Sourdough", "Cinnamon rolls", "Country sourdough loaf"]);
+    // An item with no price of its own shows its product's price; one the owner typed stays
+    expect(shown.design.items.map((item) => [item.name, item.priceCents])).toEqual([
+      ["Sourdough", 800],
+      ["Country sourdough loaf", 950],
+    ]);
+    const typed = design({ items: [{ name: "Sourdough", priceCents: 700, buyUrl: "", photo: null }] });
+    expect(itemFor(withProducts(copy, products, typed).design, "sourdough")?.priceCents).toBe(700);
+    expect(withProducts(copy, products, design({ hiddenProducts: ["p1"] })).copy.offerings).toHaveLength(2);
+    expect(productPrice(products, "Sourdough")).toBe(800);
+    expect(productPrice(products, "Bagels")).toBeNull();
+    expect(readDesign({ hiddenProducts: "nope" }, "#1e6b52").hiddenProducts).toEqual([]);
   });
 
   it("finds the asset id in a brand file link", () => {
@@ -140,33 +158,6 @@ describe("renderSite", () => {
   });
 });
 
-describe("bundleSite", () => {
-  const png = { mimeType: "image/png", data: new Uint8Array([1, 2, 3]), width: 10, height: 10 };
-  const jpeg = { mimeType: "image/jpeg", data: new Uint8Array([4, 5]), width: 10, height: 10 };
-  const base = { name: "Rise Bakery", copy, contact: { email: null, phone: null }, year: 2026 };
-
-  it("copies the pictures the page shows next to it, with relative paths", () => {
-    const shown = design({ items: [{ name: "Sourdough", priceCents: null, buyUrl: "", photo: { photoId: "p1", versionId: "v1" } }] });
-    const { files } = bundleSite({ ...base, design: shown }, { logo: png, hero: png, favicon: null, photos: { v1: jpeg, v2: jpeg } });
-    expect(files.map((file) => file.path)).toEqual(["index.html", "assets/item-1.jpg", "assets/logo.png", "assets/header.png"]);
-    const html = new TextDecoder().decode(files[0].body);
-    expect(html).toContain(`src="assets/logo.png"`);
-    expect(html).toContain(`src="assets/item-1.jpg"`);
-  });
-
-  it("leaves out turned-off pictures and unknown file types", () => {
-    const { files } = bundleSite({ ...base, design: design({ showLogo: false }) }, { logo: png, hero: { ...png, mimeType: "image/bmp" }, favicon: png, photos: {} });
-    expect(files.map((file) => file.path)).toEqual(["index.html"]);
-  });
-
-  it("changes its hash whenever a file does", () => {
-    const one = bundleSite({ ...base, design: design() }, { logo: png, hero: null, favicon: null, photos: {} });
-    const two = bundleSite({ ...base, design: design() }, { logo: { ...png, data: new Uint8Array([9]) }, hero: null, favicon: null, photos: {} });
-    expect(one.hash).not.toBe(two.hash);
-    expect(bundleSite({ ...base, design: design() }, { logo: png, hero: null, favicon: null, photos: {} }).hash).toBe(one.hash);
-  });
-});
-
 describe("publishReadiness", () => {
   const content: WebsiteContent = { ...copy, flags: [], platform: "first_sale", generatedAt: "2026-10-28T00:00:00Z", simulated: false };
   const check = (patch: Partial<PublishCheck> = {}): PublishCheck => ({
@@ -202,8 +193,10 @@ describe("publishReadiness", () => {
     expect(publishReadiness(check({ design: design({ hidden: ["contact"] }) })).blockers[0]).toMatch(/reach you/);
   });
 
-  it("keeps practice pictures off the site", () => {
-    expect(publishReadiness(check({ practiceBrand: true, practicePhotos: 2 })).blockers).toHaveLength(2);
+  it("notes practice pictures without blocking the demo finish", () => {
+    const { blockers, notes } = publishReadiness(check({ practiceBrand: true, practicePhotos: 2 }));
+    expect(blockers).toEqual([]);
+    expect(notes.join(" ")).toMatch(/practice preview/);
   });
 
   it("notes what isn't enforced", () => {
@@ -236,6 +229,7 @@ describe("saved site checks", () => {
     brand,
     brandPractice: { logo: false, hero: false, icon: false },
     library: [{ id: "v1", photoId: "p1", width: 10, height: 10, simulated: false }],
+    products: [],
     contact: { email: "hello@risebakery.com", phone: null },
     year: 2026,
     ...patch,
@@ -256,6 +250,11 @@ describe("saved site checks", () => {
     expect(siteSignature(state({ design: design({ showLogo: false }) }))).not.toBe(base);
     expect(siteSignature(state({ content: { ...content, about: "A new story." } }))).not.toBe(base);
     expect(siteSignature(state({ library: [] }))).not.toBe(base);
+    // A saved product joins the site, so adding or repricing one changes it too
+    const loaf = { id: "p9", name: "Country loaf", description: "Naturally leavened.", priceCents: 950 };
+    const withLoaf = siteSignature(state({ products: [loaf] }));
+    expect(withLoaf).not.toBe(base);
+    expect(siteSignature(state({ products: [{ ...loaf, priceCents: 1000 }] }))).not.toBe(withLoaf);
     // Bookkeeping alone doesn't count
     expect(siteSignature(state({ content: { ...content, generatedAt: "2026-10-29T00:00:00Z" } }))).toBe(base);
   });
@@ -265,38 +264,5 @@ describe("placeholderCount", () => {
   it("counts only notes in the words, not the lists that hold them", () => {
     expect(placeholderCount(copy)).toBe(0);
     expect(placeholderCount({ ...copy, faq: [{ question: "Hours?", answer: "[Add your hours]" }] })).toBe(1);
-  });
-});
-
-describe("zipFiles", () => {
-  it("computes the standard CRC-32", () => {
-    expect(crc32(new TextEncoder().encode("hello"))).toBe(0x3610a686);
-  });
-
-  it("writes a stored zip any unzip tool can read", () => {
-    const files = [
-      { path: "index.html", body: new TextEncoder().encode("<p>hi</p>") },
-      { path: "assets/logo.png", body: new Uint8Array([1, 2, 3]) },
-    ];
-    const zip = zipFiles(files, new Date("2026-10-28T12:00:00Z"));
-    const view = new DataView(zip.buffer);
-    expect(view.getUint32(0, true)).toBe(0x04034b50);
-    const end = zip.byteLength - 22;
-    expect(view.getUint32(end, true)).toBe(0x06054b50);
-    expect(view.getUint16(end + 10, true)).toBe(2);
-    // Walk the central directory back to each file's bytes
-    let at = view.getUint32(end + 16, true);
-    for (const file of files) {
-      expect(view.getUint32(at, true)).toBe(0x02014b50);
-      const nameLength = view.getUint16(at + 28, true);
-      const name = new TextDecoder().decode(zip.subarray(at + 46, at + 46 + nameLength));
-      const local = view.getUint32(at + 42, true);
-      const size = view.getUint32(at + 24, true);
-      const start = local + 30 + view.getUint16(local + 26, true);
-      expect(name).toBe(file.path);
-      expect(zip.subarray(start, start + size)).toEqual(file.body);
-      expect(view.getUint32(at + 16, true)).toBe(crc32(file.body));
-      at += 46 + nameLength;
-    }
   });
 });

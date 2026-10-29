@@ -149,9 +149,9 @@ describe("explainOption", () => {
     const explanation = await explainOption(createMockProvider(), {
       profile: testProfile(),
       name: "Square",
-      facts: { oneLine: "A free store.", notIncluded: [{ item: "Your own web address" }] },
+      facts: { oneLine: "A free store.", youDo: [{ text: "Add your items" }] },
     });
-    expect(explanation).toMatchObject({ simulated: true, stillNeed: ["Your own web address"] });
+    expect(explanation).toMatchObject({ simulated: true, stillNeed: ["Add your items"] });
     expect(explanation.overview).toMatch(/Practice mode/);
   });
 });
