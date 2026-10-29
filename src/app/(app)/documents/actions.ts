@@ -18,8 +18,9 @@ import {
   updateMyDocument,
 } from "@/lib/data/my-business";
 import type { CreateOutcome, StoredDocument } from "@/lib/data/documents";
-import { DETAILS, detailProblem, displayDetail, isDecisionKey, isDetailKey, looksLikeIdNumber } from "@/lib/details";
-import { draftBusinessPlan, knownNumbers, MAX_PLAN_INPUT, numberFlags, PLAN_QUESTIONS, type PlanQuestionKey } from "@/lib/documents/business-plan";
+import { DETAILS, detailProblem, isDecisionKey, isDetailKey, looksLikeIdNumber } from "@/lib/details";
+import { businessPlanPdf, draftBusinessPlan, planVersion } from "@/lib/documents/business-plan";
+import { answerItems, answerText, cleanAnswer, knownFacts, MAX_FACT, MAX_OTHER, type PlanAnswers, planQuestions, sellsOf, withOverrides } from "@/lib/documents/plan-facts";
 import { askAboutForm, draftAnswers, explainForm, factsFor, MAX_QUESTION, mustFillYourself } from "@/lib/documents/companion";
 import { answerSheet, fillPdfCopy } from "@/lib/documents/fill";
 import { stepGuidance } from "@/lib/documents/guidance";
@@ -35,6 +36,7 @@ import { isKept } from "@/lib/documents/library";
 import { readDocument } from "@/lib/documents/read";
 import { explainReceived } from "@/lib/documents/received";
 import { runWorkflow } from "@/lib/workflow-runner";
+import { myPlanSources } from "./business-plan/sources";
 
 const NOT_FOUND = "That document wasn’t found. It may have been deleted.";
 const id = z.string().min(1).max(60);
@@ -461,44 +463,71 @@ export async function deleteDocumentAction(documentId: unknown): Promise<ActionR
 
 // --- Business plan
 
-const inputsSchema = z.record(z.string(), z.string().max(MAX_PLAN_INPUT));
+const ID_NUMBERS = "Leave Social Security and tax id numbers out of your business plan.";
+const NO_ROOM = "There’s no room left in Documents. Delete documents you don’t need, then try again.";
+const PLAN_CHANGED = "Your plan changed in another window. Reload the page to see the latest version.";
+
+const planInputSchema = z.object({
+  picks: z.record(z.string().max(40), z.object({ picks: z.array(z.string().max(40)).max(20), other: z.string().max(MAX_OTHER * 2).nullable() })),
+  overrides: z.record(z.string().max(40), z.string().max(MAX_FACT)),
+});
 
 async function currentBusinessPlan(): Promise<StoredDocument | null> {
   const docs = await listMyDocuments();
   return docs.find((doc) => doc.generatedKind === "business_plan") ?? null;
 }
 
+// Drafts the plan from what First Sale knows, the owner's edits to it and their answers. Facts are read again here, never taken from the page.
 export async function draftBusinessPlanAction(input: unknown): Promise<ActionResult<string>> {
-  const parsed = inputsSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, message: `Keep each answer under ${MAX_PLAN_INPUT.toLocaleString("en-US")} characters.` };
-  const answers: Partial<Record<PlanQuestionKey, string>> = {};
-  for (const question of PLAN_QUESTIONS) {
-    const value = parsed.data[question.key]?.trim();
-    if (value && looksLikeIdNumber(value)) return { ok: false, message: "Leave Social Security and tax id numbers out of your business plan." };
-    if (value) answers[question.key] = value;
-  }
-  const business = await getMyBusiness();
-  if (!business?.profile) return { ok: false, message: "Tell us about your business first." };
-  const profile = business.profile;
-  const existing = await currentBusinessPlan();
+  const parsed = planInputSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Keep each answer shorter, then try again." };
+  const sources = await myPlanSources();
+  if (!sources) return { ok: false, message: "Tell us about your business first." };
 
+  const known = knownFacts(sources);
+  const overrides = Object.fromEntries(
+    known.flatMap((fact) => {
+      const value = parsed.data.overrides[fact.key]?.trim();
+      return value && value !== fact.value ? [[fact.key, value]] : [];
+    }),
+  );
+  const basis = { profile: sources.profile, known: known.map((fact) => fact.key) };
+  // Which questions apply can hang on the "sells" answer, so that one is checked first
+  const sellsQuestion = planQuestions(basis).find((question) => question.key === "sells");
+  const sells = sellsQuestion ? cleanAnswer(sellsQuestion, parsed.data.picks.sells) : null;
+  const questions = planQuestions(basis, sells ? { sells } : {});
+  const picks: PlanAnswers = {};
+  for (const question of questions) {
+    const answer = cleanAnswer(question, parsed.data.picks[question.key]);
+    if (answer) picks[question.key] = answer;
+  }
+  if ([...Object.values(overrides), ...Object.values(picks).map((answer) => answer.other ?? "")].some(looksLikeIdNumber)) return { ok: false, message: ID_NUMBERS };
+
+  const answered = questions.filter((question) => picks[question.key]);
+  const existing = await currentBusinessPlan();
   const result = await runWorkflow("business_plan", null, async () => {
-    const [plan, details] = await Promise.all([getMyPlan(), getMyDetails()]);
-    const structure = details.find((detail) => detail.key === "structure_choice");
     const sections = await draftBusinessPlan(getModel(), {
-      profile,
-      answers,
-      steps: (plan?.steps ?? []).map((step) => ({ title: step.title, done: step.status === "done" })),
-      structure: structure ? displayDetail("structure_choice", structure.value) : null,
+      facts: withOverrides(known, overrides).map(({ key, label, value }) => ({ key, label, value })),
+      answers: answered.map((question) => ({ key: question.key, question: question.title, answer: answerItems(question, picks[question.key]) })),
+      steps: sources.steps,
+      sells: sellsOf(sources.profile, picks),
       userKey: await myAiKey(),
     });
-    const draft = { sections, inputs: answers, approvedAt: null, simulated: getModel().simulated };
+    const draft = {
+      sections,
+      // Answers as text, for marketing and the website to read back
+      inputs: Object.fromEntries(answered.map((question) => [question.key, answerText(question, picks[question.key])])),
+      answers: { picks, overrides, was: Object.fromEntries(known.filter((fact) => overrides[fact.key]).map((fact) => [fact.key, fact.value])) },
+      approvedAt: null,
+      simulated: getModel().simulated,
+      draftedAt: new Date().toISOString(),
+    };
     if (existing) {
       await updateMyDocument(existing.id, { draft });
       return existing.id;
     }
     const created = await createMyDocument({
-      title: `Business plan for ${displayName(profile)}`.slice(0, 120),
+      title: `Business plan for ${displayName(sources.profile)}`.slice(0, 120),
       origin: "generated",
       generatedKind: "business_plan",
       mimeType: "application/pdf",
@@ -507,54 +536,57 @@ export async function draftBusinessPlanAction(input: unknown): Promise<ActionRes
       content: EMPTY_CONTENT,
       draft,
     });
-    if (!created.ok) throw new OwnerFacingError("Your document library is full. Delete documents you don’t need, then try again.");
+    if (!created.ok) throw new OwnerFacingError(NO_ROOM);
     return created.id;
   });
   refresh();
   return result;
 }
 
-const sectionsSchema = z.object({
+const saveSchema = z.object({
   documentId: id,
-  sections: z.array(z.object({ key: z.string().max(40), heading: z.string().max(120), body: z.string().max(6000) })).max(12),
-  approve: z.boolean(),
+  // The version the edits were made to, so a newer draft isn't overwritten
+  version: z.string().max(40),
+  sections: z.array(z.object({ key: z.string().max(40), heading: z.string().max(120), body: z.string().max(8000) })).max(12),
+  pdf: z.boolean(),
 });
 
-// Saves the owner's edits; approving also makes the PDF that goes in the library
-export async function saveBusinessPlanAction(input: unknown): Promise<ActionResult> {
-  const parsed = sectionsSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, message: "Keep each section under 6,000 characters." };
-  if (parsed.data.sections.some((section) => looksLikeIdNumber(`${section.heading} ${section.body}`))) {
-    return { ok: false, message: "Leave Social Security and tax id numbers out of your business plan." };
-  }
+// Saves the owner's edits as they go; with `pdf`, also writes the PDF kept in Documents
+export async function saveBusinessPlanAction(input: unknown): Promise<ActionResult<{ version: string; savedAt: string | null }>> {
+  const parsed = saveSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Keep each section under 8,000 characters." };
+  if (parsed.data.sections.some((section) => looksLikeIdNumber(`${section.heading} ${section.body}`))) return { ok: false, message: ID_NUMBERS };
   const doc = await load(parsed.data.documentId);
   if (!doc || doc.generatedKind !== "business_plan" || !doc.draft) return { ok: false, message: NOT_FOUND };
+  const before = doc.draft;
+  if (planVersion(before.sections) !== parsed.data.version) return { ok: false, message: PLAN_CHANGED };
+  if (parsed.data.sections.map((section) => section.key).join() !== before.sections.map((section) => section.key).join()) return { ok: false, message: PLAN_CHANGED };
 
-  const business = await getMyBusiness();
-  const flaggedBefore = new Map(doc.draft.sections.map((section) => [section.key, section.flags]));
-  const known = knownNumbers(JSON.stringify(doc.draft.inputs) + JSON.stringify(business?.profile ?? {}));
-  const sections: PlanSection[] = parsed.data.sections.map((section) => ({
-    key: section.key,
-    heading: section.heading.trim() || "Section",
-    body: section.body.trim(),
-    // A flagged number stays flagged until it's changed or removed
-    flags: numberFlags(section.body, known).filter((flag) => (flaggedBefore.get(section.key) ?? []).includes(flag)),
-  }));
+  const flaggedBefore = new Map(before.sections.map((section) => [section.key, section.flags]));
+  const sections: PlanSection[] = parsed.data.sections.map((section) => {
+    const body = section.body.trim();
+    return {
+      key: section.key,
+      heading: section.heading.trim() || "Section",
+      body,
+      // A flagged number stays flagged until it's changed or removed
+      flags: (flaggedBefore.get(section.key) ?? []).filter((flag) => body.includes(flag.match(/“([^”]+)”/)?.[1] ?? "")),
+    };
+  });
 
   const now = new Date();
-  const approvedAt = parsed.data.approve ? now.toISOString() : null;
-  const patch: Parameters<typeof updateMyDocument>[1] = { draft: { ...doc.draft, sections, approvedAt } };
-  if (parsed.data.approve) {
-    patch.data = await writePdf({
-      title: doc.title,
-      subtitle: `Approved ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
-      notice: doc.draft.simulated ? "Practice draft: written by built-in rules, not by the AI service." : undefined,
-      blocks: sections.map((section) => ({ heading: section.heading, paragraphs: [section.body] })),
-      footer: "Business plan made with First Sale",
-    });
+  const unchanged = planVersion(sections) === parsed.data.version;
+  // Saving the same text again leaves the PDF current
+  const savedAt = parsed.data.pdf ? now.toISOString() : unchanged ? before.approvedAt : null;
+  const patch: Parameters<typeof updateMyDocument>[1] = { draft: { ...before, sections, approvedAt: savedAt } };
+  if (parsed.data.pdf) {
+    patch.data = await writePdf(businessPlanPdf(doc.title, sections, now, before.simulated));
     patch.mimeType = "application/pdf";
   }
-  if (!(await updateMyDocument(doc.id, patch))) return { ok: false, message: NOT_FOUND };
-  refresh();
-  return { ok: true, value: null };
+  const version = parsed.data.version;
+  if (!(await updateMyDocument(doc.id, patch, (current) => Boolean(current.draft) && planVersion(current.draft!.sections) === version))) {
+    return { ok: false, message: PLAN_CHANGED };
+  }
+  if (parsed.data.pdf) refresh();
+  return { ok: true, value: { version: planVersion(sections), savedAt } };
 }

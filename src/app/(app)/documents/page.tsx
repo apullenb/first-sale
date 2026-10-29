@@ -5,7 +5,6 @@ import { AgreementCard } from "@/components/documents/agreement-card";
 import { HowDocumentsAreHandled } from "@/components/documents/how-handled";
 import { formatBytes } from "@/components/documents/labels";
 import { LibraryList } from "@/components/documents/library-list";
-import { WhoDoesWhat } from "@/components/documents/parts";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
@@ -139,31 +138,26 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
 }
 
 function BusinessPlanCard({ plan }: { plan: StoredDocument | null }) {
-  const approvedAt = plan?.draft?.approvedAt ?? null;
+  const savedAt = plan?.hasFile ? (plan.draft?.approvedAt ?? null) : null;
+  const drafted = Boolean(plan?.draft?.sections.length);
   return (
     <Card title="Your business plan" icon="book" id="plan-card-heading" className="flex flex-col" bodyClassName="flex-1">
       <p className="text-rule">
-        A business plan describes what you sell, who buys it, and how you’ll run the business. Banks, lenders and programs that help new businesses often ask
-        for one, and writing it helps you think things through.
+        A formal plan that describes what you sell, who buys it, and how you’ll run the business. Banks, lenders and programs that help new businesses often ask
+        for one. First Sale fills in what it already knows and asks only what’s missing.
       </p>
-      <WhoDoesWhat
-        items={[
-          ["ai", "AI drafts it from your answers."],
-          ["owner", "You edit and approve it."],
-        ]}
-      />
-      {plan ? (
-        approvedAt ? (
-          <Chip tone="accent" icon="check">
-            Approved <LocalDate iso={approvedAt} />
-          </Chip>
-        ) : (
-          <Chip tone="gray">Draft, not approved yet</Chip>
-        )
+      {savedAt ? (
+        <Chip tone="accent" icon="check">
+          Saved as a PDF <LocalDate iso={savedAt} />
+        </Chip>
+      ) : plan?.hasFile ? (
+        <Chip tone="warn">Changed since the PDF was saved</Chip>
+      ) : drafted ? (
+        <Chip tone="gray">Drafted, not saved as a PDF yet</Chip>
       ) : null}
-      <Link href="/documents/business-plan" className={`${plan ? SECONDARY_LINK : PRIMARY_LINK} mt-auto`}>
-        <Icon name="pencil" size="sm" />
-        {plan ? "Open your business plan" : "Start your business plan"}
+      <Link href="/documents/business-plan" className={`${drafted ? SECONDARY_LINK : PRIMARY_LINK} mt-auto`}>
+        <Icon name={drafted ? "pencil" : "sparkles"} size="sm" />
+        {drafted ? "Open your business plan" : "Generate your business plan"}
       </Link>
     </Card>
   );

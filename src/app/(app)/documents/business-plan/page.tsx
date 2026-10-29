@@ -1,16 +1,17 @@
-import { createHash } from "node:crypto";
 import Link from "next/link";
 import { Suspense } from "react";
-import { BackToLibrary, WhoDoesWhat } from "@/components/documents/parts";
+import { BackToLibrary } from "@/components/documents/parts";
 import { PlanEditor } from "@/components/documents/plan-editor";
-import { PlanQuestions } from "@/components/documents/plan-questions";
+import { PlanInputs } from "@/components/documents/plan-inputs";
 import { RunNotice } from "@/components/documents/run-notice";
-import { PracticeBanner } from "@/components/practice-banner";
 import { Icon } from "@/components/icons";
+import { PracticeBanner } from "@/components/practice-banner";
 import { PRIMARY_LINK } from "@/components/styles";
 import { Card, PageHead } from "@/components/ui";
 import { getMyBusiness, lastMyRun, listMyDocuments } from "@/lib/data/my-business";
-import { MAX_PLAN_INPUT, PLAN_QUESTIONS } from "@/lib/documents/business-plan";
+import { planVersion } from "@/lib/documents/business-plan";
+import { knownFacts, restoreAnswers } from "@/lib/documents/plan-facts";
+import { myPlanSources } from "./sources";
 
 export const metadata = { title: "Business plan" };
 // Drafting waits on a long AI call
@@ -29,7 +30,7 @@ export default function BusinessPlanPage() {
             </span>
           }
           title="Your business plan"
-          lead="A business plan describes what you sell, who buys it, and how you’ll run the business. Answer a few questions, get a first draft, then make it yours."
+          lead="A formal plan that describes your business, what you sell, who buys it and how you’ll run it. Check what First Sale already knows, answer a few questions, then review the draft and save it."
         />
       </div>
       <Suspense fallback={<p className="text-muted">Loading your business plan…</p>}>
@@ -40,15 +41,14 @@ export default function BusinessPlanPage() {
 }
 
 async function Plan() {
-  const [business, documents, run] = await Promise.all([getMyBusiness(), listMyDocuments(), lastMyRun("business_plan", null)]);
+  const [sources, documents, run] = await Promise.all([myPlanSources(), listMyDocuments(), lastMyRun("business_plan", null)]);
 
-  if (!business?.profile) {
+  if (!sources) {
+    const business = await getMyBusiness();
     return (
       <Card title={business ? "Update your answers first" : "Start with your business"} icon="store" id="plan-blocked-heading">
         <p className="text-rule">
-          {business
-            ? "Some of your business answers need updating before a plan can be drafted."
-            : "Tell us about your business first. Your plan is drafted from your answers."}
+          {business ? "Some of your business answers need updating before a plan can be drafted." : "Tell us about your business first. Your plan is drafted from your answers."}
         </p>
         <Link href={business ? "/business/edit" : "/business/new"} className={PRIMARY_LINK}>
           {business ? "Update your answers" : "Tell us about your business"}
@@ -57,44 +57,32 @@ async function Plan() {
     );
   }
 
+  const facts = knownFacts(sources);
+  const basis = { profile: sources.profile, known: facts.map((fact) => fact.key) };
   const doc = documents.find((candidate) => candidate.generatedKind === "business_plan") ?? null;
   const draft = doc?.draft ?? null;
-  const signature = draft
-    ? createHash("sha256").update(JSON.stringify([draft.sections, draft.approvedAt])).digest("hex").slice(0, 16)
-    : "";
+  const drafted = Boolean(doc && draft?.sections.length);
 
   return (
     <>
-      <WhoDoesWhat
-        items={[
-          ["ai", "AI drafts the plan from your answers. It doesn’t make up numbers: any it adds are flagged for you to check."],
-          ["owner", "You edit it and approve it. Approving saves a PDF to your documents."],
-        ]}
-      />
-
-      {draft?.simulated ? <PracticeBanner what="This business plan was drafted in practice mode." /> : null}
       <RunNotice run={run} what="Drafting your business plan" />
 
-      <Card title="About your plan" icon="clipboard" id="plan-questions-heading">
-        <PlanQuestions
-          questions={PLAN_QUESTIONS.map(({ key, label, hint }) => ({ key, label, hint }))}
-          initial={draft?.inputs ?? {}}
-          maxInput={MAX_PLAN_INPUT}
-          hasDraft={Boolean(draft)}
-        />
-      </Card>
+      <PlanInputs
+        facts={facts}
+        basis={basis}
+        initial={restoreAnswers(basis, facts, draft?.answers, draft?.inputs ?? {})}
+        hasDraft={drafted}
+      />
 
-      {doc && draft ? (
-        <Card title="Your draft" icon="book" id="plan-editor-heading">
-          <p className="text-rule">
-            Read each section and change anything that isn’t right. Words in [brackets] are notes for you to replace with
-            your own details.
-          </p>
+      {doc && draft && drafted ? (
+        <Card title="Review your plan" icon="book" id="plan-review-heading">
+          {draft.simulated ? <PracticeBanner what="This business plan was drafted in practice mode." /> : null}
           <PlanEditor
+            key={draft.draftedAt ?? "draft"}
             documentId={doc.id}
             sections={draft.sections}
-            signature={signature}
-            approvedAt={draft.approvedAt}
+            version={planVersion(draft.sections)}
+            savedAt={doc.hasFile ? draft.approvedAt : null}
             hasFile={doc.hasFile}
           />
         </Card>

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { PLATFORM_DATA } from "@/data/website-platforms";
 import { DETAILS, type DetailKey, displayDetail } from "@/lib/details";
-import { knownNumbers, PLAN_QUESTIONS } from "@/lib/documents/business-plan";
+import { knownNumbers, PLAN_ANSWER_LABELS } from "@/lib/documents/business-plan";
 import type { BusinessProfile, TaskStatus } from "@/lib/domain";
 import { formatLaunchDate, profileToAnswers, summarize } from "@/lib/intake/answers";
 import { STATUS_LABELS, type RequirementStatus } from "@/lib/research/applicability";
@@ -68,9 +68,9 @@ export function buildInputs(sources: InsightSources): InsightInputs {
         timing: step.timing,
         optional: step.requirementStatus === "optional" || step.requirementStatus === "outside_coverage",
       })),
-    planAnswers: PLAN_QUESTIONS.flatMap((question) => {
-      const answer = sources.planInputs?.[question.key]?.trim();
-      return answer ? [{ question: question.label, answer }] : [];
+    planAnswers: Object.entries(PLAN_ANSWER_LABELS).flatMap(([key, question]) => {
+      const answer = sources.planInputs?.[key]?.trim();
+      return answer ? [{ question, answer }] : [];
     }),
     brand:
       brief || sources.brand?.chosenLogoId

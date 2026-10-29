@@ -57,7 +57,7 @@ describe("insight facts", () => {
     expect(inputs.decisions).toEqual([{ label: "Business structure you chose", value: "Limited liability company (LLC)" }]);
     expect(inputs.steps.map((step) => step.key)).toEqual(["llc", "sales-tax"]);
     expect(inputs.research?.requirements.map((each) => each.title)).toEqual(["Cottage food rules"]);
-    expect(inputs.planAnswers).toEqual([{ question: "Who will buy from you?", answer: "Neighbors and market shoppers" }]);
+    expect(inputs.planAnswers).toEqual([{ question: "Who are your main customers?", answer: "Neighbors and market shoppers" }]);
     expect(message).toContain("sourdough loaves");
     expect(message).toContain("Under $1,000");
     expect(message).toContain("Square");
