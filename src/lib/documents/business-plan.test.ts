@@ -88,7 +88,7 @@ describe("draftBusinessPlan", () => {
     const text = sections.map((section) => section.body).join("\n");
     expect(text).toContain("[Add your town and state]");
     expect(text).toContain("[Describe your main customers]");
-    expect(text).toContain("[List the licenses and registrations the business needs. Check your regulations to list them.]");
+    expect(text).toContain("[List the licenses and registrations the business needs. Find what applies to you to list them.]");
     expect(sections.find((section) => section.key === "offering")?.heading).toBe("Products");
   });
 

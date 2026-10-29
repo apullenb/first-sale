@@ -9,7 +9,7 @@ const STEPS_CHECKED = "2026-10-28";
 
 const PHOTOS = { label: "Make store-ready photos", href: "/photos" };
 const BRAND = { label: "Make your logo and brand images", href: "/brand" };
-const TAX_STEP = { label: "See the sales tax step in your plan", href: "/checklist" };
+const TAX_STEP = { label: "See your tax steps in Start your business", href: "/start" };
 const ADDRESS = { label: "Pick your web address", href: "/website#step-address" };
 const DESIGN = { label: "Set prices, photos and buy links on this page", href: "/website#step-design" };
 const PUBLISH = { label: "Publish from this page", href: "/website#step-publish" };

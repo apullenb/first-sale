@@ -37,6 +37,24 @@ export async function getResearchForOwner(db: Db, ownerId: string): Promise<Rese
   );
 }
 
+// Just what deciding what applies needs: the answers and structure the last check ran on
+export interface ResearchBasis {
+  checkedAt: Date;
+  profileKey: string;
+  profile: ResearchSnapshot["profile"];
+  structure: string | null;
+}
+
+export async function getResearchBasisForOwner(db: Db, ownerId: string): Promise<ResearchBasis | null> {
+  const [row] = await db
+    .select({ checkedAt: researchSnapshots.checkedAt, profileKey: researchSnapshots.profileKey, profile: researchSnapshots.profile, structure: researchSnapshots.structure })
+    .from(researchSnapshots)
+    .innerJoin(businesses, eq(businesses.id, researchSnapshots.businessId))
+    .where(eq(businesses.ownerId, ownerId))
+    .limit(1);
+  return row ?? null;
+}
+
 // Replaces the owner's last results in one go, unless a run that started later already saved.
 // False when the owner has no business.
 export async function saveResearchForOwner(

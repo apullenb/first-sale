@@ -40,10 +40,11 @@ export function Areas() {
                 <>
                   <Icon name="arrow" size="xs" className="text-faint" />
                   <span>
-                    Covered in Step 4,{" "}
-                    <Link href="/checklist" className="text-accent underline underline-offset-[3px] hover:text-accent-ink">
-                      Licenses and registrations
+                    Covered after{" "}
+                    <Link href="/requirements" className="text-accent underline underline-offset-[3px] hover:text-accent-ink">
+                      What applies to you
                     </Link>
+                    , in your paperwork
                   </span>
                 </>
               )}

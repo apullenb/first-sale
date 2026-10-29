@@ -7,20 +7,7 @@ import { PLATFORM_DATA } from "@/data/marketing-platforms";
 import { PLATFORM_DATA as WEBSITE_PLATFORMS } from "@/data/website-platforms";
 import { getModel } from "@/lib/ai";
 import type { MarketingRecord } from "@/lib/data/marketing";
-import {
-  createMyDocument,
-  getMyBrand,
-  getMyBrandState,
-  getMyBusiness,
-  getMyMarketing,
-  getMyPlan,
-  getMyWebsitePlan,
-  listMyDocuments,
-  listMyPhotoLibrary,
-  myAiKey,
-  updateMyDocument,
-  updateMyMarketing,
-} from "@/lib/data/my-business";
+import { createMyDocument, getMyBrand, getMyBrandState, getMyBusiness, getMyMarketing, getMyPaperwork, getMyWebsitePlan, listMyDocuments, listMyPhotoLibrary, myAiKey, updateMyDocument, updateMyMarketing } from "@/lib/data/my-business";
 import { type PdfBlock, writePdf } from "@/lib/documents/pdf-writer";
 import { EMPTY_CONTENT } from "@/lib/documents/types";
 import { OwnerFacingError } from "@/lib/errors";
@@ -53,12 +40,11 @@ async function stepContext() {
 }
 
 async function gatherFacts(intake: MarketingIntake): Promise<Omit<MarketingFacts, "profile">> {
-  const [documents, brandState, startup, { brand, website, context }] = await Promise.all([listMyDocuments(), getMyBrandState(), getMyPlan(), stepContext()]);
+  const [documents, brandState, paper, { brand, website, context }] = await Promise.all([listMyDocuments(), getMyBrandState(), getMyPaperwork(), stepContext()]);
   const businessPlan = documents.find((doc) => doc.generatedKind === "business_plan");
   const brief = brandState?.brief ?? null;
-  const required = (startup?.steps ?? []).filter(
-    (step) => step.timing === "before_selling" && step.requirementStatus !== "optional" && step.requirementStatus !== "outside_coverage",
-  );
+  // Only steps that apply, counted as Today counts them
+  const required = (paper?.basis ? paper.view.tasks : []).map((task) => task.step).filter((step) => step.timing === "before_selling");
   return {
     intake,
     planAnswers: Object.fromEntries(Object.entries(businessPlan?.draft?.inputs ?? {}).filter(([key, value]) => PLAN_ANSWERS.includes(key) && value.trim())),

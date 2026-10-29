@@ -103,8 +103,8 @@ function Panel({ pathname, status, business, account }: PanelProps) {
   return (
     // Sized to fit a laptop screen; scrolls only on very short ones
     <div className={`flex h-full flex-col gap-0.5 overflow-y-auto rounded-[18px] bg-sidebar px-3.5 pb-2.5 pt-3 text-white shadow-lift [scrollbar-width:thin] ${SIDEBAR_FOCUS}`}>
-      <div className="border-b border-white/10 px-1.5 pb-2.5">
-        <Link href="/" className="flex min-h-11 w-fit items-center gap-2.5" title="Step by step from your idea to your first sale">
+      <div className="border-b border-white/10 px-1.5 pb-2.5 short:pb-1">
+        <Link href="/" className="flex min-h-11 w-fit items-center gap-2.5 short:min-h-10" title="Step by step from your idea to your first sale">
           <LogoMark className="bg-accent text-white" />
           <span className="text-[22px] font-extrabold tracking-[-0.03em]">
             First <span className="text-sky">Sale</span>
@@ -112,7 +112,7 @@ function Panel({ pathname, status, business, account }: PanelProps) {
         </Link>
       </div>
       {business ? (
-        <Link href="/business" className="mx-0.5 mb-1 mt-2.5 flex flex-col gap-0.5 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2.5 transition hover:border-white/25">
+        <Link href="/business" className="mx-0.5 mb-1 mt-2.5 flex flex-col gap-0.5 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2.5 transition hover:border-white/25 short:mt-1.5 short:py-1.5">
           <span className="font-display text-[17px] leading-tight text-white">{business.name}</span>
           <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-white/60">
             {business.place ? <span>{business.place}</span> : null}

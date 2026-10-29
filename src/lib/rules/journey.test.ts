@@ -1,21 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { type JourneyInput, journeyStages, nextMove } from "./journey";
 
+const licenses = { name: "Licenses and permits, part 1 of 2", href: "/start/licenses-1" };
+
 const base: JourneyInput = {
   business: "done",
   businessSummary: "Answers saved for Rise Bakery.",
   researched: true,
   answersChanged: false,
-  structure: { structure: "llc", from: "decision" },
-  plan: { steps: 6, proposal: false, beforeSelling: { total: 4, done: 1 }, first: { id: "s2", title: "Get an EIN", later: false, structure: false } },
+  structure: { structure: "llc", from: "decision", recorded: true },
+  questions: 0,
+  plan: {
+    steps: 6,
+    proposal: false,
+    beforeSelling: { total: 4, done: 1 },
+    first: { id: "s2", title: "Get an EIN", later: false, group: licenses },
+    waitsOnStructure: false,
+  },
   documents: { total: 2, waiting: 0 },
 };
 
+const undecided = { structure: null, from: null, recorded: true } as const;
 const states = (input: JourneyInput) => journeyStages(input).map((stage) => [stage.href, stage.state]);
 
 describe("nextMove", () => {
   it("starts with the business when there isn't one", () => {
-    const start: JourneyInput = { ...base, business: "none", businessSummary: null, researched: false, structure: { structure: null, from: null }, plan: { ...base.plan, steps: 0, first: null } };
+    const start: JourneyInput = { ...base, business: "none", businessSummary: null, researched: false, structure: { structure: null, from: null, recorded: false }, plan: { ...base.plan, steps: 0, first: null } };
     expect(nextMove(start)).toMatchObject({ href: "/business/new", action: "Start here", stepId: null });
   });
 
@@ -23,31 +33,33 @@ describe("nextMove", () => {
     expect(nextMove({ ...base, business: "update", plan: { ...base.plan, proposal: true } }).href).toBe("/business/edit");
   });
 
-  it("puts plan changes waiting for review ahead of the next step", () => {
-    expect(nextMove({ ...base, plan: { ...base.plan, proposal: true } }).href).toBe("/checklist");
+  it("goes to Business structure after the business answers, and moves on once “Not sure yet” is recorded", () => {
+    const fresh: JourneyInput = { ...base, researched: false, structure: { structure: null, from: null, recorded: false }, plan: { ...base.plan, steps: 0, first: null } };
+    expect(nextMove(fresh)).toMatchObject({ href: "/structure", stage: "/structure" });
+    expect(nextMove({ ...fresh, structure: undecided })).toMatchObject({ href: "/requirements", action: "Find what applies to me" });
+    expect(nextMove({ ...fresh, structure: { structure: "sole_proprietorship", from: "registered", recorded: false } }).href).toBe("/requirements");
   });
 
-  it("finds requirements before there's a plan", () => {
-    expect(nextMove({ ...base, researched: false, plan: { ...base.plan, steps: 0, first: null } })).toMatchObject({ href: "/requirements", action: "Find my requirements" });
+  it("shows what changed answers mean, then plan changes to review, then the quick questions", () => {
+    expect(nextMove({ ...base, answersChanged: true, plan: { ...base.plan, proposal: true } }).action).toBe("See what changed");
+    expect(nextMove({ ...base, questions: 2, plan: { ...base.plan, proposal: true } })).toMatchObject({ href: "/requirements#review", stage: "/requirements" });
+    expect(nextMove({ ...base, questions: 2 })).toMatchObject({ title: "Answer 2 quick questions", href: "/requirements#questions", stage: "/requirements" });
+    expect(nextMove({ ...base, questions: 1 }).title).toBe("Answer a quick question");
   });
 
-  it("shows what changed answers mean before the next step", () => {
-    expect(nextMove({ ...base, answersChanged: true }).action).toBe("See what changed");
-  });
-
-  it("opens the plan's next step", () => {
+  it("then opens the next task in the first paperwork group", () => {
     expect(nextMove(base)).toEqual({
       title: "Get an EIN",
-      why: "This is your next step before your first sale.",
+      why: "Next in Licenses and permits, part 1 of 2.",
       href: "/checklist/s2",
       action: "Open this step",
       stepId: "s2",
-      stage: "/checklist",
+      stage: "/start",
     });
   });
 
   it("says a later step comes after the first sale once everything before it is done", () => {
-    const later = { id: "s9", title: "File your franchise tax report", later: true, structure: false };
+    const later = { id: "s9", title: "File your franchise tax report", later: true, group: { name: "After you open", href: "/start/after-you-open" } };
     expect(nextMove({ ...base, plan: { ...base.plan, beforeSelling: { total: 4, done: 4 }, first: later } }).why).toMatch(/is done. This one comes later/);
     // Steps before selling still waiting: never says they're done
     expect(nextMove({ ...base, plan: { ...base.plan, first: later } }).why).toMatch(/^Your other steps are waiting/);
@@ -61,72 +73,66 @@ describe("nextMove", () => {
     expect(nextMove({ ...base, plan: { ...base.plan, first: null } }).title).toBe("Wait to hear back");
   });
 
-  it("asks for a structure when the plan has nothing to start", () => {
-    expect(nextMove({ ...base, structure: { structure: null, from: null }, plan: { ...base.plan, first: null } }).href).toBe("/structure");
+  it("asks for a structure when the filings left wait on it", () => {
+    expect(nextMove({ ...base, structure: undecided, plan: { ...base.plan, first: null, waitsOnStructure: true } }).href).toBe("/structure");
   });
 
-  it("checks again when research found no steps", () => {
+  it("checks again when research found nothing to file", () => {
     expect(nextMove({ ...base, plan: { ...base.plan, steps: 0, first: null } }).action).toBe("Check again");
   });
 });
 
 describe("journeyStages", () => {
-  it("marks the first open stage as up next and later ones not started", () => {
-    expect(states({ ...base, business: "none", researched: false, structure: { structure: null, from: null }, plan: { ...base.plan, steps: 0, first: null }, documents: { total: 0, waiting: 0 } })).toEqual([
+  it("puts Business structure before the check, and marks the first open stage up next", () => {
+    const start: JourneyInput = { ...base, business: "none", researched: false, structure: { structure: null, from: null, recorded: false }, plan: { ...base.plan, steps: 0, first: null }, documents: { total: 0, waiting: 0 } };
+    expect(states(start)).toEqual([
       ["/business", "now"],
-      ["/requirements", "todo"],
       ["/structure", "todo"],
-      ["/checklist", "todo"],
+      ["/requirements", "todo"],
+      ["/start", "todo"],
       ["/documents", "anytime"],
     ]);
+    expect(journeyStages(start).map((stage) => stage.title)).toEqual(["Your business", "Business structure", "What applies to you", "Licenses and registrations", "Documents"]);
   });
 
-  it("shows done stages and the plan's progress", () => {
+  it("shows done stages and the paperwork's progress", () => {
     const stages = journeyStages(base);
     expect(stages.map((stage) => stage.state)).toEqual(["done", "done", "done", "now", "anytime"]);
-    expect(stages[2].detail).toBe("You chose an LLC.");
+    expect(stages[1].detail).toBe("You chose an LLC.");
     expect(stages[3].detail).toBe("1 of 4 steps done before your first sale.");
     expect(stages[4].detail).toMatch(/^2 documents/);
   });
 
-  it("marks up next where the next move points, even before an earlier open stage", () => {
-    const choose = { id: "s1", title: "Choose a business structure", later: false, structure: true };
-    const other = { id: "s5", title: "Keep your home business within Austin’s limits", later: false, structure: false };
-    const undecided: JourneyInput = { ...base, structure: { structure: null, from: null } };
-    expect(journeyStages({ ...undecided, plan: { ...base.plan, first: choose } }).map((stage) => stage.state).slice(2, 4)).toEqual(["now", "todo"]);
-    expect(journeyStages({ ...undecided, plan: { ...base.plan, first: other } }).map((stage) => stage.state).slice(2, 4)).toEqual(["todo", "now"]);
+  it("keeps What applies to you open while questions are left", () => {
+    const stages = journeyStages({ ...base, questions: 3 });
+    expect(stages[2]).toMatchObject({ state: "now", detail: "3 quick questions left to answer." });
   });
 
-  it("sends the structure step to Business structure, not back into the plan", () => {
-    const choose = { id: "s1", title: "Choose a business structure", later: false, structure: true };
-    const move = nextMove({ ...base, structure: { structure: null, from: null }, plan: { ...base.plan, first: choose } });
-    expect(move).toMatchObject({ href: "/structure", stepId: null, stage: "/structure", action: "Compare your options" });
-  });
-
-  it("says when research found no steps", () => {
-    expect(journeyStages({ ...base, plan: { ...base.plan, steps: 0, first: null } })[3].detail).toBe("Your last check didn’t turn up any steps.");
+  it("says when the owner isn't sure of a structure yet, without holding up the check", () => {
+    const stages = journeyStages({ ...base, structure: undecided, researched: false, plan: { ...base.plan, steps: 0, first: null } });
+    expect(stages[1]).toMatchObject({ state: "todo", detail: expect.stringMatching(/not sure yet/) });
+    expect(stages[2].state).toBe("now");
   });
 
   it("marks stages that wait on the owner, without moving up next past them", () => {
     expect(states({ ...base, answersChanged: true, plan: { ...base.plan, proposal: true }, documents: { total: 3, waiting: 1 } })).toEqual([
       ["/business", "done"],
-      ["/requirements", "check"],
       ["/structure", "done"],
-      ["/checklist", "check"],
+      ["/requirements", "check"],
+      ["/start", "todo"],
       ["/documents", "check"],
     ]);
   });
 
-  it("finishes the plan stage when every step before selling is done", () => {
-    const plan = journeyStages({ ...base, plan: { ...base.plan, beforeSelling: { total: 4, done: 4 }, first: null } })[3];
-    expect(plan).toMatchObject({ state: "done", detail: "All 4 steps before your first sale are done." });
-  });
-
-  it("finishes the plan stage when nothing has to come before selling", () => {
+  it("finishes the paperwork stage when every step before selling is done, or none has to be", () => {
+    expect(journeyStages({ ...base, plan: { ...base.plan, beforeSelling: { total: 4, done: 4 }, first: null } })[3]).toMatchObject({
+      state: "done",
+      detail: "All 4 steps before your first sale are done.",
+    });
     expect(journeyStages({ ...base, plan: { ...base.plan, beforeSelling: { total: 0, done: 0 }, first: null } })[3].state).toBe("done");
   });
 
   it("names a structure the business already registered as", () => {
-    expect(journeyStages({ ...base, structure: { structure: "sole_proprietorship", from: "registered" } })[2].detail).toBe("Already registered as a sole proprietorship.");
+    expect(journeyStages({ ...base, structure: { structure: "sole_proprietorship", from: "registered", recorded: false } })[1].detail).toBe("Already registered as a sole proprietorship.");
   });
 });

@@ -4,7 +4,7 @@ import {
   getMyBrandState,
   getMyBusiness,
   getMyDetails,
-  getMyPlan,
+  getMyPaperwork,
   getMyResearch,
   getMyWebsitePlan,
   listMyDocuments,
@@ -14,11 +14,11 @@ import { buildInputs, type InsightInputs } from "./facts";
 
 // Everything the insights read, for the signed-in owner. Null until they've answered the intake.
 export async function gatherMyInsightInputs(): Promise<InsightInputs | null> {
-  const [business, details, research, plan, documents, brand, kit, website, photos] = await Promise.all([
+  const [business, details, research, paper, documents, brand, kit, website, photos] = await Promise.all([
     getMyBusiness(),
     getMyDetails(),
     getMyResearch(),
-    getMyPlan(),
+    getMyPaperwork(),
     listMyDocuments(),
     getMyBrandState(),
     getMyBrand(),
@@ -30,7 +30,8 @@ export async function gatherMyInsightInputs(): Promise<InsightInputs | null> {
     profile: business.profile,
     details,
     research,
-    steps: plan?.steps ?? [],
+    // Only steps that apply, with what applies now
+    steps: (paper?.basis ? paper.view.tasks : []).map((task) => ({ ...task.step, requirementStatus: task.requirementStatus, conditions: task.conditions })),
     planInputs: documents.find((doc) => doc.generatedKind === "business_plan")?.draft?.inputs ?? null,
     brand,
     brandColors: kit?.colors ?? [],

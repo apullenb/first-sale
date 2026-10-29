@@ -92,6 +92,8 @@ export function researchedRequirement(overrides: Partial<VerifiedRequirement & C
     conditions: [],
     fitsStructure: true,
     alreadyHave: null,
+    question: null,
+    answer: null,
     ...base,
     ...overrides,
   };

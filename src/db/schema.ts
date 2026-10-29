@@ -29,7 +29,7 @@ import {
   type BusinessProfile,
   type BusinessStructure,
 } from "@/lib/domain";
-import { REQUIREMENT_STATUSES } from "@/lib/research/applicability";
+import { CONDITION_ANSWERS, REQUIREMENT_STATUSES } from "@/lib/research/applicability";
 import { DOCUMENT_ROLES } from "@/lib/documents/library";
 import type {
   DocumentContent,
@@ -238,6 +238,8 @@ export const checklistTasks = pgTable(
     renewal: jsonb("renewal").$type<{ text: string; feeCents: number | null }>(),
     jurisdiction: text("jurisdiction").notNull().default(""),
     alreadyHave: text("already_have"),
+    // The model's condition, asked of the owner; empty when it doesn't depend on one
+    question: text("question").notNull().default(""),
     // Filing progress: submitted, then done once the office approves; never set by opening a link
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
     submissionNote: text("submission_note"),
@@ -712,6 +714,19 @@ export const journeyMarks = pgTable(
     createdAt: createdAt(),
   },
   (table) => [primaryKey({ columns: [table.businessId, table.key] })],
+);
+
+// The owner's yes, no or not sure to "does this apply to you?", by step and the condition's wording, so a reworded condition is asked again
+export const conditionAnswers = pgTable(
+  "condition_answers",
+  {
+    businessId: businessId(),
+    stepKey: text("step_key").notNull(),
+    condition: text("condition").notNull(),
+    answer: text("answer", { enum: CONDITION_ANSWERS }).notNull(),
+    answeredAt: timestamp("answered_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.businessId, table.stepKey, table.condition] })],
 );
 
 // Pictures the owner adds to their Brand Library, kept byte for byte. Generated files stay in their own tables.

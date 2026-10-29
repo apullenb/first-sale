@@ -60,6 +60,21 @@ describe("classify", () => {
     expect(result.conditions[0]).toBe("Only if you sell taxable goods.");
   });
 
+  it("settles the model's condition with a yes, and keeps it open for no and not sure", () => {
+    const taxed = checked({ applicability: "conditional", condition: "Only if you sell taxable goods." });
+    expect(classify(taxed, profile, place, undecided)).toMatchObject({ status: "conditional", question: "Only if you sell taxable goods.", answer: null });
+    expect(classify(taxed, profile, place, undecided, "yes")).toMatchObject({ status: "verified", conditions: [], answer: "yes" });
+    expect(classify({ ...taxed, verification: "needs_verification" }, profile, place, undecided, "yes").status).toBe("needs_confirmation");
+    for (const answer of ["no", "unsure"] as const) {
+      expect(classify(taxed, profile, place, undecided, answer)).toMatchObject({ status: "conditional", conditions: ["Only if you sell taxable goods."], answer });
+    }
+    // A yes never settles the rules' own conditions, and an answer to nothing is ignored
+    const city = checked({ applicability: "conditional", condition: "Only if you sell taxable goods.", level: "city" });
+    expect(classify(city, profile, { ...place, insideCity: "unknown" }, undecided, "yes").status).toBe("conditional");
+    expect(classify(checked(), profile, place, undecided, "no")).toMatchObject({ status: "verified", answer: null });
+    expect(classify(checked({ applicability: "conditional" }), profile, place, undecided).question).toMatch(/couldn’t tell/);
+  });
+
   it("notes registrations the owner says they already have", () => {
     const owner = testProfile({ alreadyHave: ["ein", "sales_tax"] });
     expect(classify(checked({ key: "ein", title: "Get an EIN" }), owner, place, undecided).alreadyHave).toMatch(/already have an EIN/);

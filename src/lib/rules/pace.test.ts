@@ -1,26 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { launchPace, minutesByTopic } from "./pace";
-
-describe("minutesByTopic", () => {
-  it("sums the owner's time by kind of step, largest first", () => {
-    const { parts, restMinutes } = minutesByTopic([{ topic: "license_permit" }, { topic: "structure" }, { topic: "license_permit" }, {}]);
-    expect(parts).toEqual([
-      { topic: "license_permit", minutes: 90 },
-      { topic: "structure", minutes: 20 },
-      { topic: "other", minutes: 20 },
-    ]);
-    expect(restMinutes).toBe(0);
-  });
-
-  it("folds the smallest kinds into the rest past the limit", () => {
-    const { parts, restMinutes } = minutesByTopic([{ topic: "employer" }, { topic: "license_permit" }, { topic: "tax_registration" }, { topic: "structure" }]);
-    expect(parts).toEqual([
-      { topic: "employer", minutes: 60 },
-      { topic: "license_permit", minutes: 45 },
-    ]);
-    expect(restMinutes).toBe(50);
-  });
-});
+import { launchPace } from "./pace";
 
 describe("launchPace", () => {
   it("counts an hour of work a day and calls a week or more to spare on track", () => {

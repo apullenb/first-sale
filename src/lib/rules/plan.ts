@@ -1,5 +1,5 @@
 import type { BusinessStructure, JurisdictionLevel, PlanTopic, RequirementDraft, TaskStatus, VerificationState } from "@/lib/domain";
-import type { RequirementStatus } from "@/lib/research/applicability";
+import { questionOf, type RequirementStatus } from "@/lib/research/applicability";
 import { orderTasks } from "./checklist";
 
 // Plain code: AI drafts each requirement, these rules turn checked requirements into ordered steps.
@@ -44,6 +44,8 @@ export interface PlanTaskDraft {
   // The government whose rule it is, such as "State of Texas"
   jurisdiction: string;
   alreadyHave: string | null;
+  // The model's condition, asked of the owner on What applies to you; empty when it doesn't depend on one
+  question: string;
 }
 
 // The rule-written part of a step, for plans saved before it existed
@@ -55,6 +57,7 @@ export const PLAN_DEFAULTS = {
   renewal: null,
   jurisdiction: "",
   alreadyHave: null,
+  question: "",
 } satisfies Partial<PlanTaskDraft>;
 
 type CheckedRequirement = RequirementDraft & {
@@ -158,6 +161,7 @@ export function buildPlan(
       renewal: requirement.renewal ? { text: requirement.renewal, feeCents: requirement.renewalFeeUsd === null ? null : Math.round(requirement.renewalFeeUsd * 100) } : null,
       jurisdiction: [...new Set(cited.filter((source) => source.government).map((source) => source.government))].join(", "),
       alreadyHave: requirement.alreadyHave ?? null,
+      question: questionOf(requirement) ?? "",
     };
   });
 

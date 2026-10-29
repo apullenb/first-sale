@@ -1,6 +1,7 @@
 import type { BusinessStructure } from "@/lib/domain";
 import { STRUCTURE_NAMES } from "@/lib/research/applicability";
 import { getSection } from "@/lib/sections";
+import { PAPERWORK_PLACEHOLDER } from "./section-status";
 
 // Plain code: how far the owner is through starting the business, and the one thing to do next.
 
@@ -14,14 +15,20 @@ export interface JourneyInput {
   researched: boolean;
   // Answers changed since the requirements were checked
   answersChanged: boolean;
-  structure: { structure: BusinessStructure | null; from: "decision" | "registered" | null };
+  // recorded: the owner answered on Business structure, even "Not sure yet"
+  structure: { structure: BusinessStructure | null; from: "decision" | "registered" | null; recorded: boolean };
+  // Quick questions and place answers still open on What applies to you
+  questions: number;
   plan: {
+    // Paperwork tasks that apply
     steps: number;
     proposal: boolean;
-    // Required before selling; optional steps and later ones left out
+    // Required before selling; later ones left out
     beforeSelling: { total: number; done: number };
-    // later: it comes after the first sale; structure: it's the step that chooses one
-    first: { id: string; title: string; later: boolean; structure: boolean } | null;
+    // later: it comes after the first sale
+    first: { id: string; title: string; later: boolean; group: { name: string; href: string } } | null;
+    // Filings that can't start until a structure is chosen
+    waitsOnStructure: boolean;
   };
   documents: { total: number; waiting: number };
 }
@@ -38,16 +45,19 @@ export interface NextMove {
   why: string;
   href: string;
   action: string;
-  // Set when the next move is a step in the plan
+  // Set when the next move is a task
   stepId: string | null;
-  // The stage it belongs to, by section
+  // The stage it belongs to
   stage: string;
 }
 
+const PAPERWORK = "/start";
+
 export function journeyStages(input: JourneyInput): Stage[] {
-  const stage = (href: string, state: StageState, detail: string): Stage => ({ href, title: getSection(href).title, state, detail });
+  const stage = (href: string, state: StageState, detail: string, title = getSection(href).title): Stage => ({ href, title, state, detail });
   const { plan, structure, documents } = input;
   const ready = plan.beforeSelling.done === plan.beforeSelling.total;
+  const paperwork = (state: StageState, detail: string) => stage(PAPERWORK, state, detail, PAPERWORK_PLACEHOLDER.title);
 
   const stages = [
     input.business === "done"
@@ -55,21 +65,25 @@ export function journeyStages(input: JourneyInput): Stage[] {
       : input.business === "update"
         ? stage("/business", "check", "Some answers need a quick update.")
         : stage("/business", "todo", "Where you are, what you sell, and who owns it."),
+    structure.structure
+      ? stage("/structure", "done", `${structure.from === "registered" ? "Already registered as" : "You chose"} ${STRUCTURE_NAMES[structure.structure]}.`)
+      : structure.recorded
+        ? stage("/structure", "todo", "You’re not sure yet. Filings that depend on it wait until you choose.")
+        : stage("/structure", "todo", "Compare a sole proprietorship, an LLC and more, then choose."),
     !input.researched
       ? stage("/requirements", "todo", "Not checked yet. First Sale checks official government sites for you.")
       : input.answersChanged
         ? stage("/requirements", "check", "Your answers changed since they were checked.")
-        : stage("/requirements", "done", "Checked on official government sites."),
-    structure.structure
-      ? stage("/structure", "done", `${structure.from === "registered" ? "Already registered as" : "You chose"} ${STRUCTURE_NAMES[structure.structure]}.`)
-      : stage("/structure", "todo", "Compare a sole proprietorship, an LLC and more, then choose."),
-    plan.proposal
-      ? stage("/checklist", "check", "Changes to your plan are waiting for your review.")
-      : !plan.steps
-        ? stage("/checklist", "todo", input.researched ? "Your last check didn’t turn up any steps." : "Built from your requirements once they’re checked.")
-        : ready
-          ? stage("/checklist", "done", plan.beforeSelling.total ? `All ${plan.beforeSelling.total} steps before your first sale are done.` : "Nothing in your plan has to come before your first sale.")
-          : stage("/checklist", "todo", `${plan.beforeSelling.done} of ${plan.beforeSelling.total} steps done before your first sale.`),
+        : plan.proposal
+          ? stage("/requirements", "check", "A re-check changed some steps. They wait for your OK.")
+          : input.questions
+            ? stage("/requirements", "todo", `${input.questions} quick ${input.questions === 1 ? "question" : "questions"} left to answer.`)
+            : stage("/requirements", "done", "Checked on official government sites, and every question answered."),
+    !plan.steps
+      ? paperwork("todo", input.researched ? (plan.waitsOnStructure ? "Your filings wait on your business structure." : "Nothing to file has turned up yet.") : "Shows up once you find what applies to you.")
+      : ready
+        ? paperwork("done", plan.beforeSelling.total ? `All ${plan.beforeSelling.total} steps before your first sale are done.` : "Nothing has to come before your first sale.")
+        : paperwork("todo", `${plan.beforeSelling.done} of ${plan.beforeSelling.total} steps done before your first sale.`),
     documents.waiting
       ? stage("/documents", "check", `${documents.waiting === 1 ? "A form needs" : `${documents.waiting} forms need`} your review.`)
       : stage(
@@ -85,6 +99,7 @@ export function journeyStages(input: JourneyInput): Stage[] {
   return stages.map((each) => (each.href === current && each.state === "todo" ? { ...each, state: "now" } : each));
 }
 
+// Your business, then the structure ("Not sure yet" counts), then the check and its questions, then the paperwork
 export function nextMove(input: JourneyInput): NextMove {
   const move = (title: string, why: string, href: string, action: string): NextMove => ({
     title,
@@ -92,7 +107,7 @@ export function nextMove(input: JourneyInput): NextMove {
     href,
     action,
     stepId: null,
-    stage: href.startsWith("/business") ? "/business" : href,
+    stage: href.startsWith("/business") ? "/business" : href.startsWith("/requirements") ? "/requirements" : href.startsWith("/start") ? PAPERWORK : href,
   });
   const { plan } = input;
   if (input.business === "none") {
@@ -101,39 +116,53 @@ export function nextMove(input: JourneyInput): NextMove {
   if (input.business === "update") {
     return move("Update your business answers", "Some questions changed since you answered them. Your answers decide what applies to you.", "/business/edit", "Update your answers");
   }
-  if (plan.proposal) {
-    return move("Review the changes to your licenses and registrations", "Some steps changed. Nothing in your plan changes until you OK it.", "/checklist", "Review the changes");
+  if (!input.structure.structure && !input.structure.recorded) {
+    return move(
+      "Choose how to set up your business",
+      "Your structure decides which filings you need. “Not sure yet” is a fine answer for now.",
+      "/structure",
+      "Compare your options",
+    );
   }
   if (!input.researched) {
     return move(
-      "Find out what you need to open",
-      "First Sale checks official government sites for what applies to you, then puts what you need to file in order.",
+      "Find out what applies to you",
+      "First Sale checks official government sites for the rules that fit your business, then asks about the ones that depend on you.",
       "/requirements",
-      "Find my requirements",
+      "Find what applies to me",
     );
   }
   if (input.answersChanged) {
     return move("See what your new answers change", "You changed some answers since your requirements were checked.", "/requirements", "See what changed");
   }
+  if (plan.proposal) {
+    return move("Review the changes to your steps", "A re-check changed some steps. Nothing changes until you OK it.", "/requirements#review", "Review the changes");
+  }
+  if (input.questions) {
+    return move(
+      `Answer ${input.questions === 1 ? "a quick question" : `${input.questions} quick questions`}`,
+      "Each one decides whether a rule applies to you. “Not sure” is a fine answer.",
+      "/requirements#questions",
+      "Answer the questions",
+    );
+  }
   if (plan.first) {
     const why = !plan.first.later
-      ? "This is your next step before your first sale."
+      ? `Next in ${plan.first.group.name}.`
       : plan.beforeSelling.done === plan.beforeSelling.total
         ? "Everything you need before your first sale is done. This one comes later."
         : "Your other steps are waiting to hear back or on another step. You can start this one, for later, in the meantime.";
-    // Choosing a structure happens on its own page, step 3
-    if (plan.first.structure) return { title: plan.first.title, why, href: "/structure", action: "Compare your options", stepId: null, stage: "/structure" };
-    return { title: plan.first.title, why, href: `/checklist/${plan.first.id}`, action: "Open this step", stepId: plan.first.id, stage: "/checklist" };
+    return { title: plan.first.title, why, href: `/checklist/${plan.first.id}`, action: "Open this step", stepId: plan.first.id, stage: PAPERWORK };
+  }
+  if (!input.structure.structure && plan.waitsOnStructure) {
+    return move("Choose your business structure", "Your next filings depend on it, so they wait until you choose.", "/structure", "Compare your options");
   }
   if (!plan.steps) {
-    return move("Check your requirements again", "Your last check didn’t turn up any steps.", "/requirements", "Check again");
-  }
-  if (!input.structure.structure) {
-    return move("Choose how to set up your business", "Your structure decides which formation steps you need.", "/structure", "Compare your options");
+    return move("Check what applies again", "Your last check didn’t turn up anything to file.", "/requirements", "Check again");
   }
   if (plan.beforeSelling.done === plan.beforeSelling.total) {
-    return move("You’re ready for your first sale", "Every step you need before selling is done. Steps for later stay in your plan.", "/checklist", "See your plan");
+    return move("You’re ready for your first sale", "Every step you need before selling is done. Steps for later stay on your list.", PAPERWORK, "See every step");
   }
   // Only steps that are submitted or waiting on another step are left
-  return move("Wait to hear back", "Your next steps start once the ones you submitted are approved. Mark each one when you hear back.", "/checklist", "See your plan");
+  return move("Wait to hear back", "Your next steps start once the ones you submitted are approved. Mark each one when you hear back.", PAPERWORK, "See every step");
 }

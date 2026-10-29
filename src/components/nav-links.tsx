@@ -4,14 +4,18 @@ import Link from "next/link";
 import { useLayoutEffect, useState } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { formatMinutes } from "@/lib/rules/progress";
-import { type PartStatus, sectionState, type SidebarStatus } from "@/lib/rules/section-status";
-import { HOME, SECTION_GROUPS, SECTIONS, type Section, type SectionGroup } from "@/lib/sections";
+import { type PartStatus, sectionState, type SidebarStatus, type StartStep, startSteps, stepsLeft } from "@/lib/rules/section-status";
+import { HOME, overviewOf, SECTION_GROUPS, SECTIONS, type SectionGroup } from "@/lib/sections";
 import { celebrate, onCelebrate } from "./celebrate";
 
 export interface NavStatus {
   parts: SidebarStatus;
   // The business, so done steps remembered in this browser stay with it; null before there is one
   scope: string | null;
+  // Start your business, one step per paperwork group once there are any
+  start?: StartStep[];
+  // Pages inside a menu step, like a group's other parts or its task pages, and the step they highlight
+  groupOf?: Record<string, string>;
 }
 
 const ICONS: Record<string, IconName> = {
@@ -31,7 +35,21 @@ const GROUP_ICONS: Record<SectionGroup, IconName> = {
 // Sections that are steps to finish, in order
 const JOURNEY: SectionGroup[] = ["Start your business", "Build your brand"];
 
-const stepsOf = (group: SectionGroup) => SECTIONS.filter((section) => section.group === group && section.step !== null).map((section) => section.href);
+interface NavStep extends StartStep {
+  number: number;
+}
+
+// Start your business comes from the owner's paperwork; the other sections' steps are fixed
+function stepsOf(group: SectionGroup, status?: NavStatus): NavStep[] {
+  const steps =
+    group === "Start your business"
+      ? (status?.start ?? startSteps([]))
+      : SECTIONS.filter((section) => section.group === group && section.step !== null).map((section) => ({ href: section.href, title: section.title, later: false }));
+  return steps.map((step, index) => ({ ...step, number: index + 1 }));
+}
+
+// Steps that hold a section open: everything but what comes after the first sale
+const countedHrefs = (group: SectionGroup, status?: NavStatus) => stepsOf(group, status).filter((step) => !step.later).map((step) => step.href);
 
 // Sub-pages like /business/new highlight their section
 function isActive(href: string, activeHref: string | null): boolean {
@@ -42,9 +60,14 @@ function isActive(href: string, activeHref: string | null): boolean {
 export function NavLinks({ activeHref, status }: { activeHref: string | null; status?: NavStatus }) {
   const parts = status?.parts ?? {};
   const page = SECTIONS.find((section) => isActive(section.href, activeHref)) ?? null;
-  const highlighted = page?.under ?? page?.href ?? null;
+  // A task's page, or a group's other part, highlights the group's menu step
+  const onTask = Boolean(activeHref?.startsWith("/checklist/"));
+  const startHrefs = stepsOf("Start your business", status).map((step) => step.href);
+  const startStep = activeHref && startHrefs.includes(activeHref) ? activeHref : activeHref ? (status?.groupOf?.[activeHref] ?? null) : null;
+  const pageGroup: SectionGroup | null = startStep || onTask ? "Start your business" : (page?.group ?? null);
+  const highlighted = startStep ?? page?.under ?? page?.href ?? null;
   // Open where the owner is working: this page's section, or the first with something left
-  const working = page?.group ?? JOURNEY.find((group) => sectionState(parts, stepsOf(group)) === "todo") ?? null;
+  const working = pageGroup ?? JOURNEY.find((group) => sectionState(parts, countedHrefs(group, status)) === "todo") ?? null;
   // Opened or closed by hand, until the owner moves to another section
   const [toggled, setToggled] = useState<{ on: SectionGroup | null; groups: Partial<Record<SectionGroup, boolean>> }>({ on: working, groups: {} });
   if (toggled.on !== working) setToggled({ on: working, groups: {} });
@@ -58,8 +81,8 @@ export function NavLinks({ activeHref, status }: { activeHref: string | null; st
   useLayoutEffect(() => onCelebrate(({ hrefs }) => setFresh((current) => [...current, ...hrefs])), []);
   useCelebrateNewlyDone(status);
 
-  // Plan steps left; documents to check have their own count
-  const total = SECTIONS.filter((section) => section.step !== null).reduce((sum, section) => sum + (parts[section.href]?.count ?? 0), 0);
+  // Steps left across the journey, as Today counts them; documents to check have their own count
+  const total = stepsLeft(parts, JOURNEY.flatMap((group) => stepsOf(group, status).map((step) => step.href)));
   const standalone = SECTIONS.filter((section) => section.group === null);
   return (
     <nav aria-label="Sections" className="flex flex-col gap-0.5">
@@ -79,31 +102,57 @@ export function NavLinks({ activeHref, status }: { activeHref: string | null; st
         );
       })}
       {SECTION_GROUPS.map((group) => {
-        const sections = SECTIONS.filter((section) => section.group === group && !section.under);
-        const steps = sections.filter((section) => section.step !== null);
-        const others = sections.filter((section) => section.step === null);
+        const steps = stepsOf(group, status);
+        const others = SECTIONS.filter((section) => section.group === group && section.step === null && !section.under && !section.overview);
         const open = isOpen(group);
-        const here = page?.group === group;
+        const here = pageGroup === group;
         const id = `nav-${group.toLowerCase().replaceAll(" ", "-")}`;
-        const stepHrefs = steps.map((section) => section.href);
+        const counted = countedHrefs(group, status);
+        const overview = overviewOf(group);
+        const mark = counted.length ? (
+          <SectionMark state={status ? sectionState(parts, counted) : null} done={counted.filter((href) => parts[href]?.state === "done").length} of={counted.length} />
+        ) : null;
+        const label = (
+          <>
+            <Icon name={GROUP_ICONS[group]} className={here ? "text-sky" : "text-white/50"} />
+            <span className="flex-1 text-balance">{group}</span>
+          </>
+        );
+        const chevron = <Icon name="chevron" size="sm" className={`text-white/40 transition-transform duration-300 motion-reduce:transition-none ${open ? "rotate-90" : ""}`} />;
+        const headingStyle = `flex min-h-9 items-center rounded-[10px] px-2.5 py-1 text-left text-[15.5px] font-semibold transition hover:bg-white/[0.06] short:min-h-8 short:py-0.5 ${
+          here ? "text-white" : "text-white/80 hover:text-white"
+        }`;
         return (
-          <div key={group} className="mt-1 flex flex-col border-t border-white/10 pt-1">
-            <button
-              type="button"
-              aria-expanded={open}
-              aria-controls={id}
-              onClick={() => toggle(group)}
-              className={`flex min-h-9 items-center gap-3 rounded-[10px] px-2.5 py-1 text-left text-[15.5px] font-semibold transition hover:bg-white/[0.06] ${
-                here ? "text-white" : "text-white/80 hover:text-white"
-              }`}
-            >
-              <Icon name={GROUP_ICONS[group]} className={here ? "text-sky" : "text-white/50"} />
-              <span className="flex-1">{group}</span>
-              {stepHrefs.length ? (
-                <SectionMark state={status ? sectionState(parts, stepHrefs) : null} done={stepHrefs.filter((href) => parts[href]?.state === "done").length} of={stepHrefs.length} />
-              ) : null}
-              <Icon name="chevron" size="sm" className={`text-white/40 transition-transform duration-300 motion-reduce:transition-none ${open ? "rotate-90" : ""}`} />
-            </button>
+          <div key={group} className="mt-1 flex flex-col border-t border-white/10 pt-1 short:mt-0.5 short:pt-0.5">
+            {overview ? (
+              // The heading opens the section's overview; the chevron folds it
+              <div className="flex items-center gap-0.5">
+                <Link
+                  href={overview}
+                  aria-current={activeHref === overview ? "page" : undefined}
+                  className={`${headingStyle} min-w-0 flex-1 gap-2 ${activeHref === overview ? "bg-white/10" : ""}`}
+                >
+                  {label}
+                  {mark}
+                </Link>
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  aria-controls={id}
+                  onClick={() => toggle(group)}
+                  className="grid h-9 w-7 shrink-0 place-items-center rounded-[10px] transition hover:bg-white/[0.06] short:h-8"
+                >
+                  {chevron}
+                  <span className="sr-only">{open ? `Hide the steps in ${group}` : `Show the steps in ${group}`}</span>
+                </button>
+              </div>
+            ) : (
+              <button type="button" aria-expanded={open} aria-controls={id} onClick={() => toggle(group)} className={`${headingStyle} gap-3`}>
+                {label}
+                {mark}
+                {chevron}
+              </button>
+            )}
             <div
               id={id}
               inert={!open}
@@ -114,8 +163,8 @@ export function NavLinks({ activeHref, status }: { activeHref: string | null; st
                 <div className="ml-[19px] flex flex-col gap-0.5 border-l border-white/15 py-1 pl-2">
                   {steps.length ? (
                     <ol className="flex flex-col gap-0.5">
-                      {steps.map((section) => (
-                        <PartItem key={section.href} section={section} active={highlighted === section.href} part={parts[section.href]} fresh={fresh.includes(section.href)} />
+                      {steps.map((step) => (
+                        <PartItem key={step.href} step={step} active={highlighted === step.href} part={parts[step.href]} fresh={fresh.includes(step.href)} />
                       ))}
                     </ol>
                   ) : null}
@@ -138,12 +187,17 @@ const NEW_OWNER = "first-sale:new-owner";
 // them, unless this browser saw the owner before they had a business: then their first step gets its stamp too.
 function useCelebrateNewlyDone(status: NavStatus | undefined) {
   const scope = status ? status.scope : undefined;
+  const steps = JOURNEY.flatMap((group) => stepsOf(group, status));
   const done = status
-    ? SECTIONS.filter((section) => section.step !== null && status.parts[section.href]?.state === "done")
-        .map((section) => section.href)
+    ? steps
+        .filter((step) => status.parts[step.href]?.state === "done")
+        .map((step) => step.href)
         .sort()
         .join(" ")
     : null;
+  // Kept as text, so the effect runs only when they change
+  const titles = JSON.stringify(steps.map((step) => [step.href, step.title]));
+  const sections = JSON.stringify(JOURNEY.map((group) => countedHrefs(group, status)));
   useLayoutEffect(() => {
     if (scope === undefined || done === null) return;
     const now = done ? done.split(" ") : [];
@@ -163,16 +217,14 @@ function useCelebrateNewlyDone(status: NavStatus | undefined) {
     }
     const added = seen ? now.filter((href) => !seen.includes(href)) : [];
     if (!added.length) return;
-    const finished = JOURNEY.find((group) => {
-      const hrefs = stepsOf(group);
-      return hrefs.some((href) => added.includes(href)) && hrefs.every((href) => now.includes(href));
-    });
-    const last = SECTIONS.filter((section) => added.includes(section.href)).at(-1);
-    celebrate(finished ?? last?.title ?? "Step", added);
-  }, [scope, done]);
+    const groups = JSON.parse(sections) as string[][];
+    const finished = JOURNEY.find((_, index) => groups[index].some((href) => added.includes(href)) && groups[index].every((href) => now.includes(href)));
+    const last = (JSON.parse(titles) as [string, string][]).filter(([href]) => added.includes(href)).at(-1);
+    celebrate(finished ?? last?.[1] ?? "Step", added);
+  }, [scope, done, titles, sections]);
 }
 
-function SectionMark({ state, done, of }: { state: PartStatus["state"] | null; done: number; of: number }) {
+function SectionMark({ state, done, of }: { state: "done" | "waiting" | "todo" | null; done: number; of: number }) {
   if (state === "done") {
     return (
       <span title="All done" className="grid size-4 place-items-center rounded-full bg-done-bright text-sidebar">
@@ -225,7 +277,7 @@ function NavItem({ href, title, icon, active, count, countLabel }: { href: strin
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`relative flex min-h-9 items-center gap-3 rounded-[10px] px-2.5 py-1 text-[15.5px] font-semibold transition ${
+      className={`relative flex min-h-9 items-center gap-3 rounded-[10px] px-2.5 py-1 text-[15.5px] font-semibold transition short:min-h-8 short:py-0.5 ${
         active ? "bg-white/10 text-white" : "text-white/80 hover:bg-white/[0.06] hover:text-white"
       }`}
     >
@@ -259,7 +311,9 @@ function SubItem({ href, title, icon, active }: { href: string; title: string; i
   );
 }
 
-function PartItem({ section, active, part, fresh }: { section: Section; active: boolean; part?: PartStatus; fresh: boolean }) {
+const LIST = new Intl.ListFormat("en-US", { type: "conjunction" });
+
+function PartItem({ step, active, part, fresh }: { step: NavStep; active: boolean; part?: PartStatus; fresh: boolean }) {
   const state = part?.state ?? null;
   const marker =
     state === "done" ? (
@@ -273,22 +327,36 @@ function PartItem({ section, active, part, fresh }: { section: Section; active: 
       <span className="grid size-[22px] place-items-center rounded-full border-[1.5px] border-check-ring text-check-ring">
         <Icon name="clock" size="xs" strokeWidth={2.2} />
       </span>
+    ) : state === "locked" ? (
+      <span className={`grid size-[22px] place-items-center rounded-full border-[1.5px] border-dashed ${active ? "border-sky text-sky" : "border-white/30 text-white/55"}`}>
+        <Icon name="lock" size="xs" strokeWidth={2.2} />
+      </span>
     ) : (
       <span
         className={`grid size-[22px] place-items-center rounded-full border-[1.5px] text-[12px] font-bold ${
           active ? "border-sky bg-sky text-sidebar" : "border-white/30 text-white/70"
         }`}
       >
-        {section.step}
+        {step.number}
       </span>
     );
-  const label = state === "done" ? "done" : state === "waiting" ? "waiting to hear back" : null;
+  const label =
+    state === "done"
+      ? "done"
+      : state === "waiting"
+        ? "waiting to hear back"
+        : state === "locked"
+          ? `locked${part?.waitsOn?.length ? `, waits on ${LIST.format(part.waitsOn)}` : ""}`
+          : null;
+  const unit = part?.unit ?? "step";
+  const time = part && state !== "done" && state !== "waiting" && part.minutes ? formatMinutes(part.minutes) : null;
+  const sub = [step.part, step.later && time ? "After your first sale" : null, time ? `~${time}` : null].filter(Boolean).join(" · ");
   return (
     <li>
       <Link
-        href={section.href}
+        href={step.href}
         aria-current={active ? "page" : undefined}
-        className={`relative grid min-h-9 grid-cols-[22px_minmax(0,1fr)_auto] items-center gap-x-2.5 rounded-lg px-2 py-1 transition ${
+        className={`relative grid min-h-9 grid-cols-[22px_minmax(0,1fr)_auto] items-center gap-x-2.5 rounded-lg px-2 py-[3px] transition short:min-h-8 short:py-px ${
           active ? "bg-white/10" : "hover:bg-white/[0.06]"
         }`}
       >
@@ -296,16 +364,22 @@ function PartItem({ section, active, part, fresh }: { section: Section; active: 
           {marker}
         </span>
         <span className="flex min-w-0 flex-col">
-          <span className={`relative w-fit text-[14.5px] font-medium leading-snug ${active ? "text-white" : "text-white/80"}`}>
-            {section.title}
+          <span className={`relative w-fit text-[14.5px] font-medium leading-snug ${active ? "text-white" : state === "locked" ? "text-white/60" : "text-white/80"}`}>
+            {step.title}
             {active ? <Underline /> : null}
+            {step.part ? <span className="sr-only">, {step.part.toLowerCase()}</span> : null}
             {label ? <span className="sr-only">, {label}</span> : null}
+            {time ? <span className="sr-only">, about {time} of your time{step.later ? " after your first sale" : ""}</span> : null}
           </span>
-          {part?.count ? <span className="text-[12.5px] text-white/50">~{formatMinutes(part.minutes)} of your time</span> : null}
+          {sub ? (
+            <span aria-hidden="true" className={`text-[12.5px] leading-tight text-white/50 ${active ? "mt-1" : ""}`}>
+              {sub}
+            </span>
+          ) : null}
         </span>
         <Count
           count={part?.count ?? 0}
-          label={part ? `${part.count} ${part.count === 1 ? "step" : "steps"} left, about ${formatMinutes(part.minutes)} of your time` : ""}
+          label={part ? `${part.count} ${part.count === 1 ? unit : `${unit}s`} ${unit === "question" ? "to answer" : unit === "decision" ? "to make" : "left"}` : ""}
         />
       </Link>
     </li>

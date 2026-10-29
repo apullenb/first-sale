@@ -15,15 +15,16 @@ import { PenCheck, TOPIC_ICONS } from "@/components/plan/step-row";
 import { StepStatus } from "@/components/plan/step-status";
 import { StructureDecision } from "@/components/plan/structure-decision";
 import { PracticeBanner } from "@/components/practice-banner";
-import { StatusChip } from "@/components/requirements/requirement-card";
+import { StatusChip } from "@/components/requirements/sources";
 import { RequirementStatusChip } from "@/components/requirements/requirement-status";
+import { AnswerButtons } from "@/components/requirements/condition-answer";
 import { WrittenInquiry } from "@/components/requirements/written-inquiry";
 import { PAGE_TITLE, PRIMARY_LINK, SECONDARY, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Chip, Fact, Fold, Note } from "@/components/ui";
 import { OFFICIAL_FORMS } from "@/data/official-forms";
 import type { StoredDocument } from "@/lib/data/documents";
-import { orderSteps, type PlanStep } from "@/lib/data/plan";
-import { getMyBusiness, getMyDetails, getMyStep, listMyDocuments } from "@/lib/data/my-business";
+import type { PlanStep } from "@/lib/data/plan";
+import { getMyBusiness, getMyDetails, getMyPaperwork, getMyStep, listMyDocuments } from "@/lib/data/my-business";
 import { autofillContext, autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
 import { filedForm, formsFor } from "@/lib/documents/form-catalog";
 import { ROLE_LABELS, roleOf } from "@/lib/documents/library";
@@ -31,23 +32,21 @@ import { agreementName, agreementStepKey, agreementStructure } from "@/lib/docum
 import { formatFee } from "@/lib/documents/startup-plan";
 import { ACCEPTED_TYPES } from "@/lib/documents/upload";
 import { LEVEL_LABELS, TOPIC_LABELS } from "@/lib/labels";
-import { jurisdictionName, placeOf, structureOf } from "@/lib/research/applicability";
+import type { BusinessProfile } from "@/lib/domain";
+import { jurisdictionName, type Place, placeOf, structureOf } from "@/lib/research/applicability";
 import { writtenInquiry } from "@/lib/research/inquiry";
 import { filingSteps } from "@/lib/rules/filing";
 import { choosesStructure, followingSteps } from "@/lib/rules/plan";
-import { formatMinutes, nextStepAfter, stepMinutes } from "@/lib/rules/progress";
+import { nextTaskAfter, type Standing } from "@/lib/rules/paperwork";
+import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
 
-export const metadata: Metadata = { title: "Licenses and registrations step" };
+export const metadata: Metadata = { title: "Paperwork step" };
 
 type Params = Promise<{ stepId: string }>;
 
 export default function StepPage({ params }: { params: Params }) {
   return (
     <div className="flex max-w-4xl flex-col gap-6">
-      <Link href="/checklist" className="-mb-2 inline-flex min-h-11 w-fit items-center gap-1.5 text-[15px] font-semibold text-muted hover:text-accent">
-        <Icon name="back" size="sm" />
-        Step 4 · Licenses and registrations
-      </Link>
       <Suspense fallback={<p className="text-muted">Loading this step…</p>}>
         <StepDetail params={params} />
       </Suspense>
@@ -64,10 +63,15 @@ const STATE_TITLE = "font-display text-[23px] leading-snug";
 
 async function StepDetail({ params }: { params: Params }) {
   const { stepId } = await params;
-  const [found, documents, business, details] = await Promise.all([getMyStep(stepId), listMyDocuments(), getMyBusiness(), getMyDetails()]);
+  const [found, documents, business, details, paper] = await Promise.all([getMyStep(stepId), listMyDocuments(), getMyBusiness(), getMyDetails(), getMyPaperwork()]);
   if (!found) notFound();
-  const { step, all } = found;
+  const { step: stored, all } = found;
   const profile = business?.profile ?? null;
+  // What applies now, after the owner's answers and decisions
+  const standing = paper?.view.standings.find((each) => each.step.id === stored.id) ?? null;
+  const task = paper?.view.tasks.find((each) => each.step.id === stored.id) ?? null;
+  const group = task ? (paper?.view.groups.find((each) => each.key === task.group) ?? null) : null;
+  const step = standing ? { ...stored, requirementStatus: standing.requirementStatus, conditions: standing.conditions } : stored;
 
   const states = stepStates(all);
   const byKey = new Map(all.map((candidate) => [candidate.key, candidate]));
@@ -82,8 +86,6 @@ async function StepDetail({ params }: { params: Params }) {
 
   const place = profile ? placeOf(profile) : null;
   const decision = profile ? structureOf(profile, details) : null;
-  // A structure chosen since the plan was built can rule this step out before the plan is updated
-  const ruledOut = Boolean(decision?.structure && step.forStructures.length && !step.forStructures.includes(decision.structure));
   const conditions = step.conditions;
   const facts = profile ? autofillFacts(profile, details) : [];
   // The owners' agreement shows on the step that forms the business, once an LLC or partnership is chosen
@@ -112,9 +114,12 @@ async function StepDetail({ params }: { params: Params }) {
         ]
       : [];
   const filing = !choosesStructure(step);
-  const state = states.get(step.key);
-  const lockedBy = state?.state === "waiting" && step.status === "todo" ? state.waitingOn : [];
-  const next = step.retired ? null : nextStepAfter(orderSteps(all.filter((each) => !each.retired)), step.key);
+  // Locks come from the same rules as the lists and the menu
+  const blockers = task && step.status === "todo" ? task.blockers : [];
+  const lockedBy = blockers.filter((each) => !each.office);
+  const nextTask = step.retired || !paper ? null : nextTaskAfter(paper.view.tasks, step.key);
+  const next = nextTask ? { ...nextTask.step, requirementStatus: nextTask.requirementStatus } : null;
+  const back = group ? { href: group.href, label: group.name } : { href: "/start", label: "Start your business" };
   const accept = Object.keys(ACCEPTED_TYPES).join(",");
   const unresolved = !sourced || conditions.length > 0 || step.requirementStatus !== "verified";
 
@@ -166,7 +171,9 @@ async function StepDetail({ params }: { params: Params }) {
     </details>
   );
   const steps = <FilingSteps steps={how} extras={{ form: formsHere, receipt }} />;
-  const locked = lockedBy.length > 0;
+  const locked = blockers.length > 0;
+  const findOut = task?.kind === "find_out";
+  const confirm = task?.kind === "confirm";
   const ready = !step.retired && step.status === "todo" && !locked;
   const confirming = step.links.find((link) => link.confirms) ?? null;
   const howSourced = how.some((each) => each.lines.some((line) => line.source));
@@ -185,13 +192,27 @@ async function StepDetail({ params }: { params: Params }) {
 
   return (
     <>
+      <Link href={back.href} className="-mb-2 inline-flex min-h-11 w-fit items-center gap-1.5 text-[15px] font-semibold text-muted hover:text-accent">
+        <Icon name="back" size="sm" />
+        {back.label}
+      </Link>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-[min(100%,420px)] flex-1 flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <Chip tone="gray" icon={TOPIC_ICONS[step.topic]}>
               {TOPIC_LABELS[step.topic]}
             </Chip>
-            <RequirementStatusChip status={step.requirementStatus} />
+            {findOut ? (
+              <Chip tone="warn" icon="question">
+                Find out if this applies
+              </Chip>
+            ) : confirm ? (
+              <Chip tone="warn" icon="info">
+                Confirm with the office first
+              </Chip>
+            ) : (
+              <RequirementStatusChip status={step.requirementStatus} />
+            )}
             {sourced ? null : <StatusChip sourced={false} />}
             {step.status === "done" ? (
               <Chip tone="done" icon="check">
@@ -236,15 +257,7 @@ async function StepDetail({ params }: { params: Params }) {
       </div>
 
       {step.simulated ? <PracticeBanner what="This step came from practice results." /> : null}
-      {ruledOut ? (
-        <Note icon="info">
-          This step isn’t for the business structure you chose.{" "}
-          <Link href="/checklist" className="font-bold underline underline-offset-4">
-            Update your plan
-          </Link>{" "}
-          to see the changes.
-        </Note>
-      ) : null}
+      {standing && !task && !step.retired && standing.inclusion !== "structure_choice" ? <NotOnList standing={standing} /> : null}
       {step.retired ? (
         <Note icon="info" tone="quiet">
           A later check of your requirements left this step out of your plan. You’d already finished it, so it stays here for your records.
@@ -265,7 +278,7 @@ async function StepDetail({ params }: { params: Params }) {
             </div>
           </div>
           {choosesStructure(step) ? <StructureDecision key={step.id} current={details.find((detail) => detail.key === "structure_choice")?.value ?? null} /> : progress}
-          <NextUp next={next} />
+          <NextUp next={next} back={back} />
         </section>
       ) : locked ? (
         <section aria-labelledby="progress-heading" className={`scroll-mt-4 ${STATE_CARD} items-start bg-soft shadow-soft`}>
@@ -274,13 +287,15 @@ async function StepDetail({ params }: { params: Params }) {
             Locked for now
           </p>
           <h2 id="progress-heading" className={STATE_TITLE}>
-            Do this first: {LIST.format(lockedBy.map((each) => each.title))}
+            {lockedBy.length
+              ? `Do this first: ${LIST.format(lockedBy.map((each) => each.title))}`
+              : `Waits on the office to approve ${LIST.format(blockers.map((each) => `“${each.title}”`))}`}
           </h2>
           <p className="text-muted">
             You can read ahead. This step opens once that’s done.
             {choosesStructure(step) ? "" : " Already did it on your own? Use “I’ve already done this” at the top."}
           </p>
-          <Link href={`/checklist/${lockedBy[0].id}`} className={PRIMARY_LINK}>
+          <Link href={(lockedBy[0] ?? blockers[0]).href} className={PRIMARY_LINK}>
             Take me there
             <Icon name="arrow" size="sm" />
           </Link>
@@ -299,35 +314,55 @@ async function StepDetail({ params }: { params: Params }) {
       ) : (
         <section aria-labelledby="part-heading" className={`${STATE_CARD} bg-surface shadow-lift`}>
           <p className={`${KICKER} text-accent`}>
-            <Icon name={TOPIC_ICONS[step.topic]} size="sm" />
-            Your part · about {minutes}
+            <Icon name={findOut ? "question" : TOPIC_ICONS[step.topic]} size="sm" />
+            {findOut ? "Find out if this applies" : "Your part"} · about {minutes}
           </p>
-          <h2 id="part-heading" className={STATE_TITLE}>
-            {choosesStructure(step)
-              ? "Choose how your business is owned"
-              : fileable
-                ? "First Sale fills in the blanks your details answer. You check, sign and send it yourself."
-                : "Here’s how to do it yourself"}
-          </h2>
-          {choosesStructure(step) ? (
-            <StructureDecision key={step.id} current={details.find((detail) => detail.key === "structure_choice")?.value ?? null} />
-          ) : (
-            steps
-          )}
-          {choosesStructure(step) ? (
-            <p id="progress-heading" className="border-t border-line pt-4 text-[15px] text-muted">
-              This step is done once you record your choice on Business structure.
-            </p>
+          {findOut ? (
+            <>
+              <h2 id="part-heading" className={STATE_TITLE}>
+                Ask the office whether this applies to you
+              </h2>
+              {profile && place ? <FindOut step={step} profile={profile} place={place} question={standing?.question ?? ""} /> : null}
+              <p id="progress-heading" className="border-t border-line pt-4 text-[15px] text-muted">
+                If it applies, it becomes a step here, and how to do it is under “How to do it yourself” below.
+              </p>
+            </>
           ) : (
             <>
-              <div className="flex flex-col gap-3 border-t border-line pt-4">
-                <h3 id="progress-heading" className="flex scroll-mt-4 items-center gap-2.5 font-bold">
-                  Record what you did
-                  <ActorChip actor="owner" />
-                </h3>
-                {progress}
-              </div>
-              <p className="text-sm text-muted">Opening a link or a form never changes this. You record what you did. First Sale never files anything for you.</p>
+              {confirm ? (
+                <Note icon="info">
+                  No official page confirmed this yet, so confirm with the office first. A message you can send is under “Not sure it applies? Ask in
+                  writing” below.
+                </Note>
+              ) : null}
+              <h2 id="part-heading" className={STATE_TITLE}>
+                {choosesStructure(step)
+                  ? "Choose how your business is owned"
+                  : fileable
+                    ? "First Sale fills in the blanks your details answer. You check, sign and send it yourself."
+                    : "Here’s how to do it yourself"}
+              </h2>
+              {choosesStructure(step) ? (
+                <StructureDecision key={step.id} current={details.find((detail) => detail.key === "structure_choice")?.value ?? null} />
+              ) : (
+                steps
+              )}
+              {choosesStructure(step) ? (
+                <p id="progress-heading" className="border-t border-line pt-4 text-[15px] text-muted">
+                  This step is done once you record your choice on Business structure.
+                </p>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-3 border-t border-line pt-4">
+                    <h3 id="progress-heading" className="flex scroll-mt-4 items-center gap-2.5 font-bold">
+                      Record what you did
+                      <ActorChip actor="owner" />
+                    </h3>
+                    {progress}
+                  </div>
+                  <p className="text-sm text-muted">Opening a link or a form never changes this. You record what you did. First Sale never files anything for you.</p>
+                </>
+              )}
             </>
           )}
         </section>
@@ -343,7 +378,7 @@ async function StepDetail({ params }: { params: Params }) {
       ) : null}
 
       <div className="flex flex-col gap-3">
-        {ready && !choosesStructure(step) ? null : (
+        {ready && !choosesStructure(step) && !findOut ? null : (
           <Fold
             title="How to do it yourself"
             summary={`${step.status === "done" || step.retired ? "The steps" : `Read ahead: ${how.length} steps`}${howSourced ? ", with official sources" : ""}`}
@@ -414,8 +449,8 @@ async function StepDetail({ params }: { params: Params }) {
           <StatusChip sourced={sourced} />
         </Fold>
 
-        {unresolved && profile && place ? (
-          <Fold title="Not sure it applies? Ask in writing" summary="A message you can send. You never have to call." icon="mail">
+        {unresolved && profile && place && !findOut ? (
+          <Fold title="Not sure it applies? Ask in writing" summary="A message you can send. You never have to call." icon="mail" open={confirm && step.status === "todo"}>
             <WrittenInquiry
               inquiry={writtenInquiry({ title: step.title, questions: step.whatToAsk, profile, place })}
               office={step.whoToCall || step.agency}
@@ -478,12 +513,12 @@ async function StepDetail({ params }: { params: Params }) {
       </div>
 
       {step.retired ? (
-        <Link href="/checklist" className={SECONDARY_LINK}>
+        <Link href="/start" className={SECONDARY_LINK}>
           <Icon name="back" size="sm" />
-          Back to your plan
+          See every step
         </Link>
       ) : step.status === "done" ? null : (
-        <WhatsNext next={next} />
+        <WhatsNext next={next} back={back} />
       )}
     </>
   );
@@ -494,7 +529,7 @@ function jurisdictionLabel(step: PlanStep, place: ReturnType<typeof placeOf> | n
 }
 
 // After a step is done: always somewhere to go, the next ready step, never back to one that points here
-function NextUp({ next }: { next: PlanStep | null }) {
+function NextUp({ next, back }: { next: PlanStep | null; back: { href: string; label: string } }) {
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-line bg-soft p-4">
       {next ? (
@@ -516,15 +551,15 @@ function NextUp({ next }: { next: PlanStep | null }) {
             <Icon name="arrow" size="sm" />
           </Link>
         ) : null}
-        <Link href="/checklist" className={SECONDARY_LINK}>
-          Back to your plan
+        <Link href={back.href} className={SECONDARY_LINK}>
+          Back to {back.label}
         </Link>
       </div>
     </div>
   );
 }
 
-function WhatsNext({ next }: { next: PlanStep | null }) {
+function WhatsNext({ next, back }: { next: PlanStep | null; back: { href: string; label: string } }) {
   return (
     <section aria-label="What’s next" className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-2xl border border-line bg-surface px-5 py-4 shadow-soft">
       <div className="flex min-w-0 flex-col">
@@ -538,8 +573,8 @@ function WhatsNext({ next }: { next: PlanStep | null }) {
             <Icon name="arrow" size="sm" />
           </Link>
         ) : null}
-        <Link href="/checklist" className={`flex min-h-11 w-fit items-center ${TEXT_LINK}`}>
-          Back to your plan
+        <Link href={back.href} className={`flex min-h-11 w-fit items-center ${TEXT_LINK}`}>
+          Back to {back.label}
         </Link>
       </div>
     </section>
@@ -564,5 +599,52 @@ function LinkedDocuments({ docs }: { docs: StoredDocument[] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+// Why a step that's in the plan isn't on the owner's list, and where to change that
+function NotOnList({ standing }: { standing: Standing<PlanStep> }) {
+  const step = standing.step;
+  const say: Partial<Record<Standing<PlanStep>["inclusion"], { text: string; href: string; action: string }>> = {
+    no: { text: "You said this doesn’t apply to you, so it isn’t on your list.", href: "/requirements#not-for-you", action: "Change your answer" },
+    question: { text: `Whether this applies depends on you: ${standing.question ?? ""}`, href: "/requirements#questions", action: "Answer on What applies to you" },
+    place: { text: standing.place[0] ?? "Whether this applies depends on where you are.", href: "/business/edit", action: "Confirm your place" },
+    structure: { text: "This is for some business structures only. It shows up on your list once you choose one.", href: "/structure", action: "Go to Business structure" },
+    optional: { text: "This one is your choice, so it isn’t on your list.", href: "/requirements", action: "See what applies to you" },
+    outside: { text: `First Sale doesn’t research this kind of rule.${step.whoToCall ? ` Ask ${step.whoToCall}.` : ""}`, href: "/requirements", action: "See what applies to you" },
+    other_structure: { text: "This step isn’t for the business structure you chose.", href: "/requirements", action: "See what changes" },
+  };
+  const note = say[standing.inclusion];
+  if (!note) return null;
+  return (
+    <Note icon="info" tone="quiet">
+      {note.text}{" "}
+      <Link href={note.href} className="font-bold text-ink underline underline-offset-4">
+        {note.action}
+      </Link>
+    </Note>
+  );
+}
+
+// "Not sure" became a step: ask in writing, then answer once the office replies
+function FindOut({ step, profile, place, question }: { step: PlanStep; profile: BusinessProfile; place: Place; question: string }) {
+  return (
+    <div className="flex flex-col gap-4 rounded-xl border border-line bg-soft p-4">
+      <p>
+        You weren’t sure whether this applies to you: <span className="font-semibold">{question}</span> Send the office this message. You never have to
+        call.
+      </p>
+      <WrittenInquiry
+        inquiry={writtenInquiry({ title: step.title, questions: step.whatToAsk, profile, place })}
+        office={step.whoToCall || step.agency}
+        link={step.links[0] ? { title: step.links[0].title, url: step.links[0].url } : null}
+      />
+      <div className="flex flex-col gap-2 border-t border-line pt-3">
+        <p id="found-out" className="font-semibold">
+          Once you hear back: does it apply to you?
+        </p>
+        <AnswerButtons stepKey={step.key} condition={question} current="unsure" labelledBy="found-out" />
+      </div>
+    </div>
   );
 }

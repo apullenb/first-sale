@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Laptop screens about 768px tall: the menu tightens so Start your business fits open */
+@custom-variant short {
+  @media (max-height: 820px) and (min-width: 768px) {
+    @slot;
+  }
+}
+
 /* Onramp look with Starting Block colors: navy and teal-blue on a near-white page; light mode only for now */
 @theme {
   --color-ground: #f8fafc;

@@ -3,10 +3,8 @@ import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Card } from "@/components/ui";
-import { TOPIC_LABELS } from "@/lib/labels";
 import type { Stage, StageState } from "@/lib/rules/journey";
-import type { TopicTime } from "@/lib/rules/pace";
-import { formatMinutes } from "@/lib/rules/progress";
+import { formatMinutes, MAX_SITTING_MINUTES } from "@/lib/rules/progress";
 import { formatDay } from "./dates";
 import { LaunchCountdown, LaunchMonth } from "./launch-countdown";
 
@@ -23,8 +21,8 @@ interface Props {
   left: number;
   minutes: number;
   waiting: number;
-  // The owner's time left, by kind of step
-  byTopic: { parts: TopicTime[]; restMinutes: number };
+  // Paperwork parts with time left, each 90 minutes or less
+  parts: { name: string; href: string; minutes: number }[];
   spentCents: number;
   // Confirmed fees still to pay, and how many fees no official page stated
   toGoCents: number;
@@ -38,10 +36,14 @@ interface Props {
 }
 
 // Index cards under "Do this next": what's left, what it's cost, and how far along the owner is
-export function DashboardWidgets({ left, minutes, waiting, byTopic, spentCents, toGoCents, unknownFees, budgetCapCents, budgetLabel, done, total, stages }: Props) {
+export function DashboardWidgets({ left, minutes, waiting, parts, spentCents, toGoCents, unknownFees, budgetCapCents, budgetLabel, done, total, stages }: Props) {
   const spentShare = budgetCapCents ? Math.min(100, (spentCents / budgetCapCents) * 100) : 0;
   const toGoShare = budgetCapCents ? Math.min(100 - spentShare, (toGoCents / budgetCapCents) * 100) : 0;
-  const shares = [...byTopic.parts.map((part) => ({ label: TOPIC_LABELS[part.topic], minutes: part.minutes })), ...(byTopic.restMinutes ? [{ label: "Everything else", minutes: byTopic.restMinutes }] : [])];
+  // The biggest two parts by name, then the rest together
+  const shares = [
+    ...parts.slice(0, 2).map((part) => ({ label: part.name, minutes: part.minutes })),
+    ...(parts.length > 2 ? [{ label: `${parts.length - 2} more ${parts.length === 3 ? "part" : "parts"}`, minutes: parts.slice(2).reduce((sum, part) => sum + part.minutes, 0) }] : []),
+  ];
   return (
     <section aria-label="At a glance" className="grid grid-cols-2 gap-3 @2xl:grid-cols-3 @2xl:gap-5">
       <Stat id="stat-left" title="Left to do" icon="checklist">
@@ -56,13 +58,16 @@ export function DashboardWidgets({ left, minutes, waiting, byTopic, spentCents, 
             ))}
           </div>
         ) : null}
-        <p className={SUB}>{left ? `About ${formatMinutes(minutes)} of your time` : "Nothing left before your first sale"}</p>
+        <p className={SUB}>
+          {left ? `In ${parts.length} ${parts.length === 1 ? "part" : "parts"}, each ${formatMinutes(MAX_SITTING_MINUTES)} or less` : "Nothing left before your first sale"}
+        </p>
         {shares.length > 1 ? (
           <ul className="flex flex-col gap-0.5 text-[13.5px] text-muted @5xl:flex-row @5xl:flex-wrap @5xl:gap-x-3.5">
             {shares.map((share, index) => (
               <li key={share.label} className="flex items-center gap-1.5">
                 <span aria-hidden="true" className={`size-2.5 shrink-0 rounded-[3px] ${SHADES[index]}`} />
-                {share.label} ~{formatMinutes(share.minutes)}
+                {share.label}
+                {share.minutes <= MAX_SITTING_MINUTES ? ` ~${formatMinutes(share.minutes)}` : ""}
               </li>
             ))}
           </ul>
@@ -73,8 +78,8 @@ export function DashboardWidgets({ left, minutes, waiting, byTopic, spentCents, 
             {waiting} waiting to hear back
           </p>
         ) : null}
-        <Link href="/checklist" className={LINK}>
-          See them
+        <Link href="/start" className={LINK}>
+          See every step
         </Link>
       </Stat>
 
@@ -98,7 +103,7 @@ export function DashboardWidgets({ left, minutes, waiting, byTopic, spentCents, 
               ? `${unknownFees} ${unknownFees === 1 ? "fee" : "fees"} not confirmed yet`
               : "No more fees found"}
         </p>
-        <Link href="/checklist#costs-heading" className={LINK}>
+        <Link href="/start#costs-heading" className={LINK}>
           See costs
         </Link>
       </Stat>

@@ -1,18 +1,20 @@
 import "server-only";
 import { unstable_rethrow } from "next/navigation";
 import type { NavStatus } from "@/components/nav-links";
-import { getMyBusiness, getMyDetails, getMyPlan, getMySidebarFacts, type MyBusiness } from "@/lib/data/my-business";
+import { getMyBusiness, getMyPaperwork, getMySidebarFacts, type MyBusiness } from "@/lib/data/my-business";
 import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
-import { structureOf } from "@/lib/research/applicability";
 import { profileKey } from "@/lib/research/requirements";
 import { choosesStructure } from "@/lib/rules/plan";
 import { remainingWork } from "@/lib/rules/progress";
-import { readyPlanSteps, sidebarStatus } from "@/lib/rules/section-status";
+import { menuGroups, sidebarStatus, startSteps } from "@/lib/rules/section-status";
 
-// Which menu steps are done, waiting or left. The marks are extra: if they can't be read, the business card still shows.
+// Which menu steps are done, waiting, locked or left. The marks are extra: if they can't be read, the business card still shows.
 export async function getMySidebarStatus(): Promise<{ business: MyBusiness | null; status: NavStatus | null }> {
   const business = await getMyBusiness();
-  if (!business) return { business: null, status: { parts: {}, scope: null } };
+  if (!business) {
+    const parts = sidebarStatus({ ...NO_FACTS, business: false });
+    return { business: null, status: { parts, scope: null, start: startSteps([]), groupOf: {} } };
+  }
   try {
     return { business, status: await statusFor(business) };
   } catch (error) {
@@ -22,31 +24,45 @@ export async function getMySidebarStatus(): Promise<{ business: MyBusiness | nul
   }
 }
 
+const NO_FACTS = {
+  business: false,
+  research: "none",
+  proposal: false,
+  questionsOpen: 0,
+  structureChosen: false,
+  structureStep: { left: 0, minutes: 0 },
+  groups: [],
+  libraryToCheck: 0,
+  logoChosen: false,
+  brandDescribed: false,
+  websiteLive: false,
+  products: 0,
+  marketingApproved: false,
+  socialPlatforms: [],
+  socialHave: [],
+  marks: new Set<string>(),
+} satisfies Parameters<typeof sidebarStatus>[0];
+
 async function statusFor(business: MyBusiness): Promise<NavStatus> {
-  const [plan, details, saved] = await Promise.all([getMyPlan(), getMyDetails(), getMySidebarFacts()]);
+  const [paper, saved] = await Promise.all([getMyPaperwork(), getMySidebarFacts()]);
   const profile = business.profile;
-  const structureChosen = Boolean(profile && structureOf(profile, details).structure);
-  const steps = plan?.steps ?? [];
-  // Choosing a structure belongs to Business structure; it still holds up the steps after it
-  const work = remainingWork(steps.filter((step) => !choosesStructure(step)));
-  const structureWork = remainingWork(steps.filter(choosesStructure));
-  const facts = profile ? autofillFacts(profile, details) : [];
+  const view = paper?.view ?? null;
+  // Groups come from a check; before one, the placeholder stands in
+  const groups = paper?.basis && view ? view.groups : [];
+  const known = profile && paper ? autofillFacts(profile, paper.details) : [];
   const toCheck = (saved?.documents ?? []).filter(
-    (doc) => doc.role !== "reviewed" && (outdatedFacts(doc.factsUsed, facts).length > 0 || Object.values(doc.answers).some((answer) => answer.state === "suggested")),
+    (doc) => doc.role !== "reviewed" && (outdatedFacts(doc.factsUsed, known).length > 0 || Object.values(doc.answers).some((answer) => answer.state === "suggested")),
   );
+  const structureWork = remainingWork((paper?.plan.steps ?? []).filter(choosesStructure));
+  const facts = menuGroups(groups);
   const parts = sidebarStatus({
     business: Boolean(profile),
-    research: !saved?.researchKey ? "none" : profile && profileKey(profile) === saved.researchKey ? "current" : "stale",
-    structureChosen,
+    research: !paper?.basis ? "none" : profile && profileKey(profile) === paper.basis.profileKey ? "current" : "stale",
+    proposal: Boolean(paper?.plan.proposal),
+    questionsOpen: view?.open.length ?? 0,
+    structureChosen: Boolean(paper?.context.decision.structure),
     structureStep: { left: structureWork.left.length, minutes: structureWork.minutes },
-    plan: {
-      exists: steps.length > 0,
-      proposal: Boolean(plan?.proposal),
-      ready: readyPlanSteps(steps),
-      left: work.left.length,
-      minutes: work.minutes,
-      waiting: work.waiting.length,
-    },
+    groups: facts,
     libraryToCheck: toCheck.length,
     logoChosen: saved?.logoChosen ?? false,
     brandDescribed: saved?.brandDescribed ?? false,
@@ -57,5 +73,17 @@ async function statusFor(business: MyBusiness): Promise<NavStatus> {
     socialHave: saved?.socialHave ?? [],
     marks: new Set(saved?.marks ?? []),
   });
-  return { parts, scope: business.id };
+  return {
+    parts,
+    scope: business.id,
+    start: startSteps(facts),
+    // A part's page, or a task's, highlights its group's menu step
+    groupOf: Object.fromEntries([
+      ...facts.flatMap((group) => group.hrefs.map((href) => [href, group.href])),
+      ...(view?.tasks ?? []).map((task) => {
+        const href = groups.find((group) => group.key === task.group)?.href;
+        return [`/checklist/${task.step.id}`, facts.find((group) => href && group.hrefs.includes(href))?.href ?? "/start"];
+      }),
+    ]),
+  };
 }

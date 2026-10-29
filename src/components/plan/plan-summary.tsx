@@ -9,23 +9,6 @@ import { TOPIC_LABELS } from "@/lib/labels";
 import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
 import { TOPIC_ICONS } from "./step-row";
 
-export function PlanProgress({ done, total }: { done: number; total: number }) {
-  const percent = total ? Math.round((done / total) * 100) : 0;
-  return (
-    <div className="flex flex-col gap-2">
-      <p className="flex flex-wrap items-baseline gap-x-2">
-        <span className="font-display text-[28px] leading-none tabular-nums">
-          {done} of {total}
-        </span>
-        <span className="text-muted">{total === 1 ? "step" : "steps"} done</span>
-      </p>
-      <div aria-hidden="true" className="h-2 overflow-hidden rounded-full bg-wash shadow-[inset_0_0_0_1px_rgb(19_41_75/0.05)]">
-        <div className="h-full rounded-full bg-accent" style={{ width: `${percent}%` }} />
-      </div>
-    </div>
-  );
-}
-
 // The one thing to do next: ready now, needed before selling. A ruled margin, like a planner page.
 export function NextStep({ step, parallel = 0 }: { step: PlanStep; parallel?: number }) {
   return (

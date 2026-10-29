@@ -41,7 +41,7 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
         <PageHead
           kicker="Start your business · Step 1"
           title="Your business"
-          lead="Answer a few quick questions, mostly by clicking. Your answers shape the regulations that apply, your business structure, and the licenses and registrations you need."
+          lead="Answer a few quick questions, mostly by clicking. Your answers shape your business structure, what applies to you, and the licenses and registrations you need."
         />
         <Card title="Five short chapters" icon="checklist">
           <ul aria-label="Chapters" className="flex flex-wrap gap-2">
@@ -77,7 +77,7 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
       <div className="flex flex-col gap-2">
         <p className={EYEBROW}>Start your business · Step 1</p>
         <BusinessHeading focusOnMount={welcome === "1"}>{displayName(current.profile)}</BusinessHeading>
-        <p className={LEAD}>Your answers shape the regulations that apply, your business structure, and the licenses and registrations you need.</p>
+        <p className={LEAD}>Your answers shape your business structure, what applies to you, and the licenses and registrations you need.</p>
       </div>
 
       {welcoming && current.profile ? <Welcome profile={current.profile} /> : null}
@@ -183,8 +183,8 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
 
       <div className="flex flex-wrap gap-2.5">
         {current.profile && !welcoming ? (
-          <Link href="/requirements" className={PRIMARY_LINK}>
-            See your requirements
+          <Link href="/structure" className={PRIMARY_LINK}>
+            Next: Business structure
             <Icon name="arrow" size="sm" />
           </Link>
         ) : null}
@@ -236,9 +236,9 @@ function Origin({ detail }: { detail: SavedDetail }) {
 function Welcome({ profile }: { profile: BusinessProfile }) {
   const place = summarize(profileToAnswers(profile)).find((row) => row.step === "place")?.value;
   const items = [
-    `Find your requirements for ${place} on official government sites`,
     "Compare business structures, explained for your answers",
-    "Get your licenses and registrations in the right order",
+    `Find what applies to you in ${place}, from official government sites`,
+    "Get your licenses and registrations done in short, ordered parts",
     "Get help understanding and filling in your forms",
   ];
 
@@ -263,8 +263,8 @@ function Welcome({ profile }: { profile: BusinessProfile }) {
           </li>
         ))}
       </ul>
-      <Link href="/requirements" className={`${PRIMARY_LINK} mt-1`}>
-        Find my requirements
+      <Link href="/structure" className={`${PRIMARY_LINK} mt-1`}>
+        Choose your business structure
         <Icon name="arrow" size="sm" />
       </Link>
     </section>

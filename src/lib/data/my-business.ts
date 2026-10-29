@@ -19,7 +19,8 @@ import {
   updateDocumentForOwner,
 } from "./documents";
 import { getPlanForOwner, getStepForOwner, replanForOwner, reviewPlanForOwner, setStepStatusForOwner } from "./plan";
-import { getResearchForOwner, type ResearchSnapshot, saveResearchForOwner } from "./research";
+import { getResearchBasisForOwner, getResearchForOwner, type ResearchBasis, type ResearchSnapshot, saveResearchForOwner } from "./research";
+import { listConditionAnswersForOwner, setConditionAnswerForOwner } from "./condition-answers";
 import {
   getHostConnectionForOwner,
   getWebsitePlanForOwner,
@@ -94,8 +95,10 @@ import {
 } from "./brand-library";
 import { createProductForOwner, deleteProductForOwner, listProductsForOwner, updateProductForOwner } from "./products";
 import type { ProductValues } from "@/lib/rules/products";
-import { structureOf } from "@/lib/research/applicability";
+import { type ConditionAnswer, placeOf, structureOf } from "@/lib/research/applicability";
 import { choosesStructure, settleStructureChoice } from "@/lib/rules/plan";
+import { type Paperwork, type PaperworkContext, paperwork, type SavedAnswer } from "@/lib/rules/paperwork";
+import type { PlanStep, PlanView } from "./plan";
 
 // What pages, actions and route handlers call: the owner always comes from the verified session.
 
@@ -150,6 +153,50 @@ export async function getMyPlan() {
   const plan = await getPlanForOwner(getDb(), user.id);
   if (!plan) return plan;
   return { ...plan, steps: settleStructureChoice(plan.steps, await structureKnown(user.id, plan.steps)) };
+}
+
+export async function getMyResearchBasis() {
+  const user = await getCurrentUser();
+  return getResearchBasisForOwner(getDb(), user.id);
+}
+
+export async function listMyConditionAnswers() {
+  const user = await getCurrentUser();
+  return listConditionAnswersForOwner(getDb(), user.id);
+}
+
+export async function setMyConditionAnswer(input: { stepKey: string; condition: string; answer: ConditionAnswer | null }) {
+  const user = await getCurrentUser();
+  return setConditionAnswerForOwner(getDb(), user.id, input);
+}
+
+// Until a re-check, what applies follows the answers that were checked; the structure is always the current decision
+export function paperworkContext(
+  profile: BusinessProfile,
+  details: readonly { key: string; value: string }[],
+  basis: Pick<ResearchBasis, "profile" | "profileKey"> | null,
+  answers: readonly SavedAnswer[],
+): PaperworkContext {
+  const checkedWith = basis?.profile && basis.profileKey !== profileKey(profile) ? basis.profile : profile;
+  return { profile: checkedWith, place: placeOf(checkedWith), decision: structureOf(profile, details), answers };
+}
+
+export interface MyPaperwork {
+  business: MyBusiness;
+  profile: BusinessProfile;
+  plan: PlanView;
+  details: Awaited<ReturnType<typeof getMyDetails>>;
+  basis: ResearchBasis | null;
+  context: PaperworkContext;
+  view: Paperwork<PlanStep>;
+}
+
+// What applies, grouped into paperwork: every page, the menu and Today read it from here, so they count the same tasks
+export async function getMyPaperwork(): Promise<MyPaperwork | null> {
+  const [business, plan, details, basis, answers] = await Promise.all([getMyBusiness(), getMyPlan(), getMyDetails(), getMyResearchBasis(), listMyConditionAnswers()]);
+  if (!business?.profile || !plan) return null;
+  const context = paperworkContext(business.profile, details, basis, answers);
+  return { business, profile: business.profile, plan, details, basis, context, view: paperwork(plan.steps, context) };
 }
 
 export async function reviewMyPlan(input: { checkedAt: Date; acceptedKeys: readonly string[] }) {
