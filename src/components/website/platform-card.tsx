@@ -1,5 +1,8 @@
+import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
+import { LABEL, SOFT } from "@/components/marketing/pieces";
 import { TEXT_LINK } from "@/components/styles";
+import { Chip } from "@/components/ui";
 import { cardFeeOn, firstYearCost, usd } from "@/lib/website/costs";
 import type { OptionExplanation } from "@/lib/website/options";
 import type { PlatformInfo } from "@/lib/website/platforms";
@@ -8,18 +11,24 @@ import { ExplainOption } from "./explain-option";
 
 const EXAMPLE_ORDER = 40;
 
-function List({ title, items, tone }: { title: string; items: string[]; tone: "good" | "bad" | "plain" }) {
-  const mark = tone === "good" ? "+" : tone === "bad" ? "–" : "•";
+const MARKS = {
+  good: { icon: "check", tile: "border-accent-ring bg-accent-tint text-accent" },
+  bad: { icon: "minus", tile: "border-line bg-wash text-muted" },
+  plain: { icon: "dot", tile: "border-line bg-wash text-muted" },
+} as const;
+
+export function List({ title, items, tone }: { title: string; items: string[]; tone: keyof typeof MARKS }) {
+  const mark = MARKS[tone];
   return (
-    <div className="flex flex-col gap-1">
-      <p className="text-sm font-bold">{title}</p>
-      <ul className="flex flex-col gap-1 text-[15px] text-rule">
+    <div className="flex flex-col gap-1.5">
+      <p className={LABEL}>{title}</p>
+      <ul className="flex flex-col gap-1.5 text-[15px] text-rule">
         {items.map((item) => (
-          <li key={item} className="flex gap-2">
-            <span aria-hidden="true" className="w-3 shrink-0 font-bold">
-              {mark}
+          <li key={item} className="flex items-start gap-2">
+            <span aria-hidden="true" className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border ${mark.tile}`}>
+              <Icon name={mark.icon} size="xs" strokeWidth={tone === "plain" ? 5 : 2.4} />
             </span>
-            <span>{item}</span>
+            <span className="min-w-0 flex-1">{item}</span>
           </li>
         ))}
       </ul>
@@ -44,22 +53,30 @@ export function PlatformCard({
   return (
     <article
       aria-labelledby={`platform-${platform.id}`}
-      className={`flex flex-col gap-4 rounded-2xl bg-surface p-5 ring-1 ${chosen ? "ring-2 ring-accent" : recommended ? "ring-accent/40" : "ring-ink/5"}`}
+      className={`flex flex-col gap-4 rounded-[14px] border bg-surface p-5 ${chosen ? "border-accent shadow-[0_0_0_3px_var(--color-accent-tint),var(--shadow-card)]" : "border-line shadow-card"}`}
     >
       <div className="flex flex-col gap-1.5">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 id={`platform-${platform.id}`} className="font-display text-2xl font-bold">
+          <h3 id={`platform-${platform.id}`} className="mr-auto font-display text-[24px] leading-tight">
             {platform.name}
           </h3>
-          {recommended ? <span className="rounded-full bg-accent px-2.5 py-0.5 text-[13px] font-bold text-white">Suggested for you</span> : null}
-          {chosen ? <span className="rounded-full bg-accent-tint px-2.5 py-0.5 text-[13px] font-bold text-accent-ink">Your choice</span> : null}
+          {recommended ? (
+            <Chip tone="accent" icon="sparkles">
+              Suggested for you
+            </Chip>
+          ) : null}
+          {chosen ? (
+            <Chip tone="done" icon="check">
+              Your choice
+            </Chip>
+          ) : null}
         </div>
         <p className="text-rule">{platform.oneLine}</p>
         <p className="text-sm text-muted">Best for: {platform.bestFor}</p>
       </div>
 
-      <div className="flex flex-col gap-1.5 rounded-xl bg-ground px-4 py-3">
-        <p className="text-sm font-bold">What it costs</p>
+      <div className={`${SOFT} flex flex-col gap-1.5 px-4 py-3`}>
+        <p className={LABEL}>What it costs</p>
         <p>
           <strong>{platform.startPlan.name}:</strong> {platform.startPlan.price}. {platform.startPlan.adds}
         </p>
@@ -80,18 +97,24 @@ export function PlatformCard({
             <strong>Card payments:</strong> {platform.paymentNote ?? "none. There’s no checkout, so customers pay you another way."}
           </p>
         )}
-        <p className="text-[15px]">
-          <strong>First year, {year.total ? `from about ${usd(year.total)}` : usd(0)}</strong> before card fees: {year.parts.join(" + ")}.
+        <p className="mt-1 flex items-start gap-2 border-t border-line pt-2.5 text-[15px]">
+          <Icon name="dollar" size="sm" className="mt-[3px] text-accent" />
+          <span>
+            <strong>First year, {year.total ? `from about ${usd(year.total)}` : usd(0)}</strong> before card fees: {year.parts.join(" + ")}.
+          </span>
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <List title="Good" items={platform.pros} tone="good" />
         <List title="Watch out for" items={platform.cons} tone="bad" />
       </div>
 
-      <div className="flex flex-col gap-1.5 rounded-xl bg-check-tint/60 px-4 py-3 ring-1 ring-check/15">
-        <p className="text-sm font-bold text-check">Not included, and you’ll likely need</p>
+      <div className="flex flex-col gap-1.5 rounded-xl border border-check-ring bg-check-tint px-4 py-3">
+        <p className="flex items-center gap-2 text-sm font-bold text-check">
+          <Icon name="info" size="sm" />
+          Not included, and you’ll likely need
+        </p>
         <ul className="flex flex-col gap-2 text-[15px]">
           {platform.notIncluded.map((item) => (
             <li key={item.item} className="flex flex-col">
@@ -109,8 +132,9 @@ export function PlatformCard({
         </ul>
       </div>
 
-      <details className="group">
-        <summary className="flex min-h-11 w-fit cursor-pointer items-center text-sm font-semibold text-accent-ink underline underline-offset-4">
+      <details className="group/inc">
+        <summary className="flex min-h-11 w-fit cursor-pointer list-none items-center gap-1.5 font-semibold text-accent [&::-webkit-details-marker]:hidden">
+          <Icon name="chevron" size="sm" className="transition-transform group-open/inc:rotate-90" />
           What’s included
         </summary>
         <div className="mt-1">
@@ -120,7 +144,7 @@ export function PlatformCard({
 
       <ExplainOption optionKey={`platform:${platform.id}`} name={platform.name} explanation={explanation} />
 
-      <div className="mt-auto flex flex-col gap-2 border-t border-line pt-3">
+      <div className="mt-auto flex flex-col gap-2 border-t border-line pt-4">
         <ChoosePlatformButton platform={platform.id} name={platform.name} chosen={chosen} />
         <p className="text-sm text-muted">
           Prices from {platform.name}’s own pages, checked <LocalDate iso={`${platform.checkedOn}T12:00:00Z`} />. They can change, so

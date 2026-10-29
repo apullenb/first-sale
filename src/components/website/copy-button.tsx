@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Icon } from "@/components/icons";
 import { SECONDARY } from "@/components/styles";
 
 // Copies one piece of the site's words, for pasting into the website builder
@@ -20,6 +21,7 @@ export function CopyButton({ text, label }: { text: string; label: string }) {
   return (
     <span className="flex items-center gap-2">
       <button type="button" onClick={copy} className={SECONDARY} aria-label={`Copy ${label}`}>
+        <Icon name={state === "copied" ? "check" : "copy"} size="sm" />
         Copy
       </button>
       <span role="status" className="text-sm text-muted">

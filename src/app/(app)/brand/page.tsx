@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { clearIdeasAction } from "@/app/(app)/brand/actions";
 import { ActionButton } from "@/components/action-button";
+import { Icon } from "@/components/icons";
 import { BriefForm } from "@/components/brand/brief-form";
 import { IdeasSection } from "@/components/brand/ideas";
 import { ImagesSection } from "@/components/brand/images";
@@ -9,8 +10,10 @@ import { KitSection } from "@/components/brand/kit";
 import { BrandNotes } from "@/components/brand/notes";
 import { VersionsSection } from "@/components/brand/versions";
 import { RunNotice } from "@/components/documents/run-notice";
+import { Kicker } from "@/components/marketing/pieces";
 import { PracticeBanner } from "@/components/practice-banner";
-import { CARD, EYEBROW, PAGE_TITLE, PRIMARY_LINK } from "@/components/styles";
+import { PRIMARY_LINK } from "@/components/styles";
+import { Card, PageHead } from "@/components/ui";
 import { getImageModel } from "@/lib/ai";
 import { briefDefaults } from "@/lib/brand/brief";
 import { getMyBrand, getMyBrandState, getMyBusiness, lastMyRun, listMyDocuments } from "@/lib/data/my-business";
@@ -22,16 +25,12 @@ export const maxDuration = 300;
 
 export default function BrandPage() {
   return (
-    <div className="flex max-w-3xl flex-col gap-8">
-      <div className="flex flex-col gap-1.5">
-        <p className={EYEBROW}>Marketing and branding</p>
-        <h1 className={PAGE_TITLE}>Branding</h1>
-        <p className="text-lg text-muted">
-          Pick the words that fit how your business should feel, and see your brand described back to you. Then AI writes logo ideas from it and draws
-          them. You choose one, fine-tune it, get the versions and files you’ll need, and make matching pictures for your pages. Nothing is used until you
-          approve it.
-        </p>
-      </div>
+    <div className="flex max-w-[1000px] flex-col gap-8">
+      <PageHead
+        kicker={<Kicker icon="palette">Marketing and branding</Kicker>}
+        title="Branding"
+        lead="Pick the words that fit how your business should feel, and see your brand described back to you. Then AI writes logo ideas from it and draws them. You choose one, fine-tune it, get the versions and files you’ll need, and make matching pictures for your pages. Nothing is used until you approve it."
+      />
       <Suspense fallback={<p className="text-muted">Loading your brand…</p>}>
         <Brand />
       </Suspense>
@@ -54,12 +53,13 @@ async function Brand() {
   const [business, state] = await Promise.all([getMyBusiness(), getMyBrandState()]);
   if (!business || !state) {
     return (
-      <section className={`${CARD} flex flex-col gap-3`}>
-        <p>Tell us about your business first. Then you can make your logo here.</p>
+      <Card title="Tell us about your business first" icon="store" id="first-heading">
+        <p className="text-muted">Then you can make your logo here.</p>
         <Link href="/business/new" className={PRIMARY_LINK}>
           Tell us about your business
+          <Icon name="arrow" size="sm" />
         </Link>
-      </section>
+      </Card>
     );
   }
   const image = drawingModel();

@@ -2,14 +2,17 @@ import Link from "next/link";
 import { type ReactNode, Suspense } from "react";
 import { approveMarketingPlanAction } from "@/app/(app)/marketing/actions";
 import { ActorChip } from "@/components/actor-chip";
+import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { ApproveOrRewrite, WritePlanButton } from "@/components/marketing/ai-progress";
 import { MarketingAnswers, MarketingIntakeForm } from "@/components/marketing/intake-form";
 import { PlanView } from "@/components/marketing/plan-view";
+import { Kicker, NextUp } from "@/components/marketing/pieces";
 import { MarketingStepList, type ShownStep } from "@/components/marketing/step-list";
 import { PracticeBanner } from "@/components/practice-banner";
 import { RunStatus } from "@/components/run-status";
-import { CARD, EYEBROW, PAGE_TITLE, PRIMARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
+import { PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
+import { Card, Chip, Note, PageHead } from "@/components/ui";
 import type { SkillArea } from "@/data/marketing-platforms";
 import { PLATFORM_DATA as WEBSITE_PLATFORMS } from "@/data/website-platforms";
 import { getMyBrand, getMyBusiness, getMyMarketing, getMyWebsitePlan, lastMyRun, listMyDocuments } from "@/lib/data/my-business";
@@ -28,12 +31,12 @@ export const maxDuration = 300;
 
 export default function MarketingPage() {
   return (
-    <div className="flex max-w-3xl flex-col gap-6 wrap-break-word">
-      <div className="flex flex-col gap-1.5">
-        <p className={EYEBROW}>Marketing and branding</p>
-        <h1 className={PAGE_TITLE}>Build your marketing plan</h1>
-        <p className="text-lg text-muted">Answer a few questions, get a plan made for your business, then follow it one step at a time.</p>
-      </div>
+    <div className="flex max-w-[1000px] flex-col gap-6 wrap-break-word">
+      <PageHead
+        kicker={<Kicker icon="megaphone">Marketing and branding</Kicker>}
+        title="Build your marketing plan"
+        lead="Answer a few questions, get a plan made for your business, then follow it one step at a time."
+      />
       <Suspense fallback={<p className="text-muted">Loading your marketing plan…</p>}>
         <MarketingView />
       </Suspense>
@@ -95,12 +98,13 @@ async function MarketingView() {
 
   if (!business?.profile) {
     return (
-      <section className={`${CARD} flex flex-col gap-3`}>
-        <p>Tell us about your business first. Your plan is built from your answers.</p>
+      <Card title="Tell us about your business first" icon="store" id="first-heading">
+        <p className="text-muted">Your plan is built from your answers.</p>
         <Link href={business ? "/business/edit" : "/business/new"} className={PRIMARY_LINK}>
           {business ? "Update your answers" : "Tell us about your business"}
+          <Icon name="arrow" size="sm" />
         </Link>
-      </section>
+      </Card>
     );
   }
 
@@ -133,7 +137,7 @@ async function MarketingView() {
 
   if (move.kind === "intake" || move.kind === "business") {
     return (
-      <section aria-label="Questions" className={CARD}>
+      <section aria-label="Questions" className="rounded-2xl border border-line bg-surface px-4 py-5 shadow-card sm:p-7">
         <MarketingIntakeForm initial={stored} hasPlan={Boolean(plan)} known={known} />
       </section>
     );
@@ -144,13 +148,10 @@ async function MarketingView() {
       <NextCard move={move} total={steps.length} done={done.length} draftedAt={plan?.generatedAt ?? null} runNotice={runNotice} running={running} />
 
       {steps.length ? (
-        <section aria-labelledby="steps-heading" className={`${CARD} flex flex-col gap-4`}>
-          <h2 id="steps-heading" className={SECTION_TITLE}>
-            Your steps
-          </h2>
-          {stepsNote ? <p className="rounded-lg bg-check-tint px-3 py-2.5 text-sm text-check">{stepsNote}</p> : null}
+        <Card title="Your steps" icon="checklist" id="steps-heading" bodyClassName="gap-4">
+          {stepsNote ? <Note>{stepsNote}</Note> : null}
           {steps.some((step) => step.practice) ? <PracticeBanner what="These steps come from a plan drafted in practice mode." /> : null}
-          <ul aria-label="Who does what" className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+          <ul aria-label="Who does what" className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted">
             <li className="flex items-center gap-2">
               <ActorChip actor="rule" /> picks the steps and how much help each gets
             </li>
@@ -163,57 +164,56 @@ async function MarketingView() {
               <ActorChip actor="owner" /> tick each one off
             </li>
           </ul>
-          <MarketingStepList steps={shown} done={done} />
-        </section>
+          <MarketingStepList steps={shown} done={done} next={move.kind === "step" ? move.step.key : null} />
+        </Card>
       ) : null}
 
       {plan ? (
-        <section aria-labelledby="plan-heading" className={`${CARD} flex flex-col gap-4`}>
-          <div className="flex flex-col gap-1">
-            <h2 id="plan-heading" className={SECTION_TITLE}>
-              Your marketing plan
-            </h2>
-            <p className="text-sm text-muted">
-              {approvedAt && current ? (
-                <>
-                  Approved <LocalDate iso={approvedAt.toISOString()} />.{" "}
-                  {pdf ? (
-                    <Link href={`/documents/${encodeURIComponent(pdf.id)}`} className={TEXT_LINK}>
-                      Open the copy in My Business Library
-                    </Link>
-                  ) : null}
-                </>
-              ) : current ? (
-                "Draft, not approved yet"
-              ) : (
-                "Written before your answers changed"
-              )}
-            </p>
-          </div>
+        <Card
+          title="Your marketing plan"
+          icon="file"
+          id="plan-heading"
+          action={approvedAt && current ? <Chip tone="done" icon="check">Approved</Chip> : current ? <Chip tone="warn">Draft</Chip> : <Chip tone="gray">Earlier plan</Chip>}
+          bodyClassName="gap-4"
+        >
+          <p className="text-[15px] text-muted">
+            {approvedAt && current ? (
+              <>
+                Approved <LocalDate iso={approvedAt.toISOString()} />.{" "}
+                {pdf ? (
+                  <Link href={`/documents/${encodeURIComponent(pdf.id)}`} className={TEXT_LINK}>
+                    Open the copy in My Business Library
+                  </Link>
+                ) : null}
+              </>
+            ) : current ? (
+              "Draft, not approved yet"
+            ) : (
+              "Written before your answers changed"
+            )}
+          </p>
           {plan.simulated ? <PracticeBanner what="This plan was drafted in practice mode." /> : null}
           {current && !approvedAt ? (
             <PlanView plan={withoutPlatforms(plan, exclude)} />
           ) : (
             // Open only while it waits for approval, so the steps stay up front
-            <details className="group">
-              <summary className="flex min-h-11 cursor-pointer items-center font-semibold text-accent-ink underline underline-offset-4">
+            <details className="group/plan rounded-xl border border-line bg-soft">
+              <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 font-semibold text-accent [&::-webkit-details-marker]:hidden">
                 {current ? "Read your plan" : "Read your earlier plan"}
+                <Icon name="chevron" size="sm" className="ml-auto text-faint transition-transform group-open/plan:rotate-90" />
               </summary>
-              <div className="pt-3">
+              <div className="border-t border-line bg-surface p-4 sm:p-5">
                 <PlanView plan={withoutPlatforms(plan, exclude)} />
               </div>
             </details>
           )}
-        </section>
+        </Card>
       ) : null}
 
       {stored ? (
-        <section aria-labelledby="answers-heading" className={`${CARD} flex flex-col gap-3`}>
-          <h2 id="answers-heading" className={SECTION_TITLE}>
-            Your answers
-          </h2>
+        <Card title="Your answers" icon="clipboard" id="answers-heading">
           <MarketingAnswers intake={stored} hasPlan={Boolean(plan)} known={known} />
-        </section>
+        </Card>
       ) : null}
     </>
   );
@@ -236,61 +236,57 @@ function NextCard({
   // Buttons wait only while a run is still going
   running: boolean;
 }) {
+  if (move.kind === "write") {
+    return (
+      <NextUp id="next-heading" icon={move.again ? "refresh" : "sparkles"} kicker="Up next" title={move.again ? "Your answers changed" : "Write your marketing plan"}>
+        <p className="text-[16.5px] text-muted">
+          {move.again
+            ? "Write your plan again so it matches your new answers."
+            : "First Sale looks at everything you’ve told it, from what you sell to your budget, launch date, brand and website, and drafts a plan for you to check."}
+        </p>
+        <ul aria-label="Who does what" className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted">
+          <li className="flex items-center gap-2">
+            <ActorChip actor="ai" /> drafts it
+          </li>
+          <li className="flex items-center gap-2">
+            <ActorChip actor="rule" /> keep out places you said no to
+          </li>
+          <li className="flex items-center gap-2">
+            <ActorChip actor="owner" /> approve it
+          </li>
+        </ul>
+        {runNotice}
+        {running ? null : <WritePlanButton again={move.again} />}
+      </NextUp>
+    );
+  }
+  if (move.kind === "approve") {
+    return (
+      <NextUp id="next-heading" icon="file" kicker="Up next" title="Check your plan and approve it">
+        <p className="text-[16.5px] text-muted">Read it below. Approving saves a copy to My Business Library and makes your steps.</p>
+        {runNotice}
+        {running ? null : <ApproveOrRewrite approve={approveMarketingPlanAction.bind(null, { draftedAt })} />}
+      </NextUp>
+    );
+  }
+  if (move.kind === "step") {
+    return (
+      <NextUp id="next-heading" icon="megaphone" kicker={`Up next · step ${move.number} of ${total}`} title={move.step.title}>
+        <div className="flex flex-wrap items-center gap-2">
+          <Chip tone="accent" icon="check">
+            {done} of {total} done
+          </Chip>
+        </div>
+        <a href={`#${stepAnchor(move.step.key)}`} className={PRIMARY_LINK}>
+          Start this step
+          <Icon name="arrow" size="sm" />
+        </a>
+      </NextUp>
+    );
+  }
   return (
-    <section aria-labelledby="next-heading" className="flex flex-col gap-3 rounded-2xl bg-accent-tint p-5">
-      {move.kind === "write" ? (
-        <>
-          <h2 id="next-heading" className={`${SECTION_TITLE} text-accent-ink`}>
-            {move.again ? "Your answers changed" : "Next: write your marketing plan"}
-          </h2>
-          <p className="text-accent-ink">
-            {move.again
-              ? "Write your plan again so it matches your new answers."
-              : "First Sale looks at everything you’ve told it, from what you sell to your budget, launch date, brand and website, and drafts a plan for you to check."}
-          </p>
-          <ul aria-label="Who does what" className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-accent-ink">
-            <li className="flex items-center gap-2">
-              <ActorChip actor="ai" /> drafts it
-            </li>
-            <li className="flex items-center gap-2">
-              <ActorChip actor="rule" /> keep out places you said no to
-            </li>
-            <li className="flex items-center gap-2">
-              <ActorChip actor="owner" /> approve it
-            </li>
-          </ul>
-          {runNotice}
-          {running ? null : <WritePlanButton again={move.again} />}
-        </>
-      ) : move.kind === "approve" ? (
-        <>
-          <h2 id="next-heading" className={`${SECTION_TITLE} text-accent-ink`}>
-            Next: check your plan and approve it
-          </h2>
-          <p className="text-accent-ink">Read it below. Approving saves a copy to My Business Library and makes your steps.</p>
-          {runNotice}
-          {running ? null : <ApproveOrRewrite approve={approveMarketingPlanAction.bind(null, { draftedAt })} />}
-        </>
-      ) : move.kind === "step" ? (
-        <>
-          <p className="text-sm font-semibold text-accent-ink">
-            Step {move.number} of {total} · {done} done
-          </p>
-          <h2 id="next-heading" className={`${SECTION_TITLE} text-accent-ink`}>
-            Next: {move.step.title}
-          </h2>
-          <a href={`#${stepAnchor(move.step.key)}`} className={PRIMARY_LINK}>
-            Start this step
-          </a>
-        </>
-      ) : (
-        <>
-          <h2 id="next-heading" className={`${SECTION_TITLE} text-accent-ink`}>
-            All your marketing steps are done
-          </h2>
-          <p className="text-accent-ink">Keep to your weekly rhythm. When you’re ready for more, change your answers and write your plan again.</p>
-        </>
-      )}
-    </section>
+    <NextUp id="next-heading" icon="check" kicker="All done" title="All your marketing steps are done">
+      <p className="text-[16.5px] text-muted">Keep to your weekly rhythm. When you’re ready for more, change your answers and write your plan again.</p>
+    </NextUp>
   );
 }

@@ -3,6 +3,7 @@
 import { useLayoutEffect, useState } from "react";
 import { explainOptionAction } from "@/app/(app)/website/option-actions";
 import { ActorChip } from "@/components/actor-chip";
+import { Icon } from "@/components/icons";
 import { ALERT, SECONDARY } from "@/components/styles";
 import type { OptionExplanation } from "@/lib/website/options";
 
@@ -34,6 +35,7 @@ export function ExplainOption({ optionKey, name, explanation }: { optionKey: str
   return (
     <div className="flex flex-col gap-2">
       <button type="button" onClick={toggle} disabled={pending} aria-expanded={open} className={`${SECONDARY} w-fit`}>
+        <Icon name={open ? "close" : "lightbulb"} size="sm" />
         {pending ? "Explaining…" : open ? "Hide the explanation" : `Explain ${name} more`}
       </button>
       <p role="status" className={pending ? "text-sm text-muted" : "sr-only"}>
@@ -45,13 +47,13 @@ export function ExplainOption({ optionKey, name, explanation }: { optionKey: str
         </p>
       ) : null}
       {open && explanation ? (
-        <div className="flex flex-col gap-2.5 rounded-xl bg-ai-tint/60 px-4 py-3 text-[15px]">
+        <div className="flex flex-col gap-2.5 rounded-xl border border-ai/15 bg-ai-tint px-4 py-3.5 text-[15px]">
           <p className="flex items-center gap-2 text-sm font-semibold text-ai-ink">
             {explanation.simulated ? <ActorChip actor="rule" /> : <ActorChip actor="ai" />}
             {explanation.simulated ? "Practice mode: no AI explanation" : "Explained by AI from the facts on this card"}
           </p>
           {explanation.flags.length ? (
-            <ul className="flex flex-col gap-1 rounded-lg bg-check-tint px-3 py-2 text-sm text-check">
+            <ul className="flex flex-col gap-1 rounded-lg border border-check-ring bg-check-tint px-3 py-2 text-sm text-check">
               {explanation.flags.map((flag) => (
                 <li key={flag}>{flag}</li>
               ))}

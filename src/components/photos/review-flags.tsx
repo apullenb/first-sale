@@ -28,7 +28,7 @@ export function ReviewFlags({ review, preview, checking }: { review: PhotoReview
     );
   }
   return (
-    <div className="flex flex-col gap-2 rounded-xl bg-check-tint px-4 py-3 text-check">
+    <div className="flex flex-col gap-2 rounded-xl border border-check-ring bg-check-tint px-4 py-3 text-check">
       <p className="flex flex-wrap items-center gap-2 font-semibold">
         <ActorChip actor="ai" /> Look closely at {review.flags.length === 1 ? "this" : "these"} before approving
       </p>

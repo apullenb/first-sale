@@ -27,7 +27,7 @@ export function SiteFrame({ html, title, device }: { html: string; title: string
         srcDoc={html}
         // No scripts can run; same origin only so the owner's own pictures load
         sandbox="allow-same-origin"
-        className="absolute top-0 rounded-xl bg-white ring-1 ring-ink/10"
+        className="absolute top-0 rounded-lg bg-white shadow-card"
         style={{
           width,
           height: HEIGHT / scale,

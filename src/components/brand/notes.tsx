@@ -1,5 +1,8 @@
 import { connection } from "next/server";
-import { CARD, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
+import type { ReactNode } from "react";
+import { Icon, type IconName } from "@/components/icons";
+import { TEXT_LINK } from "@/components/styles";
+import { Card } from "@/components/ui";
 import { getImageModel, getModel } from "@/lib/ai";
 import { dollars } from "@/lib/brand/cost";
 import { CHECKED, USPTO } from "@/lib/brand/sizes";
@@ -27,12 +30,8 @@ function servicePoints(): string[] {
 export async function BrandNotes() {
   await connection();
   return (
-    <section aria-labelledby="brand-notes-heading" className={`${CARD} flex flex-col gap-5`}>
-      <h2 id="brand-notes-heading" className={SECTION_TITLE}>
-        Good to know
-      </h2>
-      <div className="flex flex-col gap-1.5">
-        <h3 className="font-semibold">Check your logo isn’t taken</h3>
+    <Card title="Good to know" icon="info" tone="gray" id="brand-notes-heading" bodyClassName="gap-5">
+      <Note icon="search" title="Check your logo isn’t taken">
         <p className="text-rule">
           A logo made with AI can look like a mark another business already uses, and using one that’s too close can cause trouble later. Before you print it or
           spend money on it, search the{" "}
@@ -41,10 +40,9 @@ export async function BrandNotes() {
           </a>{" "}
           for similar names and designs (link checked {CHECKED}). A trademark attorney can do a fuller search. First Sale doesn’t check this for you.
         </p>
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <h3 className="font-semibold">Who sees your brand files</h3>
-        <ul className="flex list-disc flex-col gap-1.5 pl-5 text-rule">
+      </Note>
+      <Note icon="lock" title="Who sees your brand files">
+        <ul className="flex list-disc flex-col gap-1.5 pl-5 text-rule marker:text-accent">
           <li>Your brief, ideas and pictures are stored in First Sale’s database. Only you can see them, when you’re signed in.</li>
           <li>Pictures are kept exactly as Muse made them. Exact-size downloads are made in your browser.</li>
           {servicePoints().map((point) => (
@@ -52,10 +50,9 @@ export async function BrandNotes() {
           ))}
           <li>Nothing is posted for you. Approved files wait in your brand kit until you download them.</li>
         </ul>
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <h3 className="font-semibold">What it costs</h3>
-        <ul className="flex list-disc flex-col gap-1.5 pl-5 text-rule">
+      </Note>
+      <Note icon="dollar" title="What it costs">
+        <ul className="flex list-disc flex-col gap-1.5 pl-5 text-rule marker:text-accent">
           <li>
             Meta charges {dollars(1)} for each picture Muse Image makes, and nothing for ones that fail or are blocked (
             <a href="https://dev.meta.ai/docs/pricing-rate-limits" target="_blank" rel="noreferrer" className={TEXT_LINK}>
@@ -66,7 +63,19 @@ export async function BrandNotes() {
           <li>Writing ideas and checking spelling use Muse Spark, which Meta charges by how much it reads and writes, not per picture.</li>
           <li>If you press a button again after a lost connection, First Sale returns what was already made instead of paying twice.</li>
         </ul>
-      </div>
-    </section>
+      </Note>
+    </Card>
+  );
+}
+
+function Note({ icon, title, children }: { icon: IconName; title: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5 border-t border-line pt-4 first:border-t-0 first:pt-0">
+      <h3 className="flex items-center gap-2 font-bold">
+        <Icon name={icon} size="sm" className="text-accent" />
+        {title}
+      </h3>
+      {children}
+    </div>
   );
 }

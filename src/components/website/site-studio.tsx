@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { type ReactNode, useDeferredValue, useId, useLayoutEffect, useState } from "react";
 import { checkPublishAction, disconnectHostAction, publishSiteAction, saveSiteDesignAction } from "@/app/(app)/website/site-actions";
+import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
+import { Done, LABEL, PickOption, PickTile, SectionHead, Segmented, SOFT } from "@/components/marketing/pieces";
 import { ALERT, INPUT, PRIMARY, SECONDARY, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
+import { Card } from "@/components/ui";
 import {
   buyLinkProblem,
   dollars,
@@ -22,7 +25,6 @@ import { NETLIFY_CREDITS } from "@/data/netlify-credits";
 import { renderSite, type SiteImage } from "@/lib/website/site/render";
 import type { WebsiteCopy } from "@/lib/website/types";
 import { SiteFrame } from "./site-frame";
-import { StepHeading } from "./step-heading";
 
 export interface LibraryChoice {
   versionId: string;
@@ -70,9 +72,7 @@ interface Props {
   publishHelp?: ReactNode;
 }
 
-// A button that stays pressed while it's the pick
-const CHOICE =
-  "min-h-11 rounded-lg border border-field bg-surface px-4 font-semibold hover:border-muted aria-pressed:border-accent aria-pressed:bg-accent-tint aria-pressed:text-accent-ink";
+const PART = "flex flex-col gap-2.5 border-t border-line pt-5";
 
 type ItemDraft = { price: string; buyUrl: string; photo: string };
 
@@ -196,42 +196,52 @@ export function SiteStudio(props: Props) {
 
   return (
     <>
-      <section aria-labelledby="step-design" className="flex flex-col gap-4">
-        <StepHeading number={props.stepNumber} id="step-design" title={publish ? "Design it and see it live" : "See how it could look"} />
-        <p className="max-w-3xl text-rule">
-          {publish
-            ? "This is your real site, drawn from your approved words, brand and items. Change the look below and the preview updates as you go. Nothing goes online until you publish in the next step."
-            : "A preview from your words and brand. Your real site will use the design you pick on your platform, but the prices, photos and colors you set here are copied into the steps below."}
-        </p>
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
-          <div className="flex flex-col gap-5 rounded-2xl bg-surface p-5 ring-1 ring-ink/5">
-            <fieldset className="flex flex-col gap-2">
-              <legend className="mb-1 font-bold">Look</legend>
-              <div className="flex flex-wrap gap-2">
+      <section aria-labelledby="step-design" className="@container flex flex-col gap-4">
+        <SectionHead
+          id="step-design"
+          number={props.stepNumber}
+          title={publish ? "Design it and see it live" : "See how it could look"}
+          lead={
+            publish
+              ? "This is your real site, drawn from your approved words, brand and items. Change the look below and the preview updates as you go. Nothing goes online until you publish in the next step."
+              : "A preview from your words and brand. Your real site will use the design you pick on your platform, but the prices, photos and colors you set here are copied into the steps below."
+          }
+        />
+        <div className="grid items-start gap-5 @4xl:grid-cols-[minmax(0,21rem)_minmax(0,1fr)]">
+          <Card title="Your design" icon="palette" id="design-controls-heading" headingLevel={3} bodyClassName="gap-5">
+            <div className="flex flex-col gap-2.5">
+              <p id={`${uid}-look`} className={LABEL}>
+                Look
+              </p>
+              <div role="group" aria-labelledby={`${uid}-look`} className="grid gap-2">
                 {SITE_STYLES.map((style) => (
-                  <button key={style} type="button" aria-pressed={design.style === style} onClick={() => change({ style })} className={CHOICE}>
-                    {STYLE_LABELS[style].name}
-                  </button>
+                  <PickTile
+                    key={style}
+                    pressed={design.style === style}
+                    onClick={() => change({ style })}
+                    label={STYLE_LABELS[style].name}
+                    description={STYLE_LABELS[style].hint}
+                    layout="top"
+                  />
                 ))}
               </div>
-              <p className="text-sm text-muted">{STYLE_LABELS[design.style].hint}</p>
-            </fieldset>
+            </div>
 
-            <fieldset className="flex flex-col gap-2">
-              <legend className="mb-1 font-bold">Main color</legend>
+            <div className={PART}>
+              <p id={`${uid}-color`} className={LABEL}>
+                Main color
+              </p>
               {props.brandColors.length ? (
-                <div className="flex flex-wrap gap-2">
+                <div role="group" aria-labelledby={`${uid}-color`} className="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-2">
                   {props.brandColors.map((color) => (
-                    <button
+                    <PickTile
                       key={color.hex}
-                      type="button"
-                      aria-pressed={design.color.toLowerCase() === color.hex.toLowerCase()}
+                      pressed={design.color.toLowerCase() === color.hex.toLowerCase()}
                       onClick={() => change({ color: color.hex.toLowerCase() })}
-                      className={`${CHOICE} flex items-center gap-2`}
-                    >
-                      <span aria-hidden="true" className="size-5 rounded-full ring-1 ring-ink/20" style={{ background: color.hex }} />
-                      {color.name}
-                    </button>
+                      lead={<span aria-hidden="true" className="size-5 shrink-0 rounded-full ring-1 ring-ink/20" style={{ background: color.hex }} />}
+                      label={color.name}
+                      layout="word"
+                    />
                   ))}
                 </div>
               ) : (
@@ -243,22 +253,23 @@ export function SiteStudio(props: Props) {
                   .
                 </p>
               )}
-              <label className="flex items-center gap-3 text-sm">
-                <input type="color" value={design.color} onChange={(event) => change({ color: event.target.value.toLowerCase() })} className="h-11 w-14 cursor-pointer rounded border border-field bg-surface" />
+              <label className="flex min-h-11 items-center gap-3 text-[15px]">
+                <input
+                  type="color"
+                  value={design.color}
+                  onChange={(event) => change({ color: event.target.value.toLowerCase() })}
+                  className="h-11 w-14 cursor-pointer rounded-[10px] border border-line-strong bg-surface"
+                />
                 <span>
-                  Or pick any color <span className="font-mono">{design.color}</span>
+                  Or pick any color <span className="font-mono text-muted">{design.color}</span>
                 </span>
               </label>
-            </fieldset>
+            </div>
 
-            <fieldset className="flex flex-col gap-1">
-              <legend className="mb-1 font-bold">Show on the site</legend>
-              {props.images.logo ? (
-                <Check label="Your logo" checked={design.showLogo} onChange={(showLogo) => change({ showLogo })} />
-              ) : null}
-              {props.images.hero ? (
-                <Check label="Your header picture" checked={design.showHero} onChange={(showHero) => change({ showHero })} />
-              ) : null}
+            <fieldset className="flex flex-col gap-2 border-t border-line pt-5">
+              <legend className={`${LABEL} float-left mb-2.5 w-full`}>Show on the site</legend>
+              {props.images.logo ? <Check label="Your logo" checked={design.showLogo} onChange={(showLogo) => change({ showLogo })} /> : null}
+              {props.images.hero ? <Check label="Your header picture" checked={design.showHero} onChange={(showHero) => change({ showHero })} /> : null}
               {SITE_SECTIONS.map((section) => (
                 <Check
                   key={section}
@@ -267,12 +278,8 @@ export function SiteStudio(props: Props) {
                   onChange={(on) => change({ hidden: on ? design.hidden.filter((each) => each !== section) : [...design.hidden, section] })}
                 />
               ))}
-              {props.contact.email ? (
-                <Check label={`Email button (${props.contact.email})`} checked={design.showEmail} onChange={(showEmail) => change({ showEmail })} />
-              ) : null}
-              {props.contact.phone ? (
-                <Check label={`Call button (${props.contact.phone})`} checked={design.showPhone} onChange={(showPhone) => change({ showPhone })} />
-              ) : null}
+              {props.contact.email ? <Check label={`Email button (${props.contact.email})`} checked={design.showEmail} onChange={(showEmail) => change({ showEmail })} /> : null}
+              {props.contact.phone ? <Check label={`Call button (${props.contact.phone})`} checked={design.showPhone} onChange={(showPhone) => change({ showPhone })} /> : null}
               {!props.contact.email && !props.contact.phone ? (
                 <p className="text-sm text-muted">
                   Add a business email or phone in{" "}
@@ -285,8 +292,8 @@ export function SiteStudio(props: Props) {
             </fieldset>
 
             {copy.offerings.length ? (
-              <fieldset className="flex flex-col gap-3">
-                <legend className="mb-1 font-bold">Your items</legend>
+              <fieldset className="flex flex-col gap-3 border-t border-line pt-5">
+                <legend className={`${LABEL} float-left mb-2.5 w-full`}>Your items</legend>
                 <p className="text-sm text-muted">
                   Prices show only if you type them. A buy link opens your own payment page: make one in Stripe or Square (see the steps below), then paste it here.
                 </p>
@@ -296,8 +303,8 @@ export function SiteStudio(props: Props) {
                   const linkProblem = buyLinkProblem(draft.buyUrl);
                   const id = `${uid}-item-${index}`;
                   return (
-                    <div key={`${index}-${offering.name}`} className="flex flex-col gap-2 rounded-xl bg-ground p-3">
-                      <p className="font-semibold">{offering.name}</p>
+                    <div key={`${index}-${offering.name}`} className={`${SOFT} flex flex-col gap-2 p-3.5`}>
+                      <p className="font-bold">{offering.name}</p>
                       <label htmlFor={`${id}-price`} className="text-sm font-semibold">
                         Price
                       </label>
@@ -375,6 +382,7 @@ export function SiteStudio(props: Props) {
               </p>
               <div className="flex flex-wrap gap-2">
                 <button type="button" disabled={pending || !dirty} onClick={save} className={PRIMARY}>
+                  <Icon name="check" size="sm" />
                   {status === "saving" ? "Saving…" : "Save design"}
                 </button>
                 <button
@@ -391,42 +399,52 @@ export function SiteStudio(props: Props) {
                 </button>
               </div>
             </div>
-          </div>
+          </Card>
 
-          <figure className="flex min-w-0 flex-col gap-2 lg:sticky lg:top-4 lg:self-start">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div role="group" aria-label="Preview size" className="flex gap-2">
-                <button type="button" aria-pressed={device === "computer"} onClick={() => setDevice("computer")} className={CHOICE}>
-                  Computer
-                </button>
-                <button type="button" aria-pressed={device === "phone"} onClick={() => setDevice("phone")} className={CHOICE}>
-                  Phone
-                </button>
-              </div>
-              <span className="truncate rounded bg-surface px-2 py-1 text-xs text-muted ring-1 ring-ink/10">{props.domain ?? "your-web-address.com"}</span>
-            </div>
-            <div className="rounded-2xl bg-rule-tint p-2 sm:p-3">
-              <SiteFrame html={preview} title={`Preview of the ${props.name} website`} device={device} />
-            </div>
-            <figcaption className="text-sm text-muted">
-              Yellow marks are [bracketed] notes still to fill in. Buy buttons don’t open from the preview.
-              {props.practiceBrand ? " Your logo and pictures here are practice previews, not made for your business." : ""}
-            </figcaption>
-          </figure>
+          <div className="min-w-0 @4xl:sticky @4xl:top-4">
+            <Card title="Live preview" icon="monitor" id="preview-heading" headingLevel={3}>
+              <figure className="flex min-w-0 flex-col gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Segmented
+                    label="Preview size"
+                    value={device}
+                    onChange={(value) => setDevice(value as "phone" | "computer")}
+                    options={[
+                      { value: "computer", label: "Computer", icon: "monitor" },
+                      { value: "phone", label: "Phone", icon: "phone" },
+                    ]}
+                  />
+                  <span className="inline-flex max-w-full min-w-0 items-center gap-1.5 truncate rounded-lg border border-line bg-soft px-2.5 py-1.5 text-sm text-muted">
+                    <Icon name="lock" size="xs" />
+                    <span className="truncate">{props.domain ?? "your-web-address.com"}</span>
+                  </span>
+                </div>
+                <div className="rounded-xl border border-line bg-wash p-2 sm:p-3">
+                  <SiteFrame html={preview} title={`Preview of the ${props.name} website`} device={device} />
+                </div>
+                <figcaption className="text-sm text-muted">
+                  Yellow marks are [bracketed] notes still to fill in. Buy buttons don’t open from the preview.
+                  {props.practiceBrand ? " Your logo and pictures here are practice previews, not made for your business." : ""}
+                </figcaption>
+              </figure>
+            </Card>
+          </div>
         </div>
       </section>
 
       {publish ? (
-        <section aria-labelledby="step-publish" className="flex max-w-3xl flex-col gap-4 rounded-2xl bg-surface p-5 ring-1 ring-ink/5">
-          <StepHeading number={props.stepNumber + 1} id="step-publish" title="Publish it" />
-          <PublishControls
-            publish={publish}
-            dirty={dirty}
-            pending={pending}
-            publishing={status === "publishing"}
-            error={error?.at === "publish" ? error.message : null}
-            onPublish={publishNow}
-          />
+        <section aria-labelledby="step-publish" className="flex flex-col gap-4">
+          <SectionHead id="step-publish" number={props.stepNumber + 1} title="Publish it" />
+          <Card bodyClassName="gap-4">
+            <PublishControls
+              publish={publish}
+              dirty={dirty}
+              pending={pending}
+              publishing={status === "publishing"}
+              error={error?.at === "publish" ? error.message : null}
+              onPublish={publishNow}
+            />
+          </Card>
           {props.publishHelp}
         </section>
       ) : null}
@@ -435,12 +453,7 @@ export function SiteStudio(props: Props) {
 }
 
 function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
-  return (
-    <label className="flex min-h-11 cursor-pointer items-center gap-3">
-      <input type="checkbox" className="size-5 accent-accent" checked={checked} onChange={(event) => onChange(event.target.checked)} />
-      <span>{label}</span>
-    </label>
-  );
+  return <PickOption type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} label={label} layout="word" />;
 }
 
 function PublishControls({
@@ -481,9 +494,9 @@ function PublishControls({
   return (
     <div className="flex flex-col gap-4">
       {publish.returned === "connected" && publish.connected ? (
-        <p role="status" className="rounded-lg bg-accent-tint px-3 py-2.5 text-accent-ink">
-          Netlify is connected. You can publish when you’re ready.
-        </p>
+        <div role="status">
+          <Done>Netlify is connected. You can publish when you’re ready.</Done>
+        </div>
       ) : null}
       {publish.returned === "failed" ? (
         <p role="alert" className={ALERT}>
@@ -493,14 +506,14 @@ function PublishControls({
 
       {hosting ? (
         hosting.simulated ? (
-          <div className="rounded-xl border border-check/30 bg-check-tint px-4 py-3 text-[15px] text-check">
+          <div className="rounded-xl border border-check-ring bg-check-tint px-4 py-3 text-[15px] text-check">
             <p>
               <strong>Practice publish</strong> on <LocalDate iso={hosting.publishedAt} />: every check passed, but nothing went online. Connected to Netlify, your site
               would get an address like <span className="font-mono break-all">{hosting.url}</span>.
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-1.5 rounded-xl bg-accent-tint px-4 py-3 text-accent-ink">
+          <div className="flex flex-col gap-1.5 rounded-xl border border-accent-ring bg-accent-tint px-4 py-3 text-accent-ink">
             <p>
               <strong>
                 {hosting.state === "ready" ? "Your site is online" : hosting.state === "processing" ? "Netlify is putting your site online" : "Your last publish didn’t go live"}
@@ -533,8 +546,11 @@ function PublishControls({
       ) : null}
 
       {publish.blockers.length ? (
-        <div className="flex flex-col gap-1.5 rounded-xl bg-check-tint px-4 py-3 text-check">
-          <p className="font-bold">Before you can publish</p>
+        <div className="flex flex-col gap-1.5 rounded-xl border border-check-ring bg-check-tint px-4 py-3 text-check">
+          <p className="flex items-center gap-2 font-bold">
+            <Icon name="info" size="sm" />
+            Before you can publish
+          </p>
           <ul className="flex list-disc flex-col gap-1 pl-5">
             {publish.blockers.map((blocker) => (
               <li key={blocker}>{blocker}</li>
@@ -542,7 +558,7 @@ function PublishControls({
           </ul>
         </div>
       ) : (
-        <p className="rounded-lg bg-accent-tint px-3 py-2.5 text-accent-ink">Everything First Sale checks is ready.</p>
+        <Done>Everything First Sale checks is ready.</Done>
       )}
       {publish.notes.length ? (
         <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-rule">
@@ -552,8 +568,8 @@ function PublishControls({
         </ul>
       ) : null}
 
-      <div className="flex flex-col gap-2 rounded-xl bg-ground px-4 py-3">
-        <p className="font-bold">Where it goes online</p>
+      <div className={`${SOFT} flex flex-col gap-2 px-4 py-3.5`}>
+        <p className={LABEL}>Where it goes online</p>
         {publish.connected ? (
           <>
             <p className="text-rule">Connected to your Netlify account. Publishing puts your site there, on Netlify’s Free plan.</p>
@@ -608,6 +624,7 @@ function PublishControls({
       ) : null}
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" disabled={blocked || dirty || pending} onClick={onPublish} className={PRIMARY}>
+          <Icon name="globe" size="sm" />
           {publishing
             ? "Publishing…"
             : publish.connected
@@ -620,6 +637,7 @@ function PublishControls({
         </button>
         {!blocked && !dirty ? (
           <a href="/website/download" download className={SECONDARY_LINK}>
+            <Icon name="download" size="sm" />
             Download my site (.zip)
           </a>
         ) : null}

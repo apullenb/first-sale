@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ActorChip } from "@/components/actor-chip";
+import { Icon } from "@/components/icons";
 import { PRIMARY_LINK } from "@/components/styles";
 import { PROBLEM_LABELS } from "@/lib/photos/looks";
 import type { PhotoCheck } from "@/lib/photos/types";
@@ -31,7 +32,7 @@ export function CheckSummary({ check }: { check: PhotoCheck }) {
       </p>
 
       {!check.usable ? (
-        <div className="flex flex-col gap-3 rounded-xl bg-check-tint px-4 py-3 text-check">
+        <div className="flex flex-col gap-3 rounded-xl border border-check-ring bg-check-tint px-4 py-3 text-check">
           <p className="font-semibold">This photo can’t be edited accurately, so nothing will be made from it.</p>
           <p className="text-[15px]">
             First Sale won’t guess at parts of your product it can’t see clearly. A quick retake usually fixes it, with no
@@ -69,9 +70,12 @@ export function CheckSummary({ check }: { check: PhotoCheck }) {
       ) : null}
 
       {check.usable && keep.length ? (
-        <details className="text-sm text-rule">
-          <summary className="flex min-h-11 cursor-pointer items-center font-semibold">Details the edit must keep</summary>
-          <ul className="flex list-disc flex-col gap-1 pl-5">
+        <details className="group/keep rounded-xl border border-line bg-soft text-sm text-rule">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3.5 font-semibold text-ink [&::-webkit-details-marker]:hidden">
+            <span className="flex-1">Details the edit must keep</span>
+            <Icon name="chevron" size="sm" className="text-faint transition-transform group-open/keep:rotate-90" />
+          </summary>
+          <ul className="flex list-disc flex-col gap-1 pr-3.5 pb-3 pl-8 marker:text-accent">
             {keep.map((item) => (
               <li key={item}>{item}</li>
             ))}
