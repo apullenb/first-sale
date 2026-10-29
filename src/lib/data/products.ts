@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, eq, isNotNull } from "drizzle-orm";
+import { and, asc, count, eq, isNotNull, ne } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { brandLibraryFiles, businesses, orderLines, productPhotos, productPhotoVersions, products } from "@/db/schema";
 import { PRODUCT_LIMITS, type ProductPhotoRef, type ProductValues } from "@/lib/rules/products";
@@ -57,7 +57,11 @@ async function photoIsOwned(tx: Tx, businessId: string, ref: ProductPhotoRef): P
       );
     return Boolean(row);
   }
-  const [row] = await tx.select({ id: brandLibraryFiles.id }).from(brandLibraryFiles).where(and(eq(brandLibraryFiles.id, ref.fileId), eq(brandLibraryFiles.businessId, businessId)));
+  // Logos aren't offered as product photos
+  const [row] = await tx
+    .select({ id: brandLibraryFiles.id })
+    .from(brandLibraryFiles)
+    .where(and(eq(brandLibraryFiles.id, ref.fileId), eq(brandLibraryFiles.businessId, businessId), ne(brandLibraryFiles.group, "logos")));
   return Boolean(row);
 }
 

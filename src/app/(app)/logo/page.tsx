@@ -83,7 +83,9 @@ async function Logo() {
 
       {chosen ? <ChosenLogo chosen={chosen} /> : null}
 
+      {/* A new chosen logo closes the panel: the step is done */}
       <AlreadyHave
+        key={chosen?.id ?? "none"}
         markKey="logo"
         label={chosen?.origin === "uploaded" ? "Upload a different logo" : "I already have a logo"}
         help="Upload your logo, and First Sale uses it for your logo versions, brand kit and website. Or just mark this step done if you’d rather keep your logo files elsewhere."

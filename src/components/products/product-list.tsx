@@ -30,7 +30,8 @@ const EMPTY: ProductForm = { name: "", description: "", price: "", unitCost: "",
 // The owner's products: add, change and remove them. Prices are only what the owner types.
 export function ProductList({ products, choices }: { products: ListedProduct[]; choices: PhotoChoice[] }) {
   const [editing, setEditing] = useState<string | null>(null);
-  const [adding, setAdding] = useState(products.length === 0);
+  // With no products yet, the form is always open
+  const [adding, setAdding] = useState(false);
   const byKey = new Map(choices.map((choice) => [choice.key, choice]));
 
   return (
@@ -54,8 +55,8 @@ export function ProductList({ products, choices }: { products: ListedProduct[]; 
           ))}
         </ul>
       ) : null}
-      {adding ? (
-        <ProductEditor id={null} initial={EMPTY} choices={choices} onDone={() => setAdding(products.length === 0)} canCancel={products.length > 0} />
+      {adding || products.length === 0 ? (
+        <ProductEditor id={null} initial={EMPTY} choices={choices} onDone={() => setAdding(false)} canCancel={products.length > 0} />
       ) : products.length < PRODUCT_LIMITS.products ? (
         <button type="button" onClick={() => setAdding(true)} className={`${PRIMARY} w-fit`}>
           <Icon name="plus" size="sm" />

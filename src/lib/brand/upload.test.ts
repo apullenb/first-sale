@@ -22,6 +22,21 @@ describe("uploading a logo", () => {
     expect(checkLogoUpload(huge, "logo.png")).toMatchObject({ ok: false, message: expect.stringMatching(/too large/) });
   });
 
+  it("refuses logos too big to decode on a phone, and moving pictures", () => {
+    const wide = pngBytes(1, 1);
+    new DataView(wide.buffer, wide.byteOffset).setUint32(16, 5000);
+    new DataView(wide.buffer, wide.byteOffset).setUint32(20, 5000);
+    expect(checkLogoUpload(wide, "logo.png")).toMatchObject({ ok: false, message: expect.stringMatching(/too large \(5000 × 5000/) });
+    expect(checkLibraryUpload(wide, "stall.png", "")).toMatchObject({ ok: true });
+
+    // An animation control chunk spliced in before the image data
+    const still = pngBytes(600, 300);
+    const actl = new Uint8Array([0, 0, 0, 8, ...new TextEncoder().encode("acTL"), 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0]);
+    const moving = new Uint8Array([...still.subarray(0, 33), ...actl, ...still.subarray(33)]);
+    expect(checkLogoUpload(moving, "logo.png")).toMatchObject({ ok: false, message: expect.stringMatching(/Moving pictures/) });
+    expect(checkLogoUpload(still, "logo.png")).toMatchObject({ ok: true });
+  });
+
   it("refuses files over the upload limit", () => {
     const big = new Uint8Array(MAX_UPLOAD_BYTES + 1);
     big.set(pngBytes(600, 300));

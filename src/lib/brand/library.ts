@@ -19,5 +19,8 @@ export const MIN_LOGO_SIDE = 100;
 export const SMALL_LOGO_SIDE = 500;
 // Larger than any camera or design export; guards the browser and the database
 export const MAX_PICTURE_SIDE = 12_000;
+// Total pixels: logos are decoded whole to make the kit, and phones refuse canvases much past 16 million
+export const MAX_LOGO_PIXELS = 16_000_000;
+export const MAX_PICTURE_PIXELS = 50_000_000;
 export const MAX_LOGO_WORDS = 120;
 export const MAX_PICTURE_NAME = 80;

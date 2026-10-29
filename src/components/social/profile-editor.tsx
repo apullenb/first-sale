@@ -231,7 +231,7 @@ export function ProfileEditor({ platform, platformName, facts, initial, handles,
         )}
         {facts.bio && pending === null ? (
           <AiProgressButton
-            action={() => draftSocialBiosAction({ platform })}
+            action={() => draftSocialBiosAction({ platform, typed: { name, handle: bare } })}
             label={bio.trim() ? "Draft it again" : "Draft it for me"}
             title={`Drafting your ${platformName} ${facts.bio.label.toLowerCase()}`}
             steps={["Reading your business answers", `Writing for ${platformName}`, `Fitting it to ${platformName}’s limit`]}

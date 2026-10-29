@@ -18,6 +18,7 @@ import { type AssetFile, bundleSite, type BundleAssets } from "@/lib/website/sit
 import { photosShown, type SiteState } from "@/lib/website/site/check";
 import { readDesign } from "@/lib/website/site/design";
 import { copyOf } from "@/lib/website/words";
+import { withoutMetadata } from "@/lib/photos/strip-metadata";
 
 export { publishCheck, siteSignature } from "@/lib/website/site/check";
 
@@ -64,7 +65,8 @@ export async function loadSite(): Promise<LoadedSite | null> {
 async function brandAsset(file: BrandFile | null): Promise<AssetFile | null> {
   const id = brandAssetId(file);
   const stored = id ? await getMyBrandAssetFile(id) : null;
-  return file && stored ? { mimeType: stored.mimeType, data: stored.data, width: file.width, height: file.height } : null;
+  // An uploaded logo can carry hidden details, like where a photo was taken; those stay off the site
+  return file && stored ? { mimeType: stored.mimeType, data: withoutMetadata(stored.data), width: file.width, height: file.height } : null;
 }
 
 // The files that go online, read from the owner's saved pictures

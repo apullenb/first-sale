@@ -99,3 +99,20 @@ function webp(b: Uint8Array): ImageInfo | null {
   if (chunk === "VP8X") return sized("image/webp", u24le(b, 24) + 1, u24le(b, 27) + 1);
   return null;
 }
+
+// Animated PNG (an acTL chunk before the image data) or animated WebP (the VP8X animation flag)
+export function isAnimated(bytes: Uint8Array): boolean {
+  const type = sniffType(bytes);
+  if (type === "image/png") {
+    let at = 8;
+    while (at + 8 <= bytes.length) {
+      const chunk = ascii(bytes, at + 4, 4);
+      if (chunk === "acTL") return true;
+      if (chunk === "IDAT" || chunk === "IEND") return false;
+      at += 12 + u32be(bytes, at);
+    }
+    return false;
+  }
+  if (type === "image/webp") return bytes.length > 20 && ascii(bytes, 12, 4) === "VP8X" && (bytes[20] & 0x02) !== 0;
+  return false;
+}

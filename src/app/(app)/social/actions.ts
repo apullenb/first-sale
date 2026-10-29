@@ -17,13 +17,17 @@ import { runWorkflow } from "@/lib/workflow-runner";
 const NO_BUSINESS = "Tell us about your business first.";
 const NOT_IN_PLAN = "That account isn’t in your marketing answers. Reload the page and try again.";
 
-// One account's bio again, or a first bio for each account not set up yet
-const draftSchema = z.object({ platform: z.enum(MARKETING_PLATFORMS).nullable() });
+// One account's bio again, or a first bio for each account not set up yet. With one account, the name and handle
+// the owner has typed so far are kept, saved or not.
+const draftSchema = z.object({
+  platform: z.enum(MARKETING_PLATFORMS).nullable(),
+  typed: z.object({ name: z.string().trim().max(MAX_FIELD.name), handle: z.string().trim().max(MAX_FIELD.handle) }).optional(),
+});
 
 export async function draftSocialBiosAction(input: unknown): Promise<ActionResult> {
   const parsed = draftSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
-  const { platform } = parsed.data;
+  const { platform, typed } = parsed.data;
   const [business, marketing, brand, marks] = await Promise.all([getMyBusiness(), getMyMarketing(), getMyBrandState(), listMyJourneyMarks()]);
   if (!business?.profile) return { ok: false, message: NO_BUSINESS };
   const intake = marketing?.intake ?? null;
@@ -47,7 +51,8 @@ export async function draftSocialBiosAction(input: unknown): Promise<ActionResul
         const current = next[id];
         // Written while this ran: the owner's words stay
         if (!draft || (!platform && current?.bio)) continue;
-        next[id] = { name: current?.name ?? "", handle: current?.handle ?? "", bio: draft.bio, bioBy: draft.by, notes: draft.notes, approvedAt: null };
+        const kept = platform && typed ? typed : { name: current?.name ?? "", handle: current?.handle ?? "" };
+        next[id] = { ...kept, bio: draft.bio, bioBy: draft.by, notes: draft.notes, approvedAt: null };
       }
       return { social: next };
     });
