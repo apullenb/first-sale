@@ -1,32 +1,95 @@
 @import "tailwindcss";
 
-/* Guided-workspace palette from the prototype; light mode only for now */
+/* Onramp look with Starting Block colors: navy and teal-blue on a near-white page; light mode only for now */
 @theme {
-  --color-ground: #f6f5f1;
+  --color-ground: #f8fafc;
   --color-surface: #ffffff;
-  --color-line: #e4e2dc;
-  --color-ink: #1c2321;
-  --color-muted: #5b6461;
-  --color-accent: #1e6b52;
-  --color-accent-ink: #17533f;
-  --color-accent-tint: #e3f0ea;
+  --color-soft: #f9fbfc;
+  --color-wash: #f1f5f9;
+  --color-line: #e2e8f0;
+  --color-line-strong: #cbd5e1;
+  --color-ink: #13294b;
+  --color-muted: #5b6b80;
+  --color-faint: #94a3b8;
+  --color-navy: #13294b;
+  --color-sidebar: #0d1d38;
+  --color-sky: #38bdf8;
+  --color-accent: #0e7490;
+  --color-accent-ink: #0b5b71;
+  --color-accent-tint: #e8f5f9;
+  --color-accent-ring: #b9e1ec;
+  --color-done: #15803d;
+  --color-done-tint: #ecf8f0;
+  --color-alert: #dc2626;
   --color-ai: #2f57c8;
-  --color-ai-tint: #e9eefb;
+  --color-ai-tint: #eef2fc;
   --color-ai-ink: #1f2f5c;
-  --color-rule: #3e4643;
-  --color-rule-tint: #ecebe6;
-  --color-check: #7a4b00;
-  --color-check-tint: #fdf1d6;
-  --color-field: #d5d3cc;
-  --color-danger: #a3302b;
+  --color-rule: #334155;
+  --color-rule-tint: #eef2f6;
+  --color-check: #b45309;
+  --color-check-tint: #fef6e7;
+  --color-check-ring: #f5d9a6;
+  --color-field: #cbd5e1;
+  --color-danger: #b42318;
+
+  --shadow-card: 0 1px 2px rgb(19 41 75 / 0.05), 0 8px 22px -12px rgb(19 41 75 / 0.18);
+  --shadow-lift: 0 2px 4px rgb(19 41 75 / 0.05), 0 18px 36px -16px rgb(19 41 75 / 0.24);
+  --shadow-soft: 0 1px 2px rgb(19 41 75 / 0.06);
+  --shadow-button: 0 1px 2px rgb(19 41 75 / 0.08), 0 6px 14px -8px rgb(14 116 144 / 0.6);
+
+  --animate-pen: pen 0.55s 0.05s cubic-bezier(0.6, 0.1, 0.3, 1) forwards;
+  --animate-turn: turn 0.34s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes pen {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes turn {
+    from {
+      opacity: 0;
+      transform: perspective(1600px) rotateY(-7deg) translateX(-14px);
+    }
+  }
 }
 
 @theme inline {
-  --font-sans: var(--font-figtree);
-  --font-display: var(--font-bricolage);
+  --font-sans: var(--font-source-sans);
+  --font-display: var(--font-young-serif);
+  --font-hand: var(--font-caveat);
 }
 
 body {
   background: var(--color-ground);
   color: var(--color-ink);
+  font-size: 16px;
+  line-height: 1.5;
+  /* Young Serif has one weight; never fake a bold */
+  font-synthesis-weight: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.font-display {
+  font-weight: 400;
+}
+
+/* A pen-drawn check: add "pen-draw" to an svg whose path should draw itself in */
+.pen-draw path {
+  stroke-dasharray: 32;
+  stroke-dashoffset: 32;
+  animation: var(--animate-pen);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pen-draw path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .animate-turn {
+    animation: none;
+  }
 }
