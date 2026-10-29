@@ -50,6 +50,7 @@ import { ASSET_KINDS, type AssetCheck, type BrandBrief, type BrandDesign, type B
 import type { IntakeAnswers, Marks } from "@/lib/intake/answers";
 import type { StoredIntake } from "@/lib/marketing/intake";
 import type { MarketingPlan, MarketingStep } from "@/lib/marketing/types";
+import type { SocialProfiles } from "@/lib/social/types";
 import type { DecisionBasis } from "@/lib/structure/types";
 import type { WebSearchHit } from "@/lib/ai/types";
 import type { InsightFeedback, SavedInsights } from "@/lib/insights/types";
@@ -540,6 +541,8 @@ export const marketingPlans = pgTable("marketing_plans", {
   approvedAt: timestamp("approved_at", { withTimezone: true }),
   steps: jsonb("steps").$type<MarketingStep[]>().notNull().default([]),
   stepsDone: jsonb("steps_done").$type<string[]>().notNull().default([]),
+  // Name, handle and bio for each social account, drafted and approved on the social page
+  social: jsonb("social").$type<SocialProfiles>().notNull().default({}),
   updatedAt: updatedAt(),
 });
 
