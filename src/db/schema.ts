@@ -47,6 +47,7 @@ import { ASSET_KINDS, type AssetCheck, type BrandBrief, type BrandPicks, type Co
 import type { IntakeAnswers, Marks } from "@/lib/intake/answers";
 import type { DecisionBasis } from "@/lib/structure/types";
 import type { WebSearchHit } from "@/lib/ai/types";
+import type { InsightFeedback, SavedInsights } from "@/lib/insights/types";
 
 const id = () => text("id").primaryKey().$defaultFn(() => crypto.randomUUID());
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -645,3 +646,13 @@ export const searchCache = pgTable(
   },
   (table) => [index("search_cache_created_idx").on(table.createdAt)],
 );
+
+// Business insights: the last set written, and the owner's useful or dismissed marks, which outlast a refresh
+export const businessInsights = pgTable("business_insights", {
+  businessId: text("business_id")
+    .primaryKey()
+    .references(() => businesses.id, { onDelete: "cascade" }),
+  insights: jsonb("insights").$type<SavedInsights>(),
+  feedback: jsonb("feedback").$type<InsightFeedback>().notNull().default({}),
+  updatedAt: updatedAt(),
+});

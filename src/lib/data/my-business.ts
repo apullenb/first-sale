@@ -68,6 +68,8 @@ import type { IntakeDraftInput } from "@/lib/intake/draft-schema";
 import type { DecisionBasis } from "@/lib/structure/types";
 import { createBusinessWithHistoryForOwner, listHistoryForOwner, updateProfileWithHistoryForOwner, type BusinessEvent } from "./business-history";
 import { deleteIntakeDraftForOwner, getIntakeDraftForOwner, saveIntakeDraftForOwner } from "./intake-drafts";
+import type { InsightMark, SavedInsights } from "@/lib/insights/types";
+import { getInsightsForOwner, markInsightForOwner, saveInsightsForOwner } from "./insights";
 
 // What pages, actions and route handlers call: the owner always comes from the verified session.
 
@@ -409,4 +411,21 @@ export async function listMyHistory(filter: { kind?: BusinessEvent["kind"]; limi
 export async function replanMyPlan(profile: BusinessProfile, details: readonly { key: string; value: string }[]) {
   const user = await getCurrentUser();
   return replanForOwner(getDb(), user.id, profile, details);
+}
+
+// Business insights
+
+export async function getMyInsights() {
+  const user = await getCurrentUser();
+  return getInsightsForOwner(getDb(), user.id);
+}
+
+export async function saveMyInsights(insights: SavedInsights) {
+  const user = await getCurrentUser();
+  return saveInsightsForOwner(getDb(), user.id, insights);
+}
+
+export async function markMyInsight(key: string, mark: InsightMark | null) {
+  const user = await getCurrentUser();
+  return markInsightForOwner(getDb(), user.id, key, mark);
 }

@@ -171,6 +171,14 @@ export const WORKFLOWS = {
     timeLimitMs: 6 * MINUTE,
     offeredFor: [],
   },
+  insights: {
+    title: "Get business insights",
+    summary: "Reads what you’ve told First Sale and writes encouraging feedback: what’s strong, what to keep an eye on, tips and ideas.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 6 * MINUTE,
+    offeredFor: [],
+  },
   official_form: {
     title: "Get the official form",
     summary: "Downloads the form from the agency’s own site, checks it’s the right one, keeps it unchanged, and fills in what your details answer.",

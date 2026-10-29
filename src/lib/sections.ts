@@ -24,6 +24,14 @@ export const SECTIONS: Section[] = [
     summary: "Questions about where you are, who owns it, what you sell, how you sell it, and your budget.",
   },
   {
+    href: "/insights",
+    title: "Business insights",
+    group: "Start your business",
+    step: null,
+    milestone: 14,
+    summary: "Encouraging feedback on your business idea: what’s strong, what to keep an eye on, tips for success and creative ideas.",
+  },
+  {
     href: "/requirements",
     title: "Requirements",
     group: "Start your business",

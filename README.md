@@ -20,7 +20,7 @@ Open http://localhost:3000, create an account and answer the intake questions. T
 
 Without an AI key the app runs in **practice mode**: built-in rules stand in for the model, nothing is searched, and photos and scans can't be read. Every result made this way carries a "Practice mode" label, so it's never mistaken for real research.
 
-AI requests (intake suggestions, research, reading and explaining forms, drafting answers and business plans, product photos, logos and brand pictures, and website words and explanations) are limited to 10 an hour and 50 a day per owner, and 500 a day across everyone (`AI_DAILY_LIMIT`), to cap cost.
+AI requests (intake suggestions, research, reading and explaining forms, drafting answers and business plans, business insights, product photos, logos and brand pictures, and website words and explanations) are limited to 10 an hour and 50 a day per owner, and 500 a day across everyone (`AI_DAILY_LIMIT`), to cap cost.
 
 The local database is PGlite in `.pglite/`, and only one process can use it at a time. Stop `npm run dev` before running `db:migrate`. If `db:migrate` fails with "already exists", or with "is duplicated" (an account made more than one business before the one-per-owner rule), your local `.pglite/` predates the current migrations: delete it and run `db:migrate` again.
 
@@ -60,6 +60,25 @@ Owners answer mostly by clicking: they pick the kind of business closest to thei
 - Progress saves automatically (`intake_drafts`), so owners can leave and pick up where they left off.
 - Before anything is researched, the owner checks a summary that keeps confirmed answers, filled-in answers and open questions apart.
 - Changing answers later shows what the change affects (requirements, plan, suggested structure, a recorded decision, drafted forms, website and branding) before the owner confirms. Each confirmed change is kept in the business history (`business_events`).
+
+## Business insights
+
+Encouraging feedback on the owner's idea, under "Start your business" in the menu, right after "Your business": it builds on those answers, and helps most before money is spent.
+
+- **What it reads:** the intake answers (products, budget, launch date and the rest), structure and other decisions, requirements and the startup plan, business plan answers (costs and funding included, since they're private feedback), branding, website and approved product photos. Saved owner names, addresses, emails and phone numbers aren't sent, and a business name that is the owner's own name becomes "your business". Free-text answers go as the owner wrote them.
+- **What it writes:** an opening line, what's strong, things to keep an eye on, tips for success and creative ideas. Each item can point to the First Sale page or plan step where the owner can act ("Take me there").
+- **Tone, in the prompt:** warm, specific and never discouraging. A concern comes up only when it would help, framed kindly, with one small next step. It never states laws, fees, deadlines or numbers itself; it points to the sourced pages instead.
+- **Tone, in code (`src/lib/insights/checks.ts`):**
+  - discouraging wording ("bad idea", "will fail", "saturated", "risky", "struggle", "reconsider"…) drops the item
+  - a concern without a next step is dropped, there are at most 3, and never more than there are strengths
+  - money or percentages the owner didn't give drop the item, including amounts in words ("fifty dollars"). Other numbers must be the owner's own or First Sale's counts (steps done, days to launch). Made-up statistics ("8 in 10 shoppers", "half of customers") drop it too.
+  - anything about laws, permits, taxes, registration or structure may only point to a checked page. It links to Requirements, the plan or Structure, and it's dropped if it says what a rule requires, allows, exempts or protects, or gives a deadline. A point about one of the owner's plan steps may say the step is needed. Platform and market fees count as business facts, not legal ones.
+  - word lists can't catch every wording, so they lean toward leaving a point out
+  - if nothing encouraging is left, nothing is saved and the owner is asked to try again
+- **Saved** with the date and a hash of each part it read, so the page says what changed since ("You've updated your website…") and offers a refresh.
+- **Useful or dismiss:** marks are kept across refreshes. Dismissed points are hidden (and can be brought back), and a refresh is told not to repeat them.
+- While it runs, a progress screen ticks off each step (`src/components/step-progress.tsx`, reusable for other AI requests). The last steps tick only once the reply has passed the checks.
+- **Practice mode:** sample insights from fixed rules over the same facts, labeled as samples, and checked the same way.
 
 ## Structure and path
 

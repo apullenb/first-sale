@@ -30,7 +30,7 @@ export function Working({ label, active }: { label: string; active: boolean }) {
   );
 }
 
-function Elapsed() {
+export function Elapsed() {
   const [started] = useState(() => Date.now());
   const [now, setNow] = useState(started);
   useEffect(() => {
