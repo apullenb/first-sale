@@ -2,11 +2,13 @@ import Link from "next/link";
 import { type ReactNode, Suspense } from "react";
 import { approveAgreementAction } from "@/app/(app)/documents/agreement-actions";
 import { ActionButton } from "@/components/action-button";
-import { ActorChip } from "@/components/actor-chip";
 import { AgreementForm } from "@/components/documents/agreement-form";
 import { fileHref } from "@/components/documents/labels";
+import { BackToLibrary, ChangedFacts, WhoDoesWhat } from "@/components/documents/parts";
+import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
-import { CARD, EYEBROW, PAGE_TITLE, PRIMARY_LINK, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
+import { PRIMARY_LINK, SECONDARY_LINK } from "@/components/styles";
+import { Card, Note, PageHead } from "@/components/ui";
 import { getMyBusiness, getMyDetails, listMyDocuments } from "@/lib/data/my-business";
 import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
 import {
@@ -28,9 +30,9 @@ export const metadata = { title: "Owners’ agreement" };
 export default function AgreementPage() {
   return (
     <div className="flex max-w-3xl flex-col gap-6 wrap-break-word">
-      <Link href="/documents" className={`${TEXT_LINK} flex min-h-11 w-fit items-center`}>
-        Back to your documents
-      </Link>
+      <div className="-mb-4">
+        <BackToLibrary />
+      </div>
       <Suspense fallback={<p className="text-muted">Loading your agreement…</p>}>
         <Agreement />
       </Suspense>
@@ -38,13 +40,18 @@ export default function AgreementPage() {
   );
 }
 
-function Header({ name, children }: { name: string; children?: ReactNode }) {
+function Header({ name, lead }: { name: string; lead?: ReactNode }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <p className={EYEBROW}>Start your business · Step 5</p>
-      <h1 className={PAGE_TITLE}>Your {name.toLowerCase()}</h1>
-      {children}
-    </div>
+    <PageHead
+      kicker={
+        <span className="inline-flex items-center gap-2">
+          <Icon name="book" size="sm" />
+          Start your business · Step 5
+        </span>
+      }
+      title={`Your ${name.toLowerCase()}`}
+      lead={lead}
+    />
   );
 }
 
@@ -54,12 +61,12 @@ async function Agreement() {
     return (
       <>
         <Header name="Owners’ agreement" />
-        <section className={`${CARD} flex flex-col gap-3`}>
-          <p>{business ? "Some of your business answers need updating first." : "Tell us about your business first. The agreement is filled in from your answers."}</p>
+        <Card title={business ? "Update your answers first" : "Start with your business"} icon="store" id="agreement-blocked-heading">
+          <p className="text-rule">{business ? "Some of your business answers need updating first." : "Tell us about your business first. The agreement is filled in from your answers."}</p>
           <Link href={business ? "/business/edit" : "/business/new"} className={PRIMARY_LINK}>
             {business ? "Update your answers" : "Tell us about your business"}
           </Link>
-        </section>
+        </Card>
       </>
     );
   }
@@ -76,40 +83,36 @@ async function Agreement() {
     return (
       <>
         <Header name={name} />
-        <section className={`${CARD} flex flex-col gap-3`}>
-          <p>{readiness.kind === "none" ? readiness.why : "This agreement is for an LLC or a partnership."}</p>
+        <Card title="Not ready yet" icon="scale" tone="gray" id="agreement-none-heading">
+          <p className="text-rule">{readiness.kind === "none" ? readiness.why : "This agreement is for an LLC or a partnership."}</p>
           {decided ? null : (
             <Link href="/structure" className={PRIMARY_LINK}>
+              <Icon name="scale" size="sm" />
               Choose your business structure
             </Link>
           )}
-        </section>
+        </Card>
       </>
     );
   }
 
-  const intro = (
-    <p className="text-lg text-muted">
-      The owners’ own rules for the business: who owns what, who runs it, and how decisions and money are handled. First Sale fills it in from your details and
-      your answers below. It isn’t filed with the state.
-    </p>
-  );
+  const intro =
+    "The owners’ own rules for the business: who owns what, who runs it, and how decisions and money are handled. First Sale fills it in from your details and your answers below. It isn’t filed with the state.";
 
   if (readiness.kind === "missing") {
     return (
       <>
-        <Header name={name}>{intro}</Header>
-        <Reasons structure={structure} texas={texas} />
-        <section aria-labelledby="needed-heading" className={`${CARD} flex flex-col gap-3`}>
-          <h2 id="needed-heading" className={SECTION_TITLE}>
-            First, add these
-          </h2>
-          <ul className="flex list-disc flex-col gap-1 pl-5">
+        <Header name={name} lead={intro} />
+        <Card title="First, add these" icon="info" tone="warn" id="needed-heading" className="border-check-ring!">
+          <ul className="flex flex-col gap-2">
             {readiness.missing.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item} className="flex items-start gap-2.5">
+                <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-check" />
+                <span>{item}</span>
+              </li>
             ))}
           </ul>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 border-t border-line pt-4">
             <Link href="/business" className={PRIMARY_LINK}>
               Your business details
             </Link>
@@ -117,7 +120,8 @@ async function Agreement() {
               Your answers about the business
             </Link>
           </div>
-        </section>
+        </Card>
+        <Reasons structure={structure} texas={texas} />
       </>
     );
   }
@@ -139,41 +143,28 @@ async function Agreement() {
 
   return (
     <>
-      <Header name={name}>{intro}</Header>
-      <ul className="flex flex-col gap-2 text-rule">
-        <li className="flex items-start gap-2.5">
-          <ActorChip actor="rule" />
-          <span>First Sale fills in its fixed wording from your details and answers. No AI writes any of it.</span>
-        </li>
-        <li className="flex items-start gap-2.5">
-          <ActorChip actor="owner" />
-          <span>
-            You read it and approve it. Then {basis.owners.length > 1 ? `every ${who} signs` : "you sign"} the printed copy. Have a lawyer review it, especially with more than one
-            owner.
-          </span>
-        </li>
-      </ul>
+      <Header name={name} lead={intro} />
+      <WhoDoesWhat
+        items={[
+          ["rule", "First Sale fills in its fixed wording from your details and answers. No AI writes any of it."],
+          [
+            "owner",
+            `You read it and approve it. Then ${basis.owners.length > 1 ? `every ${who} signs` : "you sign"} the printed copy. Have a lawyer review it, especially with more than one owner.`,
+          ],
+        ]}
+      />
       <Reasons structure={structure} texas={texas} />
 
-      <section aria-labelledby="basis-heading" className={`${CARD} flex flex-col gap-3`}>
-        <h2 id="basis-heading" className={SECTION_TITLE}>
-          From your details
-        </h2>
+      <Card title="From your details" icon="building" id="basis-heading">
         <Basis basis={basis} />
-        {llcName ? (
-          <p className="rounded-lg bg-check-tint px-3 py-2.5 text-check">
-            Your business name doesn’t end in “LLC” or similar. Use the LLC’s exact name, as it is on your certificate of formation.
-          </p>
-        ) : null}
+        {llcName ? <Note>Your business name doesn’t end in “LLC” or similar. Use the LLC’s exact name, as it is on your certificate of formation.</Note> : null}
         <Link href="/business" className={SECONDARY_LINK}>
+          <Icon name="pencil" size="sm" className="text-muted" />
           Change your business details
         </Link>
-      </section>
+      </Card>
 
-      <section aria-labelledby="choices-heading" className={`${CARD} flex flex-col gap-4`}>
-        <h2 id="choices-heading" className={SECTION_TITLE}>
-          {basis.owners.length > 1 ? "Shares and decisions" : "What you’re putting in"}
-        </h2>
+      <Card title={basis.owners.length > 1 ? "Shares and decisions" : "What you’re putting in"} icon="users" id="choices-heading">
         <AgreementForm
           key={basis.owners.join("\n")}
           owners={basis.owners}
@@ -184,41 +175,34 @@ async function Agreement() {
           hasDraft={Boolean(draft)}
           approved={Boolean(draft?.approvedAt)}
         />
-      </section>
+      </Card>
 
       {doc && draft ? (
-        <section aria-labelledby="agreement-heading" className={`${CARD} flex flex-col gap-4`}>
-          <h2 id="agreement-heading" className={SECTION_TITLE}>
-            Read your agreement
-          </h2>
+        <Card title="Read your agreement" icon="scale" id="agreement-heading">
           {outdated.length ? (
-            <div className="flex flex-col gap-1.5 rounded-xl bg-check-tint px-4 py-3 text-check">
+            <Note>
               <p className="font-semibold">
                 {draft.approvedAt
                   ? "Your details changed since this was approved. Prepare it again, approve it, and sign the new copy."
                   : "Your details changed since this was prepared. Prepare it again before you approve it."}
               </p>
-              <ul className="flex flex-col gap-0.5">
-                {outdated.map((fact) => (
-                  <li key={fact.id}>
-                    <span className="font-semibold">{fact.label}:</span> {fact.before || "not set"} → {fact.now ?? "removed"}
-                  </li>
-                ))}
-              </ul>
-            </div>
+              <div className="mt-1">
+                <ChangedFacts facts={outdated} />
+              </div>
+            </Note>
           ) : null}
-          <article className="flex flex-col gap-4 rounded-xl bg-ground p-4">
-            <h3 className="font-display text-lg font-bold">{doc.title}</h3>
+          <article className="flex flex-col gap-4 rounded-md border border-line-strong bg-surface px-5 py-6 shadow-lift sm:px-8 sm:py-8">
+            <h3 className="border-b-[1.5px] border-ink pb-2.5 font-display text-[22px] leading-snug">{doc.title}</h3>
             {draft.sections.map((section) => (
               <div key={section.key} className="flex flex-col gap-1">
-                <h4 className="font-semibold">{section.heading}</h4>
-                <p className="text-[15px]">{section.body}</p>
+                <h4 className="font-bold">{section.heading}</h4>
+                <p className="text-[15.5px] text-rule">{section.body}</p>
               </div>
             ))}
             {choices && preparedOwners.length > 1 ? (
               <div className="flex flex-col gap-1">
-                <h4 className="font-semibold">Schedule A: Owners</h4>
-                <ul className="flex flex-col gap-1 text-[15px]">
+                <h4 className="font-bold">Schedule A: Owners</h4>
+                <ul className="flex flex-col gap-1 text-[15.5px] text-rule">
                   {preparedOwners.map((owner, index) => (
                     <li key={owner}>
                       {owner}: owns {percentText(Math.round(Number(choices.members[index].percent) * 100))}. Puts in: {choices.members[index].contribution || "nothing recorded yet"}.
@@ -227,12 +211,12 @@ async function Agreement() {
                 </ul>
               </div>
             ) : null}
-            <p className="text-sm text-muted">Signature lines for {preparedOwners.length > 1 ? `every ${who}` : `the ${who}`} are at the end of the PDF.</p>
+            <p className="border-t border-line pt-3 text-[14.5px] text-muted">Signature lines for {preparedOwners.length > 1 ? `every ${who}` : `the ${who}`} are at the end of the PDF.</p>
           </article>
 
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 rounded-xl border border-line bg-soft px-4 py-3.5">
             <p className="font-semibold">What this starter agreement leaves out</p>
-            <ul className="flex list-disc flex-col gap-1 pl-5 text-[15px] text-rule">
+            <ul className="flex list-disc flex-col gap-1 pl-5 text-[15px] text-rule marker:text-faint">
               {notCovered(structure, preparedOwners.length || basis.owners.length).map((item) => (
                 <li key={item}>{item}</li>
               ))}
@@ -241,31 +225,38 @@ async function Agreement() {
           </div>
 
           {draft.approvedAt ? (
-            <div className="flex flex-col gap-3">
-              <p className="text-rule">
-                Approved <LocalDate iso={draft.approvedAt} />. Print it, have {preparedOwners.length > 1 ? `every ${who}` : `the ${who}`} sign and date it, and keep the signed copy with
-                your records.
+            <div className="flex flex-col gap-3 border-t border-line pt-4">
+              <p className="flex items-start gap-2 text-rule">
+                <Icon name="check" size="sm" className="mt-1 text-accent" />
+                <span>
+                  Approved <LocalDate iso={draft.approvedAt} />. Print it, have {preparedOwners.length > 1 ? `every ${who}` : `the ${who}`} sign and date it, and keep the signed copy
+                  with your records.
+                </span>
               </p>
               {doc.hasFile ? (
                 <div className="flex flex-wrap gap-2">
                   <a href={fileHref(doc.id, true)} target="_blank" rel="noopener noreferrer" className={PRIMARY_LINK}>
+                    <Icon name="eye" size="sm" />
                     Open the PDF<span className="sr-only"> (opens in a new tab)</span>
                   </a>
                   <a href={fileHref(doc.id)} className={SECONDARY_LINK}>
+                    <Icon name="download" size="sm" className="text-muted" />
                     Download the PDF
                   </a>
                 </div>
               ) : null}
             </div>
           ) : outdated.length ? null : (
-            <ActionButton
-              action={approveAgreementAction.bind(null, doc.id, preparedAt)}
-              label="Approve and make the PDF"
-              pendingLabel="Making the PDF…"
-              variant="primary"
-            />
+            <div className="border-t border-line pt-4">
+              <ActionButton
+                action={approveAgreementAction.bind(null, doc.id, preparedAt)}
+                label="Approve and make the PDF"
+                pendingLabel="Making the PDF…"
+                variant="primary"
+              />
+            </div>
           )}
-        </section>
+        </Card>
       ) : null}
     </>
   );
@@ -273,18 +264,17 @@ async function Agreement() {
 
 function Reasons({ structure, texas }: { structure: "llc" | "partnership"; texas: boolean }) {
   return (
-    <section aria-labelledby="why-heading" className={`${CARD} flex flex-col gap-2`}>
-      <h2 id="why-heading" className={SECTION_TITLE}>
-        Why have one
-      </h2>
-      <ul className="flex flex-col gap-3">
+    <Card title="Why have one" icon="lightbulb" id="why-heading">
+      <ul className="flex flex-col divide-y divide-line">
         {agreementReasons(structure, texas).map((reason) => (
-          <li key={reason.text} className="flex flex-col">
-            <span>{reason.text}</span>
-            <span className="text-sm text-muted">
-              “{reason.quote}” From{" "}
-              <a href={reason.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center underline underline-offset-2">
+          <li key={reason.text} className="flex flex-col gap-1.5 py-3 first:pt-0 last:pb-0">
+            <span className="font-semibold">{reason.text}</span>
+            <blockquote className="border-l-[3px] border-accent-ring pl-3.5 text-[15px] text-rule italic">“{reason.quote}”</blockquote>
+            <span className="text-[14.5px] text-muted">
+              From{" "}
+              <a href={reason.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 font-semibold text-accent underline underline-offset-2 hover:text-accent-ink">
                 {reason.sourceTitle}
+                <Icon name="external" size="xs" />
                 <span className="sr-only"> (opens in a new tab)</span>
               </a>
               , checked{reason.byHand ? " by hand in a browser" : ""} on <LocalDate iso={`${reason.checkedOn}T12:00:00.000Z`} />
@@ -292,7 +282,7 @@ function Reasons({ structure, texas }: { structure: "llc" | "partnership"; texas
           </li>
         ))}
       </ul>
-    </section>
+    </Card>
   );
 }
 
@@ -306,11 +296,11 @@ function Basis({ basis }: { basis: AgreementBasis }) {
   rows.push(["Principal office", basis.address?.split("\n").join(", ") ?? "Not given: left out of the agreement"]);
   rows.push(["Law that applies", basis.stateName]);
   return (
-    <dl className="grid gap-x-4 gap-y-1.5 sm:grid-cols-[max-content_1fr]">
+    <dl className="flex flex-col">
       {rows.map(([label, value]) => (
-        <div key={label} className="contents">
-          <dt className="font-semibold">{label}</dt>
-          <dd className="text-rule">{value}</dd>
+        <div key={label} className="flex flex-wrap gap-x-4 gap-y-0.5 border-b border-line py-2.5 last:border-0">
+          <dt className="w-40 shrink-0 text-[15px] text-muted">{label}</dt>
+          <dd className="min-w-0 flex-1 basis-56 font-semibold">{value}</dd>
         </div>
       ))}
     </dl>

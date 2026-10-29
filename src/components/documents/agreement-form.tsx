@@ -2,6 +2,7 @@
 
 import { type FormEvent, useId, useLayoutEffect, useState } from "react";
 import { prepareAgreementAction } from "@/app/(app)/documents/agreement-actions";
+import { Icon } from "@/components/icons";
 import { ALERT, INPUT, PRIMARY } from "@/components/styles";
 import { type ChoicesInput, DECISION_LABELS, DECISION_RULES, MAX_CONTRIBUTION, MAX_MANAGER } from "@/lib/documents/owners-agreement";
 
@@ -63,13 +64,18 @@ export function AgreementForm({ owners, who, hasManager, initial, basedOn, hasDr
   return (
     <form onSubmit={prepare} className="flex flex-col gap-5">
       {owners.map((name, index) => (
-        <fieldset key={name} className="flex flex-col gap-3 rounded-xl bg-ground p-4">
-          <legend className="font-semibold">{name}</legend>
+        <fieldset key={name} className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4 shadow-soft">
+          <legend className="float-left mb-1 flex w-full items-center gap-2.5 border-b border-line pb-3 font-bold">
+            <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-full border border-line bg-wash text-muted">
+              <Icon name="users" size="sm" />
+            </span>
+            {name}
+          </legend>
           {single ? (
             <p className="text-[15px] text-rule">Owns 100%, as the only {who}.</p>
           ) : (
             <div className="flex flex-col gap-1.5">
-              <label htmlFor={`${uid}-${index}-percent`} className="font-semibold">
+              <label htmlFor={`${uid}-${index}-percent`} className="text-[15.5px] font-semibold">
                 What {name} owns, as a percent
               </label>
               <div className="flex items-center gap-2">
@@ -87,7 +93,7 @@ export function AgreementForm({ owners, who, hasManager, initial, basedOn, hasDr
             </div>
           )}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor={`${uid}-${index}-contribution`} className="font-semibold">
+            <label htmlFor={`${uid}-${index}-contribution`} className="text-[15.5px] font-semibold">
               What {name} is putting in <span className="font-normal text-muted">(optional)</span>
             </label>
             <input
@@ -101,20 +107,23 @@ export function AgreementForm({ owners, who, hasManager, initial, basedOn, hasDr
           </div>
         </fieldset>
       ))}
-      <p id={`${uid}-contribution-hint`} className="-mt-2 text-sm text-muted">
+      <p id={`${uid}-contribution-hint`} className="-mt-2 text-[14.5px] text-muted">
         Money, equipment or other property, with its value if you know it. For example: “$2,000 cash” or “a stand mixer worth $400”.
       </p>
       {single ? null : (
-        <p role="status" className={total === 100 ? "text-sm text-muted" : ALERT}>
+        <p role="status" className={total === 100 ? "text-[14.5px] text-muted" : ALERT}>
           {total === 100 ? "The shares add up to 100%." : `The shares add up to ${total}%. They need to add up to 100%.`}
         </p>
       )}
 
       {single ? null : (
-        <fieldset className="flex flex-col gap-1">
-          <legend className="mb-1 font-semibold">How do the {who}s make decisions?</legend>
+        <fieldset className="flex flex-col gap-2">
+          <legend className="mb-2 text-[15.5px] font-semibold">How do the {who}s make decisions?</legend>
           {DECISION_RULES.map((rule) => (
-            <label key={rule} className="flex min-h-11 items-center gap-2.5">
+            <label
+              key={rule}
+              className="flex min-h-[50px] cursor-pointer items-center gap-3 rounded-xl border border-line-strong bg-surface px-3.5 py-2.5 font-semibold leading-snug shadow-soft transition hover:border-muted has-checked:border-accent has-checked:ring-[3px] has-checked:ring-accent-tint has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent"
+            >
               <input
                 type="radio"
                 name={`${uid}-decisions`}
@@ -122,18 +131,18 @@ export function AgreementForm({ owners, who, hasManager, initial, basedOn, hasDr
                 required
                 checked={values.decisions === rule}
                 onChange={() => setValues((current) => ({ ...current, decisions: rule }))}
-                className="size-5 accent-accent"
+                className="size-[18px] shrink-0 accent-accent"
               />
               {DECISION_LABELS[rule]}
             </label>
           ))}
-          <p className="text-sm text-muted">Either way, adding an owner, selling the business, changing the agreement or ending the business needs everyone.</p>
+          <p className="text-[14.5px] text-muted">Either way, adding an owner, selling the business, changing the agreement or ending the business needs everyone.</p>
         </fieldset>
       )}
 
       {hasManager ? (
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={`${uid}-manager`} className="font-semibold">
+          <label htmlFor={`${uid}-manager`} className="text-[15.5px] font-semibold">
             Full name of the LLC’s manager
           </label>
           <input
@@ -145,17 +154,18 @@ export function AgreementForm({ owners, who, hasManager, initial, basedOn, hasDr
             className={INPUT}
             aria-describedby={`${uid}-manager-hint`}
           />
-          <p id={`${uid}-manager-hint`} className="text-sm text-muted">
+          <p id={`${uid}-manager-hint`} className="text-[14.5px] text-muted">
             Your details say a chosen manager runs the LLC. The manager can be one of the owners.
           </p>
         </div>
       ) : null}
 
-      <div className="flex flex-col items-start gap-2">
+      <div className="flex flex-col items-start gap-2 border-t border-line pt-4">
         <button type="submit" disabled={status === "working"} className={PRIMARY}>
+          <Icon name="scale" size="sm" />
           {status === "working" ? "Preparing…" : hasDraft ? "Prepare it again" : "Prepare my agreement"}
         </button>
-        <p role="status" className={status === "done" ? "text-sm text-muted" : "sr-only"}>
+        <p role="status" className={status === "done" ? "text-[14.5px] text-muted" : "sr-only"}>
           {status === "done" ? "Your agreement is ready. Read it below." : ""}
         </p>
         {error ? (

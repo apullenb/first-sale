@@ -1,4 +1,4 @@
-import { CARD, SECTION_TITLE } from "@/components/styles";
+import { Card } from "@/components/ui";
 import { getModel } from "@/lib/ai";
 
 // What happens to documents sent for help depends on which AI service this copy of First Sale is set up with
@@ -29,15 +29,12 @@ export function HowDocumentsAreHandled() {
     "When you can, avoid uploading pages that show Social Security numbers.",
   ];
   return (
-    <section aria-labelledby="handled-heading" className={`${CARD} flex flex-col gap-3`}>
-      <h2 id="handled-heading" className={SECTION_TITLE}>
-        How your documents are handled
-      </h2>
-      <ul className="flex list-disc flex-col gap-1.5 pl-5 text-rule">
+    <Card title="How your documents are handled" icon="lock" tone="gray" id="handled-heading">
+      <ul className="flex list-disc flex-col gap-1.5 pl-5 text-[15px] text-rule marker:text-faint">
         {points.map((point) => (
           <li key={point}>{point}</li>
         ))}
       </ul>
-    </section>
+    </Card>
   );
 }
