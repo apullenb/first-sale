@@ -187,6 +187,14 @@ export const WORKFLOWS = {
     timeLimitMs: 6 * MINUTE,
     offeredFor: [],
   },
+  social_bios: {
+    title: "Draft my bios",
+    summary: "Drafts a short bio for each account you’re setting up, within each platform’s limits, for you to edit and approve.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 3 * MINUTE,
+    offeredFor: [],
+  },
   website_publish: {
     title: "Publish my website",
     summary: "Checks your site is ready, then puts it online on the host you connected. Without one, it’s a practice run.",

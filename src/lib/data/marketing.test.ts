@@ -38,6 +38,15 @@ describe("marketing data access", () => {
     expect(await updateMarketingForOwner(db, "owner-a", () => null)).toBe("unchanged");
   });
 
+  it("keeps social profiles beside the plan, and reads ones it can't parse as empty", async () => {
+    const profile = { name: "Rosa’s Bakery", handle: "rosasbakery", bio: "Bread.", bioBy: "owner" as const, notes: [], approvedAt: null };
+    await updateMarketingForOwner(db, "owner-a", () => ({ intake: INTAKE, social: { instagram: profile } }));
+    await updateMarketingForOwner(db, "owner-a", () => ({ stepsDone: ["look"] }));
+    expect((await getMarketingForOwner(db, "owner-a"))?.social).toEqual({ instagram: profile });
+    await db.execute(sql`update marketing_plans set social = '"oops"'::jsonb where business_id = ${businessA}`);
+    expect((await getMarketingForOwner(db, "owner-a"))?.social).toEqual({});
+  });
+
   it("reads a stored plan it can't parse as no plan", async () => {
     await updateMarketingForOwner(db, "owner-a", () => ({ intake: INTAKE }));
     await db.execute(sql`update marketing_plans set plan = '{"summary": 1}'::jsonb where business_id = ${businessA}`);

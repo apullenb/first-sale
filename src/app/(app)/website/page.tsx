@@ -4,6 +4,7 @@ import { draftWebsiteAction } from "@/app/(app)/website/actions";
 import { findMoreOptionsAction } from "@/app/(app)/website/option-actions";
 import { ActionButton } from "@/components/action-button";
 import { ActorChip } from "@/components/actor-chip";
+import { AlreadyHave } from "@/components/already-have";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { Kicker, SectionHead } from "@/components/marketing/pieces";
@@ -21,7 +22,7 @@ import { type LibraryChoice, type PublishPanel, SiteStudio } from "@/components/
 import { PLATFORM_DATA, PLATFORM_ORDER } from "@/data/website-platforms";
 import { getModel } from "@/lib/ai";
 import type { BrandFile } from "@/lib/brand/types";
-import { getMyBusiness, lastMyRun } from "@/lib/data/my-business";
+import { getMyBusiness, lastMyRun, listMyJourneyMarks } from "@/lib/data/my-business";
 import { CUT_OFF_MESSAGE } from "@/lib/data/workflow-runs";
 import { sectionMetadata } from "@/lib/sections";
 import { copyOf, placeholderCount } from "@/lib/website/content";
@@ -59,7 +60,13 @@ const download = (file: BrandFile | null) => (file ? file.url.replace(/\?view=1$
 const photoUrl = (photoId: string, versionId: string, inline: boolean) => `/photos/${photoId}/versions/${versionId}/file${inline ? "?view=1" : ""}`;
 
 async function WebsitePlanView({ searchParams }: { searchParams: PageProps<"/website">["searchParams"] }) {
-  const [site, run, optionsRun, params] = await Promise.all([loadSite(), lastMyRun("website_copy", null), lastMyRun("website_options", null), searchParams]);
+  const [site, run, optionsRun, params, marks] = await Promise.all([
+    loadSite(),
+    lastMyRun("website_copy", null),
+    lastMyRun("website_options", null),
+    searchParams,
+    listMyJourneyMarks(),
+  ]);
 
   if (!site) {
     const business = await getMyBusiness();
@@ -92,8 +99,18 @@ async function WebsitePlanView({ searchParams }: { searchParams: PageProps<"/web
   const steps = { design: 4, build: content ? (builtHere ? 6 : 5) : 4 };
   const returned = typeof params.netlify === "string" ? params.netlify : null;
 
+  const mark = marks.find((each) => each.key === "website");
+
   return (
     <>
+      <AlreadyHave
+        markKey="website"
+        label="I already have a website"
+        help="Mark this step done if your business already has a website. Add its address so it’s here when you need it."
+        done={mark ? { url: mark.url, note: mark.note } : null}
+        linkLabel="Your website’s address"
+      />
+
       <Fold open={!chosen} icon="book" title="New to websites? Start here" summary="Four words to know before you pick">
         <WebsiteBasics exampleDomain={ideas[0] ?? "yourbusiness.com"} />
       </Fold>

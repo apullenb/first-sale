@@ -47,7 +47,7 @@ function Links({ links }: { links: StepLink[] }) {
 }
 
 // Numbered how-to lines, Onramp's numbered parts
-function Walkthrough({ how }: { how: string[] }) {
+export function Walkthrough({ how }: { how: string[] }) {
   return (
     <ol className="flex flex-col gap-2.5 text-[15.5px]">
       {how.map((line, index) => (

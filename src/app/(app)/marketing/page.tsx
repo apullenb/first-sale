@@ -2,6 +2,7 @@ import Link from "next/link";
 import { type ReactNode, Suspense } from "react";
 import { approveMarketingPlanAction } from "@/app/(app)/marketing/actions";
 import { ActorChip } from "@/components/actor-chip";
+import { AlreadyHave } from "@/components/already-have";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { ApproveOrRewrite, WritePlanButton } from "@/components/marketing/ai-progress";
@@ -15,7 +16,7 @@ import { PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Card, Chip, Note, PageHead } from "@/components/ui";
 import type { SkillArea } from "@/data/marketing-platforms";
 import { PLATFORM_DATA as WEBSITE_PLATFORMS } from "@/data/website-platforms";
-import { getMyBrand, getMyBusiness, getMyMarketing, getMyWebsitePlan, lastMyRun, listMyDocuments } from "@/lib/data/my-business";
+import { getMyBrand, getMyBusiness, getMyMarketing, getMyWebsitePlan, lastMyRun, listMyDocuments, listMyJourneyMarks } from "@/lib/data/my-business";
 import { CUT_OFF_MESSAGE } from "@/lib/data/workflow-runs";
 import type { BusinessProfile } from "@/lib/domain";
 import { examplesText } from "@/lib/intake/catalog";
@@ -87,13 +88,14 @@ function knownFacts(profile: BusinessProfile, hasLogo: boolean, website: string 
 }
 
 async function MarketingView() {
-  const [business, marketing, run, brand, website, documents] = await Promise.all([
+  const [business, marketing, run, brand, website, documents, marks] = await Promise.all([
     getMyBusiness(),
     getMyMarketing(),
     lastMyRun("marketing_plan", null),
     getMyBrand(),
     getMyWebsitePlan(),
     listMyDocuments(),
+    listMyJourneyMarks(),
   ]);
 
   if (!business?.profile) {
@@ -135,16 +137,31 @@ async function MarketingView() {
       ? "These come from your earlier plan. Approve your new plan to update them."
       : null;
 
+  const mark = marks.find((each) => each.key === "marketing");
+  const alreadyHave = (
+    <AlreadyHave
+      markKey="marketing"
+      label="I already have a marketing plan"
+      help="Mark this step done if you already have a plan you follow. Add a link to it or a note, and you can still use the questions here any time."
+      done={mark ? { url: mark.url, note: mark.note } : null}
+      linkLabel="Link to your plan"
+    />
+  );
+
   if (move.kind === "intake" || move.kind === "business") {
     return (
-      <section aria-label="Questions" className="rounded-2xl border border-line bg-surface px-4 py-5 shadow-card sm:p-7">
-        <MarketingIntakeForm initial={stored} hasPlan={Boolean(plan)} known={known} />
-      </section>
+      <>
+        {alreadyHave}
+        <section aria-label="Questions" className="rounded-2xl border border-line bg-surface px-4 py-5 shadow-card sm:p-7">
+          <MarketingIntakeForm initial={stored} hasPlan={Boolean(plan)} known={known} />
+        </section>
+      </>
     );
   }
 
   return (
     <>
+      {alreadyHave}
       <NextCard move={move} total={steps.length} done={done.length} draftedAt={plan?.generatedAt ?? null} runNotice={runNotice} running={running} />
 
       {steps.length ? (

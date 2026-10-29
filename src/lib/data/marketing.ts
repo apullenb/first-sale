@@ -4,15 +4,16 @@ import type { Db } from "@/db/client";
 import { businesses, marketingPlans } from "@/db/schema";
 import { readIntake, type StoredIntake } from "@/lib/marketing/intake";
 import { type MarketingPlan, readPlan } from "@/lib/marketing/types";
+import { readSocialProfiles, type SocialProfiles } from "@/lib/social/types";
 
 // Owner-scoped like website.ts: the business is always looked up by its owner.
 
 type Row = typeof marketingPlans.$inferSelect;
-export type MarketingRecord = Omit<Row, "intake" | "plan"> & { intake: StoredIntake | null; plan: MarketingPlan | null };
+export type MarketingRecord = Omit<Row, "intake" | "plan" | "social"> & { intake: StoredIntake | null; plan: MarketingPlan | null; social: SocialProfiles };
 export type MarketingPatch = Partial<Omit<Row, "businessId" | "updatedAt">>;
 
 function read(row: Row): MarketingRecord {
-  return { ...row, intake: readIntake(row.intake), plan: readPlan(row.plan) };
+  return { ...row, intake: readIntake(row.intake), plan: readPlan(row.plan), social: readSocialProfiles(row.social) };
 }
 
 export async function getMarketingForOwner(db: Db, ownerId: string): Promise<MarketingRecord | null> {
