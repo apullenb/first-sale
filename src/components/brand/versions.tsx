@@ -44,7 +44,7 @@ export function VersionsSection({ chosen, name, assets, picks, practice, running
         </h2>
         <p className="text-rule">
           {practice
-            ? "In practice mode each version is a plain text preview. With Muse connected, it redraws your chosen logo three ways, starting from the logo itself, and AI compares each one with your logo."
+            ? "In practice mode each version is a plain labeled preview. With Muse connected, it redraws your chosen logo three ways, starting from the logo itself, and AI compares each one with your logo."
             : "Muse redraws your chosen logo three ways, starting from the logo itself so the design stays the same. AI then compares each one with your logo."}
         </p>
       </div>

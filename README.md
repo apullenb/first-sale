@@ -263,16 +263,17 @@ The app doesn't claim a resolution, a transparent background, or marketplace com
 
 ## Branding
 
-On the Branding page, owners get a logo made for their business, its versions, and matching pictures for their pages. They never write instructions for the AI.
+On the Branding page, owners get a logo made for their business, its versions, the files and guide to use it, and matching pictures for their pages. Every idea follows the owner's own picks, and they never have to write instructions for the AI.
 
-1. **Your business.** The name in the logo, what they sell and who buys it are filled in from the intake answers and shown as a summary with an Edit button. The fields open on their own only when a name or product is missing. The tagline is optional.
+1. **Your business.** The name in the logo, what they sell and who buys it are filled in from the intake answers and shown as a summary with an Edit button. The fields open on their own only when a name or product is missing. The tagline is optional; when there isn't one, the summary asks whether they'd like one.
 2. **Feel.** One click each:
    - 3 to 8 words from about 50, grouped by era, place, mood and look ("vintage", "retro ’80s", "neon vibes", "farmhouse", "rustic", "western"…)
    - four this-or-that questions (old-fashioned or modern, playful or serious, quiet or loud, handmade or polished)
    - up to 3 color families
-   More options hold colors to avoid, a symbol idea and anything to avoid.
+   - the kinds of logo they'd like to see (wordmark, monogram, badge, drawn symbol, abstract shape, letter and symbol), or a mix
+   More options hold colors to avoid, a symbol idea, anything to avoid, and what they like about logos they've seen.
 3. **Brand picture.** Muse Spark turns the picks into a 2–3 sentence scene ("Rise Bakery is a porch swing on an old wooden back porch…"). The owner chooses "This feels like my business", "Try again with different adjectives" or "Revise this description" (an editable text box). Logo ideas wait until they approve one, and it then guides every idea, drawing and picture.
-4. **Ideas.** Muse Spark acts as a creative director, working from the brand picture. It writes 5 concepts that are genuinely different from each other, each with a kind (wordmark, monogram, badge, drawn symbol, abstract, or a letter and symbol), a specific idea, a lettering direction, a 1–3 color palette (hex) and a plain-words rationale.
+4. **Ideas.** Muse Spark acts as a creative director, working from the brand picture. It writes 5 concepts that are genuinely different from each other, each with a kind (wordmark, monogram, badge, drawn symbol, abstract, or a letter and symbol), a specific idea, a lettering direction, a 1–3 color palette (hex) and a plain-words rationale. When the owner picked kinds of logo, the reply's schema allows only those kinds (plus the liked idea's kind for "more like this"), so the model can't drift. Logos the owner likes are passed as taste hints only, with a rule never to copy, imitate or name them, and they never reach Muse Image.
 5. **Drawing.** Code builds each Muse Image instruction from the concept plus fixed quality rules:
    - the business name, spelled exactly and letter by letter, and no other words
    - recognizable at 32 pixels
@@ -286,10 +287,18 @@ On the Branding page, owners get a logo made for their business, its versions, a
    - extra words; initials count as extra except on a monogram or letter mark
    - lettering it couldn't read
    It says when punctuation isn't checked.
-7. **Refine or explore.** The owner can change a logo in plain words: the logo goes back to `/v1/images/edits` as image 1. Or they can ask for 3 more ideas like one they liked.
+7. **Refine or explore.** Every change sends the logo back to `/v1/images/edits` as image 1 and keeps the original. One-click changes are written by code (`src/lib/brand/refine.ts`), not by the owner:
+   - simpler (fewer details, thicker lines)
+   - different colors: one of the color families, the owner's picks first, or exact colors from a color picker
+   - different lettering: one of 8 styles
+   - add, change or remove the tagline
+   Each records what it changed (`brand_assets.design`), so the spelling check, the versions, the brand kit's colors and the logo guide follow the logo as drawn rather than the original idea. The owner can also describe a change in their own words, or ask for 3 more ideas like one they liked.
 8. **Versions.** From the chosen logo, `/v1/images/edits` makes a stacked version, a profile-picture version (the symbol only, padded for a circle crop) and a one-color version. The chosen logo is image 1 every time. Muse Spark compares each version with the logo, and code adds its own rules: the name must never appear in the profile picture, and the stacked and one-color versions must spell the name exactly. The owner approves the three together.
 9. **Brand pictures.** Pictures for a Facebook cover, a YouTube banner, a website header and a link preview are made from the approved logo in its colors and style. They're flat artwork, never photos of products the owner may not sell. Guides show what each site crops or covers, and exact-size downloads are made in the browser, because Muse Image only sets the shape.
-10. **Brand kit.** The chosen logo, approved versions, palette and approved pictures, with downloads. Other sections read it through `getMyBrand()`.
+10. **Brand kit.** The chosen logo, approved versions, palette and approved pictures. Other sections read it through `getMyBrand()`.
+    - **Colors** with hex and RGB codes, and how readable each is on white, worked out from WCAG contrast.
+    - **Logo files**, made in the browser from the approved files, one at a time or as a .zip with a note on which file to use where (`src/lib/brand/kit-files.ts`): main and stacked logos on white and see-through; the icon at 1024 × 1024; one-color dark and white see-through files, and white on the logo's darkest color (near-black, said on the page, when every color is light); favicon.ico (16, 32, 48, 96), home-screen icons (180, 192, 512); and profile pictures (Facebook 320 × 320, and an 800 × 800 square First Sale picked). Sizes a platform asks for cite its own page with the date checked. File names drop characters that make folders or that some systems refuse. See-through files remove the plain background (`src/lib/brand/pixels.ts`), un-mixing soft edges from the logo's own nearby color; white inside the logo becomes see-through too, and a picture without one plain background gets no see-through file.
+    - **Logo guide**: a printable page (a second when the answers are long) saved to Documents (`logo_guide`, replaced when saved again) with the logos, colors, the logo's lettering and free Google Fonts that suit it, clear space, minimum size, and do's and don'ts, all filled in by rules (`src/lib/brand/guide.ts`).
 
 **Stored:** every file is saved byte for byte as Muse returned it, with its pixel size read from the file. A failed drawing saves nothing.
 
@@ -299,9 +308,10 @@ On the Branding page, owners get a logo made for their business, its versions, a
 |---|---|---|
 | Ideas | 5 | $0.05 |
 | More like this | 3 | $0.03 |
-| A change | 1 | $0.01 |
+| A change (one click or in words) | 1 | $0.01 |
 | Versions | 3 | $0.03 |
 | Brand pictures | 4 | $0.04 |
+| Logo files and guide | 0 | free |
 
 Muse Spark's writing and checks are billed by length on top of that. There's no idempotency key, so:
 - each request carries a key from the browser
@@ -311,9 +321,9 @@ Muse Spark's writing and checks are billed by length on top of that. There's no 
 
 Limits: 20 rounds of ideas, 120 files, and 250 MB per business. The owner can remove the ideas they didn't choose.
 
-**Not claimed:** transparent backgrounds (Meta's docs say output is always opaque), exact pixel sizes from Muse, and that a logo is free to use. The page links the USPTO trademark search.
+**Not claimed:** transparent pictures from Muse (Meta's docs say output is always opaque; see-through files are made in the browser), exact pixel sizes from Muse, and that a logo is free to use. The page, the zip's note and the guide link the USPTO trademark search.
 
-**Practice mode:** ideas are labeled placeholders, and every "logo" is a plain text wordmark SVG that says "Practice preview, not made by Muse" inside the image. It's labeled the same way on the page and in download names.
+**Practice mode:** ideas are labeled placeholders that follow the owner's picked kinds, and every "logo" is a plain SVG that says "Practice preview, not made by Muse" inside the image. It still shows the idea's kind, colors, lettering feel and tagline, so one-click changes visibly work. Kit files carry the same label at a size that reads; files too small for words, like the smaller favicon sizes, get the label's colors as a background and border instead. The guide carries the label in a box at the top. It's labeled the same way on the page and in download names.
 
 ## Website
 

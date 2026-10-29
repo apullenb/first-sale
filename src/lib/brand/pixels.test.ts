@@ -1,0 +1,93 @@
+import { describe, expect, it } from "vitest";
+import { clearBox, contentBox, knockOut, type Pixels, placement, plainBackground, recolor } from "./pixels";
+
+type Rgb = [number, number, number];
+
+// A white canvas with filled rectangles drawn on it
+function canvas(width: number, height: number, background: Rgb = [255, 255, 255], shapes: { x: number; y: number; w: number; h: number; color: Rgb }[] = []): Pixels {
+  const data = new Uint8ClampedArray(width * height * 4);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const shape = shapes.findLast((each) => x >= each.x && x < each.x + each.w && y >= each.y && y < each.y + each.h);
+      data.set([...(shape?.color ?? background), 255], (y * width + x) * 4);
+    }
+  }
+  return { data, width, height };
+}
+
+const at = (image: Pixels, x: number, y: number) => Array.from(image.data.slice((y * image.width + x) * 4, (y * image.width + x) * 4 + 4));
+
+describe("see-through files", () => {
+  // A dark ring: a counter of white inside, and a half-blended edge pixel next to the background
+  const ring = canvas(40, 40, [255, 255, 255], [
+    { x: 10, y: 10, w: 20, h: 20, color: [20, 40, 30] },
+    { x: 16, y: 16, w: 8, h: 8, color: [255, 255, 255] },
+    { x: 9, y: 20, w: 1, h: 1, color: [138, 148, 143] },
+  ]);
+
+  it("find a plain background, and refuse one that isn't", () => {
+    expect(plainBackground(ring)).toEqual([255, 255, 255]);
+    const busy = canvas(40, 40, [255, 255, 255], [{ x: 0, y: 0, w: 40, h: 8, color: [200, 30, 30] }]);
+    expect(plainBackground(busy)).toBeNull();
+    expect(knockOut(busy)).toBeNull();
+  });
+
+  it("clear the background and white inside the logo, and keep the logo's own colors solid", () => {
+    const clear = knockOut(ring)!;
+    expect(at(clear, 2, 2)[3]).toBe(0);
+    expect(at(clear, 20, 20)[3]).toBe(0);
+    expect(at(clear, 12, 12)).toEqual([20, 40, 30, 255]);
+  });
+
+  it("un-mix soft edges from the background, so they stay smooth on any color", () => {
+    const edge = at(knockOut(ring)!, 9, 20);
+    expect(edge[3]).toBeGreaterThan(110);
+    expect(edge[3]).toBeLessThan(140);
+    // About the logo's own color, not a gray halo
+    expect(edge[0]).toBeLessThan(40);
+  });
+
+  it("keep light and mid-tone shapes solid right to their edges", () => {
+    const orange = knockOut(canvas(30, 30, [255, 255, 255], [{ x: 8, y: 8, w: 14, h: 14, color: [243, 166, 90] }]))!;
+    expect(at(orange, 8, 8)).toEqual([243, 166, 90, 255]);
+    expect(at(orange, 9, 15)).toEqual([243, 166, 90, 255]);
+  });
+
+  it("work on an off-white background too", () => {
+    const offWhite = canvas(30, 30, [248, 247, 244], [{ x: 10, y: 10, w: 10, h: 10, color: [200, 60, 40] }]);
+    const clear = knockOut(offWhite)!;
+    expect(at(clear, 1, 1)[3]).toBe(0);
+    expect(at(clear, 15, 15)).toEqual([200, 60, 40, 255]);
+  });
+
+  it("refuse when nothing would be left", () => {
+    expect(knockOut(canvas(30, 30))).toBeNull();
+  });
+});
+
+describe("one-color files and placement", () => {
+  it("recolor every visible pixel and keep transparency", () => {
+    const white = recolor(knockOut(canvas(20, 20, [255, 255, 255], [{ x: 5, y: 5, w: 5, h: 5, color: [10, 10, 10] }]))!, "#ffffff");
+    expect(at(white, 6, 6)).toEqual([255, 255, 255, 255]);
+    expect(at(white, 1, 1)[3]).toBe(0);
+  });
+
+  it("clear a box, such as a practice preview's own label, with a pixel to spare", () => {
+    const cleared = clearBox(canvas(20, 20, [0, 0, 0]), { x: 5, y: 5, width: 4, height: 4 });
+    expect(at(cleared, 4, 4)[3]).toBe(0);
+    expect(at(cleared, 9, 9)[3]).toBe(0);
+    expect(at(cleared, 3, 3)[3]).toBe(255);
+    expect(at(cleared, 10, 10)[3]).toBe(255);
+  });
+
+  it("find the artwork's box", () => {
+    const clear = knockOut(canvas(50, 30, [255, 255, 255], [{ x: 10, y: 5, w: 20, h: 10, color: [0, 0, 0] }]))!;
+    expect(contentBox(clear)).toEqual({ x: 10, y: 5, width: 20, height: 10 });
+    expect(contentBox({ data: new Uint8ClampedArray(16), width: 2, height: 2 })).toBeNull();
+  });
+
+  it("fit the artwork inside a square with a margin, or pad it at its own size", () => {
+    expect(placement({ x: 10, y: 5, width: 200, height: 100 }, { width: 100, height: 100 }, 0.1)).toEqual({ width: 100, height: 100, draw: { x: 10, y: 30, width: 80, height: 40 } });
+    expect(placement({ x: 10, y: 5, width: 200, height: 100 }, null, 0.05)).toEqual({ width: 220, height: 120, draw: { x: 10, y: 10, width: 200, height: 100 } });
+  });
+});

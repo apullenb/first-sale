@@ -13,7 +13,7 @@ import { PracticeBanner } from "@/components/practice-banner";
 import { CARD, EYEBROW, PAGE_TITLE, PRIMARY_LINK } from "@/components/styles";
 import { getImageModel } from "@/lib/ai";
 import { briefDefaults } from "@/lib/brand/brief";
-import { getMyBrand, getMyBrandState, getMyBusiness, lastMyRun } from "@/lib/data/my-business";
+import { getMyBrand, getMyBrandState, getMyBusiness, lastMyRun, listMyDocuments } from "@/lib/data/my-business";
 import { sectionMetadata } from "@/lib/sections";
 
 export const metadata = sectionMetadata("/brand");
@@ -28,7 +28,8 @@ export default function BrandPage() {
         <h1 className={PAGE_TITLE}>Branding</h1>
         <p className="text-lg text-muted">
           Pick the words that fit how your business should feel, and see your brand described back to you. Then AI writes logo ideas from it and draws
-          them. You choose one, get the versions you’ll need, and make matching pictures for your pages. Nothing is used until you approve it.
+          them. You choose one, fine-tune it, get the versions and files you’ll need, and make matching pictures for your pages. Nothing is used until you
+          approve it.
         </p>
       </div>
       <Suspense fallback={<p className="text-muted">Loading your brand…</p>}>
@@ -65,13 +66,15 @@ async function Brand() {
   const practice = image?.simulated ?? false;
   const latestRound = state.rounds[0] ?? null;
   const chosen = state.assets.find((asset) => asset.id === state.chosenLogoId && asset.kind === "logo") ?? null;
-  const [ideasRun, drawRun, versionsRun, imagesRun, kit] = await Promise.all([
+  const [ideasRun, drawRun, versionsRun, imagesRun, kit, documents] = await Promise.all([
     lastMyRun("brand_ideas", null),
     latestRound ? lastMyRun("brand_draw", latestRound.id) : null,
     chosen ? lastMyRun("brand_versions", chosen.id) : null,
     chosen ? lastMyRun("brand_images", chosen.id) : null,
     getMyBrand(),
+    chosen ? listMyDocuments() : [],
   ]);
+  const guideId = documents.find((doc) => doc.generatedKind === "logo_guide")?.id ?? null;
   const ideasRunning = ideasRun?.status === "running";
   const blocked = !image?.generate ? "Logo drawing isn’t turned on for First Sale yet." : ideasRunning ? "Logo ideas are being written right now. This page will update when they’re ready." : null;
   const versionsApproved = Boolean(kit?.logos.stacked && kit.logos.profile && kit.logos.solid);
@@ -92,6 +95,8 @@ async function Brand() {
             chosenLogoId={chosen?.id ?? null}
             practice={practice}
             drawing={new Set(drawRun?.status === "running" && latestRound ? [latestRound.id] : [])}
+            ownerTagline={state.brief?.tagline ?? ""}
+            pickedFamilies={state.brief?.colors ?? []}
           />
           {state.rounds.length > 1 ? (
             <ActionButton
@@ -119,7 +124,7 @@ async function Brand() {
         </div>
       ) : null}
 
-      {kit ? <KitSection kit={kit} /> : null}
+      {kit ? <KitSection kit={kit} guideId={guideId} /> : null}
     </>
   );
 }

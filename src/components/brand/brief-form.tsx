@@ -9,7 +9,7 @@ import { dollars, IDEAS } from "@/lib/brand/cost";
 import { PRACTICE_LABEL } from "@/lib/brand/practice";
 import { BRIEF_LIMITS, type BrandBrief } from "@/lib/brand/types";
 import { MAX_COLOR_FAMILIES, VIBE_LIMITS } from "@/lib/brand/vibes";
-import { ColorPicker, LeaningPicker, VibePicker } from "./feel-pickers";
+import { ColorPicker, LeaningPicker, LogoKindPicker, VibePicker } from "./feel-pickers";
 
 const OFFLINE = "Couldn’t reach First Sale. Check your connection, then try again.";
 
@@ -145,7 +145,7 @@ export function BriefForm({ initial, practice, blocked, hasIdeas }: Props) {
   }
 
   const busy = phase !== "idle";
-  const textField = (key: "name" | "tagline" | "customers" | "likedColors" | "avoidColors" | "symbolIdea" | "avoid", label: string, help: string, max: number) => (
+  const textField = (key: "name" | "tagline" | "customers" | "likedColors" | "avoidColors" | "symbolIdea" | "avoid" | "logoLikes", label: string, help: string, max: number) => (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={`${uid}-${key}`} className="font-semibold">
         {label}
@@ -200,7 +200,7 @@ export function BriefForm({ initial, practice, blocked, hasIdeas }: Props) {
         {editingBusiness ? (
           <div className="flex flex-col gap-5">
             {textField("name", "Name in your logo", "Spelled exactly as it should appear. AI checks the spelling of every logo against it.", BRIEF_LIMITS.name)}
-            {textField("tagline", "Tagline (optional)", "A few words under your name, such as “Baked fresh every morning”. Leave it empty for no tagline.", BRIEF_LIMITS.tagline)}
+            {textField("tagline", "Tagline (optional)", "A few words under your name, such as “Sourdough and pastries”. Leave it empty if you don’t want one.", BRIEF_LIMITS.tagline)}
             <div className="flex flex-col gap-1.5">
               <label htmlFor={`${uid}-sells`} className="font-semibold">
                 What you sell
@@ -233,7 +233,21 @@ export function BriefForm({ initial, practice, blocked, hasIdeas }: Props) {
             <dt className="text-sm font-semibold text-muted">Name in your logo</dt>
             <dd className="text-lg font-semibold">{brief.name}</dd>
             <dt className="text-sm font-semibold text-muted">Tagline</dt>
-            <dd>{brief.tagline || <span className="text-muted">None</span>}</dd>
+            <dd className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              {brief.tagline || <span className="text-muted">None. Would you like a few words under your name?</span>}
+              {brief.tagline ? null : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingBusiness(true);
+                    window.setTimeout(() => document.getElementById(`${uid}-tagline`)?.focus(), 0);
+                  }}
+                  className="min-h-11 font-semibold text-accent-ink underline underline-offset-4"
+                >
+                  Add a tagline
+                </button>
+              )}
+            </dd>
             <dt className="text-sm font-semibold text-muted">What you sell</dt>
             <dd>{brief.sells}</dd>
             <dt className="text-sm font-semibold text-muted">Who buys it</dt>
@@ -258,6 +272,10 @@ export function BriefForm({ initial, practice, blocked, hasIdeas }: Props) {
           <LeaningPicker value={brief.leanings} onChange={(leanings) => set("leanings", leanings)} />
         </div>
         <div className="flex flex-col gap-2">
+          <h3 className="font-semibold">What kind of logo?</h3>
+          <LogoKindPicker picked={brief.logoKinds} onChange={(kinds) => set("logoKinds", kinds)} />
+        </div>
+        <div className="flex flex-col gap-2">
           <h3 className="font-semibold">Colors you’re drawn to</h3>
           <ColorPicker
             picked={brief.colors}
@@ -265,12 +283,18 @@ export function BriefForm({ initial, practice, blocked, hasIdeas }: Props) {
           />
         </div>
         <details className="rounded-xl bg-ground">
-          <summary className="flex min-h-12 cursor-pointer items-center px-4 font-semibold">More options: colors to avoid, a symbol you’d like</summary>
+          <summary className="flex min-h-12 cursor-pointer items-center px-4 font-semibold">More options: colors to avoid, a symbol, logos you like</summary>
           <div className="flex flex-col gap-5 px-4 pb-4">
             {textField("likedColors", "Exact colors you already use (optional)", "Such as “the forest green on our sign”.", BRIEF_LIMITS.colors)}
             {textField("avoidColors", "Colors to avoid (optional)", "Such as “no pink” or “nothing neon”.", BRIEF_LIMITS.colors)}
             {textField("symbolIdea", "A symbol you’d like (optional)", "Something you’d like in the logo, such as a wheat stalk or a sunrise. Leave it empty to see fresh ideas.", BRIEF_LIMITS.symbol)}
             {textField("avoid", "Anything to avoid (optional)", "Such as “no cupcakes” or “nothing that looks like a coffee chain”.", BRIEF_LIMITS.avoid)}
+            {textField(
+              "logoLikes",
+              "Logos you like (optional)",
+              "What you like about logos you’ve seen, such as “bold, simple letters” or “a friendly hand-drawn feel”. Ideas take the feel from this, never a copy.",
+              BRIEF_LIMITS.logoLikes,
+            )}
           </div>
         </details>
         <div className="flex flex-col gap-2">

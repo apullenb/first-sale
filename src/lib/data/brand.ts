@@ -4,10 +4,12 @@ import type { Db } from "@/db/client";
 import { brandAssets, brandConcepts, brandKits, brandRounds, businesses } from "@/db/schema";
 import { brandFileUrl } from "@/lib/brand/files";
 import type { NewBrandAsset, Room } from "@/lib/brand/generate";
+import { applyDesign } from "@/lib/brand/refine";
 import {
   type AssetCheck,
   type AssetKind,
   type BrandBrief,
+  type BrandDesign,
   type BrandFile,
   type BrandImageKind,
   type BrandKit,
@@ -50,6 +52,7 @@ export interface AssetSummary {
   conceptId: string;
   sourceId: string | null;
   change: string | null;
+  design: BrandDesign | null;
   model: string;
   simulated: boolean;
   mimeType: string;
@@ -74,6 +77,7 @@ const assetColumns = {
   conceptId: brandAssets.conceptId,
   sourceId: brandAssets.sourceId,
   change: brandAssets.change,
+  design: brandAssets.design,
   model: brandAssets.model,
   simulated: brandAssets.simulated,
   mimeType: brandAssets.mimeType,
@@ -272,6 +276,7 @@ export async function addAssetForOwner(db: Db, ownerId: string, input: NewBrandA
       conceptId: input.conceptId,
       sourceId: input.sourceId,
       change: input.change,
+      design: input.design,
       prompt: input.prompt,
       model: input.model,
       simulated: input.simulated,
@@ -432,9 +437,13 @@ export async function getBrandKitForOwner(db: Db, ownerId: string): Promise<Bran
     used.push(row);
     return toFile(row);
   };
+  // The logo as drawn, with any one-click changes to its colors, lettering or tagline
+  const drawn = applyDesign(primary.concept, readBrief(primary.brief), primary.design);
   const result: BrandKit = {
-    businessName: readBrief(primary.brief).name,
-    colors: primary.concept.palette,
+    businessName: drawn.brief.name,
+    tagline: drawn.brief.tagline.trim(),
+    colors: drawn.concept.palette,
+    lettering: drawn.concept.typography,
     logos: { primary: toFile(primary), stacked: file("stacked"), profile: file("profile"), solid: file("solid") },
     images: { websiteHero: file("website_hero"), facebookCover: file("facebook_cover"), youtubeBanner: file("youtube_banner"), linkPreview: file("link_preview") },
     simulated: false,

@@ -6,8 +6,10 @@ import type { ActionResult } from "@/app/(app)/business/actions";
 import { getImageModel, getModel, type ImageModel } from "@/lib/ai";
 import { ideasProblem as storyProblem } from "@/lib/brand/brief";
 import { writeConcepts } from "@/lib/brand/concepts";
+import { logoGuidePdf } from "@/lib/brand/guide";
 import { type AssetStore, type BatchResult, drawConcepts, type LogoRef, makeBrandImages, makeVersions, refineLogo } from "@/lib/brand/generate";
 import { MAX_CHANGE } from "@/lib/brand/prompts";
+import { applyDesign, planRefinement, refinementSchema } from "@/lib/brand/refine";
 import { writeStory } from "@/lib/brand/story";
 import { type BrandBrief, brandBriefSchema, IMAGE_KINDS, VERSION_KINDS } from "@/lib/brand/types";
 import { BRAND_LIMITS } from "@/lib/data/brand";
@@ -17,20 +19,25 @@ import {
   chooseMyLogo,
   clearMyBrandIdeas,
   createMyBrandRound,
+  createMyDocument,
   findMyBrandAssetByRequest,
   findMyBrandRoundByRequest,
   getMyBrandAsset,
+  getMyBrand,
   getMyBrandAssetFile,
   getMyBrandConcept,
   getMyBrandRound,
   getMyBrandState,
+  listMyDocuments,
   myAiKey,
   myBrandAssetRoom,
   pickMyBrandImage,
   saveMyBrandBrief,
   setMyBrandAssetCheck,
   unpickMyBrandImage,
+  updateMyDocument,
 } from "@/lib/data/my-business";
+import { EMPTY_CONTENT } from "@/lib/documents/types";
 import { OwnerFacingError } from "@/lib/errors";
 import { ownerText } from "@/lib/photos/instructions";
 import { runWorkflow } from "@/lib/workflow-runner";
@@ -191,25 +198,37 @@ async function logoRef(assetId: string, image: ImageModel): Promise<LogoRef | st
   if (!asset || !file || asset.kind !== "logo") return NOT_FOUND;
   if (asset.simulated && !image.simulated) return PRACTICE_FILE;
   if (asset.roundSimulated && !image.simulated) return PRACTICE_IDEAS;
-  return { id: asset.conceptId, concept: asset.concept, brief: asset.brief, logoId: asset.id, logo: { mimeType: file.mimeType, data: file.data } };
+  // Versions, pictures and further changes start from the logo as drawn
+  return { id: asset.conceptId, ...applyDesign(asset.concept, asset.brief, asset.design), logoId: asset.id, logo: { mimeType: file.mimeType, data: file.data }, design: asset.design };
 }
 
-const refineSchema = z.object({ assetId: id, requestKey: z.uuid(), change: z.string().max(MAX_CHANGE * 2) });
+// A change in the owner's words, or a one-click change that code writes
+const refineSchema = z.union([
+  z.object({ assetId: id, requestKey: z.uuid(), change: z.string().max(MAX_CHANGE * 2) }),
+  z.object({ assetId: id, requestKey: z.uuid(), refinement: refinementSchema }),
+]);
 
 export async function refineLogoAction(input: unknown): Promise<ActionResult<string>> {
   const parsed = refineSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, message: `Describe the change in up to ${MAX_CHANGE} characters.` };
-  const change = ownerText(parsed.data.change, MAX_CHANGE);
-  if (change.length < 3) return { ok: false, message: "Say what you’d like changed, such as “Make the letters thicker”." };
+  if (!parsed.success) {
+    const oneClick = typeof input === "object" && input !== null && "refinement" in input;
+    return { ok: false, message: oneClick ? "That change isn’t available. Reload the page and try again." : `Describe the change in up to ${MAX_CHANGE} characters.` };
+  }
+  const words = "change" in parsed.data ? ownerText(parsed.data.change, MAX_CHANGE) : null;
+  if (words !== null && words.length < 3) return { ok: false, message: "Say what you’d like changed, such as “Make the letters thicker”." };
   const existing = await findMyBrandAssetByRequest(parsed.data.requestKey);
   if (existing) return { ok: true, value: existing };
   const image = imageModel();
   if (!image) return { ok: false, message: OFF };
   const logo = await logoRef(parsed.data.assetId, image);
   if (typeof logo === "string") return { ok: false, message: logo };
+  const plan = "refinement" in parsed.data ? planRefinement(parsed.data.refinement, logo) : null;
+  if (plan && !plan.ok) return { ok: false, message: plan.message };
+  const change = plan?.ok ? plan.label : (words ?? "");
+  const oneClick = plan?.ok ? { lines: plan.lines, design: plan.design } : undefined;
 
   const result = await runWorkflow("brand_refine", logo.logoId, async () =>
-    refineLogo({ image, vision: getModel() }, store, { logo, change, requestKey: parsed.data.requestKey, userKey: await myAiKey(), now: new Date() }),
+    refineLogo({ image, vision: getModel() }, store, { logo, change, oneClick, requestKey: parsed.data.requestKey, userKey: await myAiKey(), now: new Date() }),
   );
   refresh();
   return result;
@@ -320,4 +339,42 @@ export async function clearIdeasAction(): Promise<ActionResult> {
   await clearMyBrandIdeas();
   refresh();
   return { ok: true, value: null };
+}
+
+// --- Logo guide
+
+// One page from the approved logo, kept in Documents and replaced when saved again
+export async function saveLogoGuideAction(): Promise<ActionResult<string>> {
+  const [kit, state] = await Promise.all([getMyBrand(), getMyBrandState()]);
+  if (!kit || !state?.chosenLogoId) return { ok: false, message: "Choose a logo first." };
+  const sources: [string, string | null | undefined][] = [
+    ["Main logo", state.chosenLogoId],
+    ["Stacked", kit.logos.stacked ? state.picks.stacked : null],
+    ["Icon", kit.logos.profile ? state.picks.profile : null],
+  ];
+  const images = await Promise.all(
+    sources.flatMap(([label, assetId]) => (assetId ? [getMyBrandAssetFile(assetId).then((file) => ({ label, file }))] : [])),
+  );
+  const now = new Date();
+  const data = await logoGuidePdf({ businessName: kit.businessName, tagline: kit.tagline, colors: kit.colors, lettering: kit.lettering, simulated: kit.simulated, images, now });
+  const title = `Logo guide${kit.simulated ? " (practice)" : ""}`;
+
+  const existing = (await listMyDocuments()).find((doc) => doc.generatedKind === "logo_guide");
+  if (existing) {
+    if (!(await updateMyDocument(existing.id, { title, data, mimeType: "application/pdf" }))) return { ok: false, message: "Your business wasn’t found. Reload the page and try again." };
+    refresh();
+    return { ok: true, value: existing.id };
+  }
+  const created = await createMyDocument({ title, origin: "generated", generatedKind: "logo_guide", mimeType: "application/pdf", data, sha256: null, content: EMPTY_CONTENT });
+  if (!created.ok) {
+    return {
+      ok: false,
+      message:
+        created.reason === "too_many" || created.reason === "too_large"
+          ? "Your document library is full. Delete a document you don’t need, then try again."
+          : "Your business wasn’t found. Reload the page and try again.",
+    };
+  }
+  refresh();
+  return { ok: true, value: created.id };
 }
