@@ -1,4 +1,5 @@
 import { type MarketingPlatformId, PLATFORM_DATA, type SkillArea } from "@/data/marketing-platforms";
+import { BRAND_IMAGES_HREF } from "@/lib/brand/library";
 import type { MarketingIntake, SkillLevel, StoredIntake } from "@/lib/marketing/intake";
 import type { FirstAction, HandHolding, MarketingPlan, MarketingPlanReply, MarketingStep, PlanPlatform, PlatformRole, StepLink } from "@/lib/marketing/types";
 
@@ -184,18 +185,17 @@ function lookStep(hasLogo: boolean): StepDraft {
     ? {
         key: "look",
         kind: "look",
-        title: "Download your profile picture and cover",
+        title: "Download your profile picture",
         why: "The same picture everywhere helps people know it’s you.",
         area: "content",
         platform: null,
         how: [
-          "Open Build your brand in First Sale.",
-          "Download the profile-picture version of your logo. It’s made to fit a circle.",
-          "Download the cover pictures for Facebook and YouTube if you’ll use them.",
-          "Save them on your phone, so they’re ready when you set up each account.",
+          "Open Create your logo in First Sale.",
+          "Make the Icon (profile picture) version of your logo with the + button, and choose “Use this”. It’s made to fit a circle.",
+          "Download it and save it on your phone, so it’s ready when you set up each account.",
         ],
-        short: ["Download your profile picture and covers from Build your brand"],
-        links: [{ label: "Open Build your brand", href: "/brand", external: false, guide: false }],
+        short: ["Make and download your icon (profile picture) on Create your logo"],
+        links: [{ label: "Open Create your logo", href: "/logo", external: false, guide: false }],
         by: "rule",
         general: false,
       }
@@ -207,19 +207,41 @@ function lookStep(hasLogo: boolean): StepDraft {
         area: "content",
         platform: null,
         how: [
-          "Open Create your logo in First Sale.",
-          "Answer the questions about how your business should feel, or upload the logo you already have.",
-          "Pick the logo idea you like best, then approve its versions on Build your brand.",
-          "Download the profile-picture version. You’ll add it to each account you set up.",
+          "Open Build your brand in First Sale, answer the questions about how your business should feel, and approve your brand description.",
+          "Open Create your logo, and pick the logo idea you like best or upload the logo you already have.",
+          "Make the Icon (profile picture) version with the + button, and choose “Use this”.",
+          "Download it. You’ll add it to each account you set up.",
         ],
-        short: ["Make or upload your logo", "Download the profile-picture version"],
+        short: ["Approve your brand description", "Make or upload your logo", "Make and download your icon (profile picture)"],
         links: [
-          { label: "Open Create your logo", href: "/logo", external: false, guide: false },
           { label: "Open Build your brand", href: "/brand", external: false, guide: false },
+          { label: "Open Create your logo", href: "/logo", external: false, guide: false },
         ],
         by: "rule",
         general: false,
       };
+}
+
+function brandImagesStep(hasLogo: boolean): StepDraft {
+  return {
+    key: "brand_images",
+    kind: "brand_images",
+    title: "Create your brand images",
+    why: "Covers, a website header and a link preview in your logo’s colors make every page look like the same business.",
+    area: "content",
+    platform: null,
+    how: [
+      ...(hasLogo ? [] : ["Choose or upload your logo first, on Create your logo. Brand images are made from it."]),
+      "Open the Brand images group in your Brand Library.",
+      "Choose + on each recommended picture: website header, Facebook cover, YouTube banner and link preview.",
+      "Look each one over. Choose Edit to say what to change, or Regenerate for a new one.",
+      "Choose “Use this” on the one you like. This step is done once every picture has one.",
+    ],
+    short: ["Make each recommended brand image in your Brand Library", "Choose “Use this” on the ones you like"],
+    links: [{ label: "Open your brand images", href: BRAND_IMAGES_HREF, external: false, guide: false }],
+    by: "rule",
+    general: false,
+  };
 }
 
 function setupStep(entry: PlanPlatform, have: boolean): StepDraft {
@@ -342,7 +364,7 @@ function actionStep(action: FirstAction, key: string, active: ReadonlySet<Market
   };
 }
 
-// Steps to carry out an approved plan, in order: a profile picture, accounts, photos, posts, search, then the plan's first actions.
+// Steps to carry out an approved plan, in order: a profile picture, brand images, accounts, photos, posts, search, then the plan's first actions.
 // Only platforms the plan uses now get setup steps, and never one the owner ruled out.
 export function buildMarketingSteps(
   plan: MarketingPlanReply & { simulated?: boolean },
@@ -352,7 +374,10 @@ export function buildMarketingSteps(
   const activeIds = new Set(activePlatforms(plan.platforms, intake));
   const active = plan.platforms.filter((entry) => activeIds.has(entry.platform));
   const steps: StepDraft[] = [];
-  if (active.some((entry) => entry.platform !== "email_list")) steps.push(lookStep(context.hasLogo));
+  const pages = active.some((entry) => entry.platform !== "email_list");
+  if (pages) steps.push(lookStep(context.hasLogo));
+  // Covers for pages, and a header and link preview for a website
+  if (pages || context.hasWebsite) steps.push(brandImagesStep(context.hasLogo));
   for (const entry of active) steps.push(setupStep(entry, intake.have.includes(entry.platform)));
   steps.push(photosStep(context.approvedPhotos));
   if (active.some((entry) => entry.platform !== "email_list" && PLATFORM_DATA[entry.platform].area === "social")) steps.push(postsStep(plan));
@@ -384,9 +409,20 @@ export function visibleSteps(steps: readonly MarketingStep[], exclude: readonly 
     .filter((step) => step.how.length > 0);
 }
 
-// Ticks for steps that are still in the list
-export function doneSteps(steps: readonly MarketingStep[], done: readonly string[]): string[] {
-  return done.filter((key) => steps.some((step) => step.key === key));
+// What First Sale already knows is finished, apart from the owner's ticks
+export interface DoneFacts {
+  // Every brand image kind has a picked file
+  brandImagesPicked: boolean;
+}
+
+// Steps done by what the owner made in First Sale; they can't be unticked
+export function autoDoneSteps(steps: readonly MarketingStep[], facts: DoneFacts): string[] {
+  return steps.filter((step) => step.kind === "brand_images" && facts.brandImagesPicked).map((step) => step.key);
+}
+
+// Ticks for steps that are still in the list, plus steps done by facts
+export function doneSteps(steps: readonly MarketingStep[], done: readonly string[], auto: readonly string[] = []): string[] {
+  return steps.filter((step) => done.includes(step.key) || auto.includes(step.key)).map((step) => step.key);
 }
 
 export type MarketingMove =

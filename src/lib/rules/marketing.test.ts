@@ -3,6 +3,7 @@ import { PLATFORM_DATA } from "@/data/marketing-platforms";
 import type { MarketingIntake } from "@/lib/marketing/intake";
 import type { MarketingPlanReply, MarketingStep } from "@/lib/marketing/types";
 import {
+  autoDoneSteps,
   buildMarketingSteps,
   checkPlan,
   doneSteps,
@@ -199,7 +200,7 @@ describe("buildMarketingSteps", () => {
 
   it("sets up only the places the plan uses now, and tidies the ones the owner has", () => {
     const steps = buildMarketingSteps(plan, answers, CONTEXT);
-    expect(steps.map((step) => step.key)).toEqual(["look", "setup:instagram", "tidy:google_business", "photos", "posts", "action:tell-your-neighbors"]);
+    expect(steps.map((step) => step.key)).toEqual(["look", "brand_images", "setup:instagram", "tidy:google_business", "photos", "posts", "action:tell-your-neighbors"]);
     const instagram = steps.find((step) => step.key === "setup:instagram")!;
     expect(instagram).toMatchObject({ area: "social", why: "Bread photographs well.", how: PLATFORM_DATA.instagram.walkthrough, short: PLATFORM_DATA.instagram.checklist, by: "rule" });
     expect(instagram.links[0]).toEqual({ label: PLATFORM_DATA.instagram.start!.label, href: PLATFORM_DATA.instagram.start!.url, external: true, guide: false });
@@ -229,7 +230,13 @@ describe("buildMarketingSteps", () => {
 
   it("uses what the owner already made in First Sale", () => {
     const steps = buildMarketingSteps(plan, answers, { hasLogo: true, hasWebsite: true, approvedPhotos: 3 });
-    expect(steps.find((step) => step.key === "look")?.title).toBe("Download your profile picture and cover");
+    expect(steps.find((step) => step.key === "look")).toMatchObject({ title: "Download your profile picture", links: [{ href: "/logo" }] });
+    expect(steps.find((step) => step.key === "brand_images")).toMatchObject({
+      kind: "brand_images",
+      title: "Create your brand images",
+      links: [{ href: "/brand-library#group-brand_images", external: false }],
+      by: "rule",
+    });
     expect(steps.find((step) => step.key === "photos")?.why).toBe("You have 3 store-ready photos in Product photos.");
     expect(steps.find((step) => step.key === "search")).toMatchObject({ area: "seo", links: [{ href: "/website", external: false, guide: false }] });
   });
@@ -240,6 +247,14 @@ describe("buildMarketingSteps", () => {
     expect(steps.map((step) => step.key)).toEqual(["setup:email_list", "photos", "action:tell-your-neighbors"]);
     expect(steps[0].title).toBe("Start your email list");
     expect(steps[0].links.map((link) => link.guide)).toEqual([true]);
+    // A website still gets a header picture and link preview
+    expect(buildMarketingSteps(emailOnly, intake({ include: ["email_list"] }), { ...CONTEXT, hasWebsite: true }).map((step) => step.key)).toContain("brand_images");
+  });
+
+  it("points to step 1 and step 2 before there's a logo, and asks for a logo before brand images", () => {
+    const steps = buildMarketingSteps(plan, answers, CONTEXT);
+    expect(steps.find((step) => step.key === "look")?.links.map((link) => link.href)).toEqual(["/brand", "/logo"]);
+    expect(steps.find((step) => step.key === "brand_images")?.how[0]).toContain("Choose or upload your logo first");
   });
 
   it("gives the plan's own actions a checklist too, and marks practice plans' steps as the rules'", () => {
@@ -296,6 +311,15 @@ describe("after the owner rules out a platform", () => {
 });
 
 describe("doneSteps", () => {
+  it("counts the brand images step done once every kind has a picked image, or when ticked", () => {
+    const steps = [{ key: "look", kind: "look" }, { key: "brand_images", kind: "brand_images" }] as MarketingStep[];
+    expect(autoDoneSteps(steps, { brandImagesPicked: false })).toEqual([]);
+    expect(autoDoneSteps(steps, { brandImagesPicked: true })).toEqual(["brand_images"]);
+    expect(doneSteps(steps, [], autoDoneSteps(steps, { brandImagesPicked: true }))).toEqual(["brand_images"]);
+    expect(doneSteps(steps, ["brand_images"], [])).toEqual(["brand_images"]);
+    expect(doneSteps(steps, ["look"], [])).toEqual(["look"]);
+  });
+
   it("drops ticks for steps that are gone", () => {
     expect(doneSteps([{ key: "look" } as MarketingStep], ["look", "setup:tiktok"])).toEqual(["look"]);
   });

@@ -23,7 +23,7 @@ import { examplesText } from "@/lib/intake/catalog";
 import { BUDGET_LABELS, CHANNEL_LABELS, OFFERING_KIND_LABELS, STATE_NAMES } from "@/lib/intake/options";
 import { completeIntake, intakeKey } from "@/lib/marketing/intake";
 import { type HandHolding, stepAnchor } from "@/lib/marketing/types";
-import { doneSteps, handHolding, type MarketingMove, marketingMove, visibleSteps, withoutPlatforms } from "@/lib/rules/marketing";
+import { autoDoneSteps, doneSteps, handHolding, type MarketingMove, marketingMove, visibleSteps, withoutPlatforms } from "@/lib/rules/marketing";
 import { sectionMetadata } from "@/lib/sections";
 
 export const metadata = sectionMetadata("/marketing");
@@ -119,7 +119,8 @@ async function MarketingView() {
   const exclude = stored?.exclude ?? [];
   // Steps from the last approval stay until a new plan is approved; platforms ruled out since never show
   const steps = visibleSteps(marketing?.steps ?? [], exclude);
-  const done = doneSteps(steps, marketing?.stepsDone ?? []);
+  const auto = autoDoneSteps(steps, { brandImagesPicked: Boolean(brand && Object.values(brand.images).every(Boolean)) });
+  const done = doneSteps(steps, marketing?.stepsDone ?? [], auto);
   const move = marketingMove({ hasProfile: true, intake, plan, current, approved: Boolean(approvedAt), steps, done });
   const pdf = documents.find((doc) => doc.generatedKind === "marketing_plan") ?? null;
   const shown: ShownStep[] = steps.map((step) => {
@@ -181,7 +182,7 @@ async function MarketingView() {
               <ActorChip actor="owner" /> tick each one off
             </li>
           </ul>
-          <MarketingStepList steps={shown} done={done} next={move.kind === "step" ? move.step.key : null} />
+          <MarketingStepList steps={shown} done={done} auto={auto} next={move.kind === "step" ? move.step.key : null} />
         </Card>
       ) : null}
 

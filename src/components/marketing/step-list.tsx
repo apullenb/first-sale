@@ -93,8 +93,11 @@ function Body({ step }: { step: ShownStep }) {
   );
 }
 
-// The plan's steps, with as much help as the owner's answers call for. The owner ticks each one off.
-export function MarketingStepList({ steps, done, next }: { steps: ShownStep[]; done: string[]; next: string | null }) {
+// What First Sale says about a step it marked done itself
+const AUTO_NOTE: Partial<Record<ShownStep["kind"], string>> = { brand_images: "Every brand image has one you chose." };
+
+// The plan's steps, with as much help as the owner's answers call for. The owner ticks each one off; auto: done by what they made.
+export function MarketingStepList({ steps, done, auto = [], next }: { steps: ShownStep[]; done: string[]; auto?: string[]; next: string | null }) {
   const [pending, setPending] = useState<string | null>(null);
   const [ticked, setTicked] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -131,11 +134,12 @@ export function MarketingStepList({ steps, done, next }: { steps: ShownStep[]; d
       <ol className="flex flex-col gap-2.5">
         {steps.map((step, index) => {
           const isDone = done.includes(step.key);
+          const byFacts = auto.includes(step.key);
           const id = stepAnchor(step.key);
           return (
             <li key={step.key} id={id} className={`scroll-mt-4 rounded-xl border border-line shadow-soft ${isDone ? "bg-soft" : "bg-surface"}`}>
               <div className="flex items-start gap-2 py-2.5 pr-4 pl-2 sm:gap-3">
-                <TickBox id={`${id}-done`} checked={isDone} fresh={ticked === step.key} disabled={pending !== null} onChange={(checked) => toggle(step.key, checked)} />
+                <TickBox id={`${id}-done`} checked={isDone} fresh={ticked === step.key} disabled={pending !== null || byFacts} onChange={(checked) => toggle(step.key, checked)} />
                 <div className="flex min-w-0 flex-1 flex-col gap-1 pt-2">
                   <label htmlFor={`${id}-done`} className={`cursor-pointer text-base leading-snug font-bold ${isDone ? "text-muted line-through decoration-line-strong" : ""}`}>
                     {index + 1}. {step.title}
@@ -148,6 +152,7 @@ export function MarketingStepList({ steps, done, next }: { steps: ShownStep[]; d
                         <Icon name="check" size="xs" /> Done
                       </span>
                     ) : null}
+                    {byFacts ? <span>{AUTO_NOTE[step.kind] ?? "First Sale marked this done from what you made."}</span> : null}
                   </div>
                   {!isDone && step.why ? <p className="pt-0.5 text-[15.5px] text-rule">{step.why}</p> : null}
                 </div>

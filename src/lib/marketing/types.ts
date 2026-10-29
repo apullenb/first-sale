@@ -75,7 +75,7 @@ export interface StepLink {
   guide: boolean;
 }
 
-export const STEP_KINDS = ["look", "setup", "tidy", "photos", "posts", "search", "action"] as const;
+export const STEP_KINDS = ["look", "brand_images", "setup", "tidy", "photos", "posts", "search", "action"] as const;
 export type StepKind = (typeof STEP_KINDS)[number];
 
 export interface MarketingStep {
