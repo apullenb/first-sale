@@ -1,18 +1,30 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Icon } from "@/components/icons";
+import { Chip } from "@/components/ui";
 import type { IntakeAnswers, Mark } from "@/lib/intake/answers";
 import type { QuestionSpec } from "@/lib/intake/questions";
-import { AiSuggestionBadge, ChoiceCards, ChoiceChips } from "./choices";
+import { AiSuggestionBadge, ChoiceCards, ChoiceTiles } from "./choices";
 
 // One click-to-answer question: why it's asked, help when the owner isn't sure, and unfamiliar words explained.
 
+export const QUESTION_TITLE = "font-display text-[21px] leading-snug";
+
 export function MarkBadge({ mark }: { mark: Mark | undefined }) {
   if (mark === "ai") return <AiSuggestionBadge />;
-  if (mark === "default") {
-    return <span className="rounded-full bg-rule-tint px-2.5 py-0.5 text-[13px] font-bold text-rule">Filled in from your answers</span>;
-  }
+  if (mark === "default") return <Chip tone="gray">Filled in from your answers</Chip>;
   return null;
+}
+
+// The "Why we ask" line under a question
+export function WhyLine({ id, children }: { id?: string; children: ReactNode }) {
+  return (
+    <p id={id} className="flex items-start gap-2 text-[15px] text-muted">
+      <Icon name="info" size="sm" className="mt-[3px] text-accent" />
+      <span>{children}</span>
+    </p>
+  );
 }
 
 export function QuestionBlock({
@@ -49,17 +61,17 @@ export function QuestionBlock({
   }
 
   return (
-    <div className="flex flex-col gap-2.5 border-t border-rule-tint pt-4 first:border-t-0 first:pt-0">
+    <div className="flex flex-col gap-2.5">
       <div className="flex flex-wrap items-center gap-2.5">
-        <h2 id={questionId} className="text-[19px] font-bold leading-snug">
+        <h2 id={questionId} className={QUESTION_TITLE}>
           {spec.title(answers)}
         </h2>
         <MarkBadge mark={mark} />
       </div>
-      <p id={whyId} className="text-[15px] text-rule">
+      <WhyLine id={whyId}>
         {spec.multiple ? "Pick any that fit. " : ""}
-        <span className="font-semibold">Why we ask:</span> {spec.why}
-      </p>
+        <b className="font-bold text-rule">Why we ask:</b> {spec.why}
+      </WhyLine>
       {spec.cards ? (
         <ChoiceCards
           labelledBy={questionId}
@@ -70,11 +82,34 @@ export function QuestionBlock({
           onSelect={toggle}
         />
       ) : (
-        <ChoiceChips labelledBy={questionId} describedBy={[whyId, describedBy].filter(Boolean).join(" ")} options={options} selected={selected} onToggle={toggle} />
+        <ChoiceTiles
+          labelledBy={questionId}
+          describedBy={[whyId, describedBy].filter(Boolean).join(" ")}
+          options={options}
+          selected={selected}
+          onToggle={toggle}
+          multiple={Boolean(spec.multiple)}
+        />
       )}
       {spec.unsure ? <UnsureHelp open={unsurePicked} explain={spec.unsure.explain} tips={spec.unsure.tips} /> : null}
       {spec.terms?.length ? <Terms terms={spec.terms} /> : null}
     </div>
+  );
+}
+
+const SUMMARY = "flex min-h-11 w-fit cursor-pointer list-none items-center gap-1.5 font-semibold text-accent hover:text-accent-ink [&::-webkit-details-marker]:hidden";
+const SOFT_BOX = "flex flex-col gap-1.5 rounded-xl border border-line bg-soft px-4 py-3 text-rule";
+
+// A text-link toggle that opens a soft box underneath
+export function MoreDetails({ summary, open, children }: { summary: ReactNode; open?: boolean; children: ReactNode }) {
+  return (
+    <details className="group text-[15px]" open={open}>
+      <summary className={SUMMARY}>
+        <Icon name="chevron" size="sm" className="transition-transform group-open:rotate-90" />
+        <span className="underline decoration-[1.5px] underline-offset-[3px]">{summary}</span>
+      </summary>
+      {children}
+    </details>
   );
 }
 
@@ -95,31 +130,30 @@ export function UnsureHelp({ open, explain, tips }: { open: boolean; explain: st
   );
   if (open) {
     return (
-      <div role="status" className="flex flex-col gap-1.5 rounded-xl bg-check-tint px-4 py-3 text-[15px] text-check">
-        {body}
+      <div role="status" className="flex items-start gap-2.5 rounded-xl border border-check-ring bg-check-tint px-3.5 py-3 text-[15px] text-check">
+        <Icon name="question" className="mt-0.5" />
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">{body}</div>
       </div>
     );
   }
   return (
-    <details className="group text-[15px]">
-      <summary className="flex min-h-11 cursor-pointer items-center font-semibold text-accent-ink underline underline-offset-4">Help me answer</summary>
-      <div className="flex flex-col gap-1.5 rounded-xl bg-ground px-4 py-3 text-rule">{body}</div>
-    </details>
+    <MoreDetails summary="Help me answer">
+      <div className={SOFT_BOX}>{body}</div>
+    </MoreDetails>
   );
 }
 
 export function Terms({ terms }: { terms: [string, string][] }) {
   return (
-    <details className="text-[15px]">
-      <summary className="flex min-h-11 cursor-pointer items-center font-semibold text-accent-ink underline underline-offset-4">What these words mean</summary>
-      <dl className="flex flex-col gap-2 rounded-xl bg-ground px-4 py-3">
+    <MoreDetails summary="What these words mean">
+      <dl className={SOFT_BOX}>
         {terms.map(([term, meaning]) => (
           <div key={term}>
-            <dt className="font-semibold">{term}</dt>
-            <dd className="text-rule">{meaning}</dd>
+            <dt className="font-semibold text-ink">{term}</dt>
+            <dd>{meaning}</dd>
           </div>
         ))}
       </dl>
-    </details>
+    </MoreDetails>
   );
 }

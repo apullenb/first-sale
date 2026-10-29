@@ -15,7 +15,7 @@ export function BusinessHeading({ focusOnMount = false, children }: { focusOnMou
   }, [focusOnMount]);
 
   return (
-    <h1 ref={ref} tabIndex={-1} className="font-display text-4xl font-bold leading-tight tracking-tight">
+    <h1 ref={ref} tabIndex={-1} className="font-display text-[32px] leading-[1.15] tracking-[-0.01em] sm:text-[38px]">
       {children}
     </h1>
   );

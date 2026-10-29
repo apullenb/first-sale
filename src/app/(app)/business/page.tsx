@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { DetailField } from "@/components/business/detail-field";
+import { Icon } from "@/components/icons";
 import { BusinessHeading } from "@/components/intake/business-heading";
+import { CHAPTERS, rowsByChapter } from "@/components/intake/chapters";
 import { LocalDate } from "@/components/local-date";
 import { History } from "@/components/structure/history";
-import { CARD, EYEBROW, PAGE_TITLE, PRIMARY_LINK, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
+import { EYEBROW, LEAD, PRIMARY_LINK, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
+import { Card, Chip, IconTile, Note, PageHead } from "@/components/ui";
 import { getMyBusiness, getMyDetails, getMyIntakeDraft, listMyHistory } from "@/lib/data/my-business";
 import { DECISION_KEYS, DETAIL_KEYS, DETAILS, type DetailSpec, displayDetail } from "@/lib/details";
 import type { BusinessProfile } from "@/lib/domain";
@@ -34,20 +37,33 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
 
   if (!current) {
     return (
-      <div className="flex max-w-2xl flex-col gap-3">
-        <p className={EYEBROW}>Start your business · Step 1</p>
-        <h1 className={PAGE_TITLE}>Your business</h1>
-        <p className="text-lg text-muted">
-          Answer a few quick questions, mostly by clicking. Your answers shape your requirements, your structure and your startup plan.
-        </p>
-        {draft?.mode === "create" ? (
-          <p className="rounded-xl bg-accent-tint px-4 py-3 text-accent-ink">
-            You’ve started already. Your answers from <LocalDate iso={draft.updatedAt.toISOString()} /> are saved.
-          </p>
-        ) : null}
-        <Link href="/business/new" className={PRIMARY_LINK}>
-          {draft?.mode === "create" ? "Pick up where you left off" : "Tell us about your business"}
-        </Link>
+      <div className="flex max-w-4xl flex-col gap-6">
+        <PageHead
+          kicker="Start your business · Step 1"
+          title="Your business"
+          lead="Answer a few quick questions, mostly by clicking. Your answers shape your requirements, your structure and your startup plan."
+        />
+        <Card title="Five short chapters" icon="checklist">
+          <ul aria-label="Chapters" className="flex flex-wrap gap-2">
+            {CHAPTERS.map((chapter) => (
+              <li key={chapter.label}>
+                <Chip icon={chapter.icon}>{chapter.label}</Chip>
+              </li>
+            ))}
+          </ul>
+          {draft?.mode === "create" ? (
+            <p className="flex items-center gap-2 text-[15px] text-muted">
+              <Icon name="check" size="sm" className="text-accent" />
+              <span>
+                You’ve started already. Your answers from <LocalDate iso={draft.updatedAt.toISOString()} /> are saved.
+              </span>
+            </p>
+          ) : null}
+          <Link href="/business/new" className={PRIMARY_LINK}>
+            {draft?.mode === "create" ? "Pick up where you left off" : "Tell us about your business"}
+            <Icon name="arrow" size="sm" />
+          </Link>
+        </Card>
       </div>
     );
   }
@@ -57,18 +73,19 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
   const groups = current.profile ? groupRows(summarize(profileToAnswers(current.profile), { followUps: true })) : null;
 
   return (
-    <div className="flex max-w-3xl flex-col gap-8">
-      <div className="flex flex-col gap-1.5">
+    <div className="flex max-w-4xl flex-col gap-8">
+      <div className="flex flex-col gap-2">
         <p className={EYEBROW}>Start your business · Step 1</p>
         <BusinessHeading focusOnMount={welcome === "1"}>{displayName(current.profile)}</BusinessHeading>
-        <p className="text-lg text-muted">Your answers shape your requirements, your structure and your startup plan.</p>
+        <p className={LEAD}>Your answers shape your requirements, your structure and your startup plan.</p>
       </div>
 
       {welcoming && current.profile ? <Welcome profile={current.profile} /> : null}
 
       {draft?.mode === "edit" && !(current.profile && sameAnswers(draft.answers, profileToAnswers(current.profile))) ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent-tint px-4 py-3 text-accent-ink">
-          <p>You have answer changes you haven’t confirmed yet.</p>
+        <div className="flex flex-wrap items-center gap-3 rounded-[14px] border border-check-ring bg-check-tint px-4 py-3 text-check">
+          <Icon name="pencil" />
+          <p className="min-w-0 flex-1 basis-56">You have answer changes you haven’t confirmed yet.</p>
           <Link href="/business/edit" className={SECONDARY_LINK}>
             Review them
           </Link>
@@ -76,29 +93,35 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
       ) : null}
 
       {groups ? (
-        <section aria-labelledby="answers-heading" className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 id="answers-heading" className={SECTION_TITLE}>
-              Your answers
-            </h2>
+        <section aria-labelledby="answers-heading" className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <h2 id="answers-heading" className={SECTION_TITLE}>
+                Your answers
+              </h2>
+              <p className="text-muted">You confirmed these. First Sale uses them everywhere, so you won’t be asked again.</p>
+            </div>
             <Link href="/business/edit" className={SECONDARY_LINK}>
+              <Icon name="pencil" size="sm" />
               Change answers
             </Link>
           </div>
-          <p className="text-rule">You confirmed these. First Sale uses them everywhere, so you won’t be asked again.</p>
-          <Rows rows={groups.confirmed} />
+          {rowsByChapter(groups.confirmed).map(({ chapter, rows }, index) => (
+            <Card key={chapter.label} title={chapter.label} icon={chapter.icon} headingLevel={3} id={`answers-chapter-${index}`}>
+              <Rows rows={rows} />
+            </Card>
+          ))}
           {groups.open.length ? (
-            <>
-              <h3 className="mt-2 font-bold">Still open</h3>
-              <p className="text-rule">
+            <Card title="Still open" icon="question" tone="warn" headingLevel={3} id="answers-open">
+              <p className="text-[15px] text-muted">
                 You said “not sure” or skipped these. We don’t assume an answer: your requirements show what depends on them.
               </p>
-              <Rows rows={groups.open} open />
-            </>
+              <Rows rows={groups.open} />
+            </Card>
           ) : null}
         </section>
       ) : (
-        <section className="flex flex-col gap-3 rounded-2xl bg-check-tint p-5">
+        <section className="flex flex-col gap-3 rounded-[14px] border border-check-ring bg-check-tint p-5">
           <p className="text-check">Some of this business’s answers need updating before we can use them.</p>
           <Link href="/business/edit" className={PRIMARY_LINK}>
             Update the answers
@@ -106,56 +129,55 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
         </section>
       )}
 
-      <section aria-labelledby="decisions-heading" className="flex flex-col gap-3">
-        <h2 id="decisions-heading" className={SECTION_TITLE}>
-          Decisions
-        </h2>
-        <div className={`${CARD} flex flex-col gap-3`}>
-          <dl className="flex flex-col gap-3">
-            {DECISION_KEYS.map((key) => {
-              const decision = saved.get(key);
-              return (
-                <div key={key} className="flex flex-col gap-0.5">
-                  <dt className="font-bold">{DETAILS[key].label}</dt>
-                  <dd className={decision ? "" : "text-muted"}>{decision ? displayDetail(key, decision.value) : "Not decided yet"}</dd>
-                  {decision ? (
-                    <dd>
-                      <Origin detail={decision} />
-                    </dd>
-                  ) : null}
-                </div>
-              );
-            })}
-          </dl>
+      <Card
+        title="Decisions"
+        icon="scale"
+        id="decisions-heading"
+        action={
+          <span className="hidden sm:block">
+            <Link href="/structure" className={SECONDARY_LINK}>
+              Compare your options
+            </Link>
+          </span>
+        }
+      >
+        <dl className="flex flex-col">
+          {DECISION_KEYS.map((key) => {
+            const decision = saved.get(key);
+            return (
+              <div key={key} className={ROW}>
+                <dt className={ROW_LABEL}>{DETAILS[key].label}</dt>
+                <dd className="flex min-w-0 flex-1 basis-56 flex-col gap-0.5">
+                  <span className={decision ? "font-semibold" : "text-muted"}>{decision ? displayDetail(key, decision.value) : "Not decided yet"}</span>
+                  {decision ? <Origin detail={decision} /> : null}
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
+        <div className="sm:hidden">
           <Link href="/structure" className={SECONDARY_LINK}>
             Compare your options
           </Link>
         </div>
-      </section>
+      </Card>
 
-      <section aria-labelledby="details-heading" className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1">
-          <h2 id="details-heading" className={SECTION_TITLE}>
-            Business details
-          </h2>
-          <p className="text-rule">
-            Forms ask for these. Fill them in here, and First Sale can draft your form answers for you to check.
-          </p>
-        </div>
-        <p className="rounded-lg bg-rule-tint px-3 py-2.5 text-sm text-rule">
+      <Card title="Business details" icon="clipboard" id="details-heading">
+        <p className="text-muted">Forms ask for these. Fill them in here, and First Sale can draft your form answers for you to check.</p>
+        <Note icon="lock" tone="quiet">
           First Sale never stores Social Security or tax id numbers. Forms leave those for you to fill in yourself.
-        </p>
-        <ul className="rounded-2xl bg-surface px-5 ring-1 ring-ink/5">
+        </Note>
+        <ul className="flex flex-col">
           {DETAIL_KEYS.filter((key) => !(DETAILS[key] as DetailSpec).decision).map((key) => {
             const detail = saved.get(key);
             return (
-              <li key={key} className="border-b border-rule-tint py-4 last:border-b-0">
+              <li key={key} className="border-b border-line py-4 last:border-b-0 last:pb-0">
                 <DetailField detailKey={key} value={detail?.value ?? null} origin={detail ? <Origin detail={detail} /> : null} />
               </li>
             );
           })}
         </ul>
-      </section>
+      </Card>
 
       <History title="Answer history" events={history} empty="No changes yet." />
 
@@ -163,9 +185,11 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
         {current.profile && !welcoming ? (
           <Link href="/requirements" className={PRIMARY_LINK}>
             See your requirements
+            <Icon name="arrow" size="sm" />
           </Link>
         ) : null}
         <Link href="/documents" className={SECONDARY_LINK}>
+          <Icon name="book" size="sm" />
           Your documents
         </Link>
       </div>
@@ -173,16 +197,18 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
   );
 }
 
-function Rows({ rows, open = false }: { rows: SummaryRow[]; open?: boolean }) {
-  if (!rows.length) return null;
+const ROW = "flex flex-wrap gap-x-4 gap-y-0.5 border-b border-line py-2.5 first:pt-0 last:border-b-0 last:pb-0";
+const ROW_LABEL = "w-full shrink-0 text-[15px] text-muted sm:w-52";
+
+function Rows({ rows }: { rows: SummaryRow[] }) {
   return (
-    <dl className={`rounded-2xl px-5 ring-1 ${open ? "bg-check-tint/50 ring-check/20" : "bg-surface ring-ink/5"}`}>
+    <dl className="flex flex-col">
       {rows.map((row) => (
-        <div key={row.label} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-rule-tint py-3 last:border-b-0">
-          <dt className="w-44 font-semibold text-rule">{row.label}</dt>
-          <dd className={`flex min-w-0 flex-1 basis-60 flex-wrap items-center gap-2 ${row.value ? "" : "text-muted"}`}>
+        <div key={row.label} className={ROW}>
+          <dt className={ROW_LABEL}>{row.label}</dt>
+          <dd className={`flex min-w-0 flex-1 basis-56 flex-wrap items-center gap-2 ${row.value ? "font-semibold" : "text-muted"}`}>
             {row.value || "Not answered"}
-            {row.unsure ? <span className="rounded-full bg-check-tint px-2.5 py-0.5 text-[13px] font-bold text-check">Not sure yet</span> : null}
+            {row.unsure ? <Chip tone="warn">Not sure yet</Chip> : null}
           </dd>
         </div>
       ))}
@@ -217,24 +243,29 @@ function Welcome({ profile }: { profile: BusinessProfile }) {
   ];
 
   return (
-    <section aria-labelledby="welcome-heading" className="flex flex-col gap-3 rounded-2xl bg-accent-tint p-5">
-      <h2 id="welcome-heading" className="font-display text-2xl font-bold text-accent-ink">
+    <section
+      aria-labelledby="welcome-heading"
+      className="relative flex flex-col gap-3.5 rounded-2xl border border-line bg-surface py-6 pl-11 pr-5 shadow-lift before:absolute before:inset-y-0 before:left-7 before:w-[1.5px] before:bg-accent-ring sm:pl-12 sm:pr-7"
+    >
+      <div className="flex items-center gap-3">
+        <IconTile icon="check" big />
+        <p className={EYEBROW}>Your answers are saved</p>
+      </div>
+      <h2 id="welcome-heading" className="font-display text-[27px] leading-tight">
         You’re all set.
       </h2>
-      <p className="text-accent-ink">Here’s what comes next:</p>
+      <p className="text-rule">Here’s what comes next:</p>
       <ul className="flex flex-col gap-2">
         {items.map((item) => (
           <li key={item} className="flex items-start gap-2.5">
-            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-1 shrink-0 text-accent">
-              <path d="M5 12h14" />
-              <path d="m12 5 7 7-7 7" />
-            </svg>
+            <Icon name="arrow" size="sm" className="mt-1 text-accent" />
             <span>{item}</span>
           </li>
         ))}
       </ul>
       <Link href="/requirements" className={`${PRIMARY_LINK} mt-1`}>
         Find my requirements
+        <Icon name="arrow" size="sm" />
       </Link>
     </section>
   );

@@ -40,6 +40,9 @@ const PATHS = {
   pencil: "M4 20h4L19 9l-4-4L4 16zM14 6l4 4",
   box: "M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5 12 12l9-4.5M12 12v9",
   arrow: "M5 12h14M13 6l6 6-6 6",
+  plus: "M12 5v14M5 12h14",
+  minus: "M5 12h14",
+  refresh: "M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5",
 } as const;
 
 export type IconName = keyof typeof PATHS;

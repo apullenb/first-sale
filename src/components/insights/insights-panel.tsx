@@ -4,10 +4,12 @@ import Link from "next/link";
 import { type ReactNode, useLayoutEffect, useOptimistic, useRef, useState, useTransition } from "react";
 import { markInsightAction, writeInsightsAction } from "@/app/(app)/insights/actions";
 import { ActorChip } from "@/components/actor-chip";
+import { Icon, type IconName } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { PracticeBanner } from "@/components/practice-banner";
 import { StepProgress, stepStatus, useStepTicker } from "@/components/step-progress";
-import { AI_BUTTON, ALERT, CARD, SECONDARY, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
+import { AI_BUTTON, ALERT, EYEBROW, PRIMARY_LINK, SECONDARY, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
+import { Fold, IconTile } from "@/components/ui";
 import type { Insight, InsightMark, InsightSection } from "@/lib/insights/types";
 
 const STEPS = [
@@ -125,6 +127,7 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
 
   const refreshButton = (
     <button type="button" ref={focusIf("button")} onClick={write} className={`${changed.length ? AI_BUTTON : SECONDARY} w-fit`}>
+      <Icon name="refresh" size="sm" />
       Refresh insights
     </button>
   );
@@ -141,15 +144,26 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
     );
   } else if (!insights) {
     body = (
-      <section className={`${CARD} flex flex-col gap-3`}>
-        <h2 className={SECTION_TITLE}>Get friendly feedback on your idea</h2>
+      <section aria-labelledby="insights-start" className="flex flex-col gap-4 rounded-2xl border border-line bg-surface px-4 py-6 shadow-card sm:p-7">
+        <div className="flex items-center gap-3">
+          <IconTile icon="lightbulb" big />
+          <h2 id="insights-start" className={SECTION_TITLE}>
+            Get friendly feedback on your idea
+          </h2>
+        </div>
         <p className="text-rule">
           First Sale reads what you’ve told it so far, like your answers, startup plan, brand and website, and shares what’s strong, a few
           things to keep an eye on, tips for success and creative ideas.
         </p>
         <WhoDoesWhat simulated={practice} />
-        {practice ? <p className="text-sm text-check">Practice mode: you’ll see sample insights made by built-in rules, not AI.</p> : null}
+        {practice ? (
+          <p className="flex items-start gap-2 text-sm text-check">
+            <Icon name="info" size="sm" className="mt-px" />
+            Practice mode: you’ll see sample insights made by built-in rules, not AI.
+          </p>
+        ) : null}
         <button type="button" ref={focusIf("button")} onClick={write} className={`${AI_BUTTON} w-fit`}>
+          <Icon name="sparkles" size="sm" />
           Get my insights
         </button>
         {errorAlert}
@@ -192,21 +206,27 @@ interface SavedProps {
 
 function SavedInsights({ insights, marks, changed, onMark, refreshButton, errorAlert, openingRef }: SavedProps) {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       {insights.simulated ? <PracticeBanner what="These are sample insights, made to show how this page works." /> : null}
 
       <div className="flex flex-col gap-3">
-        <p className="text-sm text-muted">
-          Written <LocalDate iso={insights.generatedAt} />
+        <p className="flex items-center gap-1.5 text-sm text-muted">
+          <Icon name="clock" size="xs" />
+          <span>
+            Written <LocalDate iso={insights.generatedAt} />
+          </span>
         </p>
         {changed.length ? (
-          <div className="flex flex-col gap-3 rounded-xl bg-ai-tint px-4 py-3">
-            <p className="text-ai-ink">You’ve updated {joinWords(changed)} since these were written. Refresh to get insights that fit.</p>
+          <div className="flex flex-col gap-3 rounded-[14px] border border-ai/20 bg-ai-tint px-4 py-3.5 sm:flex-row sm:items-center">
+            <p className="flex min-w-0 flex-1 items-start gap-2.5 text-ai-ink">
+              <Icon name="refresh" className="mt-0.5 text-ai" />
+              <span>You’ve updated {joinWords(changed)} since these were written. Refresh to get insights that fit.</span>
+            </p>
             {refreshButton}
           </div>
         ) : null}
         {errorAlert}
-        <p ref={openingRef} tabIndex={-1} className="text-lg outline-none">
+        <p ref={openingRef} tabIndex={-1} className="border-l-[3px] border-accent-ring py-1 pl-4 text-lg text-rule">
           {insights.opening}
         </p>
       </div>
@@ -215,7 +235,7 @@ function SavedInsights({ insights, marks, changed, onMark, refreshButton, errorA
 
       <InsightSections items={insights.items} marks={marks} onMark={onMark} />
 
-      <footer className="flex flex-col gap-3 border-t border-line pt-4">
+      <footer className="flex flex-col gap-3 border-t border-line pt-5">
         <WhoDoesWhat simulated={insights.simulated} />
         <p className="text-sm text-muted">
           Anything about laws, permits, taxes or fees links to pages First Sale checked against official sources. Points that state their own
@@ -232,7 +252,7 @@ function SavedInsights({ insights, marks, changed, onMark, refreshButton, errorA
 
 function WhoDoesWhat({ simulated }: { simulated: boolean }) {
   return (
-    <ul aria-label="Who does what" className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+    <ul aria-label="Who does what" className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-rule">
       <li className="flex items-center gap-2">
         {simulated ? <ActorChip actor="rule" /> : <ActorChip actor="ai" />}
         {simulated ? "make sample insights in practice mode" : "writes insights from your answers"}
@@ -253,15 +273,38 @@ function NextStep({ items, marks }: { items: Insight[]; marks: Marks }) {
   const next = open.find((item) => item.section === "watch") ?? open.find((item) => item.section === "tips");
   if (!next) return null;
   return (
-    <section aria-labelledby="next-step" className="flex flex-col gap-1.5 rounded-2xl bg-accent-tint p-5">
-      <h2 id="next-step" className="text-xs font-bold uppercase tracking-wider text-accent-ink">
-        A good next step
-      </h2>
-      <p className="font-semibold text-accent-ink">{next.action}</p>
-      {next.link ? <TakeMeThere link={next.link} /> : null}
+    <section
+      aria-labelledby="next-step"
+      className="relative flex flex-col gap-3 rounded-2xl border border-line bg-surface py-5 pl-11 pr-5 shadow-lift before:absolute before:inset-y-0 before:left-7 before:w-[1.5px] before:bg-accent-ring sm:pl-12 sm:pr-7"
+    >
+      <div className="flex items-center gap-3">
+        <IconTile icon="flag" big />
+        <h2 id="next-step" className={EYEBROW}>
+          A good next step
+        </h2>
+      </div>
+      <p className="font-display text-[22px] leading-snug sm:text-[24px]">{next.action}</p>
+      {next.link ? (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <Link href={next.link.href} className={PRIMARY_LINK}>
+            Take me there<span className="sr-only">: {next.link.label}</span>
+            <Icon name="arrow" size="sm" />
+          </Link>
+          <span aria-hidden="true" className="text-sm text-muted">
+            {next.link.label}
+          </span>
+        </div>
+      ) : null}
     </section>
   );
 }
+
+const SECTION_LOOK: Record<InsightSection, { icon: IconName; tone: "done" | "warn" | "accent" }> = {
+  strengths: { icon: "check", tone: "done" },
+  watch: { icon: "flag", tone: "warn" },
+  tips: { icon: "lightbulb", tone: "accent" },
+  ideas: { icon: "sparkles", tone: "accent" },
+};
 
 function InsightSections({ items, marks, onMark }: { items: Insight[]; marks: Marks; onMark: (item: Insight, mark: InsightMark | null) => void }) {
   const dismissed = items.filter((item) => marks[item.key] === "dismissed");
@@ -273,35 +316,38 @@ function InsightSections({ items, marks, onMark }: { items: Insight[]; marks: Ma
         const info = SECTIONS[section];
         if (!all.length && !info.empty) return null;
         return (
-          <section key={section} aria-labelledby={`insights-${section}`} className="flex flex-col gap-3">
-            <div className="flex flex-col gap-0.5">
-              <h2 id={`insights-${section}`} tabIndex={-1} className={`${SECTION_TITLE} outline-none`}>
-                {info.title}
-              </h2>
-              <p className="text-muted">{info.intro}</p>
+          <section key={section} aria-labelledby={`insights-${section}`} className="overflow-hidden rounded-[14px] border border-line bg-surface shadow-card">
+            <div className="flex items-center gap-3 border-b border-line px-4 py-3.5 sm:px-5">
+              <IconTile icon={SECTION_LOOK[section].icon} tone={SECTION_LOOK[section].tone} />
+              <div className="flex min-w-0 flex-1 flex-col">
+                <h2 id={`insights-${section}`} tabIndex={-1} className="text-[17.5px] font-bold leading-snug">
+                  {info.title}
+                </h2>
+                <p className="text-[14.5px] text-muted">{info.intro}</p>
+              </div>
             </div>
             {shown.length ? (
-              <ul className="flex flex-col gap-3">
+              <ul className="flex flex-col">
                 {shown.map((item) => (
                   <InsightCard key={item.key} item={item} mark={marks[item.key] ?? null} onMark={(value) => onMark(item, value)} />
                 ))}
               </ul>
             ) : all.length ? (
-              <p className="text-sm text-muted">You dismissed everything here. You can bring points back below.</p>
+              <p className="px-4 py-4 text-sm text-muted sm:px-5">You dismissed everything here. You can bring points back below.</p>
             ) : (
-              <p className="rounded-xl bg-accent-tint px-4 py-3 text-accent-ink">{info.empty}</p>
+              <p className="flex items-center gap-2 px-4 py-4 text-rule sm:px-5">
+                <Icon name="check" size="sm" className="text-done" />
+                {info.empty}
+              </p>
             )}
           </section>
         );
       })}
       {dismissed.length ? (
-        <details className="group">
-          <summary className="flex min-h-11 cursor-pointer items-center font-semibold text-muted">
-            {dismissed.length === 1 ? "Show 1 dismissed insight" : `Show ${dismissed.length} dismissed insights`}
-          </summary>
-          <ul className="mt-2 flex flex-col gap-2">
+        <Fold title={dismissed.length === 1 ? "Show 1 dismissed insight" : `Show ${dismissed.length} dismissed insights`} summary="Bring back any you want to see again.">
+          <ul className="flex flex-col">
             {dismissed.map((item) => (
-              <li key={item.key} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-rule-tint px-4 py-2">
+              <li key={item.key} className="flex flex-wrap items-center justify-between gap-2 border-b border-line py-2.5 last:border-b-0">
                 <span className="text-rule">{item.title}</span>
                 <button type="button" onClick={() => onMark(item, null)} className={SECONDARY}>
                   Bring back<span className="sr-only">: {item.title}</span>
@@ -309,37 +355,44 @@ function InsightSections({ items, marks, onMark }: { items: Insight[]; marks: Ma
               </li>
             ))}
           </ul>
-        </details>
+        </Fold>
       ) : null}
     </>
   );
 }
 
+const MARK_BUTTON = "inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border px-3.5 text-[15px] font-semibold shadow-soft transition active:translate-y-px";
+
 function InsightCard({ item, mark, onMark }: { item: Insight; mark: InsightMark | null; onMark: (mark: InsightMark | null) => void }) {
   const useful = mark === "useful";
   return (
-    <li className={`flex flex-col gap-2 rounded-xl bg-surface p-4 ring-1 ${useful ? "ring-accent/40" : "ring-ink/5"}`}>
-      <h3 className="font-display text-lg font-bold">{item.title}</h3>
+    <li className="flex flex-col gap-2 border-b border-line px-4 py-4 last:border-b-0 sm:px-5">
+      <h3 className="font-display text-[19px] leading-snug">{item.title}</h3>
       <p className="text-rule">{item.detail}</p>
       {item.action ? (
-        <p>
-          <span className="font-semibold">Try this: </span>
-          {item.action}
+        <p className="flex items-start gap-2">
+          <Icon name="arrow" size="sm" className="mt-1 text-accent" />
+          <span>
+            <span className="font-semibold">Try this: </span>
+            {item.action}
+          </span>
         </p>
       ) : null}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
         {item.link ? <TakeMeThere link={item.link} /> : null}
         <div className="ml-auto flex gap-2">
           <button
             type="button"
             aria-pressed={useful}
             onClick={() => onMark(useful ? null : "useful")}
-            className={`min-h-11 rounded-lg border px-3 text-sm font-semibold ${useful ? "border-accent bg-accent-tint text-accent-ink" : "border-field bg-surface hover:border-muted"}`}
+            className={`${MARK_BUTTON} ${useful ? "border-accent bg-accent-tint text-accent-ink" : "border-line-strong bg-surface text-ink hover:border-muted hover:bg-soft"}`}
           >
-            {useful ? "Useful ✓" : "Useful"}
+            {useful ? <Icon name="check" size="sm" strokeWidth={2.4} className="pen-draw" /> : null}
+            Useful
             <span className="sr-only">: {item.title}</span>
           </button>
-          <button type="button" onClick={() => onMark("dismissed")} className="min-h-11 rounded-lg border border-field bg-surface px-3 text-sm font-semibold text-muted hover:border-muted">
+          <button type="button" onClick={() => onMark("dismissed")} className={`${MARK_BUTTON} border-line-strong bg-surface text-muted hover:border-muted hover:bg-soft hover:text-ink`}>
+            <Icon name="close" size="sm" />
             Dismiss<span className="sr-only">: {item.title}</span>
           </button>
         </div>

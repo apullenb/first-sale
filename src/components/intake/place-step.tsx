@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { placeOptionsAction } from "@/app/(app)/business/actions";
+import { Icon } from "@/components/icons";
 import { US_STATE_CODES } from "@/lib/domain";
 import type { IntakeAnswers, Mark } from "@/lib/intake/answers";
 import { countyLabel, STATE_NAMES } from "@/lib/intake/options";
@@ -71,13 +72,16 @@ export function PlaceStep({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-rule">
-        <span className="font-semibold text-ink">Country:</span> United States. First Sale works for US businesses for now.
+      <p className="flex items-center gap-2 text-[15px] text-rule">
+        <Icon name="globe" size="sm" className="text-accent" />
+        <span>
+          <span className="font-semibold text-ink">Country:</span> United States. First Sale works for US businesses for now.
+        </span>
       </p>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3.5">
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
         <div className="flex flex-col gap-1.5">
           <div className="flex flex-wrap items-center gap-2">
-            <label htmlFor={id("state")} className="font-semibold">
+            <label htmlFor={id("state")} className="text-[15.5px] font-semibold">
               State
             </label>
             <MarkBadge mark={marks.state} />
@@ -102,7 +106,7 @@ export function PlaceStep({
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="flex flex-wrap items-center gap-2">
-            <label htmlFor={id("county")} className="font-semibold">
+            <label htmlFor={id("county")} className="text-[15.5px] font-semibold">
               County
             </label>
             <MarkBadge mark={marks.county} />
@@ -119,7 +123,7 @@ export function PlaceStep({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={id("city")} className="font-semibold">
+          <label htmlFor={id("city")} className="text-[15.5px] font-semibold">
             City or town
           </label>
           <Combobox
@@ -138,17 +142,17 @@ export function PlaceStep({
         </div>
       </div>
       {match && match.counties.length > 1 && !answers.county.trim() ? (
-        <p className="rounded-xl bg-ground px-4 py-3 text-[15px] text-rule">
+        <p className="rounded-xl border border-line bg-soft px-4 py-3 text-[15px] text-rule">
           {match.name} reaches more than one county: {match.counties.map(countyLabel).join(", ")}. Pick yours in the County box.
         </p>
       ) : null}
       {match?.noCityGovernment ? (
-        <p className="rounded-xl bg-ground px-4 py-3 text-[15px] text-rule">
+        <p className="rounded-xl border border-line bg-soft px-4 py-3 text-[15px] text-rule">
           The Census Bureau lists {match.name} as a community with no city government of its own. If that’s where you are, the county’s rules are the
           ones to check. If your address is inside a nearby city, say so below.
         </p>
       ) : null}
-      <p id={hintId} className="text-sm text-muted">
+      <p id={hintId} className="text-[14.5px] text-muted">
         {options?.source ?? "Type your county and city, or leave them for later. Rules can come from each one."}
       </p>
     </div>

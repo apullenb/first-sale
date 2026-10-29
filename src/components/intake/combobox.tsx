@@ -104,7 +104,7 @@ export function Combobox({
         id={listId}
         role="listbox"
         hidden={!expanded}
-        className="absolute z-20 mt-1 max-h-80 w-full overflow-auto rounded-lg bg-surface py-1 shadow-lg ring-1 ring-ink/10"
+        className="absolute z-20 mt-1.5 max-h-80 w-full overflow-auto rounded-xl border border-line bg-surface p-1 shadow-lift"
       >
         {shown.map((option, index) => (
           <li
@@ -115,7 +115,7 @@ export function Combobox({
             // Keeps focus in the box so the pick lands before blur closes the list
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => pick(option)}
-            className={`flex min-h-11 cursor-pointer flex-col justify-center px-3 py-2 ${index === active ? "bg-accent-tint" : "hover:bg-ground"}`}
+            className={`flex min-h-11 cursor-pointer flex-col justify-center rounded-lg px-3 py-2 ${index === active ? "bg-accent-tint" : "hover:bg-wash"}`}
           >
             <span className="font-semibold">{option.label}</span>
             {option.detail ? <span className="text-sm text-muted">{option.detail}</span> : null}
