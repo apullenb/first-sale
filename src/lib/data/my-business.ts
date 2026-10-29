@@ -37,10 +37,9 @@ import type { AssetCheck, BrandBrief, BrandImageKind, BrandKit, PaletteColor, Ve
 import {
   addAssetForOwner,
   addUploadedLogoForOwner,
-  deleteUploadedLogoForOwner,
+  deleteOwnLogoForOwner,
   type NewUploadedLogo,
-  setUploadedLogoColorsForOwner,
-  approveVersionsForOwner,
+  setOwnLogoColorsForOwner,
   assetRoomForOwner,
   chooseLogoForOwner,
   clearIdeasForOwner,
@@ -54,10 +53,11 @@ import {
   getConceptForOwner,
   getRoundForOwner,
   type NewRound,
-  pickImageForOwner,
+  pickFileForOwner,
   saveBriefForOwner,
   setAssetCheckForOwner,
-  unpickImageForOwner,
+  unchooseLogoForOwner,
+  unpickFileForOwner,
 } from "./brand";
 import type { NewPhotoVersion } from "@/lib/photos/edit";
 import type { PhotoReview } from "@/lib/photos/types";
@@ -404,19 +404,20 @@ export async function chooseMyLogo(assetId: string) {
   return chooseLogoForOwner(getDb(), user.id, assetId);
 }
 
-export async function approveMyLogoVersions(ids: Record<VersionKind, string>) {
+export async function unchooseMyLogo() {
   const user = await getCurrentUser();
-  return approveVersionsForOwner(getDb(), user.id, ids);
+  return unchooseLogoForOwner(getDb(), user.id);
 }
 
-export async function pickMyBrandImage(assetId: string) {
+// One version or brand image to use, made from the chosen logo
+export async function pickMyBrandFile(assetId: string) {
   const user = await getCurrentUser();
-  return pickImageForOwner(getDb(), user.id, assetId);
+  return pickFileForOwner(getDb(), user.id, assetId);
 }
 
-export async function unpickMyBrandImage(kind: BrandImageKind) {
+export async function unpickMyBrandFile(kind: VersionKind | BrandImageKind) {
   const user = await getCurrentUser();
-  return unpickImageForOwner(getDb(), user.id, kind);
+  return unpickFileForOwner(getDb(), user.id, kind);
 }
 
 export async function clearMyBrandIdeas() {
@@ -430,14 +431,15 @@ export async function addMyUploadedLogo(input: NewUploadedLogo) {
   return addUploadedLogoForOwner(getDb(), user.id, input);
 }
 
-export async function setMyUploadedLogoColors(assetId: string, palette: PaletteColor[]) {
+export async function setMyOwnLogoColors(assetId: string, palette: PaletteColor[]) {
   const user = await getCurrentUser();
-  return setUploadedLogoColorsForOwner(getDb(), user.id, assetId, palette);
+  return setOwnLogoColorsForOwner(getDb(), user.id, assetId, palette);
 }
 
-export async function deleteMyUploadedLogo(assetId: string) {
+// The owner's upload, or an edit of it, with everything made from it
+export async function deleteMyOwnLogo(assetId: string) {
   const user = await getCurrentUser();
-  return deleteUploadedLogoForOwner(getDb(), user.id, assetId);
+  return deleteOwnLogoForOwner(getDb(), user.id, assetId);
 }
 
 // Brand Library: pictures the owner added

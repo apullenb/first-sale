@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brandImagePrompt, logoPrompt, QUALITY_RULES, refinePrompt, spellOut, versionPrompt } from "./prompts";
+import { brandImagePrompt, logoPrompt, ownLogoEditPrompt, pictureEditPrompt, QUALITY_RULES, refinePrompt, spellOut, versionPrompt } from "./prompts";
 import { testBrief, testConcept } from "./test-fixtures";
 
 describe("logo instructions", () => {
@@ -97,5 +97,25 @@ describe("refinements, versions and brand images", () => {
     const hero = brandImagePrompt(testBrief(), [], "website_hero", null);
     expect(hero).toContain("in the logo’s colors and drawing style");
     expect(hero).not.toContain("()");
+  });
+
+  it("edit a picture in the owner's words, keeping the logo as it is", () => {
+    const stacked = pictureEditPrompt("stacked", "More space under the symbol", { brief: testBrief(), concept: testConcept() });
+    expect(stacked).toContain("Image 1 is the stacked version of their logo");
+    expect(stacked).toContain("Image 2 is the business’s approved logo");
+    expect(stacked).toContain("“More space under the symbol”");
+    expect(stacked).toContain("R-i-s-e B-a-k-e-r-y");
+    expect(pictureEditPrompt("profile", "Bigger", { brief: testBrief(), concept: testConcept() })).not.toContain("letter by letter");
+    expect(pictureEditPrompt("facebook_cover", "Warmer", { brief: testBrief(), concept: null, words: "Rise" })).toContain("Don’t include the logo");
+    expect(pictureEditPrompt("youtube_banner", "Warmer", { brief: testBrief(), concept: null, words: "Rise" })).toContain("“Rise” (letter by letter: R-i-s-e)");
+  });
+
+  it("edit the owner's own logo without claiming what it shows", () => {
+    const prompt = ownLogoEditPrompt("Rise", "Make the <b>sun</b> bigger");
+    expect(prompt).toContain("Image 1 is a small business’s own logo");
+    // Owner text can't open or close tags in the instruction
+    expect(prompt).toContain("“Make the b sun /b bigger”");
+    expect(prompt).toContain("“Rise” (letter by letter: R-i-s-e)");
+    expect(ownLogoEditPrompt("", "Bigger")).toContain("Keep every word and letter exactly as it is in image 1");
   });
 });

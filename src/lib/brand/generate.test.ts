@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { getImageModel, getModel, ImageEditError, type ImageEditRequest, type ImageGenerateRequest, type ImageModel, type ModelProvider } from "@/lib/ai";
 import { OwnerFacingError } from "@/lib/errors";
 import { pngBytes } from "@/lib/photos/test-images";
-import { type AssetStore, drawConcepts, drawKey, type LogoRef, makeBrandImages, makeVersions, type NewBrandAsset, refineLogo } from "./generate";
+import { type AssetStore, drawConcepts, drawKey, editPicture, type LogoRef, makeBrandImages, makeVersions, type NewBrandAsset, refineLogo } from "./generate";
 import { PRACTICE_LABEL } from "./practice";
 import { logoPrompt } from "./prompts";
 import { applyDesign, planRefinement } from "./refine";
@@ -207,6 +207,40 @@ describe("changes, versions and brand images start from the logo itself", () => 
   });
 });
 
+describe("editing a version or brand image", () => {
+  const picture = { mimeType: "image/png", data: pngBytes(1024, 1024, 77) };
+
+  it("sends the picture as image 1 and the chosen logo as image 2, and saves a new file made from the logo", async () => {
+    const { model, edit } = imageModel();
+    const { store, saved } = memoryStore();
+    await editPicture({ image: model, vision }, store, { logo, picture: { kind: "stacked", file: picture }, change: "More space under the symbol", requestKey: "e1", now });
+    const request = edit.mock.calls[0][0];
+    expect(request.images).toEqual([picture, { mimeType: "image/png", data: chosenBytes }]);
+    expect(request.size).toBe("1024x1024");
+    expect(request.instruction).toContain("“More space under the symbol”");
+    expect(request.instruction).toContain("R-i-s-e B-a-k-e-r-y");
+    expect(saved[0]).toMatchObject({ kind: "stacked", sourceId: "logo-1", conceptId: "concept-1", change: "More space under the symbol", requestKey: "logo-1:e1:edit" });
+  });
+
+  it("keeps words out of a brand image that has no logo in it", async () => {
+    const { model, edit } = imageModel();
+    const { store, saved } = memoryStore();
+    await editPicture({ image: model, vision }, store, { logo, picture: { kind: "website_hero", file: picture }, change: "Warmer colors", requestKey: "e2", now });
+    expect(edit.mock.calls[0][0].instruction).toContain("Don’t include the logo, its symbol, or any letters, words or numbers.");
+    expect(edit.mock.calls[0][0].size).toBe("1920x1080");
+    expect(saved[0]).toMatchObject({ kind: "website_hero", sourceId: "logo-1" });
+  });
+
+  it("never pays twice for the same request", async () => {
+    const { model, edit } = imageModel();
+    const { store } = memoryStore();
+    const input = { logo, picture: { kind: "profile" as const, file: picture }, change: "Bigger symbol", requestKey: "e3", now };
+    const first = await editPicture({ image: model, vision }, store, input);
+    expect(await editPicture({ image: model, vision }, store, input)).toBe(first);
+    expect(edit).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("an uploaded logo", () => {
   const palette = [{ hex: "#1F3A2E", name: "Dark green" }];
   const uploaded: LogoRef = { id: null, concept: null, brief: testBrief(), logoId: "upload-1", logo: { mimeType: "image/webp", data: chosenBytes }, design: { palette }, words: "Rise" };
@@ -238,10 +272,25 @@ describe("an uploaded logo", () => {
     expect(edit.mock.calls[0][0].instruction).toContain("(#1F3A2E)");
   });
 
-  it("is never redrawn", async () => {
+  it("gets an edited copy from the owner's words, as a new file, and the upload is never sent back changed", async () => {
     const { model, edit } = imageModel();
     const { store, saved } = memoryStore();
-    await expect(refineLogo({ image: model, vision }, store, { logo: uploaded, change: "Thicker", requestKey: "u4", now })).rejects.toThrow(OwnerFacingError);
+    const id = await refineLogo({ image: model, vision }, store, { logo: uploaded, change: "Make the letters thicker", requestKey: "u4", now });
+    expect(id).toBe("asset-1");
+    const request = edit.mock.calls[0][0];
+    expect(request.images).toEqual([{ mimeType: "image/webp", data: chosenBytes }]);
+    expect(request.instruction).toContain("“Make the letters thicker”");
+    expect(request.instruction).toContain("“Rise”");
+    expect(saved[0]).toMatchObject({ kind: "logo", conceptId: null, sourceId: "upload-1", change: "Make the letters thicker", words: "Rise", design: { palette } });
+    // The test vision model reads "Rise Bakery"; the owner said the logo says "Rise"
+    expect(saved[0].check?.lettering?.status).toBe("extra_words");
+  });
+
+  it("has no one-click changes, which are only for logos drawn here", async () => {
+    const { model, edit } = imageModel();
+    const { store, saved } = memoryStore();
+    const oneClick = { lines: ["Make it simpler."], design: { preset: "simpler" as const } };
+    await expect(refineLogo({ image: model, vision }, store, { logo: uploaded, change: "Simpler", oneClick, requestKey: "u6", now })).rejects.toThrow(OwnerFacingError);
     expect(edit).not.toHaveBeenCalled();
     expect(saved).toEqual([]);
   });

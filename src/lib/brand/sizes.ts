@@ -115,12 +115,12 @@ export const LOGO_SPECS: Record<"logo" | VersionKind, LogoSpec> = {
   logo: { title: "Main logo", purpose: "Your logo, for your website, signs and labels.", size: "1536x1024", exports: [] },
   stacked: { title: "Stacked", purpose: "The symbol above your name, for square spaces.", size: "1024x1024", exports: [] },
   profile: {
-    title: "Profile picture",
-    purpose: "Just the symbol, for social media profile pictures, which are cropped to a circle.",
+    title: "Icon (profile picture)",
+    purpose: "Just the symbol, for social media profile pictures, which are cropped to a circle, and your website’s tab icon.",
     size: "1024x1024",
     exports: [{ label: "320 × 320", width: 320, height: 320, type: "image/png", note: "Facebook’s best-quality profile picture size" }],
   },
-  solid: { title: "One color", purpose: "The whole logo in one color, for stamps, stickers, embroidery and printing.", size: "1536x1024", exports: [] },
+  solid: { title: "One-color", purpose: "The whole logo in one color, for stamps, stickers, embroidery and printing.", size: "1536x1024", exports: [] },
 };
 
 export function sizeFor(kind: AssetKind): string {

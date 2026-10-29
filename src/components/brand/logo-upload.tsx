@@ -52,7 +52,7 @@ export function LogoUpload({ businessName, maxBytes, replacing }: { businessName
     event.preventDefault();
     if (busy) return;
     if (!chosen) return setError("Choose your logo file first.");
-    if (replacing && !window.confirm("Use this logo instead? Your logo versions and brand pictures were made from your current logo, so they’ll be cleared from your brand kit.")) return;
+    if (replacing && !window.confirm("Use this logo instead? Your logo versions and brand images were made from your current logo, so they’ll be cleared from your brand kit.")) return;
     setBusy(true);
     setError(null);
     try {

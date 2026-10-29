@@ -3,10 +3,10 @@ import { OwnerFacingError } from "@/lib/errors";
 import { imageInfo } from "@/lib/photos/image-info";
 import { checkBrandImage, checkLogo, checkVersion, type Expected, failedCheck, marksFor, skippedCheck } from "./checks";
 import { practiceSvg } from "./practice";
-import { brandImagePrompt, logoPrompt, refinePrompt, versionPrompt } from "./prompts";
+import { brandImagePrompt, logoPrompt, ownLogoEditPrompt, pictureEditPrompt, refinePrompt, versionPrompt } from "./prompts";
 import { applyDesign, inherited } from "./refine";
 import { sizeFor } from "./sizes";
-import type { AssetCheck, AssetKind, BrandBrief, BrandDesign, BrandImageKind, ConceptReply, VersionKind } from "./types";
+import { type AssetCheck, type AssetKind, type BrandBrief, type BrandDesign, type BrandImageKind, type ConceptReply, IMAGE_KINDS, type VersionKind } from "./types";
 
 // Each file is saved only once its bytes check out, so a failed try leaves nothing behind.
 // Limits are checked before paying, and a request key already used returns the saved file instead of paying again.
@@ -24,6 +24,8 @@ export interface NewBrandAsset {
   change: string | null;
   // One-click changes this file carries, inherited from the logo it was made from
   design: BrandDesign | null;
+  // An edit of the owner's own logo keeps the words they said it has
+  words?: string | null;
   prompt: string;
   model: string;
   simulated: boolean;
@@ -74,7 +76,7 @@ export interface LogoRef {
   words?: string;
 }
 
-export const UPLOAD_UNCHANGED = "First Sale doesn’t redraw a logo you uploaded. To change it, upload a new file, or get logo ideas instead.";
+export const UPLOAD_ONE_CLICK = "One-click changes are only for logos drawn here. Say what you’d like changed instead, and First Sale makes an edited copy of your logo.";
 
 interface Job {
   kind: AssetKind;
@@ -82,6 +84,7 @@ interface Job {
   sourceId: string | null;
   change: string | null;
   design: BrandDesign | null;
+  words?: string | null;
   prompt: string;
   requestKey: string;
   call: () => Promise<ImageEditResult>;
@@ -135,6 +138,7 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
     sourceId: job.sourceId,
     change: job.change,
     design: job.design,
+    words: job.words ?? null,
     prompt: job.prompt,
     model: models.image.model,
     simulated: models.image.simulated,
@@ -214,6 +218,26 @@ export async function drawConcepts(models: Models, store: AssetStore, input: { c
 
 export const drawKey = (conceptId: string) => `draw:${conceptId}`;
 
+// The owner's own logo goes back as image 1 with their words; the edit is a new file and the original never changes
+async function editOwnLogo(models: Models, store: AssetStore, input: { logo: LogoRef; change: string; requestKey: string; userKey?: string; now: Date }): Promise<string> {
+  const { logo } = input;
+  const prompt = ownLogoEditPrompt(logo.words ?? "", input.change);
+  const job: Job = {
+    kind: "logo",
+    concept: logo,
+    sourceId: logo.logoId,
+    change: input.change,
+    design: inherited(logo.design),
+    words: logo.words ?? "",
+    prompt,
+    requestKey: input.requestKey,
+    call: () => models.image.edit({ instruction: prompt, images: [logo.logo], size: sizeFor("logo"), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
+    check: (file) => checkLogo(models.vision, file, expected(logo, "logo"), input.now, input.userKey),
+  };
+  const result = await runBatch(models, store, [job], input.now);
+  return result.ids[0];
+}
+
 // The draft goes back as image 1, with the owner's words or a one-click change (refine.ts)
 export async function refineLogo(
   models: Models,
@@ -221,7 +245,10 @@ export async function refineLogo(
   input: { logo: LogoRef; change: string; oneClick?: { lines: string[]; design: BrandDesign }; requestKey: string; userKey?: string; now: Date },
 ): Promise<string> {
   const concept = input.logo.concept;
-  if (!concept) throw new OwnerFacingError(UPLOAD_UNCHANGED);
+  if (!concept) {
+    if (input.oneClick) throw new OwnerFacingError(UPLOAD_ONE_CLICK);
+    return editOwnLogo(models, store, input);
+  }
   // Drawn and checked as it will be: new colors, lettering or tagline included
   const logo = input.oneClick
     ? { ...input.logo, ...applyDesign(concept, input.logo.brief, input.oneClick.design), design: input.oneClick.design }
@@ -288,6 +315,35 @@ export async function makeBrandImages(
     };
   });
   return runBatch(models, store, jobs, input.now);
+}
+
+// A version or brand image changed in the owner's words: image 1 is the picture, image 2 the logo it must still match
+export async function editPicture(
+  models: Models,
+  store: AssetStore,
+  input: { logo: LogoRef; picture: { kind: VersionKind | BrandImageKind; file: ImageInput }; change: string; requestKey: string; userKey?: string; now: Date },
+): Promise<string> {
+  const { logo, picture } = input;
+  const kind = picture.kind;
+  const prompt = pictureEditPrompt(kind, input.change, logo);
+  const isImage = (IMAGE_KINDS as readonly string[]).includes(kind);
+  const job: Job = {
+    kind,
+    concept: logo,
+    // Made from the chosen logo, so the owner can pick it like any other
+    sourceId: logo.logoId,
+    change: input.change,
+    design: inherited(logo.design),
+    prompt,
+    requestKey: `${logo.logoId}:${input.requestKey}:edit`,
+    call: () => models.image.edit({ instruction: prompt, images: [picture.file, logo.logo], size: sizeFor(kind), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
+    check: (file) =>
+      isImage
+        ? checkBrandImage(models.vision, file, kind as BrandImageKind, expected(logo, "logo"), input.now, input.userKey)
+        : checkVersion(models.vision, logo.logo, file, kind as VersionKind, expected(logo, kind), input.now, input.userKey),
+  };
+  const result = await runBatch(models, store, [job], input.now);
+  return result.ids[0];
 }
 
 function ownerFacing(error: unknown): unknown {

@@ -48,7 +48,7 @@ export async function BrandNotes() {
           {servicePoints().map((point) => (
             <li key={point}>{point}</li>
           ))}
-          <li>Nothing is posted for you. Approved files wait in your brand kit until you download them.</li>
+          <li>Nothing is posted for you. Files you choose wait in your brand kit and Brand Library until you download them.</li>
         </ul>
       </Note>
       <Note icon="dollar" title="What it costs">

@@ -5,10 +5,13 @@ export type LibraryGroup = (typeof LIBRARY_GROUPS)[number];
 
 export const LIBRARY_GROUP_TEXT: Record<LibraryGroup, { title: string; help: string }> = {
   logos: { title: "Logos", help: "Your chosen or uploaded logo and its versions." },
-  brand_images: { title: "Brand images", help: "Your website picture, covers and other pictures made in your brand’s style." },
+  brand_images: { title: "Brand images", help: "Your website header, social covers and link preview, made from your logo in your brand’s style, and brand pictures you added." },
   product_photos: { title: "Product photos", help: "Your product photos and the edits you approved." },
   other: { title: "Other pictures", help: "Your own pictures, such as your storefront, your team or behind the scenes." },
 };
+
+// Where brand images are made and kept
+export const BRAND_IMAGES_HREF = "/brand-library#group-brand_images";
 
 export const libraryFileUrl = (fileId: string, view = true) => `/brand-library/files/${fileId}${view ? "?view=1" : ""}`;
 

@@ -8,10 +8,9 @@ import { seedOwners } from "@/test/fixtures";
 import {
   addAssetForOwner,
   addUploadedLogoForOwner,
-  approveVersionsForOwner,
-  deleteUploadedLogoForOwner,
+  deleteOwnLogoForOwner,
   type NewUploadedLogo,
-  setUploadedLogoColorsForOwner,
+  setOwnLogoColorsForOwner,
   assetRoomForOwner,
   BRAND_LIMITS,
   chooseLogoForOwner,
@@ -25,10 +24,11 @@ import {
   getBrandKitForOwner,
   getConceptForOwner,
   getRoundForOwner,
-  pickImageForOwner,
+  pickFileForOwner,
   saveBriefForOwner,
   setAssetCheckForOwner,
-  unpickImageForOwner,
+  unchooseLogoForOwner,
+  unpickFileForOwner,
 } from "./brand";
 
 let db: Awaited<ReturnType<typeof createTestDb>>;
@@ -76,14 +76,14 @@ async function add(conceptId: string, overrides: Partial<NewBrandAsset> = {}, ow
   return added.id;
 }
 
-// A chosen logo with all three versions approved
+// A chosen logo with all three versions picked, one at a time
 async function approvedKit() {
   const { concepts } = await round();
   const logo = await add(concepts[0].id);
   expect(await chooseLogoForOwner(db, "owner-a", logo)).toBe(true);
   const version = (kind: AssetKind) => add(concepts[0].id, { kind, sourceId: logo, width: 1024, height: 1024 });
   const ids = { stacked: await version("stacked"), profile: await version("profile"), solid: await version("solid") };
-  expect(await approveVersionsForOwner(db, "owner-a", ids)).toBe(true);
+  for (const id of Object.values(ids)) expect(await pickFileForOwner(db, "owner-a", id)).toBe(true);
   return { concepts, logo, ids };
 }
 
@@ -102,7 +102,7 @@ describe("brand files belong to their owner", () => {
     expect(await getAssetFileForOwner(db, "owner-b", logo)).toBeNull();
     expect(await setAssetCheckForOwner(db, "owner-b", logo, { checkedAt: "", method: "ai", lettering: null, drift: [] })).toBe(false);
     expect(await chooseLogoForOwner(db, "owner-b", logo)).toBe(false);
-    expect(await pickImageForOwner(db, "owner-b", logo)).toBe(false);
+    expect(await pickFileForOwner(db, "owner-b", logo)).toBe(false);
     expect(await getBrandKitForOwner(db, "owner-b")).toBeNull();
     // A file can't be added to another owner's idea
     expect(await addAssetForOwner(db, "owner-b", asset(concepts[0].id))).toEqual({ ok: false, reason: "not_found" });
@@ -159,7 +159,7 @@ describe("the brand kit", () => {
     expect(await getBrandKitForOwner(db, "owner-a")).toBeNull();
     const { concepts, logo, ids } = await approvedKit();
     const hero = await add(concepts[0].id, { kind: "website_hero", sourceId: logo, width: 1920, height: 1080 });
-    expect(await pickImageForOwner(db, "owner-a", hero)).toBe(true);
+    expect(await pickFileForOwner(db, "owner-a", hero)).toBe(true);
 
     expect(await getBrandKitForOwner(db, "owner-a")).toEqual({
       businessName: "Rise Bakery",
@@ -177,7 +177,7 @@ describe("the brand kit", () => {
       uploaded: false,
     });
 
-    expect(await unpickImageForOwner(db, "owner-a", "website_hero")).toBe(true);
+    expect(await unpickFileForOwner(db, "owner-a", "website_hero")).toBe(true);
     expect((await getBrandKitForOwner(db, "owner-a"))!.images.websiteHero).toBeNull();
   });
 
@@ -217,18 +217,44 @@ describe("the brand kit", () => {
     expect(kit.logos.primary?.url).toContain(other);
   });
 
+  it("uses each version only once the owner picks it, and a newer pick replaces the older one", async () => {
+    const { concepts } = await round();
+    const logo = await add(concepts[0].id);
+    await chooseLogoForOwner(db, "owner-a", logo);
+    const first = await add(concepts[0].id, { kind: "stacked", sourceId: logo, width: 1024, height: 1024 });
+    const second = await add(concepts[0].id, { kind: "stacked", sourceId: logo, width: 1024, height: 1024 });
+    expect((await getBrandKitForOwner(db, "owner-a"))!.logos.stacked).toBeNull();
+    expect(await pickFileForOwner(db, "owner-a", first)).toBe(true);
+    expect((await getBrandKitForOwner(db, "owner-a"))!.logos.stacked?.url).toContain(first);
+    expect(await pickFileForOwner(db, "owner-a", second)).toBe(true);
+    expect((await getBrandKitForOwner(db, "owner-a"))!.logos.stacked?.url).toContain(second);
+    expect(await unpickFileForOwner(db, "owner-a", "stacked")).toBe(true);
+    expect((await getBrandKitForOwner(db, "owner-a"))!.logos.stacked).toBeNull();
+  });
+
   it("only takes versions and pictures made from the chosen logo", async () => {
     const { concepts, logo, ids } = await approvedKit();
     const otherLogo = await add(concepts[1].id);
     const stray = await add(concepts[1].id, { kind: "stacked", sourceId: otherLogo });
-    expect(await approveVersionsForOwner(db, "owner-a", { ...ids, stacked: stray })).toBe(false);
-    // Wrong kind in a slot
-    expect(await approveVersionsForOwner(db, "owner-a", { ...ids, stacked: ids.solid })).toBe(false);
+    expect(await pickFileForOwner(db, "owner-a", stray)).toBe(false);
+    expect((await getBrandKitForOwner(db, "owner-a"))!.logos.stacked?.url).toContain(ids.stacked);
     const strayImage = await add(concepts[1].id, { kind: "facebook_cover", sourceId: otherLogo });
-    expect(await pickImageForOwner(db, "owner-a", strayImage)).toBe(false);
-    // A logo is never a brand picture
-    expect(await pickImageForOwner(db, "owner-a", logo)).toBe(false);
+    expect(await pickFileForOwner(db, "owner-a", strayImage)).toBe(false);
+    // A logo is never a version or brand picture
+    expect(await pickFileForOwner(db, "owner-a", logo)).toBe(false);
     expect(await chooseLogoForOwner(db, "owner-a", ids.stacked)).toBe(false);
+  });
+});
+
+describe("stopping using a logo", () => {
+  it("clears the pick and the files in use, and keeps the drawn idea", async () => {
+    const { logo } = await approvedKit();
+    expect(await unchooseLogoForOwner(db, "owner-a")).toBe(true);
+    const state = (await getBrandForOwner(db, "owner-a"))!;
+    expect(state).toMatchObject({ chosenLogoId: null, picks: {} });
+    expect(state.assets.some((asset) => asset.id === logo)).toBe(true);
+    expect(await getBrandKitForOwner(db, "owner-a")).toBeNull();
+    expect(await unchooseLogoForOwner(db, "nobody")).toBe(false);
   });
 });
 
@@ -277,7 +303,7 @@ describe("an uploaded logo", () => {
     expect(await getBrandKitForOwner(db, "owner-a")).toMatchObject({ businessName: "Rise Bakery", tagline: "", colors: [], lettering: "", uploaded: true, simulated: false });
 
     const palette = [{ hex: "#1F3A2E", name: "Dark green" }];
-    expect(await setUploadedLogoColorsForOwner(db, "owner-a", added.id, palette)).toBe(true);
+    expect(await setOwnLogoColorsForOwner(db, "owner-a", added.id, palette)).toBe(true);
     expect((await getBrandKitForOwner(db, "owner-a"))!.colors).toEqual(palette);
     expect(await getAssetFileForOwner(db, "owner-a", added.id)).toMatchObject({ data: upload().data });
   });
@@ -293,23 +319,58 @@ describe("an uploaded logo", () => {
 
   it("only changes colors on uploads, and another owner can't touch it", async () => {
     const { logo } = await approvedKit();
-    expect(await setUploadedLogoColorsForOwner(db, "owner-a", logo, [])).toBe(false);
+    expect(await setOwnLogoColorsForOwner(db, "owner-a", logo, [])).toBe(false);
     const added = await addUploadedLogoForOwner(db, "owner-a", upload());
     if (!added.ok) throw new Error(added.reason);
-    expect(await setUploadedLogoColorsForOwner(db, "owner-b", added.id, [])).toBe(false);
-    expect(await deleteUploadedLogoForOwner(db, "owner-b", added.id)).toBe(false);
-    expect(await deleteUploadedLogoForOwner(db, "owner-a", logo)).toBe(false);
+    expect(await setOwnLogoColorsForOwner(db, "owner-b", added.id, [])).toBe(false);
+    expect(await deleteOwnLogoForOwner(db, "owner-b", added.id)).toBe(false);
+    expect(await deleteOwnLogoForOwner(db, "owner-a", logo)).toBe(false);
   });
 
   it("is removed with the files made from it, and the pick is cleared", async () => {
     const added = await addUploadedLogoForOwner(db, "owner-a", upload());
     if (!added.ok) throw new Error(added.reason);
     await addAssetForOwner(db, "owner-a", asset("", { conceptId: null, kind: "profile", sourceId: added.id }));
-    expect(await deleteUploadedLogoForOwner(db, "owner-a", added.id)).toBe(true);
+    expect(await deleteOwnLogoForOwner(db, "owner-a", added.id)).toBe(true);
     const state = (await getBrandForOwner(db, "owner-a"))!;
     expect(state.assets).toEqual([]);
     expect(state.chosenLogoId).toBeNull();
     expect(await getBrandKitForOwner(db, "owner-a")).toBeNull();
+  });
+
+  it("takes an edited copy as a new file that keeps the owner's words, and versions made from that copy", async () => {
+    const added = await addUploadedLogoForOwner(db, "owner-a", upload());
+    if (!added.ok) throw new Error(added.reason);
+    const edit = await addAssetForOwner(db, "owner-a", asset("", { conceptId: null, kind: "logo", sourceId: added.id, change: "Thicker letters", words: "Rise" }));
+    if (!edit.ok) throw new Error(edit.reason);
+    expect(await getAssetForOwner(db, "owner-a", edit.id)).toMatchObject({ origin: "generated", conceptId: null, sourceId: added.id, words: "Rise", change: "Thicker letters" });
+    expect(await getAssetFileForOwner(db, "owner-a", added.id)).toMatchObject({ data: upload().data });
+
+    expect(await chooseLogoForOwner(db, "owner-a", edit.id)).toBe(true);
+    const version = await addAssetForOwner(db, "owner-a", asset("", { conceptId: null, kind: "stacked", sourceId: edit.id }));
+    expect(version.ok).toBe(true);
+    expect(await setOwnLogoColorsForOwner(db, "owner-a", edit.id, [{ hex: "#1F3A2E", name: "Dark green" }])).toBe(true);
+    expect(await getBrandKitForOwner(db, "owner-a")).toMatchObject({ uploaded: true, lettering: "", colors: [{ hex: "#1F3A2E", name: "Dark green" }] });
+  });
+
+  it("is removed with its edits and everything made from them", async () => {
+    const added = await addUploadedLogoForOwner(db, "owner-a", upload());
+    if (!added.ok) throw new Error(added.reason);
+    const edit = await addAssetForOwner(db, "owner-a", asset("", { conceptId: null, kind: "logo", sourceId: added.id }));
+    if (!edit.ok) throw new Error(edit.reason);
+    await chooseLogoForOwner(db, "owner-a", edit.id);
+    await addAssetForOwner(db, "owner-a", asset("", { conceptId: null, kind: "profile", sourceId: edit.id }));
+    expect(await deleteOwnLogoForOwner(db, "owner-a", added.id)).toBe(true);
+    expect((await getBrandForOwner(db, "owner-a"))!).toMatchObject({ assets: [], chosenLogoId: null });
+  });
+
+  it("removes only an edited copy when that's what's asked, keeping the upload", async () => {
+    const added = await addUploadedLogoForOwner(db, "owner-a", upload());
+    if (!added.ok) throw new Error(added.reason);
+    const edit = await addAssetForOwner(db, "owner-a", asset("", { conceptId: null, kind: "logo", sourceId: added.id }));
+    if (!edit.ok) throw new Error(edit.reason);
+    expect(await deleteOwnLogoForOwner(db, "owner-a", edit.id)).toBe(true);
+    expect((await getBrandForOwner(db, "owner-a"))!.assets.map((each) => each.id)).toEqual([added.id]);
   });
 
   it("survives removing every idea", async () => {

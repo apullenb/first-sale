@@ -1,24 +1,29 @@
 import Link from "next/link";
-import { Suspense } from "react";
+import { type ReactNode, Suspense } from "react";
 import { deleteLibraryFileAction } from "@/app/(app)/brand-library/actions";
 import { ActionButton } from "@/components/action-button";
 import { PracticeTag } from "@/components/brand/asset-view";
 import { LibraryUpload } from "@/components/brand/library-upload";
-import { latestVersions } from "@/components/brand/versions";
+import { ImageSlots, NoLogoYet } from "@/components/brand/slots";
 import { formatBytes } from "@/components/documents/labels";
 import { Icon, type IconName } from "@/components/icons";
 import { Kicker } from "@/components/marketing/pieces";
+import { PracticeBanner } from "@/components/practice-banner";
 import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Card, Chip, PageHead } from "@/components/ui";
+import { getImageModel } from "@/lib/ai";
 import { brandFileUrl, kindTitle } from "@/lib/brand/files";
 import { LIBRARY_GROUP_TEXT, LIBRARY_GROUPS, type LibraryGroup, libraryFileUrl } from "@/lib/brand/library";
-import { IMAGE_KINDS, VERSION_KINDS } from "@/lib/brand/types";
+import { imageSlots, versionSlots } from "@/lib/brand/slots";
+import { IMAGE_KINDS } from "@/lib/brand/types";
 import { LIBRARY_LIMITS } from "@/lib/data/brand-library";
-import { getMyBrandState, getMyBusiness, listMyLibraryFiles, listMyPhotoLibrary, listMyPhotos, myLibraryUsage } from "@/lib/data/my-business";
+import { getMyBrandState, getMyBusiness, lastMyRun, listMyLibraryFiles, listMyPhotoLibrary, listMyPhotos, myLibraryUsage } from "@/lib/data/my-business";
 import { MAX_UPLOAD_BYTES } from "@/lib/documents/upload";
 import { sectionMetadata } from "@/lib/sections";
 
 export const metadata = sectionMetadata("/brand-library");
+// Brand images and their edits each wait on AI calls
+export const maxDuration = 300;
 
 export default function BrandLibraryPage() {
   return (
@@ -26,7 +31,7 @@ export default function BrandLibraryPage() {
       <PageHead
         kicker={<Kicker icon="image">Build your brand</Kicker>}
         title="Your Brand Library"
-        lead="Every logo, brand picture and product photo you’ve made or added, sorted into one place. View or download any of them, and add your own pictures."
+        lead="Every logo, brand image and product photo you’ve made or added, sorted into one place. Make the brand images First Sale recommends, view or download anything, and add your own pictures."
       />
       <Suspense fallback={<p className="text-muted">Loading your Brand Library…</p>}>
         <Library />
@@ -53,7 +58,7 @@ interface Item {
 const GROUP_ICONS: Record<LibraryGroup, IconName> = { logos: "sparkles", brand_images: "palette", product_photos: "camera", other: "image" };
 const EMPTY: Record<LibraryGroup, { text: string; href: string; label: string } | null> = {
   logos: { text: "No logos yet.", href: "/logo", label: "Create your logo" },
-  brand_images: { text: "No brand pictures yet.", href: "/brand", label: "Build your brand" },
+  brand_images: null,
   product_photos: { text: "No product photos yet.", href: "/photos", label: "Make product photos" },
   other: null,
 };
@@ -61,12 +66,20 @@ const EMPTY: Record<LibraryGroup, { text: string; href: string; label: string } 
 const photoUrl = (photoId: string, versionId: string | null, view: boolean) =>
   `/photos/${photoId}${versionId ? `/versions/${versionId}` : ""}/file${view ? "?view=1" : ""}`;
 
+function practiceMode(): boolean {
+  try {
+    return getImageModel()?.simulated ?? false;
+  } catch {
+    return false;
+  }
+}
+
 async function Library() {
   const business = await getMyBusiness();
   if (!business) {
     return (
       <Card title="Tell us about your business first" icon="store" id="first-heading">
-        <p className="text-muted">Then your logos, brand pictures and photos collect here.</p>
+        <p className="text-muted">Then your logos, brand images and photos collect here.</p>
         <Link href="/business/new" className={PRIMARY_LINK}>
           Tell us about your business
           <Icon name="arrow" size="sm" />
@@ -75,10 +88,11 @@ async function Library() {
     );
   }
   const [state, photos, approved, uploads, usage] = await Promise.all([getMyBrandState(), listMyPhotos(), listMyPhotoLibrary(), listMyLibraryFiles(), myLibraryUsage()]);
+  const practice = practiceMode();
   const groups: Record<LibraryGroup, Item[]> = { logos: [], brand_images: [], product_photos: [], other: [] };
 
+  const chosen = state?.assets.find((asset) => asset.id === state.chosenLogoId && asset.kind === "logo") ?? null;
   if (state) {
-    const chosen = state.assets.find((asset) => asset.id === state.chosenLogoId && asset.kind === "logo") ?? null;
     const brandItem = (asset: (typeof state.assets)[number], title: string, tags: string[]): Item => ({
       key: asset.id,
       title,
@@ -93,15 +107,9 @@ async function Library() {
     });
     if (chosen) {
       groups.logos.push(brandItem(chosen, chosen.origin === "uploaded" && chosen.title ? chosen.title : "Main logo", ["Your chosen logo"]));
-      const latest = latestVersions(state.assets, chosen.id);
-      for (const kind of VERSION_KINDS) {
-        const version = state.assets.find((asset) => asset.id === state.picks[kind] && asset.sourceId === chosen.id) ?? latest[kind];
-        if (version) groups.logos.push(brandItem(version, kindTitle(kind), version.id === state.picks[kind] ? ["In your brand kit"] : []));
-      }
-      for (const kind of IMAGE_KINDS) {
-        const made = state.assets.filter((asset) => asset.kind === kind && asset.sourceId === chosen.id);
-        const shown = made.find((asset) => asset.id === state.picks[kind]) ?? made.at(-1);
-        if (shown) groups.brand_images.push(brandItem(shown, kindTitle(kind), shown.id === state.picks[kind] ? ["In your brand kit"] : []));
+      for (const slot of versionSlots(state.assets, chosen.id, state.picks)) {
+        const version = slot.picked ?? slot.newest;
+        if (version) groups.logos.push(brandItem(version, kindTitle(slot.kind), version.id === slot.picked?.id ? ["In use"] : []));
       }
     }
     for (const asset of state.assets) {
@@ -152,14 +160,20 @@ async function Library() {
     });
   }
 
+  const runs = chosen ? await Promise.all(IMAGE_KINDS.map((kind) => lastMyRun("brand_images", `${chosen.id}:${kind}`))) : [];
+  const running = new Set(IMAGE_KINDS.filter((_, index) => runs[index]?.status === "running"));
+  const made = state ? imageSlots(state.assets, chosen?.id ?? null, state.picks).filter((slot) => slot.newest).length : 0;
+  const counts = { ...Object.fromEntries(LIBRARY_GROUPS.map((group) => [group, groups[group].length])), brand_images: groups.brand_images.length + made } as Record<LibraryGroup, number>;
+
   return (
     <>
+      {practice && chosen ? <PracticeBanner what="Brand images made here are plain labeled previews, not made by Muse." /> : null}
       <nav aria-label="Groups in your library" className="flex flex-wrap gap-2">
         {LIBRARY_GROUPS.map((group) => (
           <a key={group} href={`#group-${group}`} className={`${SECONDARY_LINK} text-[15px]`}>
             <Icon name={GROUP_ICONS[group]} size="sm" />
             {LIBRARY_GROUP_TEXT[group].title}
-            <span className="text-muted">{groups[group].length}</span>
+            <span className="text-muted">{counts[group]}</span>
           </a>
         ))}
       </nav>
@@ -173,18 +187,21 @@ async function Library() {
         </p>
       </Card>
 
-      {LIBRARY_GROUPS.map((group) => (
-        <Group key={group} group={group} items={groups[group]} />
-      ))}
+      {LIBRARY_GROUPS.map((group) =>
+        group === "brand_images" ? (
+          <Group key={group} group={group} items={groups[group]} count={counts[group]} uploadsTitle="Brand images you added">
+            {chosen ? null : <NoLogoYet />}
+            <ImageSlots chosenId={chosen?.id ?? null} name={state?.brief?.name || business.profile?.name || ""} assets={state?.assets ?? []} picks={state?.picks ?? {}} practice={practice} running={running} />
+          </Group>
+        ) : (
+          <Group key={group} group={group} items={groups[group]} count={counts[group]} />
+        ),
+      )}
 
       <p className="text-sm text-muted">
-        Every file is kept exactly as it was made or uploaded; nothing here is ever changed. Only you can see them, when you’re signed in. To remove a logo or brand picture, go to{" "}
+        Every file is kept exactly as it was made or uploaded; nothing here is ever changed. An edit is always a new file. Only you can see them, when you’re signed in. To remove a logo, go to{" "}
         <Link href="/logo" className={TEXT_LINK}>
           Create your logo
-        </Link>{" "}
-        or{" "}
-        <Link href="/brand" className={TEXT_LINK}>
-          Build your brand
         </Link>
         ; product photos are removed on{" "}
         <Link href="/photos" className={TEXT_LINK}>
@@ -196,14 +213,17 @@ async function Library() {
   );
 }
 
-function Group({ group, items }: { group: LibraryGroup; items: Item[] }) {
+// children: what First Sale makes for this group, shown before the owner's own pictures
+function Group({ group, items, count, uploadsTitle, children }: { group: LibraryGroup; items: Item[]; count: number; uploadsTitle?: string; children?: ReactNode }) {
   const empty = EMPTY[group];
   const text = LIBRARY_GROUP_TEXT[group];
   return (
     <section id={`group-${group}`} aria-labelledby={`group-${group}-heading`} className="@container scroll-mt-6">
-      <Card title={text.title} icon={GROUP_ICONS[group]} id={`group-${group}-heading`} action={<Chip tone="gray">{items.length}</Chip>}>
+      <Card title={text.title} icon={GROUP_ICONS[group]} id={`group-${group}-heading`} action={<Chip tone="gray">{count}</Chip>} bodyClassName="gap-4">
         <p className="text-[15px] text-muted">{text.help}</p>
-        {items.length ? (
+        {children}
+        {children && items.length ? <h3 className="border-t border-line pt-4 font-bold">{uploadsTitle}</h3> : null}
+        {children && !items.length ? null : items.length ? (
           <ul className="grid gap-4 @xl:grid-cols-2 @3xl:grid-cols-3">
             {items.map((item) => (
               <li key={item.key}>

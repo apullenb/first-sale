@@ -118,10 +118,10 @@ export function LogoFiles({ businessName, simulated, practice, colors, sources }
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <p className="text-[15px] text-rule">
-          Made in your browser from the logo and versions you approved, at the sizes each place asks for. Nothing new is drawn or charged. See-through files
+          Made in your browser from your logo and the versions you chose, at the sizes each place asks for. Nothing new is drawn or charged. See-through files
           are made by removing the plain white background, so white inside your logo becomes see-through too.
         </p>
-        {missing.length ? <p className="text-sm text-muted">Approve your logo versions above to add the stacked, icon, one-color, website and social files.</p> : null}
+        {missing.length ? <p className="text-sm text-muted">Choose “Use this” on your logo versions above to add the stacked, icon, one-color, website and social files.</p> : null}
       </div>
 
       {primary ? (

@@ -5,25 +5,17 @@ import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { SectionHead } from "@/components/marketing/pieces";
 import { TEXT_LINK } from "@/components/styles";
-import { Card } from "@/components/ui";
-import { brandFileName, kindTitle as title } from "@/lib/brand/files";
+import { Card, Note } from "@/components/ui";
 import { colorRows } from "@/lib/brand/colors";
-import { IMAGE_SPECS } from "@/lib/brand/sizes";
-import type { AssetKind, BrandFile, BrandKit } from "@/lib/brand/types";
+import { BRAND_IMAGES_HREF } from "@/lib/brand/library";
+import type { BrandKit } from "@/lib/brand/types";
 import { PracticeTag } from "./asset-view";
-import { ExactDownload } from "./exact-download";
 import { LogoFiles } from "./logo-files";
 
-export function KitSection({ kit, guideId }: { kit: BrandKit; guideId: string | null }) {
-  const images: [AssetKind, BrandFile | null][] = [
-    ["facebook_cover", kit.images.facebookCover],
-    ["youtube_banner", kit.images.youtubeBanner],
-    ["website_hero", kit.images.websiteHero],
-    ["link_preview", kit.images.linkPreview],
-  ];
+export function KitSection({ kit, guideId, number }: { kit: BrandKit; guideId: string | null; number: number }) {
   return (
     <section aria-labelledby="kit-heading" className="@container flex flex-col gap-4">
-      <SectionHead id="kit-heading" number={3} title="Your brand kit" lead={`Everything you approved for ${kit.businessName}, in one place, with the files you’ll need. Your website and Brand Library use these too.`}>
+      <SectionHead id="kit-heading" number={number} title="Your brand kit" lead={`Your logo and the versions you chose for ${kit.businessName}, with the files you’ll need. Your website and Brand Library use these too.`}>
         {kit.simulated ? (
           <p className="flex flex-wrap items-center gap-2 text-sm text-check">
             <PracticeTag /> Some files are practice previews. Don’t use them as your logo.
@@ -78,26 +70,15 @@ export function KitSection({ kit, guideId }: { kit: BrandKit; guideId: string | 
         </div>
       </Card>
 
-      <Card title="Pictures" icon="image" id="kit-pictures" headingLevel={3}>
-        <ul className="grid gap-3 @2xl:grid-cols-2">
-          {images.map(([kind, file]) => (
-            <li key={kind} className="flex flex-col gap-2.5 rounded-xl border border-line bg-surface p-3 shadow-soft">
-              <span className="font-semibold">{title(kind)}</span>
-              {file ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={file.url} alt={title(kind)} width={file.width} height={file.height} loading="lazy" className="h-auto w-full rounded-lg border border-line bg-white" />
-                  {IMAGE_SPECS[kind as keyof typeof IMAGE_SPECS].exports.map((spec) => (
-                    <ExactDownload key={spec.label} src={file.url} spec={spec} fileName={brandFileName(kit.businessName, kind, kit.simulated, `${spec.width}x${spec.height}`)} />
-                  ))}
-                </>
-              ) : (
-                <p className="grid min-h-24 place-items-center rounded-lg bg-soft text-sm text-muted">Not added yet.</p>
-              )}
-            </li>
-          ))}
-        </ul>
-      </Card>
+      <Note icon="image" tone="quiet">
+        <p className="text-rule">
+          Your brand images, like your website header and Facebook cover, are made and kept in{" "}
+          <Link href={BRAND_IMAGES_HREF} className={TEXT_LINK}>
+            your Brand Library
+          </Link>
+          .
+        </p>
+      </Note>
     </section>
   );
 }

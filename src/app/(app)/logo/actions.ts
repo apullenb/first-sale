@@ -4,7 +4,7 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
 import { checkLogoUpload, logoWords } from "@/lib/brand/upload";
-import { addMyUploadedLogo, deleteMyUploadedLogo } from "@/lib/data/my-business";
+import { addMyUploadedLogo, deleteMyOwnLogo, getMyBrandState, unchooseMyLogo } from "@/lib/data/my-business";
 import { MAX_UPLOAD_BYTES } from "@/lib/documents/upload";
 
 const UPLOAD_MESSAGES = {
@@ -40,10 +40,23 @@ export async function uploadLogoAction(form: FormData): Promise<ActionResult<str
   return { ok: true, value: added.id };
 }
 
-// Removes the upload with its versions and pictures; generated logos aren't removed here
+const MISSING = "That logo wasn’t found. Reload the page and try again.";
+
+// Removes the owner's upload, or an edit of it, with everything made from it; drawn ideas aren't removed here
 export async function removeUploadedLogoAction(assetId: unknown): Promise<ActionResult> {
   const parsed = z.string().min(1).max(60).safeParse(assetId);
-  if (!parsed.success || !(await deleteMyUploadedLogo(parsed.data))) return { ok: false, message: "That logo wasn’t found. Reload the page and try again." };
+  if (!parsed.success || !(await deleteMyOwnLogo(parsed.data))) return { ok: false, message: MISSING };
+  refresh();
+  return { ok: true, value: null };
+}
+
+// The chosen logo: the owner's own is removed; a drawn one stops being used and stays with the ideas
+export async function removeChosenLogoAction(): Promise<ActionResult> {
+  const state = await getMyBrandState();
+  const chosen = state?.assets.find((asset) => asset.id === state.chosenLogoId && asset.kind === "logo");
+  if (!chosen) return { ok: false, message: MISSING };
+  const done = chosen.conceptId ? await unchooseMyLogo() : await deleteMyOwnLogo(chosen.id);
+  if (!done) return { ok: false, message: MISSING };
   refresh();
   return { ok: true, value: null };
 }

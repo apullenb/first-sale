@@ -1,5 +1,5 @@
 import { ownerText } from "@/lib/photos/instructions";
-import { IMAGE_SPECS } from "./sizes";
+import { IMAGE_SPECS, LOGO_SPECS } from "./sizes";
 import { MAX_LOGO_WORDS } from "./library";
 import { BRIEF_LIMITS, type BrandBrief, type BrandImageKind, type ConceptKind, type ConceptReply, type PaletteColor, type VersionKind } from "./types";
 import { LEANINGS, type LeaningKey } from "./vibes";
@@ -172,6 +172,48 @@ export function versionPrompt(brief: BrandBrief, concept: ConceptReply | null, k
     "",
     ...rules([QUALITY_RULES[1], QUALITY_RULES[4]]),
   ].join("\n");
+}
+
+// Image 1 is the owner's own logo, uploaded or an edit of one; the new file changes only what they asked
+export function ownLogoEditPrompt(words: string, change: string): string {
+  return [
+    "Image 1 is a small business’s own logo. Make a new copy of it with the change described below.",
+    `The owner’s change: “${clean(change, MAX_CHANGE)}”`,
+    "Keep everything else exactly as it is in image 1: the same symbol, letter shapes, layout, colors and background.",
+    "",
+    ...uploadedLettering(words),
+    "",
+    "Don’t add mockups, 3D, shadows, textures or effects that aren’t in image 1.",
+  ].join("\n");
+}
+
+// What a picture edit needs to know about the logo it was made from
+export interface EditBase {
+  brief: BrandBrief;
+  concept: ConceptReply | null;
+  words?: string;
+}
+
+// Image 1 is a version or brand image made earlier; image 2 is the chosen logo it must still match
+export function pictureEditPrompt(kind: VersionKind | BrandImageKind, change: string, base: EditBase): string {
+  const image = kind in IMAGE_SPECS ? IMAGE_SPECS[kind as BrandImageKind] : null;
+  const what = image ? `their ${image.title.toLowerCase()}` : `the ${LOGO_SPECS[kind as VersionKind].title.toLowerCase()} version of their logo`;
+  const showsLogo = image ? image.withLogo : true;
+  const words = kind === "profile" || !showsLogo ? [] : base.concept ? lettering(base.brief) : uploadedLettering(base.words ?? "");
+  return [
+    `Image 1 is ${what}, made for a small business. Image 2 is the business’s approved logo.`,
+    "Make a new copy of image 1 with the change described below. Keep everything else about image 1 the same: its shape, layout and style.",
+    `The owner’s change: “${clean(change, MAX_CHANGE)}”`,
+    "",
+    showsLogo
+      ? "Wherever the logo, its symbol or its lettering appears, keep it exactly as in image 2: the same shapes, lettering, spelling and colors. Don’t redraw it."
+      : "Don’t include the logo, its symbol, or any letters, words or numbers.",
+    ...words,
+    image?.withLogo ? "No words other than the ones in the logo." : null,
+    "No mockups, 3D, gradients or drop shadows.",
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\n");
 }
 
 const IMAGE_PLACEMENT: Record<BrandImageKind, string> = {

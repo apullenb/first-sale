@@ -115,6 +115,14 @@ export const WORKFLOWS = {
     timeLimitMs: 3 * MINUTE,
     offeredFor: [],
   },
+  brand_tagline: {
+    title: "Suggest taglines",
+    summary: "Suggests a few short taglines from your brand description, for you to pick from or change.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 2 * MINUTE,
+    offeredFor: [],
+  },
   brand_ideas: {
     title: "Get logo ideas",
     summary: "A creative director turns your brand brief into distinct logo ideas, each with its own symbol, lettering and colors.",
@@ -133,7 +141,15 @@ export const WORKFLOWS = {
   },
   brand_refine: {
     title: "Change a logo",
-    summary: "Redraws a logo with the change you asked for, then checks the lettering again.",
+    summary: "Makes a new copy of a logo with the change you asked for, then checks the lettering again.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 5 * MINUTE,
+    offeredFor: [],
+  },
+  brand_edit: {
+    title: "Change a picture",
+    summary: "Makes a new copy of a logo version or brand image with the change you asked for, then checks it against your logo.",
     actor: "ai",
     usesAi: true,
     timeLimitMs: 5 * MINUTE,

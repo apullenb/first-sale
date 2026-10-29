@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, inArray, notInArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, notInArray, sql } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { brandAssets, brandConcepts, brandKits, brandRounds, businesses } from "@/db/schema";
 import { brandFileUrl } from "@/lib/brand/files";
@@ -284,12 +284,12 @@ export async function addAssetForOwner(db: Db, ownerId: string, input: NewBrandA
         .where(and(eq(brandConcepts.id, input.conceptId), eq(brandConcepts.businessId, businessId)));
       if (!concept) return { ok: false, reason: "not_found" };
     } else {
-      // Without an idea, it must be made from the owner's own uploaded logo
+      // Without an idea, it must be made from the owner's own logo: their upload or an edit of it
       const [source] = input.sourceId
         ? await tx
             .select({ id: brandAssets.id })
             .from(brandAssets)
-            .where(and(eq(brandAssets.id, input.sourceId), eq(brandAssets.businessId, businessId), eq(brandAssets.origin, "uploaded")))
+            .where(and(eq(brandAssets.id, input.sourceId), eq(brandAssets.businessId, businessId), eq(brandAssets.kind, "logo"), isNull(brandAssets.conceptId)))
         : [];
       if (!source) return { ok: false, reason: "not_found" };
     }
@@ -304,6 +304,7 @@ export async function addAssetForOwner(db: Db, ownerId: string, input: NewBrandA
       sourceId: input.sourceId,
       change: input.change,
       design: input.design,
+      words: input.words ?? null,
       prompt: input.prompt,
       model: input.model,
       simulated: input.simulated,
@@ -385,40 +386,36 @@ export async function chooseLogoForOwner(db: Db, ownerId: string, assetId: strin
   });
 }
 
+// The owner stops using their logo; drawn ideas stay with the ideas, and files made from it leave the kit
+export async function unchooseLogoForOwner(db: Db, ownerId: string, now = new Date()): Promise<boolean> {
+  return db.transaction(async (tx) => {
+    const businessId = await businessOf(tx, ownerId, true);
+    if (!businessId) return false;
+    await upsertKit(tx, businessId, { chosenLogoId: null, picks: {} }, now);
+    return true;
+  });
+}
+
 async function kitOf(db: Db | Tx, businessId: string) {
   const [kit] = await db.select().from(brandKits).where(eq(brandKits.businessId, businessId));
   return kit ?? null;
 }
 
-// The owner approves the three versions together; each must be made from the chosen logo
-export async function approveVersionsForOwner(db: Db, ownerId: string, ids: Record<VersionKind, string>, now = new Date()): Promise<boolean> {
-  return db.transaction(async (tx) => {
-    const businessId = await businessOf(tx, ownerId, true);
-    const kit = businessId ? await kitOf(tx, businessId) : null;
-    if (!businessId || !kit?.chosenLogoId) return false;
-    const rows = await tx
-      .select({ id: brandAssets.id, kind: brandAssets.kind, sourceId: brandAssets.sourceId })
-      .from(brandAssets)
-      .where(and(eq(brandAssets.businessId, businessId), inArray(brandAssets.id, Object.values(ids))));
-    const valid = VERSION_KINDS.every((kind) => rows.some((row) => row.id === ids[kind] && row.kind === kind && row.sourceId === kit.chosenLogoId));
-    if (!valid) return false;
-    await upsertKit(tx, businessId, { picks: { ...kit.picks, ...ids } }, now);
-    return true;
-  });
-}
+const PICKABLE: readonly string[] = [...VERSION_KINDS, ...IMAGE_KINDS];
 
-export async function pickImageForOwner(db: Db, ownerId: string, assetId: string, now = new Date()): Promise<boolean> {
+// The owner picks one version or brand image to use; it must be made from the chosen logo
+export async function pickFileForOwner(db: Db, ownerId: string, assetId: string, now = new Date()): Promise<boolean> {
   return db.transaction(async (tx) => {
     if (!(await businessOf(tx, ownerId, true))) return false;
     const asset = await ownedAsset(tx, ownerId, assetId);
     const kit = asset ? await kitOf(tx, asset.businessId) : null;
-    if (!asset || !kit?.chosenLogoId || asset.sourceId !== kit.chosenLogoId || !(IMAGE_KINDS as readonly string[]).includes(asset.kind)) return false;
+    if (!asset || !kit?.chosenLogoId || asset.sourceId !== kit.chosenLogoId || !PICKABLE.includes(asset.kind)) return false;
     await upsertKit(tx, asset.businessId, { picks: { ...kit.picks, [asset.kind]: asset.id } }, now);
     return true;
   });
 }
 
-export async function unpickImageForOwner(db: Db, ownerId: string, kind: BrandImageKind, now = new Date()): Promise<boolean> {
+export async function unpickFileForOwner(db: Db, ownerId: string, kind: VersionKind | BrandImageKind, now = new Date()): Promise<boolean> {
   return db.transaction(async (tx) => {
     const businessId = await businessOf(tx, ownerId, true);
     const kit = businessId ? await kitOf(tx, businessId) : null;
@@ -488,7 +485,8 @@ export async function getBrandKitForOwner(db: Db, ownerId: string): Promise<Bran
     logos: { primary: toFile(primary), stacked: file("stacked"), profile: file("profile"), solid: file("solid") },
     images: { websiteHero: file("website_hero"), facebookCover: file("facebook_cover"), youtubeBanner: file("youtube_banner"), linkPreview: file("link_preview") },
     simulated: false,
-    uploaded: primary.origin === "uploaded",
+    // Uploaded, or an edit of an upload: no idea behind it
+    uploaded: primary.conceptId === null,
   };
   // Practice placeholders count too: their colors and lettering weren't written for this business
   result.simulated = used.some((row) => row.simulated || Boolean(row.roundSimulated));
@@ -557,12 +555,15 @@ export async function addUploadedLogoForOwner(db: Db, ownerId: string, input: Ne
   });
 }
 
-// The owner's colors for their uploaded logo; the file itself never changes
-export async function setUploadedLogoColorsForOwner(db: Db, ownerId: string, assetId: string, palette: PaletteColor[]): Promise<boolean> {
+// The owner's own logo: uploaded, or an edit of an upload
+const isOwnLogo = (asset: { kind: string; conceptId: string | null }) => asset.kind === "logo" && asset.conceptId === null;
+
+// The owner's colors for their own logo; the file itself never changes
+export async function setOwnLogoColorsForOwner(db: Db, ownerId: string, assetId: string, palette: PaletteColor[]): Promise<boolean> {
   return db.transaction(async (tx) => {
     if (!(await businessOf(tx, ownerId, true))) return false;
     const asset = await ownedAsset(tx, ownerId, assetId);
-    if (!asset || asset.origin !== "uploaded") return false;
+    if (!asset || !isOwnLogo(asset)) return false;
     await tx
       .update(brandAssets)
       .set({ design: { ...(asset.design ?? {}), palette } })
@@ -571,17 +572,25 @@ export async function setUploadedLogoColorsForOwner(db: Db, ownerId: string, ass
   });
 }
 
-// Removes an uploaded logo with the versions and pictures made from it
-export async function deleteUploadedLogoForOwner(db: Db, ownerId: string, assetId: string, now = new Date()): Promise<boolean> {
+// Removes the owner's own logo with everything made from it, edits included; drawn ideas go with their rounds
+export async function deleteOwnLogoForOwner(db: Db, ownerId: string, assetId: string, now = new Date()): Promise<boolean> {
   return db.transaction(async (tx) => {
     const businessId = await businessOf(tx, ownerId, true);
     if (!businessId) return false;
     const asset = await ownedAsset(tx, ownerId, assetId);
-    if (!asset || asset.origin !== "uploaded") return false;
-    await tx.delete(brandAssets).where(and(eq(brandAssets.businessId, businessId), eq(brandAssets.sourceId, asset.id)));
-    await tx.delete(brandAssets).where(eq(brandAssets.id, asset.id));
+    if (!asset || !isOwnLogo(asset)) return false;
+    const gone = [asset.id];
+    for (let next = [asset.id]; next.length; ) {
+      const made = await tx
+        .select({ id: brandAssets.id })
+        .from(brandAssets)
+        .where(and(eq(brandAssets.businessId, businessId), inArray(brandAssets.sourceId, next)));
+      next = made.map((row) => row.id).filter((id) => !gone.includes(id));
+      gone.push(...next);
+    }
+    await tx.delete(brandAssets).where(and(eq(brandAssets.businessId, businessId), inArray(brandAssets.id, gone)));
     const kit = await kitOf(tx, businessId);
-    if (kit?.chosenLogoId === asset.id) await upsertKit(tx, businessId, { chosenLogoId: null, picks: {} }, now);
+    if (kit?.chosenLogoId && gone.includes(kit.chosenLogoId)) await upsertKit(tx, businessId, { chosenLogoId: null, picks: {} }, now);
     return true;
   });
 }

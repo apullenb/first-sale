@@ -13,9 +13,10 @@ import type { BrandBrief } from "@/lib/brand/types";
 import type { ColorFamily } from "@/lib/brand/vibes";
 import type { AssetSummary, ConceptRow, RoundSummary } from "@/lib/data/brand";
 import { CheckNotes, MadeBy, PracticeTag } from "./asset-view";
-import { BrandRunButton, RefineLogo } from "./controls";
+import { BrandRunButton, EditPrompt, RefineLogo } from "./controls";
 
 interface Props {
+  number: number;
   rounds: RoundSummary[];
   assets: AssetSummary[];
   chosenLogoId: string | null;
@@ -35,7 +36,7 @@ interface Shared {
   pickedFamilies: ColorFamily[];
 }
 
-export function IdeasSection({ rounds, drawing, ...shared }: Props) {
+export function IdeasSection({ number, rounds, drawing, ...shared }: Props) {
   const { practice } = shared;
   const titles = new Map(rounds.flatMap((round) => round.concepts.map((concept) => [concept.id, concept.concept.title])));
   const [latest, ...older] = rounds;
@@ -43,12 +44,12 @@ export function IdeasSection({ rounds, drawing, ...shared }: Props) {
     <section aria-labelledby="ideas-heading" className="flex scroll-mt-4 flex-col gap-4">
       <SectionHead
         id="ideas-heading"
-        number={4}
+        number={number}
         title="Pick your logo"
         lead={
           practice
             ? "In practice mode these ideas are placeholders and each logo is a plain labeled preview. Connect Muse to get ideas written and drawn for your business."
-            : "Each idea was written for your business and drawn by Muse. Choose the one you like, change it with one click or in your own words, or ask for more like it."
+            : "Each idea was written from your brand description and choices, and drawn by Muse. Choose the one you like, edit it in your own words, or ask for more like it."
         }
       />
       {latest ? <Round key={latest.id} round={latest} {...shared} drawing={drawing.has(latest.id)} basedOn={titles.get(latest.basedOnConceptId ?? "")} /> : null}
@@ -189,7 +190,7 @@ function Draft({
           className={`h-auto w-full rounded-xl border bg-white ${chosen ? "border-accent shadow-[0_0_0_3px_var(--color-accent-tint)]" : "border-line"}`}
         />
         <figcaption className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="font-semibold">{draft.change ? (draft.design?.preset ? `Changed: ${draft.change}` : `Changed: “${draft.change}”`) : `Draft ${number}`}</span>
+          <span className="font-semibold break-words">{draft.change ? (draft.design?.preset ? `Changed: ${draft.change}` : `You asked: “${draft.change}”`) : `Draft ${number}`}</span>
           <MadeBy simulated={draft.simulated} />
         </figcaption>
       </figure>
@@ -201,25 +202,34 @@ function Draft({
         <img src={src} alt="" className="h-6 w-auto rounded border border-line bg-white" />
       </div>
       <CheckNotes check={draft.check} simulated={draft.simulated} />
-      {chosen ? (
-        <Done>
-          <span className="flex flex-wrap items-center gap-2">
-            <ActorChip actor="owner" /> Your chosen logo
-          </span>
-        </Done>
-      ) : (
-        <ActionButton
-          action={chooseLogoAction.bind(null, draft.id)}
-          label="Choose this logo"
-          pendingLabel="Choosing…"
-          variant="primary"
-          confirm={hasChoice ? "Choose this logo instead? Your logo versions and brand images were made from your current logo, so they’ll be cleared from your brand kit." : undefined}
+      <div className="flex flex-wrap items-start gap-2">
+        {chosen ? (
+          <Done>
+            <span className="flex flex-wrap items-center gap-2">
+              <ActorChip actor="owner" /> Your chosen logo
+            </span>
+          </Done>
+        ) : (
+          <ActionButton
+            action={chooseLogoAction.bind(null, draft.id)}
+            label="Choose this logo"
+            pendingLabel="Choosing…"
+            variant="primary"
+            doneHref="/logo"
+            confirm={hasChoice ? "Choose this logo instead? Your logo versions and brand images were made from your current logo, so they’ll be cleared from your brand kit." : undefined}
+          />
+        )}
+        <EditPrompt
+          target={{ kind: "logo", assetId: draft.id }}
+          cost={practice ? "Practice mode: nothing is charged." : `One picture: ${dollars(1)}.`}
+          working="Changing your logo and checking the spelling… this can take a minute or two"
+          done="Done. The changed logo is shown under this one, and this one is kept."
         />
-      )}
+      </div>
       <details className={`group/change ${SOFT}`}>
         <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-4 py-2 font-semibold [&::-webkit-details-marker]:hidden">
-          <Icon name="pencil" size="sm" className="text-accent" />
-          <span className="flex-1">Change this logo</span>
+          <Icon name="sparkles" size="sm" className="text-accent" />
+          <span className="flex-1">Quick changes: simpler, colors, lettering, tagline</span>
           <Icon name="chevron" size="sm" className="text-faint transition-transform group-open/change:rotate-90" />
         </summary>
         <div className="border-t border-line bg-surface px-4 py-4">

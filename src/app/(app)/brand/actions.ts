@@ -4,19 +4,19 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
 import { getImageModel, getModel, type ImageModel } from "@/lib/ai";
-import { briefDefaults, ideasProblem as storyProblem } from "@/lib/brand/brief";
+import { briefDefaults, ideasProblem as storyProblem, withBrandAnswers, withLogoChoices } from "@/lib/brand/brief";
 import { colorName, HEX } from "@/lib/brand/colors";
 import { writeConcepts } from "@/lib/brand/concepts";
 import { logoGuidePdf } from "@/lib/brand/guide";
-import { type AssetStore, type BatchResult, drawConcepts, type LogoRef, makeBrandImages, makeVersions, refineLogo, UPLOAD_UNCHANGED } from "@/lib/brand/generate";
+import { type AssetStore, type BatchResult, drawConcepts, editPicture, type LogoRef, makeBrandImages, makeVersions, refineLogo, UPLOAD_ONE_CLICK } from "@/lib/brand/generate";
 import { MAX_CHANGE } from "@/lib/brand/prompts";
 import { applyDesign, planRefinement, refinementSchema } from "@/lib/brand/refine";
 import { writeStory } from "@/lib/brand/story";
-import { type BrandBrief, brandBriefSchema, IMAGE_KINDS, VERSION_KINDS } from "@/lib/brand/types";
+import { suggestTaglines } from "@/lib/brand/tagline";
+import { type BrandBrief, brandBriefSchema, type BrandImageKind, IMAGE_KINDS, VERSION_KINDS, type VersionKind } from "@/lib/brand/types";
 import { BRAND_LIMITS } from "@/lib/data/brand";
 import {
   addMyBrandAsset,
-  approveMyLogoVersions,
   chooseMyLogo,
   clearMyBrandIdeas,
   createMyBrandRound,
@@ -33,11 +33,11 @@ import {
   listMyDocuments,
   myAiKey,
   myBrandAssetRoom,
-  pickMyBrandImage,
+  pickMyBrandFile,
   saveMyBrandBrief,
   setMyBrandAssetCheck,
-  setMyUploadedLogoColors,
-  unpickMyBrandImage,
+  setMyOwnLogoColors,
+  unpickMyBrandFile,
   updateMyDocument,
 } from "@/lib/data/my-business";
 import { EMPTY_CONTENT } from "@/lib/documents/types";
@@ -46,9 +46,11 @@ import { ownerText } from "@/lib/photos/instructions";
 import { runWorkflow } from "@/lib/workflow-runner";
 
 const NOT_FOUND = "That wasn’t found. It may have been removed. Reload the page and try again.";
+const NO_BUSINESS = "Tell us about your business first.";
 const OFF = "Logo drawing isn’t turned on for First Sale yet.";
 const PRACTICE_FILE = "This is a practice preview, not a logo Muse drew. Choose one of the logos Muse made.";
-const PRACTICE_IDEAS = "These ideas are practice placeholders, not written for your business. Choose “Get new logo ideas” to have Muse write real ones.";
+const PRACTICE_IDEAS = "These ideas are practice placeholders, not written for your business. Choose “Generate logo ideas” to have Muse write real ones.";
+const SAY_CHANGE = "Say what you’d like changed, such as “Make the letters thicker”.";
 const id = z.string().min(1).max(60);
 
 function imageModel(): ImageModel | null {
@@ -68,7 +70,13 @@ const store: AssetStore = {
   },
 };
 
-// --- The brief
+// The saved brief, with what the business profile fills in; null without a business
+async function savedBrief(): Promise<BrandBrief | null> {
+  const [business, state] = await Promise.all([getMyBusiness(), getMyBrandState()]);
+  return business && state ? briefDefaults(business.profile, state.brief) : null;
+}
+
+// --- Build your brand: the brand answers and description
 
 function briefFrom(input: unknown): { ok: true; brief: BrandBrief } | { ok: false; message: string } {
   const parsed = brandBriefSchema.safeParse(input);
@@ -83,33 +91,64 @@ function briefFrom(input: unknown): { ok: true; brief: BrandBrief } | { ok: fals
   return { ok: false, message: messages[field] ?? "Some answers are too long. Shorten them and try again." };
 }
 
-export async function saveBriefAction(input: unknown): Promise<ActionResult> {
+// The brand page's answers over the saved brief; logo choices stay as saved
+async function brandAnswers(input: unknown): Promise<{ ok: true; brief: BrandBrief } | { ok: false; message: string }> {
   const checked = briefFrom(input);
   if (!checked.ok) return checked;
-  if (!(await saveMyBrandBrief(checked.brief))) return { ok: false, message: "Tell us about your business first." };
+  const saved = await savedBrief();
+  if (!saved) return { ok: false, message: NO_BUSINESS };
+  return briefFrom(withBrandAnswers(saved, checked.brief));
+}
+
+export async function saveBrandAction(input: unknown): Promise<ActionResult> {
+  const checked = await brandAnswers(input);
+  if (!checked.ok) return checked;
+  if (!(await saveMyBrandBrief(checked.brief))) return { ok: false, message: NO_BUSINESS };
   refresh();
   return { ok: true, value: null };
 }
 
-// --- The brand picture
-
-// Written from the picks, not yet approved; the value is the picture and whether it's a practice stand-in
+// Written from the picks, not yet approved; the value is the description and whether it's a practice stand-in
 export async function describeBrandAction(input: unknown): Promise<ActionResult<{ story: string; simulated: boolean }>> {
-  const checked = briefFrom({ ...(typeof input === "object" && input ? input : {}), story: "", storyByOwner: false, storyApproved: false });
+  const checked = await brandAnswers({ ...(typeof input === "object" && input ? input : {}), story: "", storyByOwner: false, storyApproved: false });
   if (!checked.ok) return checked;
   const result = await runWorkflow("brand_story", null, async () => {
     const model = getModel();
     const story = await writeStory(model, checked.brief, await myAiKey());
-    if (!(await saveMyBrandBrief({ ...checked.brief, story, storyByOwner: false, storyApproved: false }))) throw new OwnerFacingError("Tell us about your business first.");
+    if (!(await saveMyBrandBrief({ ...checked.brief, story, storyByOwner: false, storyApproved: false }))) throw new OwnerFacingError(NO_BUSINESS);
     return { story, simulated: model.simulated };
   });
   return result;
 }
 
-// --- Ideas
+// --- Create your logo: the logo choices and ideas
+
+const choicesSchema = brandBriefSchema.pick({ name: true, tagline: true, logoKinds: true, symbolIdea: true, logoLikes: true });
+
+function choicesProblem(error: z.ZodError): string {
+  const field = String(error.issues[0]?.path[0] ?? "");
+  return field === "name" ? "Type your business name exactly as it should appear in the logo." : "Some answers are too long. Shorten them and try again.";
+}
+
+const taglineSchema = z.object({ name: z.string().max(200) });
+
+// A few taglines from the brand, cleaned by code; the owner picks or edits one
+export async function suggestTaglinesAction(input: unknown): Promise<ActionResult<{ taglines: string[]; simulated: boolean }>> {
+  const parsed = taglineSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
+  const saved = await savedBrief();
+  if (!saved) return { ok: false, message: NO_BUSINESS };
+  const name = ownerText(parsed.data.name, 60) || saved.name;
+  return runWorkflow("brand_tagline", null, async () => {
+    const model = getModel();
+    const taglines = await suggestTaglines(model, { ...saved, name }, await myAiKey());
+    if (!taglines.length) throw new OwnerFacingError("None of the suggestions passed First Sale’s checks this time. Try again, or type your own.");
+    return { taglines, simulated: model.simulated };
+  });
+}
 
 const ROUND_MESSAGES = {
-  no_business: "Tell us about your business first.",
+  no_business: NO_BUSINESS,
   too_many: "You’ve asked for as many rounds of ideas as First Sale keeps. Remove ideas you don’t need, then try again.",
   not_found: NOT_FOUND,
 } as const;
@@ -133,16 +172,21 @@ async function ideasProblem(): Promise<string | null> {
   return null;
 }
 
-const ideasSchema = z.object({ requestKey: z.uuid(), brief: z.unknown() });
+const ideasSchema = z.object({ requestKey: z.uuid(), choices: z.unknown() });
 
-// Saves the brief, then writes the first round of ideas; the page draws them next
+// Saves the logo choices with the approved brand description, then writes the first round of ideas; the page draws them next
 export async function getIdeasAction(input: unknown): Promise<ActionResult<string>> {
   const parsed = ideasSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
-  const checked = briefFrom(parsed.data.brief);
-  if (!checked.ok) return checked;
-  const unready = storyProblem(checked.brief);
+  const choices = choicesSchema.safeParse(parsed.data.choices);
+  if (!choices.success) return { ok: false, message: choicesProblem(choices.error) };
+  const saved = await savedBrief();
+  if (!saved) return { ok: false, message: NO_BUSINESS };
+  const brief = withLogoChoices(saved, choices.data);
+  const unready = storyProblem(brief);
   if (unready) return { ok: false, message: unready };
+  const checked = briefFrom(brief);
+  if (!checked.ok) return checked;
   const existing = await findMyBrandRoundByRequest(parsed.data.requestKey);
   if (existing) return { ok: true, value: existing };
   const problem = await ideasProblem();
@@ -200,14 +244,14 @@ async function logoRef(assetId: string, image: ImageModel): Promise<LogoRef | st
   const file = asset ? await getMyBrandAssetFile(asset.id) : null;
   if (!asset || !file || asset.kind !== "logo") return NOT_FOUND;
   const logo = { mimeType: file.mimeType, data: file.data };
-  if (asset.origin === "uploaded") {
-    // The brief adds what they sell and how it should feel; the logo's words are only what the owner typed
-    const [business, state] = await Promise.all([getMyBusiness(), getMyBrandState()]);
-    const brief = { ...briefDefaults(business?.profile ?? null, state?.brief ?? null), tagline: "" };
-    return { id: null, concept: null, brief, logoId: asset.id, logo, design: asset.design, words: asset.words ?? "" };
+  if (asset.simulated && !image.simulated) return PRACTICE_FILE;
+  if (!asset.conceptId) {
+    // The owner's own logo, uploaded or edited: the brief adds what they sell and the feel; its words are only what the owner typed
+    const brief = await savedBrief();
+    if (!brief) return NOT_FOUND;
+    return { id: null, concept: null, brief: { ...brief, tagline: "" }, logoId: asset.id, logo, design: asset.design, words: asset.words ?? "" };
   }
   if (!asset.concept || !asset.brief) return NOT_FOUND;
-  if (asset.simulated && !image.simulated) return PRACTICE_FILE;
   if (asset.roundSimulated && !image.simulated) return PRACTICE_IDEAS;
   // Versions, pictures and further changes start from the logo as drawn
   return { id: asset.conceptId, ...applyDesign(asset.concept, asset.brief, asset.design), logoId: asset.id, logo, design: asset.design };
@@ -219,6 +263,7 @@ const refineSchema = z.union([
   z.object({ assetId: id, requestKey: z.uuid(), refinement: refinementSchema }),
 ]);
 
+// Every change is a new file; the logo it starts from never changes
 export async function refineLogoAction(input: unknown): Promise<ActionResult<string>> {
   const parsed = refineSchema.safeParse(input);
   if (!parsed.success) {
@@ -226,17 +271,19 @@ export async function refineLogoAction(input: unknown): Promise<ActionResult<str
     return { ok: false, message: oneClick ? "That change isn’t available. Reload the page and try again." : `Describe the change in up to ${MAX_CHANGE} characters.` };
   }
   const words = "change" in parsed.data ? ownerText(parsed.data.change, MAX_CHANGE) : null;
-  if (words !== null && words.length < 3) return { ok: false, message: "Say what you’d like changed, such as “Make the letters thicker”." };
+  if (words !== null && words.length < 3) return { ok: false, message: SAY_CHANGE };
   const existing = await findMyBrandAssetByRequest(parsed.data.requestKey);
   if (existing) return { ok: true, value: existing };
   const image = imageModel();
   if (!image) return { ok: false, message: OFF };
-  const found = await logoRef(parsed.data.assetId, image);
-  if (typeof found === "string") return { ok: false, message: found };
-  if (!found.concept) return { ok: false, message: UPLOAD_UNCHANGED };
-  const logo = { ...found, concept: found.concept };
-  const plan = "refinement" in parsed.data ? planRefinement(parsed.data.refinement, logo) : null;
-  if (plan && !plan.ok) return { ok: false, message: plan.message };
+  const logo = await logoRef(parsed.data.assetId, image);
+  if (typeof logo === "string") return { ok: false, message: logo };
+  let plan: ReturnType<typeof planRefinement> | null = null;
+  if ("refinement" in parsed.data) {
+    if (!logo.concept) return { ok: false, message: UPLOAD_ONE_CLICK };
+    plan = planRefinement(parsed.data.refinement, { ...logo, concept: logo.concept });
+    if (!plan.ok) return { ok: false, message: plan.message };
+  }
   const change = plan?.ok ? plan.label : (words ?? "");
   const oneClick = plan?.ok ? { lines: plan.lines, design: plan.design } : undefined;
 
@@ -261,9 +308,12 @@ export async function chooseLogoAction(assetId: unknown): Promise<ActionResult> 
 
 async function chosenLogo(image: ImageModel): Promise<LogoRef | string> {
   const state = await getMyBrandState();
-  if (!state?.chosenLogoId) return "Choose a logo first.";
+  if (!state?.chosenLogoId) return "Choose or upload your logo first.";
   return logoRef(state.chosenLogoId, image);
 }
+
+// One job per kind, so making one slot never blocks another
+const slotSubject = (logoId: string, kinds: readonly string[]) => (kinds.length === 1 ? `${logoId}:${kinds[0]}` : logoId);
 
 // --- Versions
 
@@ -276,31 +326,13 @@ export async function makeVersionsAction(input: unknown): Promise<ActionResult<s
   if (!image) return { ok: false, message: OFF };
   const logo = await chosenLogo(image);
   if (typeof logo === "string") return { ok: false, message: logo };
+  const kinds = [...new Set(parsed.data.kinds)];
 
-  const result = await runWorkflow("brand_versions", logo.logoId, async () =>
-    makeVersions({ image, vision: getModel() }, store, {
-      logo,
-      kinds: [...new Set(parsed.data.kinds)],
-      requestKey: parsed.data.requestKey,
-      userKey: await myAiKey(),
-      now: new Date(),
-    }),
+  const result = await runWorkflow("brand_versions", slotSubject(logo.logoId, kinds), async () =>
+    makeVersions({ image, vision: getModel() }, store, { logo, kinds, requestKey: parsed.data.requestKey, userKey: await myAiKey(), now: new Date() }),
   );
   refresh();
   return batchResult(result);
-}
-
-const approveSchema = z.object({ stacked: id, profile: id, solid: id, confirmed: z.literal(true) });
-
-export async function approveVersionsAction(input: unknown): Promise<ActionResult> {
-  const parsed = approveSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, message: "First confirm that you checked the spelling and that each version matches your logo." };
-  const { stacked, profile, solid } = parsed.data;
-  if (!(await approveMyLogoVersions({ stacked, profile, solid }))) {
-    return { ok: false, message: "These versions weren’t made from your chosen logo. Reload the page and try again." };
-  }
-  refresh();
-  return { ok: true, value: null };
 }
 
 // --- Brand images
@@ -319,11 +351,40 @@ export async function makeImagesAction(input: unknown): Promise<ActionResult<str
   const logo = await chosenLogo(image);
   if (typeof logo === "string") return { ok: false, message: logo };
   const change = parsed.data.change ? ownerText(parsed.data.change, MAX_CHANGE) || null : null;
+  const kinds = [...new Set(parsed.data.kinds)];
 
-  const result = await runWorkflow("brand_images", logo.logoId, async () =>
-    makeBrandImages({ image, vision: getModel() }, store, {
+  const result = await runWorkflow("brand_images", slotSubject(logo.logoId, kinds), async () =>
+    makeBrandImages({ image, vision: getModel() }, store, { logo, kinds, change, requestKey: parsed.data.requestKey, userKey: await myAiKey(), now: new Date() }),
+  );
+  refresh();
+  return batchResult(result);
+}
+
+// --- Edits and picks for versions and brand images
+
+const editSchema = z.object({ assetId: id, requestKey: z.uuid(), change: z.string().max(MAX_CHANGE * 2) });
+const PICTURE_KINDS: readonly string[] = [...VERSION_KINDS, ...IMAGE_KINDS];
+
+// A new copy of a version or brand image, changed in the owner's words; the one it starts from is kept
+export async function editPictureAction(input: unknown): Promise<ActionResult<string>> {
+  const parsed = editSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: `Describe the change in up to ${MAX_CHANGE} characters.` };
+  const change = ownerText(parsed.data.change, MAX_CHANGE);
+  if (change.length < 3) return { ok: false, message: SAY_CHANGE };
+  const image = imageModel();
+  if (!image) return { ok: false, message: OFF };
+  const logo = await chosenLogo(image);
+  if (typeof logo === "string") return { ok: false, message: logo };
+  const asset = await getMyBrandAsset(parsed.data.assetId);
+  const file = asset ? await getMyBrandAssetFile(asset.id) : null;
+  if (!asset || !file || !PICTURE_KINDS.includes(asset.kind) || asset.sourceId !== logo.logoId) return { ok: false, message: NOT_FOUND };
+  if (asset.simulated && !image.simulated) return { ok: false, message: "This is a practice preview. Make a new one with the button above instead." };
+  const kind = asset.kind as VersionKind | BrandImageKind;
+
+  const result = await runWorkflow("brand_edit", asset.id, async () =>
+    editPicture({ image, vision: getModel() }, store, {
       logo,
-      kinds: [...new Set(parsed.data.kinds)],
+      picture: { kind, file: { mimeType: file.mimeType, data: file.data } },
       change,
       requestKey: parsed.data.requestKey,
       userKey: await myAiKey(),
@@ -331,19 +392,20 @@ export async function makeImagesAction(input: unknown): Promise<ActionResult<str
     }),
   );
   refresh();
-  return batchResult(result);
+  return result;
 }
 
-export async function pickImageAction(assetId: unknown): Promise<ActionResult> {
+// Using one version or brand image; files made from another logo are refused
+export async function pickFileAction(assetId: unknown): Promise<ActionResult> {
   const parsed = id.safeParse(assetId);
-  if (!parsed.success || !(await pickMyBrandImage(parsed.data))) return { ok: false, message: NOT_FOUND };
+  if (!parsed.success || !(await pickMyBrandFile(parsed.data))) return { ok: false, message: NOT_FOUND };
   refresh();
   return { ok: true, value: null };
 }
 
-export async function unpickImageAction(kind: unknown): Promise<ActionResult> {
-  const parsed = z.enum(IMAGE_KINDS).safeParse(kind);
-  if (!parsed.success || !(await unpickMyBrandImage(parsed.data))) return { ok: false, message: NOT_FOUND };
+export async function unpickFileAction(kind: unknown): Promise<ActionResult> {
+  const parsed = z.enum([...VERSION_KINDS, ...IMAGE_KINDS]).safeParse(kind);
+  if (!parsed.success || !(await unpickMyBrandFile(parsed.data))) return { ok: false, message: NOT_FOUND };
   refresh();
   return { ok: true, value: null };
 }
@@ -354,7 +416,7 @@ export async function clearIdeasAction(): Promise<ActionResult> {
   return { ok: true, value: null };
 }
 
-// --- An uploaded logo's colors
+// --- The owner's own logo's colors
 
 const colorsSchema = z.object({ assetId: id, hexes: z.array(z.string().regex(HEX)).max(3) });
 
@@ -363,14 +425,14 @@ export async function setLogoColorsAction(input: unknown): Promise<ActionResult>
   const parsed = colorsSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Pick up to 3 colors." };
   const hexes = [...new Set(parsed.data.hexes.map((hex) => hex.toUpperCase()))];
-  if (!(await setMyUploadedLogoColors(parsed.data.assetId, hexes.map((hex) => ({ hex, name: colorName(hex) }))))) return { ok: false, message: NOT_FOUND };
+  if (!(await setMyOwnLogoColors(parsed.data.assetId, hexes.map((hex) => ({ hex, name: colorName(hex) }))))) return { ok: false, message: NOT_FOUND };
   refresh();
   return { ok: true, value: null };
 }
 
 // --- Logo guide
 
-// One page from the approved logo, kept in Documents and replaced when saved again
+// One page from the chosen logo and picked versions, kept in Documents and replaced when saved again
 export async function saveLogoGuideAction(): Promise<ActionResult<string>> {
   const [kit, state] = await Promise.all([getMyBrand(), getMyBrandState()]);
   if (!kit || !state?.chosenLogoId) return { ok: false, message: "Choose a logo first." };

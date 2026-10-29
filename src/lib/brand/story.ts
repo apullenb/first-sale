@@ -29,7 +29,6 @@ export function storyMessages(brief: BrandBrief) {
     feel: brief.vibes,
     leaning: leaningWords(brief),
     colorsTheyLike: [...brief.colors, brief.likedColors].filter(Boolean),
-    symbolIdea: brief.symbolIdea,
   };
   return [
     { role: "system" as const, content: SYSTEM },
@@ -59,5 +58,5 @@ registerMockFixture(STORY_SCHEMA_NAME, (request) => {
     answers = JSON.parse(/<answers>\n([\s\S]*)\n<\/answers>/.exec(text)?.[1] ?? "{}");
   } catch {}
   const feel = (answers.feel ?? []).slice(0, 3).join(", ") || "just right";
-  return JSON.stringify({ picture: `${answers.name ?? "Your business"} feels ${feel}. This is a practice placeholder: connect Muse to get a brand picture written for your business.` });
+  return JSON.stringify({ picture: `${answers.name ?? "Your business"} feels ${feel}. This is a practice placeholder: connect Muse to get a brand description written for your business.` });
 });

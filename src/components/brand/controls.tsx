@@ -1,12 +1,12 @@
 "use client";
 
-import { type FormEvent, useId, useLayoutEffect, useRef, useState } from "react";
+import { type FormEvent, type ReactNode, useId, useLayoutEffect, useRef, useState } from "react";
 import type { ActionResult } from "@/app/(app)/business/actions";
-import { approveVersionsAction, drawRoundAction, makeImagesAction, makeVersionsAction, moreLikeThisAction, refineLogoAction } from "@/app/(app)/brand/actions";
+import { drawRoundAction, editPictureAction, makeImagesAction, makeVersionsAction, moreLikeThisAction, refineLogoAction } from "@/app/(app)/brand/actions";
 import { Icon } from "@/components/icons";
 import { LABEL, PickOption } from "@/components/marketing/pieces";
 import { useRequestKey, Working } from "@/components/photos/working";
-import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
+import { AI_BUTTON, ALERT, INPUT, SECONDARY } from "@/components/styles";
 import { contrast } from "@/lib/brand/colors";
 import { MAX_CHANGE } from "@/lib/brand/prompts";
 import { familyPalette, LETTERING_STYLE_KEYS, LETTERING_STYLES, type LetteringStyle, type Refinement } from "@/lib/brand/refine";
@@ -52,6 +52,56 @@ export type Intent =
   | { kind: "versions"; kinds: VersionKind[] }
   | { kind: "images"; kinds: BrandImageKind[] };
 
+// Runs one paid job. One key per intended request, kept across retries, so a retry never pays twice.
+function useBrandRun(intent: Intent, blocked?: string | null) {
+  const requestKey = useRequestKey();
+  const [pending, setPending] = useState<"first" | "drawing" | null>(null);
+  const inFlight = useRef(false);
+  const messages = useMessages();
+  const { setError, setNote } = messages;
+
+  async function run(change?: string) {
+    if (inFlight.current || blocked) return false;
+    inFlight.current = true;
+    setPending("first");
+    setError(null);
+    setNote(null);
+    try {
+      let result: ActionResult<string | null>;
+      if (intent.kind === "more") {
+        const round = await moreLikeThisAction({ conceptId: intent.conceptId, requestKey: requestKey.get() });
+        if (!round.ok) {
+          setError(round.message);
+          return false;
+        }
+        setPending("drawing");
+        result = await drawRoundAction(round.value);
+      } else if (intent.kind === "draw") {
+        result = await drawRoundAction(intent.roundId);
+      } else if (intent.kind === "versions") {
+        result = await makeVersionsAction({ requestKey: requestKey.get(), kinds: intent.kinds });
+      } else {
+        result = await makeImagesAction({ requestKey: requestKey.get(), kinds: intent.kinds, change: change?.trim() || null });
+      }
+      if (!result.ok) {
+        setError(result.message);
+        return false;
+      }
+      requestKey.clear();
+      if (result.value) setNote(result.value);
+      return true;
+    } catch {
+      setError(OFFLINE);
+      return false;
+    } finally {
+      inFlight.current = false;
+      setPending(null);
+    }
+  }
+
+  return { run, pending, requestKey, ...messages };
+}
+
 interface RunProps {
   intent: Intent;
   label: string;
@@ -65,46 +115,10 @@ interface RunProps {
   blocked?: string | null;
 }
 
-// Runs one paid job. One key per intended request, kept across retries, so a retry never pays twice.
 export function BrandRunButton({ intent, label, pendingLabel, working, variant = "ai", cost, withChange, blocked }: RunProps) {
   const uid = useId();
-  const requestKey = useRequestKey();
-  const [pending, setPending] = useState<"first" | "drawing" | null>(null);
   const [change, setChange] = useState("");
-  const inFlight = useRef(false);
-  const { error, setError, note, setNote } = useMessages();
-
-  async function run() {
-    if (inFlight.current || blocked) return;
-    inFlight.current = true;
-    setPending("first");
-    setError(null);
-    setNote(null);
-    try {
-      let result: ActionResult<string | null>;
-      if (intent.kind === "more") {
-        const round = await moreLikeThisAction({ conceptId: intent.conceptId, requestKey: requestKey.get() });
-        if (!round.ok) return setError(round.message);
-        setPending("drawing");
-        result = await drawRoundAction(round.value);
-      } else if (intent.kind === "draw") {
-        result = await drawRoundAction(intent.roundId);
-      } else if (intent.kind === "versions") {
-        result = await makeVersionsAction({ requestKey: requestKey.get(), kinds: intent.kinds });
-      } else {
-        result = await makeImagesAction({ requestKey: requestKey.get(), kinds: intent.kinds, change: change.trim() || null });
-      }
-      if (!result.ok) return setError(result.message);
-      requestKey.clear();
-      setChange("");
-      if (result.value) setNote(result.value);
-    } catch {
-      setError(OFFLINE);
-    } finally {
-      inFlight.current = false;
-      setPending(null);
-    }
-  }
+  const { run, pending, requestKey, error, note } = useBrandRun(intent, blocked);
 
   return (
     <div className="flex flex-col items-start gap-2">
@@ -127,7 +141,7 @@ export function BrandRunButton({ intent, label, pendingLabel, working, variant =
           />
         </div>
       ) : null}
-      <button type="button" onClick={run} disabled={pending !== null || Boolean(blocked)} className={variant === "ai" ? AI_BUTTON : SECONDARY}>
+      <button type="button" onClick={async () => (await run(change)) && setChange("")} disabled={pending !== null || Boolean(blocked)} className={variant === "ai" ? AI_BUTTON : SECONDARY}>
         <Icon name={variant === "ai" ? "sparkles" : "refresh"} size="sm" />
         {pending ? pendingLabel : label}
       </button>
@@ -135,6 +149,151 @@ export function BrandRunButton({ intent, label, pendingLabel, working, variant =
       {blocked ? <p className="text-sm text-muted">{blocked}</p> : null}
       <Working label={pending === "drawing" ? "Drawing the new ideas and checking their spelling… this can take two or three minutes" : working} active={pending !== null} />
       <Messages error={error} note={note} />
+    </div>
+  );
+}
+
+interface PlusProps {
+  intent: Extract<Intent, { kind: "versions" | "images" }>;
+  // "Make the stacked version"
+  label: string;
+  // A gray outline of what goes here
+  sketch: ReactNode;
+  // CSS aspect ratio of the placeholder, such as "1 / 1"
+  ratio: string;
+  working: string;
+  cost: string;
+  blocked?: string | null;
+}
+
+// An empty slot: a soft gray placeholder with a "+" that makes this one file
+export function PlusTile({ intent, label, sketch, ratio, working, cost, blocked }: PlusProps) {
+  const { run, pending, error, note } = useBrandRun(intent, blocked);
+  const busy = pending !== null;
+  return (
+    <div className="flex flex-col gap-2">
+      <button
+        type="button"
+        onClick={() => run()}
+        disabled={busy || Boolean(blocked)}
+        aria-label={busy ? `${label}: working` : label}
+        className="group/plus relative grid w-full place-items-center overflow-hidden rounded-xl border-2 border-dashed border-line-strong bg-wash text-faint transition hover:border-accent hover:bg-accent-tint/40 disabled:cursor-not-allowed disabled:hover:border-line-strong disabled:hover:bg-wash"
+        style={{ aspectRatio: ratio }}
+      >
+        <span aria-hidden="true" className="absolute inset-0 grid place-items-center p-[12%] opacity-60">
+          {sketch}
+        </span>
+        <span
+          aria-hidden="true"
+          className={`relative grid size-14 place-items-center rounded-full border border-line bg-surface shadow-card transition ${busy ? "" : "text-accent group-hover/plus:scale-105"}`}
+        >
+          {busy ? <span className="size-6 rounded-full border-2 border-accent-tint border-t-accent motion-safe:animate-spin" /> : <Icon name="plus" size="lg" strokeWidth={2.4} />}
+        </span>
+      </button>
+      <p className="text-sm text-muted">{blocked ?? cost}</p>
+      <Working label={working} active={busy} />
+      <Messages error={error} note={note} />
+    </div>
+  );
+}
+
+interface EditProps {
+  // A logo is changed with refineLogoAction; a version or brand image with editPictureAction
+  target: { kind: "logo" | "picture"; assetId: string };
+  label?: string;
+  cost: string;
+  working: string;
+  // Said once the new file is made
+  done: string;
+}
+
+// "Edit": asks what to change, then makes a new file from the owner's words and keeps this one
+export function EditPrompt({ target, label = "Edit", cost, working, done }: EditProps) {
+  const uid = useId();
+  const requestKey = useRequestKey();
+  const [open, setOpen] = useState(false);
+  const [change, setChange] = useState("");
+  const [pending, setPending] = useState(false);
+  const inFlight = useRef(false);
+  const { error, setError, note: made, setNote: setMade } = useMessages();
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (inFlight.current) return;
+    if (change.trim().length < 3) return setError("Say what you’d like changed, such as “Make the letters thicker”.");
+    inFlight.current = true;
+    setPending(true);
+    setError(null);
+    setMade(null);
+    try {
+      const input = { assetId: target.assetId, requestKey: requestKey.get(), change };
+      const result = target.kind === "logo" ? await refineLogoAction(input) : await editPictureAction(input);
+      if (!result.ok) return setError(result.message);
+      requestKey.clear();
+      setChange("");
+      setOpen(false);
+      setMade(done);
+    } catch {
+      setError(OFFLINE);
+    } finally {
+      inFlight.current = false;
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className={`flex flex-col items-start gap-2 ${open || made || error ? "w-full basis-full" : ""}`}>
+      {open ? (
+        <form onSubmit={submit} className="flex w-full flex-col gap-2 rounded-xl border border-line bg-soft p-3.5">
+          <label htmlFor={`${uid}-change`} className="font-semibold">
+            What would you like to change?
+          </label>
+          <textarea
+            id={`${uid}-change`}
+            value={change}
+            rows={2}
+            maxLength={MAX_CHANGE}
+            autoFocus
+            placeholder="Such as “Make the letters thicker” or “Use a warmer green”"
+            onChange={(event) => {
+              setChange(event.target.value);
+              requestKey.clear();
+              setError(null);
+            }}
+            className={`${INPUT} min-h-20`}
+          />
+          <p className="text-sm text-muted">A new picture is made from your words. This one is kept, so you can pick either. {cost}</p>
+          <div className="flex flex-wrap gap-2">
+            <button type="submit" disabled={pending} className={AI_BUTTON}>
+              <Icon name="sparkles" size="sm" />
+              {pending ? "Making the change…" : "Make this change"}
+            </button>
+            <button type="button" onClick={() => setOpen(false)} disabled={pending} className={SECONDARY}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(true);
+            setMade(null);
+          }}
+          className={SECONDARY}
+        >
+          <Icon name="pencil" size="sm" />
+          {label}
+        </button>
+      )}
+      <Working label={working} active={pending} />
+      {made ? (
+        <p role="status" className="flex items-start gap-2 text-[15px] font-semibold text-done">
+          <Icon name="check" size="sm" strokeWidth={2.4} className="mt-0.5" />
+          {made}
+        </p>
+      ) : null}
+      <Messages error={error} note={null} />
     </div>
   );
 }
@@ -165,7 +324,7 @@ interface RefineProps {
   pickedFamilies: ColorFamily[];
 }
 
-// One-click changes, written by code, and a change in the owner's own words. Each makes one new picture and keeps this one.
+// One-click changes, written by code. Each makes one new picture and keeps this one.
 export function RefineLogo({ assetId, cost, current, ownerTagline, pickedFamilies }: RefineProps) {
   const uid = useId();
   const requestKey = useRequestKey();
@@ -173,7 +332,6 @@ export function RefineLogo({ assetId, cost, current, ownerTagline, pickedFamilie
   const lastIntent = useRef<string | null>(null);
   const inFlight = useRef(false);
   const [pending, setPending] = useState(false);
-  const [change, setChange] = useState("");
   const [family, setFamily] = useState<ColorFamily | "custom" | null>(null);
   const [hexes, setHexes] = useState(() => current.palette.map((color) => color.hex.toUpperCase()));
   const [style, setStyle] = useState<LetteringStyle | null>(null);
@@ -182,7 +340,7 @@ export function RefineLogo({ assetId, cost, current, ownerTagline, pickedFamilie
   const families = [...pickedFamilies, ...(Object.keys(COLOR_FAMILIES) as ColorFamily[]).filter((name) => !pickedFamilies.includes(name))];
   const lightCustom = family === "custom" && Math.max(...hexes.map((hex) => contrast(hex, "#ffffff"))) < 3;
 
-  async function send(intent: { change: string } | { refinement: Refinement }) {
+  async function send(intent: { refinement: Refinement }) {
     if (inFlight.current) return;
     const signature = JSON.stringify(intent);
     if (signature !== lastIntent.current) {
@@ -198,7 +356,6 @@ export function RefineLogo({ assetId, cost, current, ownerTagline, pickedFamilie
       if (!result.ok) return setError(result.message);
       requestKey.clear();
       lastIntent.current = null;
-      if ("change" in intent) setChange("");
       setNote("Done. The new logo is shown under this idea, and this one is kept.");
     } catch {
       setError(OFFLINE);
@@ -206,12 +363,6 @@ export function RefineLogo({ assetId, cost, current, ownerTagline, pickedFamilie
       inFlight.current = false;
       setPending(false);
     }
-  }
-
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (change.trim().length < 3) return setError("Say what you’d like changed, such as “Make the letters thicker”.");
-    return send({ change });
   }
 
   return (
@@ -324,65 +475,7 @@ export function RefineLogo({ assetId, cost, current, ownerTagline, pickedFamilie
         </div>
       </div>
 
-      <form onSubmit={submit} className={PART}>
-        <label htmlFor={`${uid}-change`} className={LABEL}>
-          Something else
-        </label>
-        <textarea
-          id={`${uid}-change`}
-          value={change}
-          rows={2}
-          maxLength={MAX_CHANGE}
-          placeholder="Such as “Make the wheat stalk smaller” or “More space between the letters”"
-          onChange={(event) => {
-            setChange(event.target.value);
-            setError(null);
-          }}
-          className={`${INPUT} min-h-20`}
-        />
-        <button type="submit" disabled={pending} className={`${SECONDARY} w-fit`}>
-          {pending ? "Changing…" : "Make this change"}
-        </button>
-      </form>
       <Working label="Redrawing your logo and checking the spelling… this can take a minute or two" active={pending} />
-      <Messages error={error} note={note} />
-    </div>
-  );
-}
-
-export function ApproveVersions({ ids }: { ids: Record<VersionKind, string> }) {
-  const uid = useId();
-  const [confirmed, setConfirmed] = useState(false);
-  const [pending, setPending] = useState(false);
-  const { error, setError, note } = useMessages();
-
-  async function approve() {
-    if (!confirmed) return setError("First confirm that you checked the spelling and that each version matches your logo.");
-    setPending(true);
-    setError(null);
-    try {
-      const result = await approveVersionsAction({ ...ids, confirmed: true });
-      if (!result.ok) setError(result.message);
-    } catch {
-      setError(OFFLINE);
-    } finally {
-      setPending(false);
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5 shadow-card">
-      <PickOption
-        id={`${uid}-confirm`}
-        type="checkbox"
-        checked={confirmed}
-        onChange={(event) => setConfirmed(event.target.checked)}
-        label="I checked the spelling myself, and each version matches my logo."
-      />
-      <button type="button" onClick={approve} disabled={pending} className={`${PRIMARY} w-fit`}>
-        <Icon name="check" size="sm" />
-        {pending ? "Approving…" : "Approve these versions"}
-      </button>
       <Messages error={error} note={note} />
     </div>
   );

@@ -84,7 +84,7 @@ export function LogoColors({ assetId, src, saved }: { assetId: string; src: stri
   return (
     <div className="flex flex-col gap-4">
       <p className="text-[15px] text-rule">
-        First Sale didn’t draw this logo, so it doesn’t know its colors. Pick up to {MAX}. They’re used for your one-color files, brand pictures, logo guide and website.
+        First Sale didn’t draw this logo, so it doesn’t know its colors. Pick up to {MAX}. They’re used for your one-color files, brand images, logo guide and website.
       </p>
       <div className="flex flex-col gap-2">
         <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
