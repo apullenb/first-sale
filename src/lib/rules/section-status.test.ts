@@ -9,6 +9,7 @@ const facts = (overrides: Partial<JourneyFacts> = {}): JourneyFacts => ({
   business: true,
   research: "current",
   structureChosen: true,
+  structureStep: { left: 0, minutes: 0 },
   plan: { exists: true, proposal: false, ready: 0, left: 0, minutes: 0, waiting: 0 },
   libraryToCheck: 0,
   logoChosen: false,
@@ -57,6 +58,12 @@ describe("sidebarStatus", () => {
     expect(sidebarStatus(all)["/social"].state).toBe("done");
     const had = facts({ socialPlatforms: ["instagram", "facebook"], socialHave: ["facebook"], marks: new Set(["social:instagram"]) });
     expect(sidebarStatus(had)["/social"].state).toBe("done");
+  });
+
+  it("counts the plan's structure step under Business structure until one is chosen", () => {
+    const status = sidebarStatus(facts({ structureChosen: false, structureStep: { left: 1, minutes: 20 } }));
+    expect(status["/structure"]).toEqual({ state: "todo", count: 1, minutes: 20 });
+    expect(sidebarStatus(facts({ structureStep: { left: 1, minutes: 20 } }))["/structure"]).toEqual({ state: "done", count: 0, minutes: 0 });
   });
 
   it("leaves a section to do when it has no known steps", () => {

@@ -23,6 +23,7 @@ import { formatMinutes, remainingWork } from "@/lib/rules/progress";
 import { sectionMetadata } from "@/lib/sections";
 import { replanAction } from "../requirements/actions";
 import { savePlanPdfAction } from "./actions";
+import { choosesStructure } from "@/lib/rules/plan";
 
 export const metadata = sectionMetadata("/checklist");
 
@@ -33,11 +34,11 @@ export default function ChecklistPage() {
         kicker={
           <span className="inline-flex items-center gap-2">
             <Icon name="checklist" size="sm" />
-            Step 4 of 5
+            Start your business · Step 4
           </span>
         }
-        title="Your startup plan"
-        lead="What to do next, what can happen at the same time, and what it costs, from your researched requirements."
+        title="Licenses and registrations"
+        lead="What to file next, what can happen at the same time, and what it costs, from the regulations that apply to you."
       />
       <Suspense fallback={<p className="text-muted">Loading your plan…</p>}>
         <Plan />
@@ -62,8 +63,11 @@ async function Plan() {
   }
 
   const states = stepStates([...plan.steps, ...plan.retired]);
-  const doneCount = plan.steps.filter((step) => step.status === "done").length;
-  const work = remainingWork(plan.steps);
+  // Choosing a structure is step 3; it still orders the rest, but isn't listed here
+  const listed = plan.steps.filter((step) => !choosesStructure(step));
+  const structureStep = plan.steps.find((step) => choosesStructure(step) && step.status !== "done") ?? null;
+  const doneCount = listed.filter((step) => step.status === "done").length;
+  const work = remainingWork(listed);
   // The steps themselves say whether they came from practice mode; the latest check may not have been applied
   const practice = plan.steps.some((step) => step.simulated);
   const where = business.profile ? placeOf(business.profile) : null;
@@ -79,7 +83,18 @@ async function Plan() {
       formKey: form?.key ?? null,
     };
   });
-  const actions = nextActions(actionSteps);
+  const all = nextActions(actionSteps);
+  const isListed = (step: { id: string }) => listed.some((each) => each.id === step.id);
+  const actions: typeof all = {
+    now: all.now.filter(isListed),
+    decide: all.decide.filter(isListed),
+    submitted: all.submitted.filter(isListed),
+    waiting: all.waiting.filter((each) => isListed(each.step)),
+    later: all.later.filter(isListed),
+    optional: all.optional.filter(isListed),
+    done: all.done.filter(isListed),
+    first: all.first && isListed(all.first) ? all.first : null,
+  };
   const costs = planCosts(actionSteps);
   const decision = business.profile ? structureOf(business.profile, details).structure : null;
   // Research saved before decisions were recorded (no profile) can't say what changed
@@ -137,7 +152,7 @@ async function Plan() {
         <>
           <div className="-mt-2 flex flex-wrap items-center gap-2">
             <Chip tone="done" icon="check">
-              {doneCount} of {plan.steps.length} done
+              {doneCount} of {listed.length} done
             </Chip>
             {work.left.length ? (
               <span className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-[13.5px] font-semibold leading-tight text-rule">
@@ -152,12 +167,20 @@ async function Plan() {
             ) : null}
           </div>
           <div aria-hidden="true" className="-mt-2 h-1.5 overflow-hidden rounded-full bg-wash">
-            <div className="h-full rounded-full bg-accent" style={{ width: `${Math.round((doneCount / plan.steps.length) * 100)}%` }} />
+            <div className="h-full rounded-full bg-accent" style={{ width: `${listed.length ? Math.round((doneCount / listed.length) * 100) : 0}%` }} />
           </div>
 
-          {actions.first ? (
+          {structureStep && all.first?.id === structureStep.id ? (
+            <Card title="Choose your business structure first" icon="scale" id="structure-first-heading">
+              <p className="text-muted">Some of these steps depend on how your business is set up. Compare your options and record your choice in step 3.</p>
+              <Link href="/structure" className={PRIMARY_LINK}>
+                Go to Business structure
+                <Icon name="arrow" size="sm" />
+              </Link>
+            </Card>
+          ) : actions.first ? (
             <NextStep step={plan.steps.find((step) => step.id === actions.first!.id)!} parallel={Math.max(0, actions.now.length - 1)} />
-          ) : doneCount === plan.steps.length ? (
+          ) : doneCount === listed.length ? (
             <section aria-label="Plan finished" className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-lift">
               <span className="grid size-11 shrink-0 place-items-center rounded-full border-[1.5px] border-done/25 bg-done-tint text-done">
                 <PenCheck size={26} />
@@ -169,9 +192,9 @@ async function Plan() {
           <NextActionGroups actions={{ ...actions, ...byId(plan.steps, actions) }} />
           <PlanCosts costs={costs} />
 
-          <Fold title={`All steps in order (${plan.steps.length})`} summary="Every step, numbered in the order they come" icon="list">
+          <Fold title={`All steps in order (${listed.length})`} summary="Every step, numbered in the order they come" icon="list">
             <ol className="grid gap-2.5">
-              {plan.steps.map((step, index) => {
+              {listed.map((step, index) => {
                 const state = states.get(step.key);
                 return (
                   <StepRow

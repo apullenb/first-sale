@@ -21,6 +21,7 @@ import { type JourneyInput, journeyStages, nextMove } from "@/lib/rules/journey"
 import { nextActions, planCosts } from "@/lib/rules/next-action";
 import { minutesByTopic } from "@/lib/rules/pace";
 import { budgetCapCents, nextStepAfter, remainingWork, spentCents } from "@/lib/rules/progress";
+import { choosesStructure } from "@/lib/rules/plan";
 
 export default function Today() {
   return (
@@ -85,7 +86,7 @@ async function Overview() {
       steps: priced.length,
       proposal: Boolean(plan?.proposal),
       beforeSelling,
-      first: first ? { id: first.id, title: first.title, later: first.timing === "later", structure: first.topic === "structure" } : null,
+      first: first ? { id: first.id, title: first.title, later: first.timing === "later", structure: choosesStructure(first) } : null,
     },
     documents: { total: documents.length, waiting: new Set([...outdated, ...toCheck].map((doc) => doc.id)).size },
   };

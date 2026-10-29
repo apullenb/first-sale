@@ -18,7 +18,7 @@ import {
   type NewDocument,
   updateDocumentForOwner,
 } from "./documents";
-import { getPlanForOwner, getStepForOwner, replanForOwner, reviewPlanForOwner, setStepStatusForOwner } from "./plan";
+import { completeStructureStepsForOwner, getPlanForOwner, getStepForOwner, replanForOwner, reviewPlanForOwner, setStepStatusForOwner } from "./plan";
 import { getResearchForOwner, type ResearchSnapshot, saveResearchForOwner } from "./research";
 import {
   getHostConnectionForOwner,
@@ -143,6 +143,11 @@ export async function getMyPlan() {
 export async function reviewMyPlan(input: { checkedAt: Date; acceptedKeys: readonly string[] }) {
   const user = await getCurrentUser();
   return reviewPlanForOwner(getDb(), user.id, input);
+}
+
+export async function completeMyStructureSteps() {
+  const user = await getCurrentUser();
+  return completeStructureStepsForOwner(getDb(), user.id);
 }
 
 export async function getMyStep(stepId: string) {

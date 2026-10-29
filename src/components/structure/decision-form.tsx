@@ -158,7 +158,7 @@ export function DecisionForm({
           <Card title="What recording does" icon="check" id={`${uid}-does`}>
             <ul className="flex flex-col gap-2 text-[15px]">
               {[
-                "Saves it as your decision. Your startup plan’s structure step and your forms can use it.",
+                "Saves it as your decision. Your licenses, registrations and forms use it.",
                 "Files nothing. Forming a company or registering a name is a step you take yourself.",
                 "Keeps a dated record, with these answers, in your history.",
               ].map((line) => (
@@ -209,7 +209,7 @@ export function DecisionForm({
             <p className="text-muted">None of your steps depend on this choice.</p>
           )}
           {changes ? (
-            <p className="text-sm text-muted">Your startup plan shows these for you to review before anything changes. Steps you’ve finished stay finished.</p>
+            <p className="text-sm text-muted">Licenses and registrations shows these for you to review before anything changes. Steps you’ve finished stay finished.</p>
           ) : null}
         </Card>
 

@@ -116,7 +116,7 @@ export function StepBoard({ actions, costs, skip = null }: Props) {
           {costs.unknown.length ? ` (${costs.unknown.length} not confirmed yet)` : ""}
         </p>
         <Link href="/checklist" className={`flex min-h-11 items-center ${TEXT_LINK}`}>
-          See your full startup plan
+          See all your licenses and registrations
         </Link>
       </div>
     </div>

@@ -1,11 +1,11 @@
 import "server-only";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, ne } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { businesses, checklistTasks, requirements, researchSnapshots, sources } from "@/db/schema";
 import type { BusinessProfile, TaskStatus } from "@/lib/domain";
 import { classify, placeOf, structureOf } from "@/lib/research/applicability";
 import { orderTasks } from "@/lib/rules/checklist";
-import { applyPlan, buildPlan, type CurrentTask, diffPlan, PLAN_DEFAULTS, type PlanChange, type PlanTaskDraft, slugKey } from "@/lib/rules/plan";
+import { applyPlan, buildPlan, choosesStructure, type CurrentTask, diffPlan, PLAN_DEFAULTS, type PlanChange, type PlanTaskDraft, slugKey } from "@/lib/rules/plan";
 
 // Owner-scoped like businesses.ts: the business is always looked up by its owner.
 
@@ -239,6 +239,22 @@ export async function setStepStatusForOwner(
       .returning();
     return updated.length > 0;
   });
+}
+
+// Choosing a structure finishes the plan's step for choosing one, so it isn't done twice. Filings like forming an LLC stay open.
+export async function completeStructureStepsForOwner(db: Db, ownerId: string, now = new Date()): Promise<void> {
+  const businessId = await businessIdFor(db, ownerId);
+  if (!businessId) return;
+  const open = await db
+    .select({ id: checklistTasks.id, topic: checklistTasks.topic, forStructures: checklistTasks.forStructures })
+    .from(checklistTasks)
+    .where(and(eq(checklistTasks.businessId, businessId), eq(checklistTasks.topic, "structure"), eq(checklistTasks.retired, false), ne(checklistTasks.status, "done")));
+  const ids = open.filter(choosesStructure).map((step) => step.id);
+  if (!ids.length) return;
+  await db
+    .update(checklistTasks)
+    .set({ status: "done", evidenceNote: "Chosen on Business structure", completedAt: now, updatedAt: now })
+    .where(and(eq(checklistTasks.businessId, businessId), inArray(checklistTasks.id, ids)));
 }
 
 export async function getStepForOwner(db: Db, ownerId: string, stepId: string): Promise<{ step: PlanStep; all: PlanStep[] } | null> {

@@ -21,7 +21,7 @@ const MINUTE = 60_000;
 export const WORKFLOWS = {
   research: {
     title: "Find my requirements",
-    summary: "Searches official government sites for your place, reads them, and builds your startup plan.",
+    summary: "Searches official government sites for your place, reads them, and lists the licenses and registrations you need.",
     actor: "ai",
     usesAi: true,
     timeLimitMs: 6 * MINUTE,

@@ -41,7 +41,7 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
         <PageHead
           kicker="Start your business · Step 1"
           title="Your business"
-          lead="Answer a few quick questions, mostly by clicking. Your answers shape your requirements, your structure and your startup plan."
+          lead="Answer a few quick questions, mostly by clicking. Your answers shape the regulations that apply, your business structure, and the licenses and registrations you need."
         />
         <Card title="Five short chapters" icon="checklist">
           <ul aria-label="Chapters" className="flex flex-wrap gap-2">
@@ -77,7 +77,7 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
       <div className="flex flex-col gap-2">
         <p className={EYEBROW}>Start your business · Step 1</p>
         <BusinessHeading focusOnMount={welcome === "1"}>{displayName(current.profile)}</BusinessHeading>
-        <p className={LEAD}>Your answers shape your requirements, your structure and your startup plan.</p>
+        <p className={LEAD}>Your answers shape the regulations that apply, your business structure, and the licenses and registrations you need.</p>
       </div>
 
       {welcoming && current.profile ? <Welcome profile={current.profile} /> : null}
@@ -238,7 +238,7 @@ function Welcome({ profile }: { profile: BusinessProfile }) {
   const items = [
     `Find your requirements for ${place} on official government sites`,
     "Compare business structures, explained for your answers",
-    "Get a startup plan with your steps in the right order",
+    "Get your licenses and registrations in the right order",
     "Get help understanding and filling in your forms",
   ];
 

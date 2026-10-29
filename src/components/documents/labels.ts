@@ -7,7 +7,7 @@ export const GENERATED_LABELS: Record<GeneratedKind, string> = {
   business_plan: "Business plan",
   filled_form: "Filled copy of a form",
   answer_sheet: "Answer sheet",
-  startup_plan: "Startup plan",
+  startup_plan: "Licenses and registrations",
   website_copy: "Website words",
   answer_guide: "Answer guide",
   owners_agreement: "Owners’ agreement",

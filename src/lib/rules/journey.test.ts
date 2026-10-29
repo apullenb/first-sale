@@ -97,6 +97,12 @@ describe("journeyStages", () => {
     expect(journeyStages({ ...undecided, plan: { ...base.plan, first: other } }).map((stage) => stage.state).slice(2, 4)).toEqual(["todo", "now"]);
   });
 
+  it("sends the structure step to Business structure, not back into the plan", () => {
+    const choose = { id: "s1", title: "Choose a business structure", later: false, structure: true };
+    const move = nextMove({ ...base, structure: { structure: null, from: null }, plan: { ...base.plan, first: choose } });
+    expect(move).toMatchObject({ href: "/structure", stepId: null, stage: "/structure", action: "Compare your options" });
+  });
+
   it("says when research found no steps", () => {
     expect(journeyStages({ ...base, plan: { ...base.plan, steps: 0, first: null } })[3].detail).toBe("Your last check didn’t turn up any steps.");
   });

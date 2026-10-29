@@ -203,6 +203,11 @@ function latest(dates: readonly string[]): string | null {
 }
 
 // Steps that wait on this one
+// The step that chooses a structure, done on Business structure. Filings for one structure, like forming an LLC, are paperwork.
+export function choosesStructure(step: { topic?: string; forStructures?: readonly string[] | null }): boolean {
+  return step.topic === "structure" && !step.forStructures?.length;
+}
+
 export function followingSteps<T extends { key: string; prerequisites: readonly string[] }>(tasks: readonly T[], key: string): T[] {
   return tasks.filter((task) => task.prerequisites.includes(key));
 }

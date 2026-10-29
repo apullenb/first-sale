@@ -102,12 +102,12 @@ export function nextMove(input: JourneyInput): NextMove {
     return move("Update your business answers", "Some questions changed since you answered them. Your answers decide what applies to you.", "/business/edit", "Update your answers");
   }
   if (plan.proposal) {
-    return move("Review the changes to your startup plan", "Some steps changed. Nothing in your plan changes until you OK it.", "/checklist", "Review the changes");
+    return move("Review the changes to your licenses and registrations", "Some steps changed. Nothing in your plan changes until you OK it.", "/checklist", "Review the changes");
   }
   if (!input.researched) {
     return move(
       "Find out what you need to open",
-      "First Sale checks official government sites for what applies to you, then puts it in order as your startup plan.",
+      "First Sale checks official government sites for what applies to you, then puts what you need to file in order.",
       "/requirements",
       "Find my requirements",
     );
@@ -121,8 +121,9 @@ export function nextMove(input: JourneyInput): NextMove {
       : plan.beforeSelling.done === plan.beforeSelling.total
         ? "Everything you need before your first sale is done. This one comes later."
         : "Your other steps are waiting to hear back or on another step. You can start this one, for later, in the meantime.";
-    const stage = plan.first.structure ? "/structure" : "/checklist";
-    return { title: plan.first.title, why, href: `/checklist/${plan.first.id}`, action: "Open this step", stepId: plan.first.id, stage };
+    // Choosing a structure happens on its own page, step 3
+    if (plan.first.structure) return { title: plan.first.title, why, href: "/structure", action: "Compare your options", stepId: null, stage: "/structure" };
+    return { title: plan.first.title, why, href: `/checklist/${plan.first.id}`, action: "Open this step", stepId: plan.first.id, stage: "/checklist" };
   }
   if (!plan.steps) {
     return move("Check your requirements again", "Your last check didn’t turn up any steps.", "/requirements", "Check again");

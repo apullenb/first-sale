@@ -190,7 +190,7 @@ export function factsMessage(inputs: InsightInputs, feedback: InsightFeedback, t
           // Ids stay out: the model names a step by its key
           steps: inputs.steps.map(({ key, title, status, timing, optional }) => ({ key, title, status, timing, optional })),
         }
-      : "No startup plan yet",
+      : "No licenses and registrations listed yet",
     businessPlanAnswers: inputs.planAnswers.length ? inputs.planAnswers : "No business plan yet",
     brand: inputs.brand ?? "Not started",
     website: inputs.website ?? "Not started",

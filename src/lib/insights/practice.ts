@@ -62,7 +62,7 @@ export function samplesFromMessage(message: string): InsightsReply {
     );
   } else if (plan && plan.stepsBeforeSellingDone < plan.stepsBeforeSelling) {
     watch.push(
-      item("Keep your startup plan moving", "Small steps add up. Your plan shows the one to do next, and what can happen at the same time.", "Open your startup plan and pick the next step.", "checklist"),
+      item("Keep your next steps moving", "Small steps add up. Your list shows the one to do next, and what can happen at the same time.", "Open your list of steps and pick the next one.", "checklist"),
     );
   }
   if (unsure) {

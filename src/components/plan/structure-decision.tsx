@@ -23,7 +23,7 @@ export function StructureDecision({ current }: { current: string | null }) {
         <p className="text-rule">You haven’t recorded a structure yet.</p>
       )}
       <p className="text-[15px] text-muted">
-        Structure and path compares the options for your business, with their sources, and records your decision after you confirm it.
+        Business structure compares the options for your business, with their sources, and records your decision after you confirm it.
       </p>
       <Link href="/structure" className={saved ? SECONDARY_LINK : PRIMARY_LINK}>
         Compare your options and record your decision

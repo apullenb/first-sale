@@ -35,11 +35,11 @@ export default function RequirementsPage() {
         kicker={
           <span className="inline-flex items-center gap-2">
             <Icon name="search" size="sm" />
-            Step 2 of 5
+            Start your business · Step 2
           </span>
         }
-        title="What you need to open"
-        lead="What applies to your business, where it comes from, and what’s still unknown. Nothing here is a guess dressed up as a rule."
+        title="Regulations"
+        lead="The rules that apply to your business, where each comes from, and what’s still unknown. Nothing here is a guess dressed up as a rule."
       />
       <Suspense fallback={<p className="text-muted">Loading your requirements…</p>}>
         <Requirements />
@@ -238,7 +238,7 @@ function Results({
         </ul>
         {fitting.length ? (
           <Link href="/checklist" className={PRIMARY_LINK}>
-            See your startup plan
+            See your licenses and registrations
             <Icon name="arrow" size="sm" />
           </Link>
         ) : null}

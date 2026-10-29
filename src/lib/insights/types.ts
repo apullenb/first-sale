@@ -62,7 +62,7 @@ export type FactArea = (typeof FACT_AREAS)[number];
 
 export const FACT_AREA_LABELS: Record<FactArea, string> = {
   answers: "your business answers",
-  plan: "your requirements and startup plan",
+  plan: "your regulations, licenses and registrations",
   decisions: "your structure decisions",
   business_plan: "your business plan",
   brand: "your branding",

@@ -60,7 +60,7 @@ export async function savePlanPdfAction(): Promise<ActionResult<string>> {
   const now = new Date();
   const bytes = await startupPlanPdf({ businessName: displayName(business.profile), steps: plan.steps, now });
   const created = await createMyDocument({
-    title: `Startup plan${plan.steps.some((step) => step.simulated) ? " (practice)" : ""}, ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
+    title: `Licenses and registrations${plan.steps.some((step) => step.simulated) ? " (practice)" : ""}, ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
     origin: "generated",
     generatedKind: "startup_plan",
     mimeType: "application/pdf",

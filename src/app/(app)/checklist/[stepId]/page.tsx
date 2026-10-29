@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ActorChip } from "@/components/actor-chip";
 import { AgreementCard } from "@/components/documents/agreement-card";
@@ -34,10 +34,10 @@ import { LEVEL_LABELS, TOPIC_LABELS } from "@/lib/labels";
 import { jurisdictionName, placeOf, structureOf } from "@/lib/research/applicability";
 import { writtenInquiry } from "@/lib/research/inquiry";
 import { filingSteps } from "@/lib/rules/filing";
-import { followingSteps } from "@/lib/rules/plan";
+import { choosesStructure, followingSteps } from "@/lib/rules/plan";
 import { formatMinutes, nextStepAfter, stepMinutes } from "@/lib/rules/progress";
 
-export const metadata: Metadata = { title: "Startup plan step" };
+export const metadata: Metadata = { title: "Licenses and registrations step" };
 
 type Params = Promise<{ stepId: string }>;
 
@@ -46,7 +46,7 @@ export default function StepPage({ params }: { params: Params }) {
     <div className="flex max-w-4xl flex-col gap-6">
       <Link href="/checklist" className="-mb-2 inline-flex min-h-11 w-fit items-center gap-1.5 text-[15px] font-semibold text-muted hover:text-accent">
         <Icon name="back" size="sm" />
-        Step 4 · Your startup plan
+        Step 4 · Licenses and registrations
       </Link>
       <Suspense fallback={<p className="text-muted">Loading this step…</p>}>
         <StepDetail params={params} />
@@ -67,6 +67,8 @@ async function StepDetail({ params }: { params: Params }) {
   const [found, documents, business, details] = await Promise.all([getMyStep(stepId), listMyDocuments(), getMyBusiness(), getMyDetails()]);
   if (!found) notFound();
   const { step, all } = found;
+  // Choosing a structure is step 3, on its own page
+  if (choosesStructure(step) && !step.retired) redirect("/structure");
   const profile = business?.profile ?? null;
 
   const states = stepStates(all);

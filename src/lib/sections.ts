@@ -44,7 +44,7 @@ export const SECTIONS: Section[] = [
   },
   {
     href: "/requirements",
-    title: "Requirements",
+    title: "Regulations",
     group: "Start your business",
     step: 2,
     milestone: 3,
@@ -53,7 +53,7 @@ export const SECTIONS: Section[] = [
   },
   {
     href: "/structure",
-    title: "Structure and path",
+    title: "Business structure",
     group: "Start your business",
     step: 3,
     milestone: 4,
@@ -62,11 +62,11 @@ export const SECTIONS: Section[] = [
   },
   {
     href: "/checklist",
-    title: "Startup plan",
+    title: "Licenses and registrations",
     group: "Start your business",
     step: 4,
     milestone: 4,
-    summary: "Your steps in order, with who handles each one, what to gather, checked fees, and what’s still uncertain. Track what’s done.",
+    summary: "The licenses, permits and registrations to file, in order, with who handles each one, what to gather, checked fees, and what’s still uncertain. Track what’s done.",
   },
   {
     href: "/logo",

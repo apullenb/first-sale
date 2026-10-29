@@ -9,10 +9,11 @@ import { TOPIC_LABELS } from "@/lib/labels";
 import type { NextMove, Stage, StageState } from "@/lib/rules/journey";
 import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
 import { TOPIC_ICONS } from "./topic-icon";
+import { choosesStructure } from "@/lib/rules/plan";
 
-// Where "already done" lands on a step's page; choosing a structure is recorded in its progress section
-export function alreadyDoneHref(step: Pick<PlanStep, "id" | "topic">): string {
-  return `/checklist/${step.id}${step.topic === "structure" ? "#progress-heading" : "#already-done"}`;
+// Where "already done" lands on a step's page; a structure is chosen on Business structure
+export function alreadyDoneHref(step: Pick<PlanStep, "id" | "topic" | "forStructures">): string {
+  return choosesStructure(step) ? "/structure" : `/checklist/${step.id}#already-done`;
 }
 
 // The one thing to do next, from anywhere in the journey, on a ruled card

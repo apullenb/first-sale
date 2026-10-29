@@ -83,37 +83,26 @@ export function NavLinks({ activeHref, status }: { activeHref: string | null; st
         const steps = sections.filter((section) => section.step !== null);
         const others = sections.filter((section) => section.step === null);
         const open = isOpen(group);
+        const here = page?.group === group;
         const id = `nav-${group.toLowerCase().replaceAll(" ", "-")}`;
-        const body = (
-          <>
-            {steps.length ? (
-              <ol className="relative flex flex-col gap-0.5 before:absolute before:bottom-5 before:left-[25px] before:top-5 before:w-[1.5px] before:bg-white/15">
-                {steps.map((section) => (
-                  <PartItem key={section.href} section={section} active={highlighted === section.href} part={parts[section.href]} fresh={fresh.includes(section.href)} />
-                ))}
-              </ol>
-            ) : null}
-            {others.map((section) => (
-              <NavItem key={section.href} href={section.href} title={section.title} icon={ICONS[section.href] ?? "file"} active={highlighted === section.href} count={0} />
-            ))}
-          </>
-        );
         const stepHrefs = steps.map((section) => section.href);
         return (
-          <div key={group} className="flex flex-col">
+          <div key={group} className="mt-1 flex flex-col border-t border-white/10 pt-1">
             <button
               type="button"
               aria-expanded={open}
               aria-controls={id}
               onClick={() => toggle(group)}
-              className="mt-0.5 flex min-h-9 items-center gap-2 rounded-[10px] px-2.5 text-left text-[12.5px] font-bold uppercase tracking-[0.09em] text-white/60 transition hover:bg-white/[0.06] hover:text-white"
+              className={`flex min-h-9 items-center gap-3 rounded-[10px] px-2.5 py-1 text-left text-[15.5px] font-semibold transition hover:bg-white/[0.06] ${
+                here ? "text-white" : "text-white/80 hover:text-white"
+              }`}
             >
-              <Icon name={GROUP_ICONS[group]} size="xs" className="text-sky" />
+              <Icon name={GROUP_ICONS[group]} className={here ? "text-sky" : "text-white/50"} />
               <span className="flex-1">{group}</span>
               {stepHrefs.length ? (
                 <SectionMark state={status ? sectionState(parts, stepHrefs) : null} done={stepHrefs.filter((href) => parts[href]?.state === "done").length} of={stepHrefs.length} />
               ) : null}
-              <Icon name="chevron" size="xs" className={`text-white/45 transition-transform duration-300 motion-reduce:transition-none ${open ? "rotate-90" : ""}`} />
+              <Icon name="chevron" size="sm" className={`text-white/40 transition-transform duration-300 motion-reduce:transition-none ${open ? "rotate-90" : ""}`} />
             </button>
             <div
               id={id}
@@ -121,7 +110,19 @@ export function NavLinks({ activeHref, status }: { activeHref: string | null; st
               className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
             >
               <div className="-mx-1 min-h-0 overflow-hidden px-1">
-                <div className="flex flex-col gap-0.5 py-1">{body}</div>
+                {/* Steps hang from the section's icon on a thin line */}
+                <div className="ml-[19px] flex flex-col gap-0.5 border-l border-white/15 py-1 pl-2">
+                  {steps.length ? (
+                    <ol className="flex flex-col gap-0.5">
+                      {steps.map((section) => (
+                        <PartItem key={section.href} section={section} active={highlighted === section.href} part={parts[section.href]} fresh={fresh.includes(section.href)} />
+                      ))}
+                    </ol>
+                  ) : null}
+                  {others.map((section) => (
+                    <SubItem key={section.href} href={section.href} title={section.title} icon={ICONS[section.href] ?? "file"} active={highlighted === section.href} />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -238,6 +239,26 @@ function NavItem({ href, title, icon, active, count, countLabel }: { href: strin
   );
 }
 
+function SubItem({ href, title, icon, active }: { href: string; title: string; icon: IconName; active: boolean }) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={`relative grid min-h-9 grid-cols-[22px_minmax(0,1fr)] items-center gap-x-2.5 rounded-lg px-2 py-1 text-[14.5px] font-medium transition ${
+        active ? "bg-white/10 text-white" : "text-white/75 hover:bg-white/[0.06] hover:text-white"
+      }`}
+    >
+      <span className="grid place-items-center">
+        <Icon name={icon} size="sm" className={active ? "text-sky" : "text-white/45"} />
+      </span>
+      <span className="relative w-fit">
+        {title}
+        {active ? <Underline /> : null}
+      </span>
+    </Link>
+  );
+}
+
 function PartItem({ section, active, part, fresh }: { section: Section; active: boolean; part?: PartStatus; fresh: boolean }) {
   const state = part?.state ?? null;
   const marker =
@@ -249,9 +270,17 @@ function PartItem({ section, active, part, fresh }: { section: Section; active: 
         </svg>
       </span>
     ) : state === "waiting" ? (
-      <Icon name="clock" size="xs" strokeWidth={2.2} />
+      <span className="grid size-[22px] place-items-center rounded-full border-[1.5px] border-check-ring text-check-ring">
+        <Icon name="clock" size="xs" strokeWidth={2.2} />
+      </span>
     ) : (
-      section.step
+      <span
+        className={`grid size-[22px] place-items-center rounded-full border-[1.5px] text-[12px] font-bold ${
+          active ? "border-sky bg-sky text-sidebar" : "border-white/30 text-white/70"
+        }`}
+      >
+        {section.step}
+      </span>
     );
   const label = state === "done" ? "done" : state === "waiting" ? "waiting to hear back" : null;
   return (
@@ -259,31 +288,20 @@ function PartItem({ section, active, part, fresh }: { section: Section; active: 
       <Link
         href={section.href}
         aria-current={active ? "page" : undefined}
-        className={`relative grid min-h-[38px] grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-x-3 rounded-[10px] px-2.5 py-1 transition ${
+        className={`relative grid min-h-9 grid-cols-[22px_minmax(0,1fr)_auto] items-center gap-x-2.5 rounded-lg px-2 py-1 transition ${
           active ? "bg-white/10" : "hover:bg-white/[0.06]"
         }`}
       >
-        <span
-          aria-hidden="true"
-          className={`relative z-10 grid size-[26px] place-items-center rounded-full border-[1.5px] text-[13px] font-bold ${
-            state === "done"
-              ? "border-transparent bg-sidebar"
-              : state === "waiting"
-                ? "border-check-ring bg-sidebar text-check-ring"
-                : active
-                  ? "border-sky bg-sky text-sidebar"
-                  : "border-white/30 bg-sidebar text-white/70"
-          }`}
-        >
+        <span aria-hidden="true" className="grid place-items-center">
           {marker}
         </span>
         <span className="flex min-w-0 flex-col">
-          <span className={`relative w-fit font-display text-[16px] leading-tight ${active ? "text-white" : "text-white/85"}`}>
+          <span className={`relative w-fit text-[14.5px] font-medium leading-snug ${active ? "text-white" : "text-white/80"}`}>
             {section.title}
             {active ? <Underline /> : null}
             {label ? <span className="sr-only">, {label}</span> : null}
           </span>
-          {part?.count ? <span className="mt-0.5 text-[12.5px] text-white/55">~{formatMinutes(part.minutes)} of your time</span> : null}
+          {part?.count ? <span className="text-[12.5px] text-white/50">~{formatMinutes(part.minutes)} of your time</span> : null}
         </span>
         <Count
           count={part?.count ?? 0}

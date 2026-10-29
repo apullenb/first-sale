@@ -44,10 +44,10 @@ async function Structure() {
       kicker={
         <span className="inline-flex items-center gap-2">
           <Icon name="scale" size="sm" />
-          Step 3 of 5
+          Start your business · Step 3
         </span>
       }
-      title="Structure and path"
+      title="Business structure"
       lead="How your business is owned, named, taxed and licensed: four separate things, explained for your answers. You can change your mind later."
     />
   );

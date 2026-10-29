@@ -38,10 +38,10 @@ export async function startupPlanPdf(input: { businessName: string; steps: reado
     ? " Practice mode: built-in rules, not real research, suggested some of these steps."
     : "";
   return writePdf({
-    title: `Startup plan for ${input.businessName}`,
+    title: `Licenses and registrations for ${input.businessName}`,
     subtitle: `Made ${day(input.now.toISOString())} with First Sale`,
     notice: `A plan to help you get started, not legal advice. Steps marked “Still to check” weren’t confirmed on an official page.${practice}`,
     blocks,
-    footer: "First Sale startup plan",
+    footer: "First Sale licenses and registrations",
   });
 }

@@ -7,6 +7,7 @@ import { buildPlan } from "@/lib/rules/plan";
 import { createTestDb } from "@/test/db";
 import { researchedRequirement, retrievedPage, seedOwners, testProfile, verifiedRequirement } from "@/test/fixtures";
 import {
+  completeStructureStepsForOwner,
   getPlanForOwner,
   getStepForOwner,
   orderSteps,
@@ -68,6 +69,23 @@ async function stepId(ownerId: string, key: string): Promise<string> {
 }
 
 describe("plan data access", () => {
+  it("finishes only the step that chooses a structure, never a filing for one", async () => {
+    const steps = [
+      verifiedRequirement({ key: "structure", title: "Choose a business structure", topic: "structure" }),
+      verifiedRequirement({ key: "llc-formation", title: "File a certificate of formation", topic: "structure", forStructures: ["llc"], dependsOn: ["structure"] }),
+      verifiedRequirement({ key: "ein", title: "Get an EIN", dependsOn: ["structure"] }),
+    ];
+    await saveResearchForOwner(db, "owner-a", research(steps, FIRST), "key-1");
+    await completeStructureStepsForOwner(db, "owner-b", SECOND);
+    await completeStructureStepsForOwner(db, "owner-a", SECOND);
+    const plan = await getPlanForOwner(db, "owner-a");
+    expect(plan?.steps.map((step) => [step.key, step.status])).toEqual([
+      ["structure", "done"],
+      ["llc-formation", "todo"],
+      ["ein", "todo"],
+    ]);
+  });
+
   it("applies the first plan straight away, prerequisites first", async () => {
     await saveResearchForOwner(db, "owner-a", research(firstPlan, FIRST), "key-1");
 

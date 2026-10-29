@@ -17,6 +17,8 @@ export interface JourneyFacts {
   business: boolean;
   research: "none" | "stale" | "current";
   structureChosen: boolean;
+  // The plan's own structure step, counted under Business structure until one is chosen
+  structureStep: { left: number; minutes: number };
   // Startup plan steps needed before selling: ready for the owner now, all not started (with their time), and sent in
   plan: { exists: boolean; proposal: boolean; ready: number; left: number; minutes: number; waiting: number };
   // Library documents with answers for the owner to check or facts that changed
@@ -49,7 +51,7 @@ export function sidebarStatus(facts: JourneyFacts): SidebarStatus {
   return {
     "/business": either(facts.business),
     "/requirements": either(facts.research === "current"),
-    "/structure": either(facts.structureChosen),
+    "/structure": facts.structureChosen ? DONE : { state: "todo", count: facts.structureStep.left, minutes: facts.structureStep.minutes },
     "/checklist":
       !plan.exists || plan.proposal || plan.ready
         ? { state: "todo", count: plan.left, minutes: plan.minutes }

@@ -152,7 +152,7 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
           </h2>
         </div>
         <p className="text-rule">
-          First Sale reads what you’ve told it so far, like your answers, startup plan, brand and website, and shares what’s strong, a few
+          First Sale reads what you’ve told it so far, like your answers, licenses and registrations, brand and website, and shares what’s strong, a few
           things to keep an eye on, tips for success and creative ideas.
         </p>
         <WhoDoesWhat simulated={practice} />

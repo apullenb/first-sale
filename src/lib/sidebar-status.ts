@@ -5,6 +5,7 @@ import { getMyBusiness, getMyDetails, getMyPlan, getMySidebarFacts, type MyBusin
 import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
 import { structureOf } from "@/lib/research/applicability";
 import { profileKey } from "@/lib/research/requirements";
+import { choosesStructure } from "@/lib/rules/plan";
 import { remainingWork } from "@/lib/rules/progress";
 import { readyPlanSteps, sidebarStatus } from "@/lib/rules/section-status";
 
@@ -24,8 +25,12 @@ export async function getMySidebarStatus(): Promise<{ business: MyBusiness | nul
 async function statusFor(business: MyBusiness): Promise<NavStatus> {
   const [plan, details, saved] = await Promise.all([getMyPlan(), getMyDetails(), getMySidebarFacts()]);
   const profile = business.profile;
-  const steps = plan?.steps ?? [];
-  const work = remainingWork(steps);
+  const structureChosen = Boolean(profile && structureOf(profile, details).structure);
+  // A chosen structure, even one registered before First Sale, settles the plan's structure step
+  const steps = (plan?.steps ?? []).map((step) => (choosesStructure(step) && structureChosen ? { ...step, status: "done" as const } : step));
+  // Choosing a structure belongs to Business structure; it still holds up the steps after it
+  const work = remainingWork(steps.filter((step) => !choosesStructure(step)));
+  const structureWork = remainingWork(steps.filter(choosesStructure));
   const facts = profile ? autofillFacts(profile, details) : [];
   const toCheck = (saved?.documents ?? []).filter(
     (doc) => doc.role !== "reviewed" && (outdatedFacts(doc.factsUsed, facts).length > 0 || Object.values(doc.answers).some((answer) => answer.state === "suggested")),
@@ -33,7 +38,8 @@ async function statusFor(business: MyBusiness): Promise<NavStatus> {
   const parts = sidebarStatus({
     business: Boolean(profile),
     research: !saved?.researchKey ? "none" : profile && profileKey(profile) === saved.researchKey ? "current" : "stale",
-    structureChosen: Boolean(profile && structureOf(profile, details).structure),
+    structureChosen,
+    structureStep: { left: structureWork.left.length, minutes: structureWork.minutes },
     plan: {
       exists: steps.length > 0,
       proposal: Boolean(plan?.proposal),
