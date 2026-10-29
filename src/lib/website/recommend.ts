@@ -38,8 +38,8 @@ export function recommendPlatform(profile: BusinessProfile): Recommendation {
       reasons: [
         "You sell in person or at markets. Square uses one item list and stock count for your card reader and your online store, so they stay in step.",
         tightBudget
-          ? "Your starting budget is tight, and Square Free has no monthly bill. You pay a fee only when you make a sale."
-          : "Square Free has no monthly bill, so you can start small and upgrade when you want your own web address.",
+          ? "Your starting budget is tight. You can start on Square Free with no monthly bill, then move to Square Plus when you want your own web address."
+          : "You can start on Square Free with no monthly bill, then move to Square Plus when you want your own web address.",
         ...(ships ? ["It handles shipping as well as pickup and local delivery."] : []),
       ],
     };
@@ -59,7 +59,7 @@ export function recommendPlatform(profile: BusinessProfile): Recommendation {
   return {
     platform: "square",
     reasons: [
-      "Square Free is the only builder here with a free plan that takes payments on your website. You pay a fee only when you make a sale.",
+      "Square Free is the only builder here with a free plan that takes payments on your website. Your own web address needs Square Plus.",
       ...(online ? ["If your online sales grow, Shopify is a common next step."] : []),
     ],
   };

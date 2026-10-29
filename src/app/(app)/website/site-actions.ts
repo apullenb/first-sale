@@ -3,8 +3,9 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
-import { getMyWebsitePlan, listMyPhotoLibrary, saveMyWebsitePlan, updateMyWebsitePlan } from "@/lib/data/my-business";
+import { listMyPhotoLibrary, saveMyWebsitePlan, updateMyWebsitePlan } from "@/lib/data/my-business";
 import { buyLinkProblem, siteDesignSchema } from "@/lib/website/site/design";
+import { finishStands } from "@/lib/website/site/finish";
 import { publishReadiness } from "@/lib/website/site/ready";
 import { EXISTING_PLATFORMS } from "@/lib/website/types";
 import { siteAddress } from "@/lib/website/existing-site";
@@ -26,8 +27,19 @@ export async function saveSiteDesignAction(input: unknown): Promise<ActionResult
   const items = design.items.map((item) =>
     item.photo && !library.some((photo) => photo.id === item.photo!.versionId && photo.photoId === item.photo!.photoId) ? { ...item, photo: null } : item,
   );
-  if (!(await getMyWebsitePlan())) return { ok: false, message: "Choose where you’ll build your site in step 1 first." };
-  if (!(await saveMyWebsitePlan({ design: { ...design, items } }))) return { ok: false, message: NO_BUSINESS };
+  const next = { ...design, items };
+  let missing = false;
+  // A changed design needs finishing again
+  const saved = await updateMyWebsitePlan((plan) => {
+    if (!plan) {
+      missing = true;
+      return null;
+    }
+    const stands = finishStands({ copy: null, approved: true, design: plan.design }, { copy: null, approved: true, design: next });
+    return { design: next, ...(stands ? {} : { finished: null }) };
+  });
+  if (saved === "no_business") return { ok: false, message: NO_BUSINESS };
+  if (missing) return { ok: false, message: "Choose where you’ll build your site in step 1 first." };
   refresh();
   return { ok: true, value: null };
 }

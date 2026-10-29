@@ -38,8 +38,8 @@ describe("platform data", () => {
 
   it("keeps step instructions out of the facts AI explains", () => {
     const facts = platformFacts(PLATFORM_DATA.shopify);
-    expect(facts.setupSteps).toBeUndefined();
-    expect(facts.domainSetup).toBeUndefined();
+    expect(facts).not.toHaveProperty("setupSteps");
+    expect(facts).not.toHaveProperty("domainSetup");
   });
 
   it("gives every setup step a unique key per platform", () => {

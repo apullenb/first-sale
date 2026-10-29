@@ -32,7 +32,12 @@ export function MoreOptionsList({ found, explanations }: { found: MoreOptions; e
                 <List title="Good" items={option.pros} tone="good" />
                 <List title="Watch out for" items={option.cons} tone="bad" />
               </div>
-              <ExplainOption optionKey={key} name={option.name} explanation={explanations[key] ?? null} />
+              <ExplainOption
+                optionKey={key}
+                name={option.name}
+                explanation={explanations[key] ?? null}
+                firstYear="First Sale hasn’t checked this option’s prices. See the price above, and check their pricing page before you sign up."
+              />
               <p className="text-sm text-muted">
                 <a href={option.website} target="_blank" rel="noopener noreferrer" className={TEXT_LINK}>
                   Visit {option.name}

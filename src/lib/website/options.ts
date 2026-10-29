@@ -5,7 +5,7 @@ import type { BusinessProfile } from "@/lib/domain";
 import { knownNumbers, numberFlags } from "@/lib/documents/business-plan";
 import { OwnerFacingError } from "@/lib/errors";
 import { CHANNEL_LABELS, OFFERING_KIND_LABELS, STATE_NAMES } from "@/lib/intake/options";
-import { costSummary } from "./costs";
+import { STATUS_LABELS, TERM_LABELS, packageTerms } from "./terms";
 import type { PlatformInfo } from "./platforms";
 import { sellsProducts } from "./recommend";
 
@@ -35,7 +35,6 @@ export interface OptionExplanation {
   whatItsLike: string;
   goodFit: string;
   watchOut: string;
-  firstYear: string;
   stillNeed: string[];
   // Numbers the explanation gives that its facts don't contain
   flags: string[];
@@ -67,7 +66,6 @@ const explainSchema = z.object({
   whatItsLike: z.string().max(800),
   goodFit: z.string().max(600),
   watchOut: z.string().max(600),
-  firstYear: z.string().max(600),
   stillNeed: z.array(z.string().max(200)).max(8),
 });
 
@@ -85,9 +83,9 @@ const EXPLAIN_SYSTEM = `You explain one website option to a first-time small bus
 - overview: what it is, in two or three sentences.
 - whatItsLike: what building and running a site with it is like day to day.
 - goodFit: why it might fit this owner's business, tied to their answers. watchOut: what might not fit, honestly.
-- firstYear: what the first year could cost, using only prices in <option>. Show the arithmetic. If prices aren't given, say to check the option's own pricing page. If demoPrice is true, say the price is a demo price, not final.
 - stillNeed: things the owner will still need that the option doesn't include, from <option>.
-- Use only facts given. Never invent prices, fees, features, limits or promises.`;
+- Don't give prices, fees, totals or any other amounts of money: the page shows those, worked out by its own rules.
+- Use only facts given. Never invent features, limits or promises.`;
 
 function ownerSummary(profile: BusinessProfile) {
   return {
@@ -106,9 +104,39 @@ export function factsKey(facts: unknown): string {
   return createHash("sha256").update(JSON.stringify(facts)).digest("hex").slice(0, 16);
 }
 
-// What "Explain more" gets for a built-in option: the card's facts and cost totals, without the setup steps
+// Any amount of money: "$29", "30¢", "2.9%" or "10 dollars"
+const MONEY = /\$\s?\d|\d\s?¢|\d(?:\.\d+)?\s?%|\b\d[\d,.]*\s?(?:dollars?|cents?)\b/i;
+
+export const hasMoney = (text: string) => MONEY.test(text);
+
+// Sentences without amounts of money; money on the page comes only from code
+export function withoutMoney(text: string): string {
+  return (text.match(/[^.!?]+(?:[.!?]+(?=\s|$)|$)/g) ?? [])
+    .filter((sentence) => !hasMoney(sentence))
+    .join("")
+    .trim();
+}
+
+// What "Explain more" gets for a built-in option: what it is and what's included, with no prices
 export function platformFacts(info: PlatformInfo) {
-  return { ...info, costs: costSummary(info), setupSteps: undefined, sources: undefined, domainSetup: undefined, stepsCheckedOn: undefined };
+  return {
+    name: info.name,
+    oneLine: info.oneLine,
+    bestFor: info.bestFor,
+    demo: info.demoPrice,
+    builtBy: info.builtBy,
+    checkout: info.checkout,
+    plans: info.plans.map((plan) => ({ name: plan.name, ownAddress: plan.ownAddress, takesPayments: plan.takesPayments })),
+    terms: packageTerms(info).map((row) => ({ term: TERM_LABELS[row.term], status: STATUS_LABELS[row.status] })),
+    includes: info.includes.filter((text) => !hasMoney(text)),
+    youDo: info.youDo.map((task) => task.text).filter((text) => !hasMoney(text)),
+    thingsToKnow: info.thingsToKnow.filter((text) => !hasMoney(text)),
+  };
+}
+
+// What "Explain more" gets for an option found by search, with no prices
+export function foundFacts(option: ResearchedOption) {
+  return { name: option.name, website: option.website, bestFor: option.bestFor, pros: option.pros.filter((text) => !hasMoney(text)), cons: option.cons.filter((text) => !hasMoney(text)) };
 }
 
 export function explanationKey(profile: BusinessProfile, facts: unknown): string {
@@ -241,12 +269,18 @@ export async function explainOption(
       { role: "user", content: message },
     ],
   });
-  // Plus 12 months, and a year of each amount, for the first-year math the prompt asks for
-  const given = knownNumbers(message);
-  const known = new Set([...given, "12", ...[...given].map((n) => String(Math.round(Number(n) * 12 * 100) / 100))]);
-  const texts = [reply.overview, reply.whatItsLike, reply.goodFit, reply.watchOut, reply.firstYear, ...reply.stillNeed];
+  // Money on the page comes only from code, so any sentence with an amount is dropped
+  const clean = {
+    overview: withoutMoney(reply.overview),
+    whatItsLike: withoutMoney(reply.whatItsLike),
+    goodFit: withoutMoney(reply.goodFit),
+    watchOut: withoutMoney(reply.watchOut),
+    stillNeed: reply.stillNeed.filter((text) => !hasMoney(text)),
+  };
+  const known = knownNumbers(message);
+  const texts = [clean.overview, clean.whatItsLike, clean.goodFit, clean.watchOut, ...clean.stillNeed];
   return {
-    ...reply,
+    ...clean,
     flags: [...new Set(texts.flatMap((text) => numberFlags(text, known, "in this option’s facts")))],
     factsKey: explanationKey(input.profile, input.facts),
     createdAt: now.toISOString(),
@@ -262,13 +296,12 @@ registerMockFixture(EXPLAIN_SCHEMA_NAME, (request) => {
   const text = typeof last?.content === "string" ? last.content : "";
   const name = text.match(/<option name="([^"]*)">/)?.[1] ?? "This option";
   const factsJson = text.match(/<option[^>]*>\n([\s\S]*?)\n<\/option>/)?.[1];
-  const facts = factsJson ? (JSON.parse(factsJson) as { oneLine?: string; youDo?: { text: string }[] }) : {};
+  const facts = factsJson ? (JSON.parse(factsJson) as { oneLine?: string; youDo?: string[] }) : {};
   return JSON.stringify({
     overview: `${name}. ${facts.oneLine ?? ""} Practice mode can’t explain options in depth; connect the AI service for a full explanation.`.trim(),
     whatItsLike: "[Practice mode: no explanation]",
     goodFit: "[Practice mode: no explanation]",
     watchOut: "[Practice mode: no explanation]",
-    firstYear: "See the prices listed on this option.",
-    stillNeed: (facts.youDo ?? []).map((task) => task.text).slice(0, 6),
+    stillNeed: (facts.youDo ?? []).slice(0, 6),
   });
 });

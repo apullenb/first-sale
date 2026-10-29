@@ -27,9 +27,8 @@ import { CUT_OFF_MESSAGE } from "@/lib/data/workflow-runs";
 import { sectionMetadata } from "@/lib/sections";
 import { copyOf, placeholderCount } from "@/lib/website/content";
 import { domainIdeas } from "@/lib/website/domains";
-import { costSummary, usd } from "@/lib/website/costs";
-import { TERM_LABELS } from "@/lib/website/terms";
-import { isCurrentExplanation, platformFacts } from "@/lib/website/options";
+import { firstYearText } from "@/lib/website/costs";
+import { foundFacts, isCurrentExplanation, platformFacts } from "@/lib/website/options";
 import { type PasteContext, pasteFor } from "@/lib/website/paste";
 import { recommendPlatform } from "@/lib/website/recommend";
 import { publishReadiness } from "@/lib/website/site/ready";
@@ -88,7 +87,7 @@ async function WebsitePlanView() {
     (plan?.moreOptions?.options ?? []).flatMap((option) => {
       const key = `more:${option.name.toLowerCase()}`;
       const explanation = explanations[key];
-      return isCurrentExplanation(explanation, profile, option, practice) ? [[key, explanation]] : [];
+      return isCurrentExplanation(explanation, profile, foundFacts(option), practice) ? [[key, explanation]] : [];
     }),
   );
   const builtHere = chosen === "first_sale";
@@ -297,18 +296,13 @@ function nextStep(state: { chosen: PlatformId | null; content: boolean; approved
 // The package the owner picked, in one line, so the comparison can fold away
 function ChosenSummary({ platformId }: { platformId: PlatformId }) {
   const platform = PLATFORM_DATA[platformId];
-  const costs = costSummary(platform);
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[14px] border border-accent bg-surface px-5 py-4 shadow-[0_0_0_3px_var(--color-accent-tint),var(--shadow-card)]">
       <Chip tone="done" icon="check">
         Your choice
       </Chip>
       <p className="font-display text-[22px] leading-tight">{platform.name}</p>
-      <p className="text-muted">
-        {usd(costs.monthlyUsd)} a month · {costs.from ? "from " : ""}
-        {usd(costs.firstYearUsd)} the first year{platform.demoPrice ? " (demo price)" : ""}, plus card fees
-        {costs.notCounted.length ? ` and ${costs.notCounted.map((term) => TERM_LABELS[term].toLowerCase()).join(" and ")} (not counted)` : ""}
-      </p>
+      <p className="text-muted">{firstYearText(platform)}</p>
     </div>
   );
 }

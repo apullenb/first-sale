@@ -6,8 +6,18 @@ export interface PlatformPlan {
   name: string;
   // As the vendor shows it, such as "$29 a month, billed yearly"
   price: string;
-  // For the first-year estimate; the plan we suggest starting on
+  // The monthly rate, as paid with this billing
   monthlyUsd: number;
+  // "yearly": the monthly rate is paid for a year up front
+  billing: "monthly" | "yearly";
+  // Paying month to month instead, when the vendor's page gives it
+  monthToMonthUsd: number | null;
+  // Lets the owner use their own web address
+  ownAddress: boolean;
+  // Takes card payments for what the owner sells
+  takesPayments: boolean;
+  // Card fee per online sale on this plan; null when it isn't checked here
+  cardFee: { percent: number; fixedCents: number } | null;
   adds: string;
 }
 
@@ -29,12 +39,10 @@ export interface DomainOffer {
   per: "year" | null;
   // A "from" or "starting at" price
   from: boolean;
-  // Free for the first year on the starting plan
-  firstYearFree: boolean;
+  // Free for the first year, but only on plans billed yearly
+  firstYearFreeWithYearly: boolean;
   // After the free first year, as the platform's pages give it
   later: string | null;
-  // Using your own address needs this plan instead of the starting one
-  needsPlan: { name: string; monthlyUsd: number } | null;
 }
 
 // A business email address such as you@yourname.com
@@ -86,15 +94,15 @@ export interface PlatformInfo {
   bestFor: string;
   // The starting price is First Sale's own placeholder, not read on a vendor's page
   demoPrice: boolean;
-  startPlan: PlatformPlan;
-  otherPlans: PlatformPlan[];
+  // Every plan the card mentions; the comparison prices the cheapest one with the owner's own address and payments
+  plans: PlatformPlan[];
   // Who makes the pages: the owner with the platform's builder, or First Sale from the owner's choices
   builtBy: "owner" | "first_sale";
   hosting: boolean;
   // Its own cart and checkout, or Buy buttons that open a payment provider's page
   checkout: "built_in" | "payment_links";
-  // Card fee per online sale on the starting plan, or through the payment provider
-  cardFee: { label: string; percent: number; fixedCents: number };
+  // Card fee details the plans don't cover, such as other card types or payment providers
+  cardFeeNote: string;
   domain: DomainOffer;
   email: EmailOffer;
   includes: string[];

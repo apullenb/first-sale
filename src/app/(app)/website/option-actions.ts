@@ -7,7 +7,7 @@ import { PLATFORM_DATA, PLATFORM_ORDER } from "@/data/website-platforms";
 import { getModel } from "@/lib/ai";
 import { getMyBusiness, getMyWebsitePlan, myAiKey, updateMyWebsitePlan } from "@/lib/data/my-business";
 import { OwnerFacingError } from "@/lib/errors";
-import { explainOption, findMoreOptions, isCurrentExplanation, platformFacts } from "@/lib/website/options";
+import { explainOption, findMoreOptions, foundFacts, isCurrentExplanation, platformFacts } from "@/lib/website/options";
 import { PLATFORMS } from "@/lib/website/types";
 import { runWorkflow } from "@/lib/workflow-runner";
 
@@ -54,7 +54,7 @@ export async function explainOptionAction(input: unknown): Promise<ActionResult>
     const option = plan?.moreOptions?.options.find((each) => `more:${each.name.toLowerCase()}` === key);
     if (!option) return { ok: false, message: "That option wasn’t found. Search again and try once more." };
     name = option.name;
-    facts = option;
+    facts = foundFacts(option);
   }
   if (isCurrentExplanation(plan?.explanations[key], business.profile, facts, getModel().simulated)) {
     refresh();

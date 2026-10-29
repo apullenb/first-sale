@@ -24,6 +24,7 @@ import { copyFlags, copyOf, draftWebsite, factsMessage, websiteCopySchema } from
 import { checkDomain, normalizeDomain } from "@/lib/website/domains";
 import { PLATFORMS, type WebsiteContent } from "@/lib/website/types";
 import { PLATFORM_DATA } from "@/data/website-platforms";
+import { finishStands } from "@/lib/website/site/finish";
 import { runWorkflow } from "@/lib/workflow-runner";
 
 const NO_BUSINESS = "Tell us about your business first.";
@@ -118,7 +119,8 @@ export async function draftWebsiteAction(): Promise<ActionResult> {
 
   const result = await runWorkflow("website_copy", null, async () => {
     const content = await draftWebsite(getModel(), { profile, platform, details: await publicDetails(), planAnswers: await planAnswers() }, new Date(), await myAiKey());
-    if (!(await saveMyWebsitePlan({ content, contentApprovedAt: null }))) throw new OwnerFacingError(NO_BUSINESS);
+    // New words need approving and finishing again
+    if (!(await saveMyWebsitePlan({ content, contentApprovedAt: null, finished: null }))) throw new OwnerFacingError(NO_BUSINESS);
   });
   refresh();
   return result.ok ? { ok: true, value: null } : result;
@@ -147,9 +149,13 @@ export async function saveWebsiteCopyAction(input: unknown): Promise<ActionResul
   // Checked again under the lock, so a draft or platform change made meanwhile isn't overwritten
   let problem = null as string | null;
   const saved = await updateMyWebsitePlan((latest) => {
-    if (latest?.content?.generatedAt !== parsed.data.draftedAt) problem = "Your words were drafted again since this page loaded. Reload the page to see them.";
+    const before = latest?.content;
+    if (!latest || before?.generatedAt !== parsed.data.draftedAt) problem = "Your words were drafted again since this page loaded. Reload the page to see them.";
     else if (approvedAt && latest.platform !== content.platform) problem = "These words were written for a different platform. Draft them again before approving.";
-    return problem ? null : { content, contentApprovedAt: approvedAt };
+    if (problem || !latest || !before) return null;
+    // Changed or unapproved words need finishing again
+    const stands = finishStands({ copy: copyOf(before), approved: Boolean(latest.contentApprovedAt), design: null }, { copy, approved: Boolean(approvedAt), design: null });
+    return { content, contentApprovedAt: approvedAt, ...(stands ? {} : { finished: null }) };
   });
   if (saved === "no_business") return { ok: false, message: NO_BUSINESS };
   if (problem) return { ok: false, message: problem };

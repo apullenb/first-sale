@@ -93,7 +93,7 @@ export const SECTIONS: Section[] = [
     group: "Build your brand",
     step: 3,
     milestone: 13,
-    summary: "Compare three ways to build your website and what they cost, get a recommendation for your business, then build it step by step.",
+    summary: "Learn the pieces of a website, compare four packages and what each costs, then build yours with First Sale or connect the site you already have.",
   },
   {
     href: "/products",

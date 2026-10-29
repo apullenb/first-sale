@@ -337,7 +337,7 @@ On the Website page, owners learn the five pieces of being online, compare four 
    Every card has the same parts:
    - the five terms, each marked Included, Extra cost or Not included with a short note (`src/lib/website/terms.ts`, rules over structured platform data);
    - folding sections: what you get, what you do yourself, things to know;
-   - a cost summary (`src/lib/website/costs.ts`): the base plan, each extra as a line (plan upgrades, the web address, email, card fees per sale), then a monthly and first-year total. Prices that aren't checked are left out of the totals and named, never guessed. Card fees sit beside the total, since they depend on sales.
+   - a cost summary (`src/lib/website/costs.ts`). Every package is priced for the same need: the cheapest plan with the owner's own web address and card payments (Square Plus, Wix Core, Shopify Basic), with that plan's own card fee. It lists the plan with its billing ("$29 a month, billed yearly ($348)", plus month-to-month as its own line where the vendor gives it), each extra as a line, then a monthly and first-year total. Each line says whether it's in the total. Card fees, prices that aren't checked and prices without a stated period (Square's web address) are left out and named, never guessed.
 
    Fixed rules (`src/lib/website/recommend.ts`) recommend one package, with "Explain why":
    - Services only: the First Sale site.
@@ -346,7 +346,7 @@ On the Website page, owners learn the five pieces of being online, compare four 
 
    Once a package is chosen, the comparison folds away behind a one-line summary.
 3. **Demo payment.** Choosing the First Sale site opens a payment screen marked "For demo purposes only. No payment is taken." It shows no card field to type in. Close leaves nothing chosen; "Continue (demo)" picks the package.
-4. **Explain more.** Muse Spark explains one option for this owner, using only that card's facts. Numbers that aren't in the facts are flagged. An explanation is kept until the card's facts change. Step instructions aren't facts, so changing them doesn't redo explanations.
+4. **Explain more.** Muse Spark explains one option for this owner, from that card's facts with every price taken out. It's told not to give amounts of money, and code drops any sentence that has one; "Your first year" is written by code from the cost summary. Other numbers that aren't in the facts are flagged. An explanation is kept until the card's facts change. Step instructions aren't facts, so changing them doesn't redo explanations.
 5. **Find more options.** Only when the owner asks, Muse searches the web for other builders. Code keeps an option only if its website is among the results and carries its name. Prices, other numbers and money words ("free", "no fees") stay only if they appear in that option's own sources.
 6. **Web address.** Ideas come from the business name and town. Any .com or .net can be checked against the official registry (Verisign RDAP). "Not registered yet" is a snapshot, not a promise. Checks are limited per owner, so the shared registry isn't flooded.
 7. **Words.** Muse Spark drafts each page from:
@@ -364,7 +364,7 @@ On the Website page, owners learn the five pieces of being online, compare four 
    - Prices show only when the owner types them or saved them as a product.
    - Buy links must be https. Links that aren't Stripe or Square get a "make sure it's yours" note.
    - Choices are saved as the plan's `design`.
-9. **Finish (demo).** Rules in `src/lib/website/site/ready.ts` must pass: the words are approved, written for this site and have no [bracketed] notes; buy links are valid; there's a way to get in touch. Practice logos and photos are noted, since nothing goes online. The server checks the site is still the version on screen (`siteSignature`), then records `finished`. The page says "Your site is ready (demo, not published online)". Nothing is uploaded or deployed.
+9. **Finish (demo).** Rules in `src/lib/website/site/ready.ts` must pass: the words are approved, written for this site and have no [bracketed] notes; buy links are valid; there's a way to get in touch. Practice logos and photos are noted, since nothing goes online. The server checks the site is still the version on screen (`siteSignature`), then records `finished`. The page says "Your site is ready (demo, not published online)". Nothing is uploaded or deployed. Drafting, changing or unapproving the words, or saving a changed design, clears the finish (`src/lib/website/site/finish.ts`), and the sidebar counts it only while the words are approved.
 10. **What only the owner can do.** Each platform's steps (checked in each vendor's help on 2026-10-28) have:
     - where to click, with menus and buttons named as the help names them;
     - a "Take me there" link to that page of the dashboard;

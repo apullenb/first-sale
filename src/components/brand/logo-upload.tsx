@@ -88,7 +88,7 @@ export function LogoUpload({ businessName, maxBytes, replacing }: { businessName
         <Icon name="upload" size="sm" />
         {chosen ? "Choose a different file" : "Choose your logo file"}
       </label>
-      <p className="text-sm text-muted">PNG, JPEG or WebP, up to 4 MB. A PNG with a see-through or plain white background works best. It’s kept exactly as you upload it. The copy on your website leaves out hidden details saved in the file, such as where a photo was taken.</p>
+      <p className="text-sm text-muted">PNG, JPEG or WebP, up to 4 MB. A PNG with a see-through or plain white background works best. It’s kept exactly as you upload it.</p>
 
       {chosen ? (
         <figure className="flex flex-col gap-2">

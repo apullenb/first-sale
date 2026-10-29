@@ -8,7 +8,8 @@ import { ALERT, SECONDARY } from "@/components/styles";
 import type { OptionExplanation } from "@/lib/website/options";
 
 // "Explain more": fetched once per option, then shown or hidden
-export function ExplainOption({ optionKey, name, explanation }: { optionKey: string; name: string; explanation: OptionExplanation | null }) {
+// firstYear: written by code from the cost summary, never by the model
+export function ExplainOption({ optionKey, name, explanation, firstYear }: { optionKey: string; name: string; explanation: OptionExplanation | null; firstYear: string }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +64,12 @@ export function ExplainOption({ optionKey, name, explanation }: { optionKey: str
           <Part title="What it’s like to use" text={explanation.whatItsLike} />
           <Part title="Why it could fit you" text={explanation.goodFit} />
           <Part title="What to watch out for" text={explanation.watchOut} />
-          <Part title="Your first year" text={explanation.firstYear} />
+          <div>
+            <p className="flex items-center gap-2 font-bold">
+              Your first year <ActorChip actor="rule" />
+            </p>
+            <p className="text-rule">{firstYear}</p>
+          </div>
           {explanation.stillNeed.length ? (
             <div>
               <p className="font-bold">You’ll still need</p>

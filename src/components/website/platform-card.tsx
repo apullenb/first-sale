@@ -5,7 +5,7 @@ import { LocalDate } from "@/components/local-date";
 import { LABEL } from "@/components/marketing/pieces";
 import { TEXT_LINK } from "@/components/styles";
 import { Chip } from "@/components/ui";
-import { type CostLine, costSummary, usd } from "@/lib/website/costs";
+import { comparePlan, type CostLine, costSummary, firstYearText, lower, usd } from "@/lib/website/costs";
 import type { OptionExplanation } from "@/lib/website/options";
 import type { PlatformInfo } from "@/lib/website/platforms";
 import { packageTerms, TERM_LABELS } from "@/lib/website/terms";
@@ -51,6 +51,8 @@ export function PlatformCard({
   explanation: OptionExplanation | null;
 }) {
   const id = `platform-${platform.id}`;
+  const plan = comparePlan(platform);
+  const otherPlans = platform.plans.filter((each) => each !== plan);
   return (
     <article
       aria-labelledby={id}
@@ -119,12 +121,13 @@ export function PlatformCard({
             ))}
           />
         </Expander>
-        <Expander icon="info" title="Things to know" count={platform.thingsToKnow.length + platform.otherPlans.length}>
+        <Expander icon="info" title="Things to know" count={platform.thingsToKnow.length + otherPlans.length + 1}>
           <List
             tone="bad"
             items={[
               ...platform.thingsToKnow,
-              ...platform.otherPlans.map((plan) => (
+              platform.cardFeeNote,
+              ...otherPlans.map((plan) => (
                 <Fragment key={plan.name}>
                   <strong>{plan.name}</strong>, {plan.price}: {plan.adds}
                 </Fragment>
@@ -132,7 +135,7 @@ export function PlatformCard({
             ]}
           />
           <div className="mt-3">
-            <ExplainOption optionKey={`platform:${platform.id}`} name={platform.name} explanation={explanation} />
+            <ExplainOption optionKey={`platform:${platform.id}`} name={platform.name} explanation={explanation} firstYear={firstYearText(platform)} />
           </div>
         </Expander>
       </div>
@@ -144,7 +147,7 @@ export function PlatformCard({
           platform={platform.id}
           name={platform.name}
           chosen={chosen}
-          payment={platform.demoPrice ? { plan: platform.startPlan.name, price: `${usd(platform.startPlan.monthlyUsd)} a month` } : undefined}
+          payment={platform.demoPrice ? { plan: plan.name, price: `${usd(plan.monthlyUsd)} a month` } : undefined}
         />
         <p className="text-sm text-muted">
           {platform.demoPrice ? "The First Sale price is a demo price, not final. Card fees from " : `Prices from ${platform.name}’s own pages, `}
@@ -204,7 +207,7 @@ function amountText(line: CostLine, extra: boolean): ReactNode {
   const { amount } = line;
   switch (amount.kind) {
     case "monthly":
-      return `${extra ? "+" : ""}${usd(amount.usd)} a month`;
+      return `${extra ? "+" : ""}${usd(amount.usd)} a month${amount.billing === "yearly" ? `, billed yearly (${usd(amount.usd * 12)})` : ""}`;
     case "once":
       return `${amount.from ? "from " : ""}${usd(amount.usd)}${amount.per ? ` a ${amount.per}` : ""}`;
     case "free_first_year":
@@ -227,15 +230,24 @@ function CostRow({ line, extra }: { line: CostLine; extra: boolean }) {
           {later ? <span className="block text-sm text-muted">Then {later}</span> : null}
         </span>
       </dt>
-      <dd className="ml-6 text-right text-[15px] font-semibold sm:ml-0">{amountText(line, extra)}</dd>
+      <dd className="ml-6 flex flex-col items-start text-[15px] font-semibold sm:ml-0 sm:items-end sm:text-right">
+        <span className={line.counted ? "" : "text-rule"}>{amountText(line, extra)}</span>
+        {line.counted ? null : <span className="text-[13px] font-normal text-muted">Not in the total</span>}
+      </dd>
     </div>
   );
 }
 
-// Base price, each extra as a line, then totals worked out in code
+// Plan names keep their capitals; other lines read mid-sentence
+const say = (line: CostLine) => (line.term ? lower(line.label) : line.label);
+
+// The plan, each extra as a line, then totals worked out in code, all for the same need
 function CostSummaryBox({ platform }: { platform: PlatformInfo }) {
   const costs = costSummary(platform);
   const from = costs.from ? "from " : "";
+  const lines = [costs.base, ...costs.extras];
+  const counted = lines.filter((line) => line.counted && line.amount.kind !== "unknown");
+  const left = lines.filter((line) => !line.counted);
   return (
     <section aria-label={`${platform.name} cost summary`} className="flex flex-col gap-1 self-start rounded-xl border border-line bg-soft px-4 py-3.5">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -246,9 +258,11 @@ function CostSummaryBox({ platform }: { platform: PlatformInfo }) {
           </Chip>
         ) : null}
       </div>
-      <p className="pt-1.5 text-sm font-bold text-muted">Base price</p>
-      <dl>
+      <p className="text-sm text-muted">Priced for your own web address and taking card payments.</p>
+      <p className="pt-1.5 text-sm font-bold text-muted">Plan</p>
+      <dl className="flex flex-col divide-y divide-line/70">
         <CostRow line={costs.base} extra={false} />
+        {costs.monthToMonth ? <CostRow line={costs.monthToMonth} extra={false} /> : null}
       </dl>
       <p className="border-t border-line pt-2 text-sm font-bold text-muted">Additional costs</p>
       <dl className="flex flex-col divide-y divide-line/70">
@@ -261,7 +275,8 @@ function CostSummaryBox({ platform }: { platform: PlatformInfo }) {
           <p className="font-bold">Total</p>
           <p className="flex flex-wrap items-baseline justify-end gap-x-3 text-right">
             <span>
-              <strong className="text-lg">{usd(costs.monthlyUsd)}</strong> <span className="text-sm text-muted">a month</span>
+              <strong className="text-lg">{usd(costs.monthlyUsd)}</strong>{" "}
+              <span className="text-sm text-muted">a month{costs.upFrontUsd !== null ? ", billed yearly" : ""}</span>
             </span>
             <span>
               <strong className="text-lg">
@@ -273,8 +288,8 @@ function CostSummaryBox({ platform }: { platform: PlatformInfo }) {
           </p>
         </div>
         <p className="text-sm text-muted">
-          Plus card fees: {costs.perSale}.
-          {costs.notCounted.length ? ` Not counted: ${costs.notCounted.map((term) => TERM_LABELS[term].toLowerCase()).join(" and ")} (price not checked here).` : ""}
+          <strong className="font-semibold text-rule">In the total:</strong> {counted.map(say).join(", ")}.{" "}
+          <strong className="font-semibold text-rule">Not in the total:</strong> {left.map((line) => `${say(line)} (${line.whyNot})`).join("; ")}.
         </p>
       </div>
     </section>
