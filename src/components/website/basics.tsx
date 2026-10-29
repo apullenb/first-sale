@@ -9,11 +9,11 @@ export function WebsiteBasics({ exampleDomain }: { exampleDomain: string }) {
     },
     {
       term: "Hosting",
-      text: "The computers that keep your site online all day and every day, so it opens when someone visits. All three options below include hosting, so you don’t need to buy it separately.",
+      text: "The computers that keep your site online all day and every day, so it opens when someone visits. Every option below includes hosting, so you don’t need to buy it separately.",
     },
     {
       term: "Website builder",
-      text: "A service that lets you make pages by filling in boxes and dragging pieces into place, without writing code. Each option below is a builder that also hosts your site.",
+      text: "A service that lets you make pages by filling in boxes and dragging pieces into place, without writing code. Square, Wix and Shopify are builders that also host your site. With a First Sale site, First Sale builds it for you and Netlify hosts it.",
     },
     {
       term: "Online store and checkout",

@@ -108,7 +108,7 @@ export function factsKey(facts: unknown): string {
 
 // What "Explain more" gets for a built-in option: the card's facts and first-year total, without the setup steps
 export function platformFacts(info: PlatformInfo) {
-  return { ...info, firstYear: firstYearCost(info), setupSteps: undefined, sources: undefined };
+  return { ...info, firstYear: firstYearCost(info), setupSteps: undefined, sources: undefined, domainSetup: undefined, stepsCheckedOn: undefined };
 }
 
 export function explanationKey(profile: BusinessProfile, facts: unknown): string {

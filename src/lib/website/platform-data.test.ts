@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { PLATFORM_DATA, PLATFORM_ORDER } from "@/data/website-platforms";
 import { cardFeeOn, firstYearCost, usd } from "./costs";
-import { DEFAULT_LOOK, lookFromBrand, textOn } from "./look";
+import { contrast, DEFAULT_LOOK, lookFromBrand, textOn } from "./look";
+import { platformFacts } from "./options";
 
 const VENDOR_HOSTS: Record<string, string[]> = {
+  // Netlify hosts it; Stripe and Square make the payment links
+  first_sale: ["netlify.com", "stripe.com", "squareup.com"],
   square: ["squareup.com"],
   wix: ["wix.com"],
   shopify: ["shopify.com"],
@@ -12,12 +15,30 @@ const VENDOR_HOSTS: Record<string, string[]> = {
 describe("platform data", () => {
   it.each(PLATFORM_ORDER)("links %s only to its own official pages", (id) => {
     const info = PLATFORM_DATA[id];
-    const urls = [info.signupUrl, ...info.sources.map((source) => source.url), ...info.setupSteps.flatMap((step) => (step.help ? [step.help.url] : []))];
+    const urls = [
+      info.signupUrl,
+      info.domainSetup.source.url,
+      ...info.sources.map((source) => source.url),
+      ...info.setupSteps.flatMap((step) => [step.help?.url, step.goTo?.url].filter((url): url is string => Boolean(url))),
+    ];
     for (const url of urls) {
       const host = new URL(url).hostname;
       expect(url.startsWith("https://")).toBe(true);
       expect(VENDOR_HOSTS[id].some((vendor) => host === vendor || host.endsWith(`.${vendor}`))).toBe(true);
     }
+  });
+
+  it.each(PLATFORM_ORDER)("gives %s web address records, or says where the platform shows them", (id) => {
+    const setup = PLATFORM_DATA[id].domainSetup;
+    expect(setup.records.length > 0 || Boolean(setup.shownIn)).toBe(true);
+    for (const record of setup.records) expect(["@", "www"]).toContain(record.host);
+    expect(PLATFORM_DATA[id].setupSteps.some((step) => step.paste.includes("dns"))).toBe(true);
+  });
+
+  it("keeps step instructions out of the facts AI explains", () => {
+    const facts = platformFacts(PLATFORM_DATA.shopify);
+    expect(facts.setupSteps).toBeUndefined();
+    expect(facts.domainSetup).toBeUndefined();
   });
 
   it("gives every setup step a unique key per platform", () => {
@@ -45,6 +66,8 @@ describe("site look", () => {
   it("uses dark text on light brand colors and white on dark ones", () => {
     expect(textOn("#1e6b52")).toBe("#ffffff");
     expect(textOn("#f5d76e")).toBe("#1c2321");
+    expect(contrast("#000000", "#ffffff")).toBeCloseTo(21);
+    expect(contrast("#ffffff", "#ffffff")).toBe(1);
   });
 
   it("falls back to the app's theme without a brand kit", () => {

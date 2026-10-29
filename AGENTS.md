@@ -44,4 +44,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - The demo place's quotes are tested against `src/test/texas-pages.ts`, which is copied from what the server read. When an official page changes, update both together.
 - Website platform facts in `src/data/website-platforms.ts` come from each company's own pages, with the date checked. Options found by search keep a price, number or money claim only when their own sources contain it.
 - Only public details (business email, phone, purpose) and the business plan's customer, difference and price answers go into website drafting. Owner names, addresses, costs and funding never do.
+- The site First Sale builds is plain HTML from `src/lib/website/site/render.ts`: no scripts, every piece of text escaped, prices only as the owner typed them. It goes online only when the owner clicks Publish and the `ready.ts` rules pass, through a provider in `src/lib/website/hosting`; with no host connected, publishing is a labeled practice run. Host tokens are stored encrypted and never reach the browser.
 - Comments: 1–2 short lines, only when needed, no history.

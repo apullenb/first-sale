@@ -1,6 +1,7 @@
 // Stored shapes for the website section. Plain types, so the schema can import them.
 
-export const PLATFORMS = ["square", "wix", "shopify"] as const;
+// "first_sale": First Sale builds the site here and publishes it to a host the owner connects
+export const PLATFORMS = ["first_sale", "square", "wix", "shopify"] as const;
 export type PlatformId = (typeof PLATFORMS)[number];
 
 export interface DomainCheck {

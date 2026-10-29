@@ -42,6 +42,8 @@ import type { CoverageCell } from "@/lib/research/coverage";
 import type { FormVerification } from "@/lib/documents/official-forms";
 import type { MoreOptions, OptionExplanation } from "@/lib/website/options";
 import { type DomainCheck, PLATFORMS, type WebsiteContent } from "@/lib/website/types";
+import type { SiteDesign } from "@/lib/website/site/design";
+import type { HostConnection, HostingState } from "@/lib/website/hosting/types";
 import { PHOTO_CATEGORIES, PHOTO_CROPS, PHOTO_LOOKS, type PhotoCheck, type PhotoReview } from "@/lib/photos/types";
 import { ASSET_KINDS, type AssetCheck, type BrandBrief, type BrandPicks, type ConceptReply } from "@/lib/brand/types";
 import type { IntakeAnswers, Marks } from "@/lib/intake/answers";
@@ -514,6 +516,12 @@ export const websitePlans = pgTable("website_plans", {
   moreOptions: jsonb("more_options").$type<MoreOptions>(),
   // "Explain more" answers, by option key, so each is written once
   explanations: jsonb("explanations").$type<Record<string, OptionExplanation>>().notNull().default({}),
+  // The site First Sale builds: look, parts shown, and each item's price, photo and buy link
+  design: jsonb("design").$type<SiteDesign>(),
+  // The last publish, real or practice
+  hosting: jsonb("hosting").$type<HostingState>(),
+  // The owner's Netlify connection; the token inside is encrypted and never leaves the server
+  hostConnection: jsonb("host_connection").$type<HostConnection>(),
   updatedAt: updatedAt(),
 });
 

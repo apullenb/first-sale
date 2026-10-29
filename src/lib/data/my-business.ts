@@ -20,7 +20,14 @@ import {
 } from "./documents";
 import { getPlanForOwner, getStepForOwner, replanForOwner, reviewPlanForOwner, setStepStatusForOwner } from "./plan";
 import { getResearchForOwner, type ResearchSnapshot, saveResearchForOwner } from "./research";
-import { getWebsitePlanForOwner, saveWebsitePlanForOwner, updateWebsitePlanForOwner, type WebsitePatch, type WebsitePlan } from "./website";
+import {
+  getHostConnectionForOwner,
+  getWebsitePlanForOwner,
+  saveWebsitePlanForOwner,
+  updateWebsitePlanForOwner,
+  type WebsitePatch,
+  type WebsitePlan,
+} from "./website";
 import { finishRun, lastRunForOwner, startRunForOwner } from "./workflow-runs";
 import type { NewBrandAsset } from "@/lib/brand/generate";
 import type { AssetCheck, BrandBrief, BrandImageKind, BrandKit, VersionKind } from "@/lib/brand/types";
@@ -269,6 +276,12 @@ export async function saveMyWebsitePlan(patch: WebsitePatch) {
 export async function updateMyWebsitePlan(update: (plan: WebsitePlan | null) => WebsitePatch | null) {
   const user = await getCurrentUser();
   return updateWebsitePlanForOwner(getDb(), user.id, update);
+}
+
+// For publishing only; the token inside stays on the server
+export async function getMyHostConnection() {
+  const user = await getCurrentUser();
+  return getHostConnectionForOwner(getDb(), user.id);
 }
 
 // Branding
