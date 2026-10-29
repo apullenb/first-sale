@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { ActorLegend } from "@/components/how-it-works";
-import { DashboardWidgets } from "@/components/plan/dashboard-widgets";
+import { Icon } from "@/components/icons";
+import { DashboardWidgets, LaunchCard } from "@/components/plan/dashboard-widgets";
 import { JourneyStages, StartHere } from "@/components/plan/journey";
+import { LaunchSchedule, TodayHead } from "@/components/plan/launch-countdown";
 import { StepBoard } from "@/components/plan/step-board";
-import { CARD, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
+import { PracticeBanner } from "@/components/practice-banner";
+import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
+import { Card } from "@/components/ui";
 import { OFFICIAL_FORMS } from "@/data/official-forms";
+import { getCurrentUser } from "@/lib/auth/server";
 import { getMyBusiness, getMyDetails, getMyPlan, getMyResearch, listMyDocuments, type MyBusiness } from "@/lib/data/my-business";
 import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
 import { formsFor } from "@/lib/documents/form-catalog";
@@ -15,28 +19,41 @@ import { placeOf, structureOf } from "@/lib/research/applicability";
 import { answerChanges } from "@/lib/research/changes";
 import { type JourneyInput, journeyStages, nextMove } from "@/lib/rules/journey";
 import { nextActions, planCosts } from "@/lib/rules/next-action";
-import { budgetCapCents, remainingWork, spentCents } from "@/lib/rules/progress";
-
-const LABEL = "text-xs font-bold uppercase tracking-wider text-muted";
+import { minutesByTopic } from "@/lib/rules/pace";
+import { budgetCapCents, nextStepAfter, remainingWork, spentCents } from "@/lib/rules/progress";
 
 export default function Today() {
   return (
-    <div className="flex flex-col gap-6">
-      <section className="flex flex-col gap-3">
-        <p className="text-sm font-semibold text-accent-ink">Today</p>
-        <h1 className="max-w-2xl font-display text-4xl font-bold leading-tight tracking-tight">Start your business one step at a time.</h1>
-        <p className="max-w-2xl text-lg text-muted">What to do next, what’s done, and what’s still left.</p>
-      </section>
-      <Suspense fallback={<div className="h-28 max-w-2xl rounded-2xl bg-surface ring-1 ring-ink/5" />}>
+    <div className="@container flex max-w-[1000px] flex-col gap-6">
+      <Suspense fallback={<Loading />}>
         <Overview />
       </Suspense>
-      <ActorLegend />
+    </div>
+  );
+}
+
+function Loading() {
+  return (
+    <div aria-hidden="true" className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
+        <div className="h-4 w-44 rounded bg-wash" />
+        <div className="h-10 w-80 max-w-full rounded-lg bg-wash" />
+        <div className="h-5 w-96 max-w-full rounded bg-wash" />
+      </div>
+      <div className="h-80 rounded-2xl border border-line bg-surface shadow-card" />
     </div>
   );
 }
 
 async function Overview() {
-  const [business, plan, research, details, documents] = await Promise.all([getMyBusiness(), getMyPlan(), getMyResearch(), getMyDetails(), listMyDocuments()]);
+  const [user, business, plan, research, details, documents] = await Promise.all([
+    getCurrentUser(),
+    getMyBusiness(),
+    getMyPlan(),
+    getMyResearch(),
+    getMyDetails(),
+    listMyDocuments(),
+  ]);
 
   const profile = business?.profile ?? null;
   const structure = profile ? structureOf(profile, details) : { structure: null, from: null };
@@ -54,20 +71,6 @@ async function Overview() {
   const actions = nextActions(priced);
   const costs = planCosts(priced);
   const work = remainingWork(priced);
-  const widgets =
-    profile && priced.length ? (
-      <DashboardWidgets
-        left={work.left.length}
-        minutes={work.minutes}
-        waiting={work.waiting.length}
-        spentCents={spentCents(priced)}
-        toGoCents={costs.startupCents}
-        unknownFees={costs.unknown.length}
-        budgetCapCents={budgetCapCents(profile.startupBudget)}
-        budgetLabel={profile.startupBudget ? BUDGET_LABELS[profile.startupBudget] : null}
-        launchDate={profile.launchDate}
-      />
-    ) : null;
   const required = priced.filter((step) => step.timing === "before_selling" && step.requirementStatus !== "optional" && step.requirementStatus !== "outside_coverage");
   const beforeSelling = { total: required.length, done: required.filter((step) => step.status === "done").length };
   const first = actions.first;
@@ -88,6 +91,8 @@ async function Overview() {
   };
   const move = nextMove(input);
   const moveStep = move.stepId ? priced.find((step) => step.id === move.stepId) : undefined;
+  const after = moveStep ? nextStepAfter(priced, moveStep.key) : null;
+  const stages = journeyStages(input);
 
   const waiting: { text: string; href: string; action: string }[] = [];
   if (plan?.proposal) {
@@ -113,52 +118,82 @@ async function Overview() {
   const alsoWaiting = waiting.filter((item) => item.href !== move.href);
 
   return (
-    <div className="flex max-w-2xl flex-col gap-4">
-      {/* Widgets above the next step on wider screens, below it on phones; one copy shows at a time */}
-      {widgets ? <div className="hidden sm:block">{widgets}</div> : null}
-      <StartHere move={move} step={moveStep} parallel={moveStep && moveStep.timing !== "later" ? Math.max(0, actions.now.length - 1) : 0} />
-      {widgets ? <div className="sm:hidden">{widgets}</div> : null}
+    <>
+      <TodayHead
+        name={user.name.trim().split(/\s+/)[0] || null}
+        business={profile?.name ?? null}
+        launchDate={profile?.launchDate ?? null}
+        ready={Boolean(profile) && !changes.length && !plan?.proposal && priced.length > 0 && beforeSelling.done === beforeSelling.total}
+      />
+
+      {/* "Do this next" comes first on phones too */}
+      <div className="grid items-stretch gap-5 @3xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
+        <StartHere move={move} step={moveStep} parallel={moveStep && moveStep.timing !== "later" ? Math.max(0, actions.now.length - 1) : 0} after={after} />
+        {profile ? <LaunchCard date={profile.launchDate} /> : null}
+      </div>
 
       {alsoWaiting.length ? (
-        <section aria-labelledby="waiting-heading" className="flex flex-col gap-2 rounded-2xl bg-ai-tint p-5 ring-1 ring-ai/15">
-          <h2 id="waiting-heading" className="text-xs font-bold uppercase tracking-wider text-ai-ink">
-            Also waiting for your OK
-          </h2>
-          <ul className="flex flex-col gap-2">
-            {alsoWaiting.map((item) => (
-              <li key={item.href + item.action} className="flex flex-col">
-                <p className="text-ai-ink">{item.text}</p>
-                <Link href={item.href} className={`flex min-h-11 w-fit items-center ${TEXT_LINK}`}>
-                  {item.action}
-                </Link>
-              </li>
-            ))}
-          </ul>
+        <section aria-labelledby="waiting-heading" className="flex items-start gap-3 rounded-[14px] border border-check-ring bg-check-tint px-4 py-3.5 text-check">
+          <Icon name="info" className="mt-0.5" />
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <h2 id="waiting-heading" className="font-bold">
+              Also waiting for your OK
+            </h2>
+            <ul className="flex flex-col gap-1">
+              {alsoWaiting.map((item) => (
+                <li key={item.href + item.action} className="flex flex-col">
+                  <p>{item.text}</p>
+                  <Link href={item.href} className="flex min-h-11 w-fit items-center font-bold underline decoration-[1.5px] underline-offset-[3px] hover:text-ink">
+                    {item.action}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       ) : null}
 
-      <JourneyStages stages={journeyStages(input)} />
-
-      {priced.length ? <StepBoard actions={actions} costs={costs} beforeSelling={beforeSelling} /> : null}
-
-      {business ? (
+      {profile && priced.length ? (
         <>
-          <section aria-labelledby="have-heading" className={`flex flex-col gap-2 ${CARD}`}>
-            <h2 id="have-heading" className={SECTION_TITLE}>
-              Already have some paperwork?
-            </h2>
-            <p className="text-rule">
-              Not starting from scratch? Upload what you already have, like your LLC certificate or EIN letter. Got a letter in the mail you’re not
-              sure about? Upload it and First Sale explains what it is and what to do.
-            </p>
-            <Link href="/documents?add=have#add-form" className={SECONDARY_LINK}>
-              Upload a document
-            </Link>
-          </section>
-          <CurrentBusiness business={business} />
+          <DashboardWidgets
+            left={work.left.length}
+            minutes={work.minutes}
+            waiting={work.waiting.length}
+            byTopic={minutesByTopic(work.left)}
+            spentCents={spentCents(priced)}
+            toGoCents={costs.startupCents}
+            unknownFees={costs.unknown.length}
+            budgetCapCents={budgetCapCents(profile.startupBudget)}
+            budgetLabel={profile.startupBudget ? BUDGET_LABELS[profile.startupBudget] : null}
+            done={beforeSelling.done}
+            total={beforeSelling.total}
+            stages={stages}
+          />
+          {profile.launchDate ? <LaunchSchedule date={profile.launchDate} minutes={work.minutes} waiting={work.waiting.length} /> : null}
         </>
       ) : null}
-    </div>
+
+      {priced.length ? <StepBoard actions={actions} costs={costs} skip={moveStep?.id ?? null} /> : null}
+      {priced.some((step) => step.simulated) ? <PracticeBanner what="These steps came from practice results." /> : null}
+
+      <div className={`grid items-start gap-5 ${business ? "@3xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]" : ""}`}>
+        <JourneyStages stages={stages} />
+        {business ? (
+          <div className="flex flex-col gap-5">
+            <Card title="Already have some paperwork?" icon="upload" id="have-heading">
+              <p className="text-rule">
+                Not starting from scratch? Upload what you already have, like your LLC certificate or EIN letter. Got a letter in the mail you’re not
+                sure about? Upload it and First Sale explains what it is and what to do.
+              </p>
+              <Link href="/documents?add=have#add-form" className={SECONDARY_LINK}>
+                Upload a document
+              </Link>
+            </Card>
+            <CurrentBusiness business={business} />
+          </div>
+        ) : null}
+      </div>
+    </>
   );
 }
 
@@ -171,15 +206,12 @@ function CurrentBusiness({ business }: { business: MyBusiness }) {
     .join(" · ");
 
   return (
-    <section aria-labelledby="current-business" className={`flex flex-col gap-2 ${CARD}`}>
-      <p className={LABEL}>Working on</p>
-      <h2 id="current-business" className="font-display text-2xl font-bold">
-        {displayName(business.profile)}
-      </h2>
-      {detail ? <p className="text-rule">{detail}</p> : null}
-      <Link href="/business" className={`flex min-h-11 w-fit items-center ${TEXT_LINK}`}>
+    <Card title="Working on" icon="store" id="current-business">
+      <p className="font-display text-[22px] leading-tight">{displayName(business.profile)}</p>
+      {detail ? <p className="text-[15px] text-muted">{detail}</p> : null}
+      <Link href="/business" className={`-my-3 w-fit py-3 ${TEXT_LINK}`}>
         See your business
       </Link>
-    </section>
+    </Card>
   );
 }

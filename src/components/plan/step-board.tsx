@@ -1,172 +1,235 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { Icon, type IconName } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
-import { CARD, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
+import { TEXT_LINK } from "@/components/styles";
+import { Fold, Note } from "@/components/ui";
 import type { PlanStep } from "@/lib/data/plan";
 import { formatFee } from "@/lib/documents/startup-plan";
 import type { Costs, NextActions } from "@/lib/rules/next-action";
-import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
-import { Tick } from "./journey";
-import { Lock } from "./lock";
-import { PlanProgress } from "./plan-summary";
+import { formatMinutes, neededBeforeSelling, stepMinutes } from "@/lib/rules/progress";
+import { alreadyDoneHref } from "./journey";
+import { TOPIC_ICONS } from "./topic-icon";
 
 const LIST = new Intl.ListFormat("en-US", { type: "conjunction" });
-const STEP_LINK = "flex min-h-11 w-fit items-center font-semibold underline-offset-4 hover:underline";
 
 interface Props {
   actions: NextActions<PlanStep>;
   costs: Costs;
-  beforeSelling: { done: number; total: number };
+  // The step "Do this next" already shows
+  skip?: string | null;
 }
 
-// Every step at a glance: what's left to do, what's waiting, and what's done
-export function StepBoard({ actions, costs, beforeSelling }: Props) {
-  const toDo = [...actions.now, ...actions.decide];
+type Mark = "todo" | "waiting" | "locked" | "done" | "later";
+
+// Every other step as a row: ready now, waiting on an office, locked behind another step, done, and for later
+export function StepBoard({ actions, costs, skip = null }: Props) {
+  const ready = [...actions.now, ...actions.decide];
+  const toDo = ready.filter((step) => step.id !== skip);
   // Submitted steps wait on the office, the rest on other steps
-  const blocked = [...actions.submitted.map((step) => ({ step, on: null })), ...actions.waiting];
-  const waiting = blocked.filter(({ step }) => needed(step));
-  const done = actions.done.filter(needed);
+  const blocked: { step: PlanStep; on: PlanStep[] | null }[] = [...actions.submitted.map((step) => ({ step, on: null })), ...actions.waiting];
+  const submitted = blocked.filter(({ step, on }) => !on && neededBeforeSelling(step));
+  const locked = blocked.filter(({ step, on }) => on && neededBeforeSelling(step));
+  const done = actions.done.filter(neededBeforeSelling);
   // Everything that isn't needed before selling, whatever its state
-  const later: { step: PlanStep; mark: "later" | "waiting" | "done"; on: PlanStep[] | null }[] = [
+  const later: { step: PlanStep; mark: Mark; on: PlanStep[] | null }[] = [
     ...[...actions.later, ...actions.optional].map((step) => ({ step, mark: "later" as const, on: null })),
-    ...blocked.filter(({ step }) => !needed(step)).map(({ step, on }) => ({ step, mark: "waiting" as const, on })),
-    ...actions.done.filter((step) => !needed(step)).map((step) => ({ step, mark: "done" as const, on: null })),
+    ...blocked.filter(({ step }) => !neededBeforeSelling(step)).map(({ step, on }) => ({ step, mark: on ? ("locked" as const) : ("waiting" as const), on })),
+    ...actions.done.filter((step) => !neededBeforeSelling(step)).map((step) => ({ step, mark: "done" as const, on: null })),
   ];
 
   return (
-    <section aria-labelledby="board-heading" className={`flex flex-col gap-5 ${CARD}`}>
-      <div className="flex flex-col gap-2">
-        <h2 id="board-heading" className={SECTION_TITLE}>
-          Your steps before your first sale
-        </h2>
-        <PlanProgress done={beforeSelling.done} total={beforeSelling.total} />
+    <div className="flex flex-col gap-6">
+      {toDo.length || submitted.length || locked.length ? (
+        <div className="grid items-start gap-6 @3xl:grid-cols-2">
+          {toDo.length ? (
+            <Group id="now-heading" title={toDo.length < ready.length ? "You can also do now" : "Ready to do now"} count={toDo.length}>
+              {toDo.map((step) => (
+                <Row key={step.id} step={step} mark="todo">
+                  <Meta step={step} />
+                  <Link href={alreadyDoneHref(step)} className={`relative z-10 -my-3 py-3 text-sm ${TEXT_LINK}`}>
+                    Already done?<span className="sr-only"> Mark “{step.title}” done</span>
+                  </Link>
+                  {step.requirementStatus === "conditional" && step.conditions[0] ? <span className="basis-full text-rule">First check: {step.conditions[0]}</span> : null}
+                </Row>
+              ))}
+            </Group>
+          ) : null}
+          {submitted.length || locked.length ? (
+            <div className="flex flex-col gap-6">
+              {submitted.length ? (
+                <Group id="board-waiting-heading" title="Waiting to hear back" count={submitted.length}>
+                  {submitted.map(({ step }) => (
+                    <Row key={step.id} step={step} mark="waiting">
+                      <WaitingNote step={step} on={null} />
+                    </Row>
+                  ))}
+                </Group>
+              ) : null}
+              {locked.length ? (
+                <Group id="locked-heading" title="Unlocks later" count={locked.length}>
+                  {locked.map(({ step, on }) => (
+                    <Row key={step.id} step={step} mark="locked">
+                      <WaitingNote step={step} on={on} />
+                    </Row>
+                  ))}
+                </Group>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="grid items-start gap-3 @3xl:grid-cols-2">
+        {done.length ? (
+          <Fold title={`Done (${done.length})`} summary="Steps you’ve finished" icon="check">
+            <ul className="grid gap-2.5">
+              {done.map((step) => (
+                <Row key={step.id} step={step} mark="done">
+                  <DoneNote step={step} />
+                </Row>
+              ))}
+            </ul>
+          </Fold>
+        ) : (
+          <Note tone="quiet" icon="check">
+            Nothing marked done yet. Mark each step when you finish it.
+          </Note>
+        )}
+        {later.length ? (
+          <Fold title={`For later, and optional (${later.length})`} summary="After your first sale, or not required" icon="info">
+            <ul className="grid gap-2.5">
+              {later.map(({ step, mark, on }) => (
+                <Row key={step.id} step={step} mark={mark}>
+                  {mark === "done" ? <DoneNote step={step} /> : mark === "later" ? <Meta step={step} /> : <WaitingNote step={step} on={on} />}
+                </Row>
+              ))}
+            </ul>
+          </Fold>
+        ) : null}
       </div>
 
-      <Column id="todo-heading" title="To do" count={toDo.length} empty="Nothing to do right now.">
-        {toDo.map((step) => (
-          <Row key={step.id} step={step} mark="todo">
-            <Meta step={step} />
-            {step.requirementStatus === "conditional" && step.conditions[0] ? <p className="text-sm text-rule">First check: {step.conditions[0]}</p> : null}
-            <Link href={`/checklist/${step.id}${step.topic === "structure" ? "#progress-heading" : "#already-done"}`} className={`flex min-h-11 w-fit items-center text-sm ${TEXT_LINK}`}>
-              Already done this? Mark it done
-            </Link>
-          </Row>
-        ))}
-      </Column>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[15px] text-muted">
+        <p>
+          Fees confirmed so far: {formatFee(costs.startupCents)}
+          {costs.yearlyCents ? `, then ${formatFee(costs.yearlyCents)} a year` : ""}
+          {costs.unknown.length ? ` (${costs.unknown.length} not confirmed yet)` : ""}
+        </p>
+        <Link href="/checklist" className={`flex min-h-11 items-center ${TEXT_LINK}`}>
+          See your full startup plan
+        </Link>
+      </div>
+    </div>
+  );
+}
 
-      {waiting.length ? (
-        <Column id="waiting-board-heading" title="Waiting" count={waiting.length}>
-          {waiting.map(({ step, on }) => (
-            <Row key={step.id} step={step} mark={on ? "locked" : "waiting"} lockedBy={on}>
-              <WaitingNote step={step} on={on} />
-            </Row>
-          ))}
-        </Column>
-      ) : null}
-
-      <Column id="done-heading" title="Done" count={done.length} empty="Nothing marked done yet. Mark each step when you finish it.">
-        {done.map((step) => (
-          <Row key={step.id} step={step} mark="done">
-            <DoneNote step={step} />
-          </Row>
-        ))}
-      </Column>
-
-      {later.length ? (
-        <details className="group">
-          <summary className="flex min-h-11 w-fit cursor-pointer items-center font-semibold underline underline-offset-4">
-            For later, and optional ({later.length})
-          </summary>
-          <ul className="mt-2 flex flex-col gap-2">
-            {later.map(({ step, mark, on }) => (
-              <Row key={step.id} step={step} mark={mark === "waiting" && on ? "locked" : mark} lockedBy={on}>
-                {mark === "done" ? <DoneNote step={step} /> : mark === "waiting" ? <WaitingNote step={step} on={on} /> : <Meta step={step} />}
-              </Row>
-            ))}
-          </ul>
-        </details>
-      ) : null}
-
-      <p className="text-[15px] text-rule">
-        Fees confirmed so far: {formatFee(costs.startupCents)}
-        {costs.yearlyCents ? `, then ${formatFee(costs.yearlyCents)} a year` : ""}
-        {costs.unknown.length ? ` (${costs.unknown.length} not confirmed yet)` : ""}
-      </p>
-      <Link href="/checklist" className={`flex min-h-11 w-fit items-center ${TEXT_LINK}`}>
-        See your full startup plan
-      </Link>
+function Group({ id, title, count, children }: { id: string; title: string; count: number; children: ReactNode }) {
+  return (
+    <section aria-labelledby={id} className="flex flex-col gap-2.5">
+      <h2 id={id} className="font-display text-[22px] leading-tight">
+        {title} <span className="font-sans text-base text-muted">({count})</span>
+      </h2>
+      <ul className="grid gap-2.5">{children}</ul>
     </section>
   );
 }
 
-// Counted in the progress bar: required, and needed before selling
-function needed(step: PlanStep): boolean {
-  return step.timing === "before_selling" && step.requirementStatus !== "optional" && step.requirementStatus !== "outside_coverage";
-}
+const TICKS: Record<Mark, string> = {
+  todo: "border-line-strong bg-surface text-accent",
+  later: "border-line bg-surface text-faint",
+  waiting: "border-check-ring bg-check-tint text-check",
+  locked: "border-transparent bg-wash text-faint",
+  done: "border-done/25 bg-done-tint text-done",
+};
 
-function WaitingNote({ step, on }: { step: PlanStep; on: PlanStep[] | null }) {
+const TICK_LABELS: Record<Mark, string> = { todo: "To do", waiting: "Waiting to hear back", locked: "Locked", done: "Done", later: "Later or optional" };
+
+// A step as one ruled row; the whole row opens the step, and links inside it sit on top
+function Row({ step, mark, children }: { step: PlanStep; mark: Mark; children?: ReactNode }) {
+  const icon: IconName = mark === "done" ? "check" : mark === "waiting" ? "hourglass" : mark === "locked" ? "lock" : TOPIC_ICONS[step.topic];
   return (
-    <p className="text-sm text-rule">
-      {on ? (
-        `Finish ${LIST.format(on.map((each) => `“${each.title}”`))} first`
-      ) : step.submittedAt ? (
-        <>
-          Submitted <LocalDate iso={step.submittedAt.toISOString()} />, waiting to hear back
-        </>
-      ) : (
-        "Submitted, waiting to hear back"
-      )}
-    </p>
-  );
-}
-
-function DoneNote({ step }: { step: PlanStep }) {
-  return step.completedAt ? (
-    <p className="text-sm text-rule">
-      Done <LocalDate iso={step.completedAt.toISOString()} />
-    </p>
-  ) : null;
-}
-
-function Column({ id, title, count, empty, children }: { id: string; title: string; count: number; empty?: string; children: React.ReactNode }) {
-  return (
-    <section aria-labelledby={id} className="flex flex-col gap-2">
-      <h3 id={id} className="text-lg font-bold">
-        {title} <span className="font-normal text-muted">({count})</span>
-      </h3>
-      {count ? <ul className="flex flex-col gap-2">{children}</ul> : <p className="text-[15px] text-muted">{empty}</p>}
-    </section>
-  );
-}
-
-const MARKS = {
-  todo: "bg-surface ring-2 ring-accent",
-  waiting: "bg-rule-tint text-rule",
-  locked: "bg-rule-tint text-muted",
-  done: "bg-accent text-white",
-  later: "bg-surface ring-1 ring-ink/20",
-} as const;
-
-const MARK_LABELS = { todo: "To do", waiting: "Waiting", locked: "Locked", done: "Done", later: "Later or optional" } as const;
-
-function Row({ step, mark, lockedBy, children }: { step: PlanStep; mark: keyof typeof MARKS; lockedBy?: PlanStep[] | null; children?: React.ReactNode }) {
-  const hint = lockedBy?.length ? `Finish ${LIST.format(lockedBy.map((each) => `“${each.title}”`))} first` : undefined;
-  return (
-    <li className={`flex gap-3 rounded-xl px-3.5 py-2.5 ${mark === "locked" ? "bg-ground/60" : "bg-ground"}`}>
-      <span title={hint} className={`mt-3 flex size-5 shrink-0 items-center justify-center rounded-full ${MARKS[mark]}`}>
-        {mark === "done" ? <Tick /> : mark === "locked" ? <Lock /> : null}
-        <span className="sr-only">{MARK_LABELS[mark]}: </span>
+    <li
+      className={`relative flex min-h-16 items-center gap-3.5 rounded-xl border border-line px-3.5 py-3 transition hover:border-line-strong hover:shadow-card motion-safe:hover:-translate-y-px ${
+        mark === "locked" ? "bg-soft" : "bg-surface shadow-soft"
+      }`}
+    >
+      <span className={`grid size-[30px] shrink-0 place-items-center rounded-[9px] border-[1.5px] ${TICKS[mark]}`}>
+        <Icon name={icon} size="sm" strokeWidth={mark === "done" ? 2.2 : undefined} />
+        <span className="sr-only">{TICK_LABELS[mark]}: </span>
       </span>
-      <div className="flex min-w-0 flex-col">
-        <Link href={`/checklist/${step.id}`} className={`${STEP_LINK} ${mark === "done" || mark === "locked" ? "text-muted" : ""}`}>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Link
+          href={`/checklist/${step.id}`}
+          className={`w-fit font-bold leading-snug after:absolute after:inset-0 after:rounded-xl ${
+            mark === "done" ? "text-muted line-through decoration-line-strong" : mark === "locked" ? "text-muted" : "text-ink"
+          }`}
+        >
           {step.title}
         </Link>
-        {children}
+        {children ? <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">{children}</div> : null}
       </div>
+      <Icon name="chevron" className="text-faint" />
     </li>
   );
 }
 
+const FACT = "inline-flex items-center gap-1.5";
+
 function Meta({ step }: { step: PlanStep }) {
-  const facts = [step.agency, step.feeCents === null ? null : `Fee ${formatFee(step.feeCents)}`, `About ${formatMinutes(stepMinutes(step))} of your time`].filter(Boolean);
-  return facts.length ? <p className="text-sm text-muted">{facts.join(" · ")}</p> : null;
+  return (
+    <>
+      <span className={FACT}>
+        <Icon name="clock" size="xs" className="text-faint" />
+        <span aria-hidden="true">~{formatMinutes(stepMinutes(step))}</span>
+        <span className="sr-only">About {formatMinutes(stepMinutes(step))} of your time</span>
+      </span>
+      {step.feeCents !== null ? (
+        <span className={FACT}>
+          <Icon name="dollar" size="xs" className="text-faint" />
+          {formatFee(step.feeCents)}
+          <span className="sr-only"> fee</span>
+        </span>
+      ) : null}
+      {step.agency ? (
+        <span className="flex min-w-0 items-start gap-1.5">
+          <Icon name="building" size="xs" className="mt-[3px] text-faint" />
+          {step.agency}
+        </span>
+      ) : null}
+    </>
+  );
+}
+
+function WaitingNote({ step, on }: { step: PlanStep; on: PlanStep[] | null }) {
+  return (
+    <span className="flex min-w-0 items-start gap-1.5">
+      <Icon name={on ? "lock" : "hourglass"} size="xs" className={`mt-[3px] ${on ? "text-faint" : "text-check"}`} />
+      <span>
+        {on ? (
+          `Finish ${LIST.format(on.map((each) => `“${each.title}”`))} first`
+        ) : step.submittedAt ? (
+          <>
+            Submitted <LocalDate iso={step.submittedAt.toISOString()} />, waiting to hear back
+          </>
+        ) : (
+          "Submitted, waiting to hear back"
+        )}
+      </span>
+    </span>
+  );
+}
+
+function DoneNote({ step }: { step: PlanStep }) {
+  return (
+    <span className={FACT}>
+      <Icon name="check" size="xs" className="text-done" />
+      {step.completedAt ? (
+        <>
+          Done <LocalDate iso={step.completedAt.toISOString()} />
+        </>
+      ) : (
+        "Done"
+      )}
+    </span>
+  );
 }

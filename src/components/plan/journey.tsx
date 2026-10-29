@@ -1,30 +1,89 @@
 import Link from "next/link";
+import { Icon } from "@/components/icons";
 import { RequirementStatusChip } from "@/components/requirements/requirement-status";
-import { CARD, PRIMARY_LINK, SECTION_TITLE } from "@/components/styles";
+import { EYEBROW, PRIMARY_LINK, SECONDARY_LINK } from "@/components/styles";
+import { Card, Fact, Hand, IconTile } from "@/components/ui";
 import type { PlanStep } from "@/lib/data/plan";
 import { formatFee } from "@/lib/documents/startup-plan";
+import { TOPIC_LABELS } from "@/lib/labels";
 import type { NextMove, Stage, StageState } from "@/lib/rules/journey";
+import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
+import { TOPIC_ICONS } from "./topic-icon";
 
-// The one thing to do next, from anywhere in the journey
-export function StartHere({ move, step, parallel = 0 }: { move: NextMove; step?: PlanStep; parallel?: number }) {
-  const facts = step ? [step.agency, step.feeCents === null ? null : `Fee: ${formatFee(step.feeCents)}`].filter(Boolean) : [];
+// Where "already done" lands on a step's page; choosing a structure is recorded in its progress section
+export function alreadyDoneHref(step: Pick<PlanStep, "id" | "topic">): string {
+  return `/checklist/${step.id}${step.topic === "structure" ? "#progress-heading" : "#already-done"}`;
+}
+
+// The one thing to do next, from anywhere in the journey, on a ruled card
+export function StartHere({ move, step, parallel = 0, after = null }: { move: NextMove; step?: PlanStep; parallel?: number; after?: PlanStep | null }) {
+  const icon = step ? TOPIC_ICONS[step.topic] : "flag";
   return (
-    <section aria-labelledby="start-heading" className="flex flex-col gap-2.5 rounded-2xl bg-accent-tint p-5 sm:p-6">
-      <h2 id="start-heading" className="text-xs font-bold uppercase tracking-wider text-accent-ink">
-        Do this next
-      </h2>
-      <p className="font-display text-2xl font-bold leading-snug text-accent-ink">{move.title}</p>
-      {step ? <RequirementStatusChip status={step.requirementStatus} /> : null}
-      {facts.length ? <p className="text-rule">{facts.join(" · ")}</p> : null}
-      <p className="text-rule">{move.why}</p>
+    <section
+      aria-labelledby="start-heading"
+      className="relative flex flex-col gap-3.5 rounded-2xl border border-line bg-surface py-5 pl-[34px] pr-[18px] shadow-lift before:absolute before:inset-y-0 before:left-[18px] before:w-[1.5px] before:bg-accent-ring sm:py-6 sm:pl-[46px] sm:pr-[26px] sm:before:left-7"
+    >
+      <span aria-hidden="true" className="absolute right-[22px] top-4 hidden -rotate-[5deg] @3xl:block">
+        <Hand>start here ↓</Hand>
+      </span>
+      <div className="flex items-center gap-3 @3xl:pr-28">
+        <IconTile icon={icon} big />
+        <div className="flex min-w-0 flex-col">
+          <h2 id="start-heading" className={EYEBROW}>
+            Do this next
+          </h2>
+          {step?.agency ? <p className="text-[14.5px] leading-snug text-muted">{step.agency}</p> : null}
+        </div>
+      </div>
+      <p className="font-display text-[23px] leading-[1.2] sm:text-[27px]">{move.title}</p>
+      {step ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Fact icon="clock">
+            <b className="font-bold text-ink">{formatMinutes(stepMinutes(step))}</b>
+            <span className="sr-only"> of your time</span>
+          </Fact>
+          {step.feeCents !== null ? (
+            <Fact icon="dollar">
+              {formatFee(step.feeCents)}
+              <span className="sr-only"> fee</span>
+            </Fact>
+          ) : null}
+          <Fact icon={icon}>{TOPIC_LABELS[step.topic]}</Fact>
+          <RequirementStatusChip status={step.requirementStatus} />
+        </div>
+      ) : null}
+      <p className="text-[16.5px] text-muted">{move.why}</p>
       {step?.conditions[0] ? <p className="text-[15px] text-rule">First check: {step.conditions[0]}</p> : null}
       {parallel > 0 ? (
-        <p className="text-sm text-muted">{parallel === 1 ? "One more step" : `${parallel} more steps`} can happen at the same time.</p>
+        <p className="text-[15px] text-muted">{parallel === 1 ? "One more step" : `${parallel} more steps`} can happen at the same time.</p>
       ) : null}
-      {step?.simulated ? <p className="text-sm font-semibold text-check">Practice mode: built-in rules suggested this step, not real research.</p> : null}
-      <Link href={move.href} className={`${PRIMARY_LINK} mt-1`}>
-        {move.action}
-      </Link>
+      {step?.simulated ? (
+        <p className="flex items-start gap-2 text-sm font-semibold text-check">
+          <Icon name="info" size="sm" className="mt-0.5" />
+          Practice mode: built-in rules suggested this step, not real research.
+        </p>
+      ) : null}
+      <div className="flex flex-wrap gap-2.5">
+        <Link href={move.href} className={PRIMARY_LINK}>
+          {move.action}
+          <Icon name="arrow" size="sm" />
+        </Link>
+        {step ? (
+          <Link href={alreadyDoneHref(step)} className={SECONDARY_LINK}>
+            <Icon name="check" size="sm" className="text-accent" />
+            I’ve already done this
+          </Link>
+        ) : null}
+      </div>
+      {after ? (
+        <p className="border-t border-line pt-3 text-[14.5px] text-muted">
+          After this:{" "}
+          <Link href={`/checklist/${after.id}`} className="py-3 font-semibold text-rule hover:text-accent hover:underline">
+            {after.title}
+          </Link>{" "}
+          · ~{formatMinutes(stepMinutes(after))}
+        </p>
+      ) : null}
     </section>
   );
 }
@@ -38,16 +97,16 @@ const STATE_LABELS: Record<StageState, string> = {
 };
 
 const MARKS: Record<StageState, string> = {
-  done: "bg-accent text-white",
-  now: "bg-surface text-accent-ink ring-2 ring-accent",
-  check: "bg-check-tint text-check ring-2 ring-check/40",
-  todo: "bg-rule-tint text-rule",
-  anytime: "bg-rule-tint text-rule",
+  done: "border-done/40 bg-done-tint text-done",
+  now: "border-accent bg-accent text-white",
+  check: "border-check-ring bg-check-tint text-check",
+  todo: "border-line-strong bg-surface text-muted",
+  anytime: "border-dashed border-line-strong bg-surface text-faint",
 };
 
 const LABEL_STYLES: Record<StageState, string> = {
-  done: "text-accent-ink",
-  now: "text-accent-ink",
+  done: "text-done",
+  now: "text-accent",
   check: "text-check",
   todo: "text-muted",
   anytime: "text-muted",
@@ -58,35 +117,34 @@ export function JourneyStages({ stages }: { stages: Stage[] }) {
   const done = stages.filter((stage) => stage.state === "done").length;
   const counted = stages.filter((stage) => stage.state !== "anytime").length;
   return (
-    <section aria-labelledby="journey-heading" className={`flex flex-col gap-3 ${CARD}`}>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 id="journey-heading" className={SECTION_TITLE}>
-          Starting your business
-        </h2>
-        <p className="text-sm text-muted">
+    <Card
+      title="Starting your business"
+      icon="flag"
+      id="journey-heading"
+      action={
+        <span className="text-sm text-muted">
           {done} of {counted} stages done
-        </p>
-      </div>
+        </span>
+      }
+    >
       <ol className="flex flex-col">
         {stages.map((stage, index) => (
-          <li key={stage.href} className="flex gap-3.5">
-            <div className="flex flex-col items-center">
-              <span aria-hidden="true" className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${MARKS[stage.state]}`}>
-                {stage.state === "done" ? <Tick /> : stage.state === "check" ? "!" : index + 1}
-              </span>
-              {index < stages.length - 1 ? <span aria-hidden="true" className="w-0.5 flex-1 bg-line" /> : null}
-            </div>
-            <div className="flex min-w-0 flex-col pb-4">
-              <Link href={stage.href} className="flex min-h-8 w-fit items-center text-[17px] font-bold underline-offset-4 hover:underline">
+          <li key={stage.href} className="relative flex gap-3.5 pb-4 last:pb-0">
+            {index < stages.length - 1 ? <span aria-hidden="true" className="absolute bottom-0 left-[15px] top-8 w-[1.5px] bg-line" /> : null}
+            <span aria-hidden="true" className={`relative grid size-8 shrink-0 place-items-center rounded-full border-[1.5px] text-sm font-bold ${MARKS[stage.state]}`}>
+              {stage.state === "done" ? <Icon name="check" size="sm" strokeWidth={2.4} /> : stage.state === "check" ? "!" : index + 1}
+            </span>
+            <div className="flex min-w-0 flex-col">
+              <Link href={stage.href} className="-my-1.5 flex min-h-11 w-fit items-center font-display text-[17px] leading-tight underline-offset-4 hover:underline">
                 {stage.title}
               </Link>
               <p className={`text-sm font-semibold ${LABEL_STYLES[stage.state]}`}>{STATE_LABELS[stage.state]}</p>
-              <p className="text-[15px] text-rule">{stage.detail}</p>
+              <p className="text-[15px] text-muted">{stage.detail}</p>
             </div>
           </li>
         ))}
       </ol>
-    </section>
+    </Card>
   );
 }
 

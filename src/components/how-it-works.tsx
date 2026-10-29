@@ -21,17 +21,3 @@ export function HowItWorks() {
     </div>
   );
 }
-
-// Same key inline, for phones where the sidebar card is hidden
-export function ActorLegend() {
-  return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm md:hidden">
-      {ROWS.map((row) => (
-        <span key={row.actor} className="flex items-center gap-2">
-          <ActorChip actor={row.actor} />
-          {row.text}
-        </span>
-      ))}
-    </div>
-  );
-}
