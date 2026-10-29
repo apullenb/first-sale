@@ -56,17 +56,17 @@ export function profileImpact(before: BusinessProfile, after: BusinessProfile, c
     effects.push(
       context.researchCheckedAt
         ? {
-            title: "Regulations",
-            detail: "They were checked with your old answers. Re-check them so they match what you’ve changed.",
+            title: "What applies to you",
+            detail: "It was checked with your old answers. Check again so it matches what you’ve changed.",
             href: "/requirements",
           }
-        : { title: "Regulations", detail: "They’ll use your new answers when you find them.", href: "/requirements" },
+        : { title: "What applies to you", detail: "It’ll use your new answers when you find what applies.", href: "/requirements" },
     );
     if (context.planSteps > 0) {
       effects.push({
         title: "Licenses and registrations",
-        detail: "A re-check may add or remove steps. You’ll review any change first, and steps you’ve finished stay finished.",
-        href: "/checklist",
+        detail: "Checking again may add or remove steps. You’ll review any change first, and steps you’ve finished stay finished.",
+        href: "/start",
       });
     }
   }

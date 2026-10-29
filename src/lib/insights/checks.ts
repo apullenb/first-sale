@@ -13,7 +13,7 @@ export const PAGE_LINKS: Record<InsightPage, InsightLink> = {
   business: { href: "/business", label: getSection("/business").title },
   requirements: { href: "/requirements", label: getSection("/requirements").title },
   structure: { href: "/structure", label: getSection("/structure").title },
-  checklist: { href: "/checklist", label: getSection("/checklist").title },
+  checklist: { href: "/start", label: getSection("/start").title },
   documents: { href: "/documents", label: getSection("/documents").title },
   business_plan: { href: "/documents/business-plan", label: "Business plan" },
   logo: { href: "/logo", label: getSection("/logo").title },
@@ -24,7 +24,7 @@ export const PAGE_LINKS: Record<InsightPage, InsightLink> = {
 };
 
 // Pages whose legal facts First Sale checked against official sources
-const SOURCED_HREFS = new Set(["/requirements", "/checklist", "/structure", "/documents"]);
+const SOURCED_HREFS = new Set(["/requirements", "/start", "/checklist", "/structure", "/documents"]);
 
 const SMALL_NUMBER_WORDS = "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety";
 

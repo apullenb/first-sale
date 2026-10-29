@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { PracticeBanner } from "@/components/practice-banner";
-import { StatusChip } from "@/components/requirements/requirement-card";
+import { StatusChip } from "@/components/requirements/sources";
 import { SourceButton } from "@/components/requirements/source-button";
 import { PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Areas } from "@/components/structure/areas";
@@ -56,7 +56,7 @@ async function Structure() {
       kicker={
         <span className="inline-flex items-center gap-2">
           <Icon name="scale" size="sm" />
-          Start your business · Step 3
+          Start your business · Step 2
         </span>
       }
       title="Business structure"
@@ -240,6 +240,19 @@ async function Structure() {
         </div>
       </section>
 
+      {decided ? (
+        <section aria-label="What’s next" className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-2xl border border-line bg-surface px-5 py-4 shadow-soft">
+          <div className="flex min-w-0 flex-col">
+            <p className="text-sm font-semibold text-muted">Next, step 3</p>
+            <p className="font-semibold">Find what applies to you{research ? ", and answer a few quick questions" : ""}</p>
+          </div>
+          <Link href="/requirements" className={PRIMARY_LINK}>
+            Go to What applies to you
+            <Icon name="arrow" size="sm" />
+          </Link>
+        </section>
+      ) : null}
+
       <History title="Decision history" events={history} empty="No decisions recorded yet." />
     </div>
   );
@@ -288,7 +301,7 @@ function NameForYou({
       {filings && pick?.value !== "legal_name" ? (
         <a href="#state-rules" className={`relative z-10 inline-flex min-h-11 w-fit items-center gap-1.5 text-[15px] ${TEXT_LINK}`}>
           <Icon name="office" size="sm" />
-          See the {filings === 1 ? "name filing" : `${filings} name filings`} your Regulations check found in {state}
+          See the {filings === 1 ? "name filing" : `${filings} name filings`} your check of what applies found in {state}
         </a>
       ) : null}
     </ForYou>
@@ -308,14 +321,14 @@ function StateRules({ state, research, rules }: { state: string; research: Resea
       id="state-rules"
       icon="office"
       title={`${state}’s filings and fees`}
-      lead="From your Regulations check, with the official page and the date it was read. Which ones you need depends on your answers."
+      lead="From your check of what applies to you, with the official page and the date it was read. Which ones you need depends on your answers."
     >
       {research?.simulated ? <PracticeBanner what="These requirements came from practice research." /> : null}
       {!research ? (
         <Note>
-          <p>Not checked yet. Until they are, treat {state}’s fees and filing steps as unknown. We don’t guess them.</p>
+          <p>Not checked yet. That’s the next step, after you answer here. Until then, treat {state}’s fees and filing steps as unknown. We don’t guess them.</p>
           <Link href="/requirements" className="mt-1 inline-flex min-h-11 items-center font-bold underline underline-offset-4">
-            Check Regulations on official {state} sites
+            Find what applies to you on official {state} sites
           </Link>
         </Note>
       ) : rules.length ? (
@@ -353,7 +366,7 @@ function StateRules({ state, research, rules }: { state: string; research: Resea
         <Note>
           Your last check didn’t find {state}’s official pages on forming a business or registering a name. That doesn’t mean there are no rules.{" "}
           <Link href="/requirements" className="font-bold underline underline-offset-4">
-            Open Regulations
+            Open What applies to you
           </Link>
         </Note>
       )}

@@ -203,7 +203,7 @@ export function DecisionForm({
           {!changes ? (
             <p className="text-muted">Your requirements aren’t checked yet, so no steps change.</p>
           ) : !plan ? (
-            <p className="text-muted">Steps for each structure stay “Depends on something” until you decide.</p>
+            <p className="text-muted">Steps for one structure wait until you decide.</p>
           ) : plan.kept.length || plan.left.length ? (
             <ul className="flex flex-col gap-1.5">
               {plan.kept.map((step) => (
@@ -235,7 +235,7 @@ export function DecisionForm({
             <p className="text-muted">None of your steps depend on this choice.</p>
           )}
           {changes ? (
-            <p className="text-sm text-muted">Licenses and registrations shows these for you to review before anything changes. Steps you’ve finished stay finished.</p>
+            <p className="text-sm text-muted">What applies to you shows these for you to review before anything changes. Steps you’ve finished stay finished.</p>
           ) : null}
         </Card>
 

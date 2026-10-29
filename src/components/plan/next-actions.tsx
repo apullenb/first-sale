@@ -1,10 +1,8 @@
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { Card, IconTile } from "@/components/ui";
-import type { PlanStep } from "@/lib/data/plan";
 import { formatFee } from "@/lib/documents/startup-plan";
-import type { Costs, NextActions } from "@/lib/rules/next-action";
-import { type RowState, StepRow } from "./step-row";
+import type { Costs } from "@/lib/rules/next-action";
 
 const LIST = new Intl.ListFormat("en-US", { type: "conjunction" });
 
@@ -48,107 +46,6 @@ export function StepGroup({
       </summary>
       <div className="px-[18px] pb-[18px]">{children}</div>
     </details>
-  );
-}
-
-function Rows({ steps, state, on }: { steps: PlanStep[]; state: RowState; on?: (step: PlanStep) => PlanStep[] }) {
-  return (
-    <ul className="grid gap-2.5">
-      {steps.map((step) => (
-        <StepRow key={step.id} step={step} state={state} lockedBy={on?.(step)} />
-      ))}
-    </ul>
-  );
-}
-
-// What to do now, what can happen at the same time, and what waits
-export function NextActionGroups({ actions }: { actions: NextActions<PlanStep> }) {
-  const waitingOn = (step: PlanStep) => actions.waiting.find((each) => each.step.id === step.id)?.on ?? [];
-  const groups = [
-    {
-      id: "now-steps",
-      title: "Ready to do now",
-      help: "Nothing has to come first, so they can happen at the same time, in any order.",
-      icon: "list" as const,
-      tone: "accent" as const,
-      steps: actions.now,
-      state: "ready" as const,
-      open: true,
-    },
-    {
-      id: "decide-steps",
-      title: "Check these first",
-      help: "Each depends on an answer or a decision. Open one to see what.",
-      icon: "branch" as const,
-      tone: "accent" as const,
-      steps: actions.decide,
-      state: "ready" as const,
-      open: true,
-    },
-    {
-      id: "submitted-steps",
-      title: "Submitted, waiting to hear back",
-      help: "You told us you submitted these. Mark each approved when the office confirms.",
-      icon: "hourglass" as const,
-      tone: "warn" as const,
-      steps: actions.submitted,
-      state: "submitted" as const,
-      open: true,
-    },
-    {
-      id: "locked-steps",
-      title: "Locked until another step is done",
-      help: "Each one opens once the step it needs is finished. You can still read ahead.",
-      icon: "lock" as const,
-      tone: "gray" as const,
-      steps: actions.waiting.map((each) => each.step),
-      state: "locked" as const,
-      open: true,
-    },
-    {
-      id: "later-steps",
-      title: "After you start selling",
-      help: "Ongoing obligations and steps for later, like renewals or hiring.",
-      icon: "calendar" as const,
-      tone: "gray" as const,
-      steps: actions.later,
-      state: "ready" as const,
-      open: false,
-    },
-    {
-      id: "optional-steps",
-      title: "Optional, or outside what First Sale checks",
-      help: "Not needed before selling. Each one says why it’s here.",
-      icon: "info" as const,
-      tone: "gray" as const,
-      steps: actions.optional,
-      state: "ready" as const,
-      open: false,
-    },
-    {
-      id: "done-steps",
-      title: "Done",
-      help: "Steps you’ve finished.",
-      icon: "check" as const,
-      tone: "done" as const,
-      steps: actions.done,
-      state: "done" as const,
-      open: false,
-    },
-  ];
-  return (
-    <section aria-labelledby="next-heading" className="flex flex-col gap-3">
-      <h2 id="next-heading" className="font-display text-[22px] leading-snug">
-        Your steps
-      </h2>
-      {groups.map((group) =>
-        group.steps.length ? (
-          <StepGroup key={group.id} id={group.id} title={group.title} help={group.help} icon={group.icon} tone={group.tone} open={group.open} count={group.steps.length}>
-            <Rows steps={group.steps} state={group.state} on={group.state === "locked" ? waitingOn : undefined} />
-          </StepGroup>
-        ) : null,
-      )}
-    </section>
   );
 }
 

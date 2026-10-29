@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
     // Room for a 4 MB document upload plus the form's own overhead
     serverActions: { bodySizeLimit: "4.5mb" },
   },
+  // The overview of every step is /start; task pages stay at /checklist/<id>
+  async redirects() {
+    return [{ source: "/checklist", destination: "/start", permanent: false }];
+  },
   async headers() {
     return [
       {

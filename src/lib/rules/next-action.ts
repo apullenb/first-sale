@@ -1,7 +1,7 @@
 import type { PlanTopic, TaskStatus } from "@/lib/domain";
 import type { RequirementStatus } from "@/lib/research/applicability";
 
-// Plain code: what to do now, what can happen at the same time, what waits, and what it costs.
+// Plain code: what the steps cost.
 // Optional steps and rules outside First Sale's coverage never count toward what's needed before selling.
 
 export interface ActionStep {
@@ -18,49 +18,7 @@ export interface ActionStep {
   formKey?: string | null;
 }
 
-export interface NextActions<T extends ActionStep> {
-  // Ready, needed before selling: these can all happen at the same time
-  now: T[];
-  // Ready, but they depend on an answer or decision first
-  decide: T[];
-  // Submitted, waiting on the office
-  submitted: T[];
-  waiting: { step: T; on: T[] }[];
-  later: T[];
-  optional: T[];
-  done: T[];
-  // The one thing to do next
-  first: T | null;
-}
-
 const SIDE: readonly RequirementStatus[] = ["optional", "outside_coverage"];
-
-export function nextActions<T extends ActionStep>(steps: readonly T[]): NextActions<T> {
-  const byKey = new Map(steps.map((step) => [step.key, step]));
-  const result: NextActions<T> = { now: [], decide: [], submitted: [], waiting: [], later: [], optional: [], done: [], first: null };
-  for (const step of steps) {
-    if (step.status === "done") {
-      result.done.push(step);
-      continue;
-    }
-    if (SIDE.includes(step.requirementStatus)) {
-      result.optional.push(step);
-      continue;
-    }
-    if (step.status === "submitted") {
-      result.submitted.push(step);
-      continue;
-    }
-    // Prerequisites that are gone from the plan don't block; submitted ones still do until approved
-    const on = step.prerequisites.flatMap((key) => byKey.get(key) ?? []).filter((prerequisite) => prerequisite.status !== "done");
-    if (on.length) result.waiting.push({ step, on });
-    else if (step.timing === "later") result.later.push(step);
-    else if (step.requirementStatus === "conditional") result.decide.push(step);
-    else result.now.push(step);
-  }
-  result.first = result.now[0] ?? result.decide[0] ?? result.later[0] ?? null;
-  return result;
-}
 
 export interface CostLine {
   title: string;

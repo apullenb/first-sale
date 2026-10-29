@@ -4,24 +4,21 @@ import { Icon } from "@/components/icons";
 import { DashboardWidgets, LaunchCard } from "@/components/plan/dashboard-widgets";
 import { JourneyStages, StartHere } from "@/components/plan/journey";
 import { LaunchSchedule, TodayHead } from "@/components/plan/launch-countdown";
+import { actionStep, priceTasks } from "@/components/plan/paperwork";
 import { StepBoard } from "@/components/plan/step-board";
 import { PracticeBanner } from "@/components/practice-banner";
 import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Card } from "@/components/ui";
-import { OFFICIAL_FORMS } from "@/data/official-forms";
 import { getCurrentUser } from "@/lib/auth/server";
-import { getMyBusiness, getMyDetails, getMyPlan, getMyResearch, listMyDocuments, type MyBusiness } from "@/lib/data/my-business";
+import { getMyBusiness, getMyPaperwork, getMyResearch, listMyDocuments, type MyBusiness } from "@/lib/data/my-business";
 import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
-import { formsFor } from "@/lib/documents/form-catalog";
 import { displayName, profileToAnswers, summarize } from "@/lib/intake/answers";
 import { BUDGET_LABELS } from "@/lib/intake/options";
-import { placeOf, structureOf } from "@/lib/research/applicability";
 import { answerChanges } from "@/lib/research/changes";
 import { type JourneyInput, journeyStages, nextMove } from "@/lib/rules/journey";
-import { nextActions, planCosts } from "@/lib/rules/next-action";
-import { minutesByTopic } from "@/lib/rules/pace";
-import { budgetCapCents, nextStepAfter, remainingWork, spentCents } from "@/lib/rules/progress";
-import { choosesStructure } from "@/lib/rules/plan";
+import { planCosts } from "@/lib/rules/next-action";
+import { nextTaskAfter } from "@/lib/rules/paperwork";
+import { budgetCapCents, remainingWork, spentCents } from "@/lib/rules/progress";
 
 export default function Today() {
   return (
@@ -47,59 +44,61 @@ function Loading() {
 }
 
 async function Overview() {
-  const [user, business, plan, research, details, documents] = await Promise.all([
-    getCurrentUser(),
-    getMyBusiness(),
-    getMyPlan(),
-    getMyResearch(),
-    getMyDetails(),
-    listMyDocuments(),
-  ]);
+  const [user, business, paper, research, documents] = await Promise.all([getCurrentUser(), getMyBusiness(), getMyPaperwork(), getMyResearch(), listMyDocuments()]);
 
   const profile = business?.profile ?? null;
-  const structure = profile ? structureOf(profile, details) : { structure: null, from: null };
-  const decision = structure.structure;
-  const changes = research && profile ? answerChanges(research.profile, profile, (research.structure as typeof decision) ?? null, decision) : [];
+  const details = paper?.details ?? [];
+  const decision = paper?.context.decision ?? { structure: null, from: null };
+  const changes = research && profile ? answerChanges(research.profile, profile, (research.structure as typeof decision.structure) ?? null, decision.structure) : [];
   const facts = profile ? autofillFacts(profile, details) : [];
   const outdated = documents.filter((doc) => doc.role !== "reviewed" && outdatedFacts(doc.factsUsed, facts).length > 0);
   const toCheck = documents.filter((doc) => doc.role !== "reviewed" && Object.values(doc.answers).some((answer) => answer.state === "suggested"));
 
-  const where = profile ? placeOf(profile) : null;
-  const priced = (plan?.steps ?? []).map((step) => {
-    const form = where ? (formsFor(OFFICIAL_FORMS, step, where, decision).find((each) => !each.kept) ?? null) : null;
-    return { ...step, feeCents: step.feeCents ?? form?.fee?.cents ?? null, formKey: form?.key ?? null };
-  });
-  const actions = nextActions(priced);
+  // Only tasks that apply, counted the same way as the menu's paperwork groups
+  const view = paper?.basis ? paper.view : null;
+  const tasks = view ? priceTasks(view.tasks, paper!.context.place, decision.structure) : [];
+  const priced = tasks.map(actionStep);
   const costs = planCosts(priced);
   const work = remainingWork(priced);
-  const required = priced.filter((step) => step.timing === "before_selling" && step.requirementStatus !== "optional" && step.requirementStatus !== "outside_coverage");
+  const required = priced.filter((step) => step.timing === "before_selling");
   const beforeSelling = { total: required.length, done: required.filter((step) => step.status === "done").length };
-  const first = actions.first;
+  const first = view?.first ?? null;
+  const groupOf = (key: string) => view?.groups.find((group) => group.key === key) ?? null;
 
   const input: JourneyInput = {
     business: !business ? "none" : profile ? "done" : "update",
     businessSummary: profile ? `Answers saved for ${displayName(profile)}.` : null,
     researched: Boolean(research),
     answersChanged: changes.length > 0,
-    structure,
+    structure: { ...decision, recorded: details.some((detail) => detail.key === "structure_choice") },
+    questions: view?.open.length ?? 0,
     plan: {
       steps: priced.length,
-      proposal: Boolean(plan?.proposal),
+      proposal: Boolean(paper?.plan.proposal),
       beforeSelling,
-      first: first ? { id: first.id, title: first.title, later: first.timing === "later", structure: choosesStructure(first) } : null,
+      first: first
+        ? {
+            id: first.step.id,
+            title: first.kind === "find_out" ? `Find out if “${first.step.title}” applies to you` : first.step.title,
+            later: first.step.timing === "later", group: { name: groupOf(first.group)!.name, href: groupOf(first.group)!.href },
+          }
+        : null,
+      waitsOnStructure: Boolean(view?.standings.some((standing) => standing.inclusion === "structure")),
     },
     documents: { total: documents.length, waiting: new Set([...outdated, ...toCheck].map((doc) => doc.id)).size },
   };
   const move = nextMove(input);
   const moveStep = move.stepId ? priced.find((step) => step.id === move.stepId) : undefined;
-  const after = moveStep ? nextStepAfter(priced, moveStep.key) : null;
+  const afterTask = moveStep && view ? nextTaskAfter(view.tasks, moveStep.key) : null;
+  const after = afterTask ? (priced.find((step) => step.id === afterTask.step.id) ?? null) : null;
+  const moveGroup = first && move.stepId === first.step.id ? groupOf(first.group) : null;
   const stages = journeyStages(input);
 
   const waiting: { text: string; href: string; action: string }[] = [];
-  if (plan?.proposal) {
+  if (paper?.plan.proposal) {
     waiting.push({
-      text: plan.proposal.from === "replan" ? "Your decisions changed some steps in your plan. Review them first." : "Your requirements were re-checked, and some changes to your plan need your review.",
-      href: "/checklist",
+      text: paper.plan.proposal.from === "replan" ? "Your decisions changed some steps. Review them first." : "Your requirements were re-checked, and some changes to your steps need your review.",
+      href: "/requirements#review",
       action: "Review the changes",
     });
   }
@@ -124,12 +123,18 @@ async function Overview() {
         name={user.name.trim().split(/\s+/)[0] || null}
         business={profile?.name ?? null}
         launchDate={profile?.launchDate ?? null}
-        ready={Boolean(profile) && !changes.length && !plan?.proposal && priced.length > 0 && beforeSelling.done === beforeSelling.total}
+        ready={Boolean(profile) && !changes.length && !paper?.plan.proposal && !input.questions && priced.length > 0 && beforeSelling.done === beforeSelling.total}
       />
 
       {/* "Do this next" comes first on phones too */}
       <div className="grid items-stretch gap-5 @3xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
-        <StartHere move={move} step={moveStep} parallel={moveStep && moveStep.timing !== "later" ? Math.max(0, actions.now.length - 1) : 0} after={after} />
+        <StartHere
+          move={move}
+          step={moveStep}
+          group={moveGroup ? { name: moveGroup.name, href: moveGroup.href } : null}
+          parallel={moveStep && moveStep.timing !== "later" ? Math.max(0, tasks.filter((task) => task.state === "ready" && task.step.timing !== "later").length - 1) : 0}
+          after={after}
+        />
         {profile ? <LaunchCard date={profile.launchDate} /> : null}
       </div>
 
@@ -160,7 +165,7 @@ async function Overview() {
             left={work.left.length}
             minutes={work.minutes}
             waiting={work.waiting.length}
-            byTopic={minutesByTopic(work.left)}
+            parts={(view?.groups ?? []).filter((group) => !group.later && group.minutesLeft).map((group) => ({ name: group.name, href: group.href, minutes: group.minutesLeft }))}
             spentCents={spentCents(priced)}
             toGoCents={costs.startupCents}
             unknownFees={costs.unknown.length}
@@ -174,8 +179,8 @@ async function Overview() {
         </>
       ) : null}
 
-      {/* The step in "Do this next" isn't listed again, including choosing a structure, which links to its own page */}
-      {priced.length ? <StepBoard actions={actions} costs={costs} skip={moveStep?.id ?? (input.plan.first?.structure ? input.plan.first.id : null)} /> : null}
+      {/* The step in "Do this next" isn't listed again */}
+      {tasks.length ? <StepBoard tasks={tasks} costs={costs} skip={moveStep?.id ?? null} /> : null}
       {priced.some((step) => step.simulated) ? <PracticeBanner what="These steps came from practice results." /> : null}
 
       <div className={`grid items-start gap-5 ${business ? "@3xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]" : ""}`}>

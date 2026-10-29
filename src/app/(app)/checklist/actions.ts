@@ -3,7 +3,7 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
-import { createMyDocument, getMyBusiness, getMyPlan, reviewMyPlan, setMyStepStatus } from "@/lib/data/my-business";
+import { createMyDocument, getMyPaperwork, reviewMyPlan, setMyStepStatus } from "@/lib/data/my-business";
 import { looksLikeIdNumber } from "@/lib/details";
 import { EMPTY_CONTENT } from "@/lib/documents/types";
 import { startupPlanPdf } from "@/lib/documents/startup-plan";
@@ -53,14 +53,15 @@ export async function setStepStatusAction(input: unknown): Promise<ActionResult>
   return { ok: true, value: null };
 }
 
-// A printable copy of the plan as it stands, saved to the document library
+// A printable copy of the steps that apply, as they stand, saved to the document library
 export async function savePlanPdfAction(): Promise<ActionResult<string>> {
-  const [business, plan] = await Promise.all([getMyBusiness(), getMyPlan()]);
-  if (!business?.profile || !plan || plan.steps.length === 0) return { ok: false, message: "Find your requirements first, so there’s a plan to save." };
+  const paper = await getMyPaperwork();
+  const steps = (paper?.view.tasks ?? []).map((task) => ({ ...task.step, requirementStatus: task.requirementStatus, conditions: task.conditions }));
+  if (!paper || steps.length === 0) return { ok: false, message: "Find what applies to you first, so there are steps to save." };
   const now = new Date();
-  const bytes = await startupPlanPdf({ businessName: displayName(business.profile), steps: plan.steps, now });
+  const bytes = await startupPlanPdf({ businessName: displayName(paper.profile), steps, now });
   const created = await createMyDocument({
-    title: `Licenses and registrations${plan.steps.some((step) => step.simulated) ? " (practice)" : ""}, ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
+    title: `Licenses and registrations${steps.some((step) => step.simulated) ? " (practice)" : ""}, ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
     origin: "generated",
     generatedKind: "startup_plan",
     mimeType: "application/pdf",

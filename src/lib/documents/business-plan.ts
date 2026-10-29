@@ -280,7 +280,7 @@ function practicePlan(facts: PlanFactInput[], answers: PlanAnswerInput[], steps:
         `Business structure: ${fact("structure") || "not decided yet"}.`,
         steps.length
           ? [done.length ? `Completed: ${stepList(done)}.` : "", open.length ? `Still to do: ${stepList(open)}.` : ""].filter(Boolean).join(" ")
-          : "[List the licenses and registrations the business needs. Check your regulations to list them.]",
+          : "[List the licenses and registrations the business needs. Find what applies to you to list them.]",
       ].join("\n\n"),
     },
     {

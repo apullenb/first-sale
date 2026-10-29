@@ -1,5 +1,5 @@
 import type { BUDGET_RANGES, PlanTopic } from "@/lib/domain";
-import { type ActionStep, nextActions } from "./next-action";
+import type { ActionStep } from "./next-action";
 
 // Plain code: what's left, about how long the owner's own part takes, what's been spent, and where to go next.
 // Times are rough hands-on estimates by kind of step; an office's wait is never counted.
@@ -14,8 +14,15 @@ const MINUTES: Record<PlanTopic, number> = {
   other: 20,
 };
 
+// The longest one sitting should ask of the owner; anything longer is split into parts
+export const MAX_SITTING_MINUTES = 90;
+// Answering the quick questions on What applies to you
+export const CHECK_MINUTES = 10;
+// Answering the questions about your business
+export const INTAKE_MINUTES = 15;
+
 export function stepMinutes(step: Pick<ActionStep, "topic">): number {
-  return MINUTES[step.topic ?? "other"];
+  return Math.min(MAX_SITTING_MINUTES, MINUTES[step.topic ?? "other"]);
 }
 
 const SIDE = ["optional", "outside_coverage"];
@@ -78,15 +85,4 @@ export function daysUntil(date: string, today: Date): number {
   const target = Date.UTC(year, month - 1, day);
   const start = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
   return Math.round((target - start) / 86_400_000);
-}
-
-// The next step to send the owner to from this one: the first ready step after it in plan order, going back to earlier
-// ones only when none after it is ready, and never to a finished one. Steps needed before selling come before later ones.
-export function nextStepAfter<T extends ActionStep>(steps: readonly T[], currentKey: string | null): T | null {
-  const actions = nextActions(steps);
-  const ready = new Set([...actions.now, ...actions.decide].map((step) => step.key));
-  const later = new Set(actions.later.map((step) => step.key));
-  const index = currentKey ? steps.findIndex((step) => step.key === currentKey) : -1;
-  const around = [...steps.slice(index + 1), ...steps.slice(0, Math.max(index, 0))];
-  return around.find((step) => ready.has(step.key)) ?? around.find((step) => later.has(step.key)) ?? null;
 }

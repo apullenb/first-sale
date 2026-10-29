@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ActionStep } from "./next-action";
-import { budgetCapCents, daysUntil, formatMinutes, nextStepAfter, remainingWork, spentCents } from "./progress";
+import { budgetCapCents, daysUntil, formatMinutes, remainingWork, spentCents } from "./progress";
 
 const step = (key: string, overrides: Partial<ActionStep> = {}): ActionStep => ({
   key,
@@ -67,31 +67,5 @@ describe("daysUntil", () => {
     expect(daysUntil("2026-12-01", new Date(2026, 10, 1, 23, 30))).toBe(30);
     expect(daysUntil("2026-11-01", new Date(2026, 10, 1, 0, 5))).toBe(0);
     expect(daysUntil("2026-10-30", new Date(2026, 10, 1))).toBe(-2);
-  });
-});
-
-describe("nextStepAfter", () => {
-  const plan = [
-    step("structure", { status: "done" }),
-    step("name", { prerequisites: ["structure"] }),
-    step("cottage", { status: "done" }),
-    step("tax"),
-    step("license", { prerequisites: ["tax"] }),
-    step("renewal", { timing: "later" }),
-  ];
-
-  it("moves forward to the next ready step and skips finished and blocked ones", () => {
-    expect(nextStepAfter(plan, "name")?.key).toBe("tax");
-  });
-
-  it("goes back to an earlier ready step only when none after this one is ready, never to a finished one", () => {
-    expect(nextStepAfter(plan, "cottage")?.key).toBe("tax");
-    expect(nextStepAfter(plan, "tax")?.key).toBe("name");
-  });
-
-  it("offers later steps only once nothing needed before selling is ready", () => {
-    const done = plan.map((each) => (each.key === "renewal" ? each : { ...each, status: "done" as const }));
-    expect(nextStepAfter(done, "tax")?.key).toBe("renewal");
-    expect(nextStepAfter(done, "renewal")).toBeNull();
   });
 });

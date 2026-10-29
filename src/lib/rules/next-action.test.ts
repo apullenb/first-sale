@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type ActionStep, nextActions, planCosts } from "./next-action";
+import { type ActionStep, planCosts } from "./next-action";
 
 const step = (key: string, overrides: Partial<ActionStep> = {}): ActionStep => ({
   key,
@@ -11,30 +11,6 @@ const step = (key: string, overrides: Partial<ActionStep> = {}): ActionStep => (
   feeCents: null,
   renewal: null,
   ...overrides,
-});
-
-describe("nextActions", () => {
-  it("separates what can happen now from what waits, what's later and what's optional", () => {
-    const actions = nextActions([
-      step("structure", { status: "done" }),
-      step("name", { prerequisites: ["structure"] }),
-      step("vendor"),
-      step("ein", { prerequisites: ["llc"] }),
-      step("llc", { status: "submitted" }),
-      step("bakery", { requirementStatus: "conditional" }),
-      step("renewal-reminder", { timing: "later" }),
-      step("kids-rules", { requirementStatus: "outside_coverage" }),
-      step("ein-optional", { requirementStatus: "optional" }),
-    ]);
-    expect(actions.now.map((each) => each.key)).toEqual(["name", "vendor"]);
-    expect(actions.decide.map((each) => each.key)).toEqual(["bakery"]);
-    expect(actions.submitted.map((each) => each.key)).toEqual(["llc"]);
-    // Submitted isn't approved, so the EIN still waits
-    expect(actions.waiting.map((each) => [each.step.key, each.on.map((on) => on.key)])).toEqual([["ein", ["llc"]]]);
-    expect(actions.later.map((each) => each.key)).toEqual(["renewal-reminder"]);
-    expect(actions.optional.map((each) => each.key)).toEqual(["kids-rules", "ein-optional"]);
-    expect(actions.first?.key).toBe("name");
-  });
 });
 
 describe("planCosts", () => {

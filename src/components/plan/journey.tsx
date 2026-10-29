@@ -17,7 +17,20 @@ export function alreadyDoneHref(step: Pick<PlanStep, "id" | "topic" | "forStruct
 }
 
 // The one thing to do next, from anywhere in the journey, on a ruled card
-export function StartHere({ move, step, parallel = 0, after = null }: { move: NextMove; step?: PlanStep; parallel?: number; after?: PlanStep | null }) {
+export function StartHere({
+  move,
+  step,
+  group = null,
+  parallel = 0,
+  after = null,
+}: {
+  move: NextMove;
+  step?: PlanStep;
+  // The paperwork group the step is in
+  group?: { name: string; href: string } | null;
+  parallel?: number;
+  after?: PlanStep | null;
+}) {
   const icon = step ? TOPIC_ICONS[step.topic] : "flag";
   return (
     <section
@@ -50,7 +63,7 @@ export function StartHere({ move, step, parallel = 0, after = null }: { move: Ne
             </Fact>
           ) : null}
           <Fact icon={icon}>{TOPIC_LABELS[step.topic]}</Fact>
-          <RequirementStatusChip status={step.requirementStatus} />
+          {step.requirementStatus === "verified" ? null : <RequirementStatusChip status={step.requirementStatus} />}
         </div>
       ) : null}
       <p className="text-[16.5px] text-muted">{move.why}</p>
@@ -76,6 +89,14 @@ export function StartHere({ move, step, parallel = 0, after = null }: { move: Ne
           </Link>
         ) : null}
       </div>
+      {group ? (
+        <p className="text-[14.5px] text-muted">
+          Part of{" "}
+          <Link href={group.href} className="py-3 font-semibold text-rule underline decoration-line-strong underline-offset-4 hover:text-accent">
+            {group.name}
+          </Link>
+        </p>
+      ) : null}
       {after ? (
         <p className="border-t border-line pt-3 text-[14.5px] text-muted">
           After this:{" "}

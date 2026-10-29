@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { createMockProvider } from "@/lib/ai/providers/mock";
 import type { BusinessProfile } from "@/lib/domain";
-import { nextActions, planCosts } from "@/lib/rules/next-action";
+import { planCosts } from "@/lib/rules/next-action";
+import { paperwork } from "@/lib/rules/paperwork";
+import { settleStructureChoice } from "@/lib/rules/plan";
 import { testProfile } from "@/test/fixtures";
 import { texasPage } from "@/test/texas-pages";
+import { placeOf, structureOf } from "./applicability";
 import { answerChanges } from "./changes";
 import { type ResearchResult, researchRequirements } from "./requirements";
 
@@ -227,12 +230,21 @@ describe("uncertainty, changes and missing information", () => {
     expect(byKey(result).get("cottage-food")).toMatchObject({ verification: "needs_verification", status: "needs_confirmation" });
   });
 
-  it("puts what's ready first, in parallel, and counts each fee once", async () => {
+  it("puts what's ready first, in groups, locks what waits on forming the LLC, and counts each fee once", async () => {
     const result = await run(boutique, { details: LLC });
-    const steps = result.plan.map((step) => ({ ...step, status: "todo" as const }));
-    const actions = nextActions(steps);
-    expect(actions.waiting.map((each) => each.step.key)).toEqual(expect.arrayContaining(["ein", "sales-tax-permit", "assumed-name-state"]));
-    expect(actions.now.map((step) => step.key)).toEqual(expect.arrayContaining(["structure", "home-business"]));
+    const steps = settleStructureChoice(
+      result.plan.map((step) => ({ ...step, id: step.key, status: "todo" as const })),
+      true,
+    );
+    const view = paperwork(steps, { profile: boutique, place: placeOf(boutique), decision: structureOf(boutique, LLC), answers: [] });
+    const byKey = new Map(view.tasks.map((task) => [task.step.key, task]));
+    for (const key of ["ein", "sales-tax-permit", "assumed-name-state"]) {
+      expect(byKey.get(key)).toMatchObject({ state: "locked", blockers: [expect.objectContaining({ taskKey: "llc-formation" })] });
+    }
+    expect(byKey.get("llc-formation")?.state).toBe("ready");
+    expect(byKey.get("home-business")?.state).toBe("ready");
+    expect(byKey.has("structure")).toBe(false);
+    for (const group of view.groups) expect(group.minutes).toBeLessThanOrEqual(90);
     const costs = planCosts(steps);
     // Formation, the assumed name, and a free permit and EIN
     expect(costs.startupCents).toBe(30000 + 2500);

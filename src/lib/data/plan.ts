@@ -59,6 +59,7 @@ export function toStep(row: TaskRow): PlanStep {
     renewal: row.renewal,
     jurisdiction: row.jurisdiction,
     alreadyHave: row.alreadyHave,
+    question: row.question,
     position: row.position,
     evidenceNote: row.evidenceNote,
     completedAt: row.completedAt,
@@ -182,6 +183,7 @@ async function writePlan(
       renewal: task.renewal,
       jurisdiction: task.jurisdiction,
       alreadyHave: task.alreadyHave,
+      question: task.question ?? "",
       updatedAt: now,
     };
     if (id) {

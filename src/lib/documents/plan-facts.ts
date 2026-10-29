@@ -27,7 +27,7 @@ export interface PlanSources {
   fees: { confirmed: FeeLine[]; maybe: FeeLine[]; unconfirmed: string[] } | null;
   // Required and conditional steps, for the plan's legal section
   steps: PlanStepFact[];
-  // Every step in Licenses and registrations, counted as its page counts them
+  // Every step that applies, counted as Start your business counts them
   progress: { done: number; total: number } | null;
   // "What the business does, in one sentence", from business details
   purpose: string | null;
@@ -58,7 +58,7 @@ const SOURCES = {
   details: { label: "From your business details", href: "/business" },
   structure: { label: "From Business structure", href: "/structure" },
   products: { label: "From your products", href: "/products" },
-  checklist: { label: "From Licenses and registrations", href: "/checklist" },
+  checklist: { label: "From Start your business", href: "/start" },
   brand: { label: "From your brand", href: "/brand" },
   logo: { label: "From your logo", href: "/logo" },
   marketing: { label: "From your marketing plan", href: "/marketing" },

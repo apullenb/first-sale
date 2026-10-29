@@ -1,12 +1,14 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
 import { getDb } from "@/db/client";
 import { getModel } from "@/lib/ai";
 import { OwnerFacingError } from "@/lib/errors";
-import { getMyBusiness, getMyDetails, getMyPlan, getMyResearch, myAiKey, replanMyPlan, saveMyResearch } from "@/lib/data/my-business";
+import { getMyBusiness, getMyDetails, getMyPlan, getMyResearch, myAiKey, replanMyPlan, saveMyResearch, setMyConditionAnswer } from "@/lib/data/my-business";
 import { dbSearchCache } from "@/lib/data/search-cache";
+import { CONDITION_ANSWERS } from "@/lib/research/applicability";
 import { profileKey, researchRequirements } from "@/lib/research/requirements";
 import { runWorkflow } from "@/lib/workflow-runner";
 
@@ -40,5 +42,18 @@ export async function replanAction(): Promise<ActionResult> {
   refresh();
   if (outcome === "no_research") return { ok: false, message: "Find your requirements first, so there’s research to plan from." };
   if (outcome === "no_business") return { ok: false, message: "Your business wasn’t found. Reload the page and try again." };
+  return { ok: true, value: null };
+}
+
+const answerSchema = z.object({ stepKey: z.string().max(60), condition: z.string().max(400), answer: z.enum(CONDITION_ANSWERS).nullable() });
+
+// The owner's yes, no or not sure to "does this apply to you?"; null takes the answer back
+export async function answerConditionAction(input: unknown): Promise<ActionResult> {
+  const parsed = answerSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Something was off with that answer. Reload the page and try again." };
+  const outcome = await setMyConditionAnswer(parsed.data);
+  if (outcome === "no_business") return { ok: false, message: "Your business wasn’t found. Reload the page and try again." };
+  if (outcome === "not_asked") return { ok: false, message: "This question changed since you opened the page. Reload to see it as it is now." };
+  refresh();
   return { ok: true, value: null };
 }

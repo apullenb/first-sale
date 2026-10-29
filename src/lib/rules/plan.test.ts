@@ -234,6 +234,7 @@ const step = (key: string, overrides: Partial<PlanTaskDraft> = {}): PlanTaskDraf
   renewal: null,
   jurisdiction: "",
   alreadyHave: null,
+  question: "",
   ...overrides,
 });
 

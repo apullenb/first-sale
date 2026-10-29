@@ -11,6 +11,8 @@ export interface Section {
   step: number | null;
   // A page inside another section: kept out of the menu, which highlights that section instead
   under?: string;
+  // The section's own overview page: its heading in the menu links here
+  overview?: boolean;
   milestone: number;
   summary: string;
 }
@@ -43,30 +45,31 @@ export const SECTIONS: Section[] = [
     summary: "Questions about where you are, who owns it, what you sell, how you sell it, and your budget.",
   },
   {
-    href: "/requirements",
-    title: "Regulations",
+    href: "/start",
+    title: "Start your business",
     group: "Start your business",
-    step: 2,
-    milestone: 3,
-    summary:
-      "Registrations, licenses, and permits that apply to you, each linked to an official source or marked for you to verify.",
+    step: null,
+    overview: true,
+    milestone: 4,
+    summary: "Every step to start your business in one list, in order: what’s done, what’s next, what waits on something else, and what it costs.",
   },
   {
     href: "/structure",
     title: "Business structure",
     group: "Start your business",
-    step: 3,
+    step: 2,
     milestone: 4,
     summary:
       "Sole proprietorship, partnership, LLC, and DBA compared for your situation, with a suggested path, its reasons, and when to talk to a professional.",
   },
   {
-    href: "/checklist",
-    title: "Licenses and registrations",
+    href: "/requirements",
+    title: "What applies to you",
     group: "Start your business",
-    step: 4,
-    milestone: 4,
-    summary: "The licenses, permits and registrations to file, in order, with who handles each one, what to gather, checked fees, and what’s still uncertain. Track what’s done.",
+    step: 3,
+    milestone: 3,
+    summary:
+      "First Sale checks official government sites for the rules that fit your business, then asks a few quick questions about the ones that depend on you.",
   },
   {
     href: "/brand",
@@ -152,6 +155,11 @@ export const SECTIONS: Section[] = [
 ];
 
 export const SECTION_GROUPS: SectionGroup[] = ["Start your business", "Build your brand", "Run your business"];
+
+// Sections whose heading links to an overview page
+export function overviewOf(group: SectionGroup): string | null {
+  return SECTIONS.find((section) => section.group === group && section.overview)?.href ?? null;
+}
 
 export function getSection(href: string): Section {
   const section = SECTIONS.find((candidate) => candidate.href === href);

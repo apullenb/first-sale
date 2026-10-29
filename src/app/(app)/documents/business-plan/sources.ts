@@ -1,7 +1,7 @@
 import "server-only";
 import { OFFICIAL_FORMS } from "@/data/official-forms";
 import { STRUCTURE_LABELS } from "@/lib/details";
-import { getMyBrandState, getMyBusiness, getMyDetails, getMyMarketing, getMyPlan, listMyProducts } from "@/lib/data/my-business";
+import { getMyBrandState, getMyBusiness, getMyDetails, getMyMarketing, getMyPaperwork, listMyProducts } from "@/lib/data/my-business";
 import { formsFor } from "@/lib/documents/form-catalog";
 import type { PlanSources } from "@/lib/documents/plan-facts";
 import { placeOf, structureOf } from "@/lib/research/applicability";
@@ -9,10 +9,10 @@ import { planCosts } from "@/lib/rules/next-action";
 
 // Everything First Sale already knows that a business plan can use, read for the signed-in owner
 export async function myPlanSources(): Promise<PlanSources | null> {
-  const [business, details, plan, products, brand, marketing] = await Promise.all([
+  const [business, details, paper, products, brand, marketing] = await Promise.all([
     getMyBusiness(),
     getMyDetails(),
-    getMyPlan(),
+    getMyPaperwork(),
     listMyProducts(),
     getMyBrandState(),
     getMyMarketing(),
@@ -22,8 +22,9 @@ export async function myPlanSources(): Promise<PlanSources | null> {
 
   const decision = structureOf(profile, details);
   const where = placeOf(profile);
-  const steps = plan?.steps ?? [];
-  // Fees as Licenses and registrations shows them: research first, then the checked forms catalog
+  // Only steps that apply, as Start your business lists them
+  const steps = (paper?.basis ? paper.view.tasks : []).map((task) => ({ ...task.step, requirementStatus: task.requirementStatus, conditions: task.conditions }));
+  // Fees as Start your business shows them: research first, then the checked forms catalog
   const priced = steps.map((step) => {
     const form = formsFor(OFFICIAL_FORMS, step, where, decision.structure).find((each) => !each.kept) ?? null;
     return {
@@ -44,9 +45,7 @@ export async function myPlanSources(): Promise<PlanSources | null> {
     brand: brief ? { customers: brief.customers, tagline: brief.tagline, story: brief.storyApproved ? brief.story : "" } : null,
     marketing: approvedMarketing ? { summary: approvedMarketing.summary, audience: approvedMarketing.audience.who } : null,
     fees: costs ? { confirmed: costs.startup, maybe: costs.maybe, unconfirmed: costs.unknown } : null,
-    steps: steps
-      .filter((step) => step.requirementStatus !== "optional" && step.requirementStatus !== "outside_coverage")
-      .map((step) => ({ title: step.title, done: step.status === "done", conditional: step.requirementStatus === "conditional" })),
+    steps: steps.map((step) => ({ title: step.title, done: step.status === "done", conditional: step.requirementStatus === "conditional" })),
     progress: steps.length ? { done: steps.filter((step) => step.status === "done").length, total: steps.length } : null,
     purpose: details.find((detail) => detail.key === "business_purpose")?.value.trim() || null,
   };

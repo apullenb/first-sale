@@ -85,6 +85,10 @@ type Checked = Pick<RequirementDraft, "key" | "title" | "topic" | "level" | "app
   verification: VerificationState;
 };
 
+// The owner's answer to "does this apply to you?"; "unsure" is an answer, kept as an open question
+export const CONDITION_ANSWERS = ["yes", "no", "unsure"] as const;
+export type ConditionAnswer = (typeof CONDITION_ANSWERS)[number];
+
 export interface Classified {
   status: RequirementStatus;
   // Plain sentences: what it depends on, the model's and the rules' together
@@ -93,12 +97,26 @@ export interface Classified {
   fitsStructure: boolean;
   // The owner said they already have this
   alreadyHave: string | null;
+  // The model's condition, asked of the owner; null when it doesn't depend on one
+  question: string | null;
+  answer: ConditionAnswer | null;
 }
 
-export function classify(requirement: Checked, profile: BusinessProfile, place: Place, decision: StructureDecision): Classified {
+// Conditional with no reason given is still a question, never a "yes"
+export function questionOf(requirement: Pick<Checked, "applicability" | "condition">): string | null {
+  if (requirement.applicability !== "conditional") return null;
+  return requirement.condition.trim() || "Whether this applies depends on something First Sale couldn’t tell from your answers.";
+}
+
+// Conditions the rules write (structure and place), as opposed to the model's own
+export const RULE_CONDITION = /^(Only if you set up as |Which county you’re in decides|City rules apply only inside|Applies only if your address is inside|You said you’re outside)/;
+
+// "yes" settles the model's condition; "no" and "unsure" leave it open, and the rules' conditions stay either way
+export function classify(requirement: Checked, profile: BusinessProfile, place: Place, decision: StructureDecision, answer: ConditionAnswer | null = null): Classified {
   const conditions: string[] = [];
-  const modelCondition = requirement.condition.trim();
-  if (requirement.applicability === "conditional" && modelCondition) conditions.push(modelCondition);
+  const question = questionOf(requirement);
+  const answered = question ? answer : null;
+  if (question && answered !== "yes") conditions.push(question);
 
   let fitsStructure = true;
   if (requirement.forStructures.length) {
@@ -113,12 +131,12 @@ export function classify(requirement: Checked, profile: BusinessProfile, place: 
       ? "outside_coverage"
       : requirement.applicability === "optional"
         ? "optional"
-        : conditions.length || requirement.applicability === "conditional"
+        : conditions.length
           ? "conditional"
           : requirement.verification === "sourced"
             ? "verified"
             : "needs_confirmation";
-  return { status, conditions, fitsStructure, alreadyHave: alreadyHave(requirement, profile) };
+  return { status, conditions, fitsStructure, alreadyHave: alreadyHave(requirement, profile), question, answer: answered };
 }
 
 // City rules apply only inside city limits, and county rules need the county

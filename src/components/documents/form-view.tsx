@@ -248,7 +248,7 @@ function Guide({ guide }: { guide: DocumentGuide }) {
       ) : null}
       {guide.guidance.length ? (
         <div className="flex flex-col gap-2 rounded-xl border border-line bg-soft px-4 py-3">
-          <p className="font-semibold">From your regulations research: guidance, not printed on this form</p>
+          <p className="font-semibold">From your check of what applies to you: guidance, not printed on this form</p>
           <ul className="flex flex-col gap-2 text-[15px]">
             {guide.guidance.map((item, index) => (
               <li key={index} className="flex flex-col gap-0.5">
@@ -286,7 +286,7 @@ function Ask({ doc, maxQuestion }: { doc: StoredDocument; maxQuestion: number })
                 <NumberFlags flags={entry.flags} />
                 {entry.guidance ? (
                   <p className="text-[14.5px] text-rule">
-                    From your regulations research, not printed on this form:{" "}
+                    From your check of what applies to you, not printed on this form:{" "}
                     <a href={entry.guidance.sourceUrl} target="_blank" rel="noopener noreferrer" className={TEXT_LINK}>
                       {entry.guidance.sourceTitle}
                       <span className="sr-only"> (opens in a new tab)</span>
