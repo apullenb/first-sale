@@ -35,7 +35,7 @@ export interface PasteContext {
 }
 
 const WORDS = "/website#step-words";
-const BRAND = "/brand";
+const LOGO = "/logo";
 
 function words(copy: WebsiteCopy | null, label: string, pieces: [string, string][]): PasteValue[] {
   if (!copy) return [{ kind: "missing", label, text: "Draft your words in step 3, and they’ll be here ready to copy.", href: WORDS }];
@@ -84,12 +84,12 @@ export function pasteFor(kinds: readonly PasteKind[], context: PasteContext): Pa
         const others = (brand?.colors ?? [])
           .filter((color) => color.hex.toLowerCase() !== design.color.toLowerCase())
           .map((color): PasteValue => ({ kind: "color", label: color.name, hex: color.hex }));
-        return brand ? [main, ...others] : [main, { kind: "missing", label: "Brand colors", text: "Make your logo and colors on the Brand page.", href: BRAND }];
+        return brand ? [main, ...others] : [main, { kind: "missing", label: "Brand colors", text: "Create or upload your logo, and its colors show here.", href: LOGO }];
       }
       case "logo":
         return brand?.logo
           ? [{ kind: "file", label: "Your logo", href: brand.logo, note: brand.practice.logo ? PRACTICE : null }]
-          : [{ kind: "missing", label: "Logo", text: "Choose a logo on the Brand page, and it’ll be here to download.", href: BRAND }];
+          : [{ kind: "missing", label: "Logo", text: "Create or upload your logo, and it’ll be here to download.", href: LOGO }];
       case "favicon":
         return brand?.icon
           ? [{ kind: "file", label: "Site icon (square logo)", href: brand.icon, note: brand.practice.icon ? PRACTICE : "Upload this as the favicon." }]

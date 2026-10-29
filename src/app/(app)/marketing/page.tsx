@@ -81,7 +81,7 @@ function knownFacts(profile: BusinessProfile, hasLogo: boolean, website: string 
     { label: "Where", value: [profile.location.city, STATE_NAMES[profile.location.state]].filter(Boolean).join(", ") },
     { label: "Budget to start", value: profile.startupBudget ? BUDGET_LABELS[profile.startupBudget] : "Not given" },
     { label: "First sale by", value: profile.launchDate ? launchLabel(profile.launchDate) : "No date yet" },
-    { label: "Logo", value: hasLogo ? "Made in Branding" : "Not made yet" },
+    { label: "Logo", value: hasLogo ? "Chosen" : "Not chosen yet" },
     { label: "Website", value: website ?? "Not chosen yet" },
   ].filter((fact) => fact.value);
 }

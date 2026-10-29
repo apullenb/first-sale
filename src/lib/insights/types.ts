@@ -9,6 +9,7 @@ export const INSIGHT_PAGES = [
   "checklist",
   "documents",
   "business_plan",
+  "logo",
   "brand",
   "website",
   "photos",

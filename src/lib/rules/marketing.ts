@@ -189,13 +189,13 @@ function lookStep(hasLogo: boolean): StepDraft {
         area: "content",
         platform: null,
         how: [
-          "Open Branding in First Sale.",
+          "Open Build your brand in First Sale.",
           "Download the profile-picture version of your logo. It’s made to fit a circle.",
           "Download the cover pictures for Facebook and YouTube if you’ll use them.",
           "Save them on your phone, so they’re ready when you set up each account.",
         ],
-        short: ["Download your profile picture and covers from Branding"],
-        links: [{ label: "Open Branding", href: "/brand", external: false, guide: false }],
+        short: ["Download your profile picture and covers from Build your brand"],
+        links: [{ label: "Open Build your brand", href: "/brand", external: false, guide: false }],
         by: "rule",
         general: false,
       }
@@ -207,13 +207,16 @@ function lookStep(hasLogo: boolean): StepDraft {
         area: "content",
         platform: null,
         how: [
-          "Open Branding in First Sale.",
-          "Answer the questions about how your business should feel.",
-          "Pick the logo idea you like best, then approve its versions.",
+          "Open Create your logo in First Sale.",
+          "Answer the questions about how your business should feel, or upload the logo you already have.",
+          "Pick the logo idea you like best, then approve its versions on Build your brand.",
           "Download the profile-picture version. You’ll add it to each account you set up.",
         ],
-        short: ["Make your logo in Branding", "Download the profile-picture version"],
-        links: [{ label: "Open Branding", href: "/brand", external: false, guide: false }],
+        short: ["Make or upload your logo", "Download the profile-picture version"],
+        links: [
+          { label: "Open Create your logo", href: "/logo", external: false, guide: false },
+          { label: "Open Build your brand", href: "/brand", external: false, guide: false },
+        ],
         by: "rule",
         general: false,
       };

@@ -85,7 +85,7 @@ export function samplesFromMessage(message: string): InsightsReply {
 
   const ideas: InsightReplyItem[] = [
     facts.brand === "Not started"
-      ? item("Give your business a look people remember", "A simple logo and a couple of colors on your labels, signs and posts help customers recognize you.", "Try the Branding page when you’re ready.", "brand")
+      ? item("Give your business a look people remember", "A simple logo and a couple of colors on your labels, signs and posts help customers recognize you.", "Try Create your logo when you’re ready.", "logo")
       : item("Put your logo everywhere customers see you", "Use your logo on bags, labels and posts, so every sale reminds people of you.", "", "brand"),
     facts.website === "Not started"
       ? item("Give customers a place to find you online", "Even a one-page site with what you sell and how to order helps new customers trust you.", "Compare website options when you have time.", "website")

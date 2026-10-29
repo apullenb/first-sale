@@ -54,7 +54,7 @@ export function publishReadiness(check: PublishCheck): Readiness {
   }
 
   if (check.practiceBrand) {
-    blockers.push("Your logo or header picture is a practice preview, not made for your business. Turn it off in step 4, or make a real one on the Brand page.");
+    blockers.push("Your logo or header picture is a practice preview, not made for your business. Turn it off in step 4, or make or upload a real one on the Create your logo page.");
   }
   if (check.practicePhotos) {
     blockers.push(`${check.practicePhotos} item ${check.practicePhotos === 1 ? "photo is a practice preview" : "photos are practice previews"}. Pick another photo or none.`);
