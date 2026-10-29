@@ -137,6 +137,16 @@ export interface PlanSection {
 export interface GeneratedContent {
   sections: PlanSection[];
   inputs: Record<string, string>;
+  // When the owner approved it; a business plan's is when it was last saved as a PDF
   approvedAt: string | null;
   simulated: boolean;
+  // Business plan: when this draft was written, so the editor starts fresh for each one
+  draftedAt?: string;
+  // Business plan: the owner's picks and their plan-only edits to known facts
+  answers?: {
+    picks: Record<string, { picks: string[]; other: string | null }>;
+    overrides: Record<string, string>;
+    // The saved value each edit replaced, so a later change at the source wins
+    was?: Record<string, string>;
+  };
 }

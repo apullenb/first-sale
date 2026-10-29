@@ -43,7 +43,7 @@ export async function saveMarketingIntakeAction(input: unknown): Promise<ActionR
 }
 
 // The business plan answers that help a marketing plan; costs and funding stay out
-const PLAN_ANSWERS = ["customers", "different", "prices", "monthly_goal"];
+const PLAN_ANSWERS = ["customers", "different", "prices", "pricing", "sales_goal", "monthly_goal"];
 
 // What the owner already made in First Sale, which shapes the steps
 async function stepContext() {

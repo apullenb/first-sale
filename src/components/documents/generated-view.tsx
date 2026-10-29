@@ -89,7 +89,7 @@ export function GeneratedView({ doc, from, stepTitle, outdated = [] }: Props) {
           </div>
         ) : (
           <p className="text-rule">
-            {isPlan ? "There’s no PDF yet. Approve your plan to make one." : isAgreement ? "There’s no PDF yet. Approve your agreement to make one." : "There’s no file for this document."}
+            {isPlan ? "There’s no PDF yet. Save your business plan to make one." : isAgreement ? "There’s no PDF yet. Approve your agreement to make one." : "There’s no file for this document."}
           </p>
         )}
         {isPlan ? (
