@@ -111,7 +111,8 @@ function Progress({ paper }: { paper: MyPaperwork }) {
   const done = needed.filter((step) => step.status === "done").length;
   const work = remainingWork(steps);
   const parts = paper.view.groups.filter((group) => !group.later && group.left).length;
-  if (!needed.length) return null;
+  const waiting = paper.view.groups.reduce((sum, group) => sum + group.waitingOnStructure.length, 0);
+  if (!needed.length && !waiting) return null;
   return (
     <div className="-mt-2 flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
@@ -128,9 +129,14 @@ function Progress({ paper }: { paper: MyPaperwork }) {
             {work.waiting.length} waiting to hear back
           </Chip>
         ) : null}
+        {waiting ? (
+          <Chip tone="gray" icon="lock">
+            {waiting === 1 ? "1 filing waits" : `${waiting} filings wait`} on your business structure
+          </Chip>
+        ) : null}
       </div>
       <div aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-wash">
-        <div className="h-full rounded-full bg-accent" style={{ width: `${Math.round((done / needed.length) * 100)}%` }} />
+        <div className="h-full rounded-full bg-accent" style={{ width: `${needed.length ? Math.round((done / needed.length) * 100) : 0}%` }} />
       </div>
     </div>
   );

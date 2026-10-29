@@ -46,3 +46,14 @@ export function writtenInquiry(input: { title: string; questions: readonly strin
     ].join("\n"),
   };
 }
+
+// For a "find out" step: the condition the owner wasn't sure about is asked first, then the office's own follow-ups
+export function findOutInquiry(input: { title: string; condition: string; questions: readonly string[]; profile: BusinessProfile; place: Place }): Inquiry {
+  const asked = `Does this apply to my business? I understand it depends on this: ${input.condition.trim()}`;
+  return writtenInquiry({ ...input, questions: [asked, ...input.questions] });
+}
+
+// The owner doesn't know a fact about their own place yet: ask that first, then whether the rule applies
+export function placeInquiry(input: { title: string; question: string; profile: BusinessProfile; place: Place }): Inquiry {
+  return writtenInquiry({ ...input, questions: [input.question, `If so, does “${input.title}” apply to my business?`] });
+}

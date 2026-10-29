@@ -7,6 +7,7 @@ import { createMyDocument, getMyPaperwork, reviewMyPlan, setMyStepStatus } from 
 import { looksLikeIdNumber } from "@/lib/details";
 import { EMPTY_CONTENT } from "@/lib/documents/types";
 import { startupPlanPdf } from "@/lib/documents/startup-plan";
+import { stillToSettle } from "@/lib/rules/paperwork";
 import { displayName } from "@/lib/intake/answers";
 
 const reviewSchema = z.object({ checkedAt: z.iso.datetime(), acceptedKeys: z.array(z.string().max(60)).max(100) });
@@ -59,7 +60,8 @@ export async function savePlanPdfAction(): Promise<ActionResult<string>> {
   const steps = (paper?.view.tasks ?? []).map((task) => ({ ...task.step, requirementStatus: task.requirementStatus, conditions: task.conditions }));
   if (!paper || steps.length === 0) return { ok: false, message: "Find what applies to you first, so there are steps to save." };
   const now = new Date();
-  const bytes = await startupPlanPdf({ businessName: displayName(paper.profile), steps, now });
+  const maybe = stillToSettle(paper.view).map((standing) => ({ title: standing.step.title, why: standing.step.why, conditions: standing.conditions }));
+  const bytes = await startupPlanPdf({ businessName: displayName(paper.profile), steps, maybe, now });
   const created = await createMyDocument({
     title: `Licenses and registrations${steps.some((step) => step.simulated) ? " (practice)" : ""}, ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
     origin: "generated",

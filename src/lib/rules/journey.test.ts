@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type JourneyInput, journeyStages, nextMove } from "./journey";
+import { type JourneyInput, journeyStages, nextMove, readyForFirstSale } from "./journey";
 
 const licenses = { name: "Licenses and permits, part 1 of 2", href: "/start/licenses-1" };
 
@@ -79,6 +79,26 @@ describe("nextMove", () => {
 
   it("checks again when research found nothing to file", () => {
     expect(nextMove({ ...base, plan: { ...base.plan, steps: 0, first: null } }).action).toBe("Check again");
+  });
+});
+
+describe("readyForFirstSale", () => {
+  const allDone = { ...base, plan: { ...base.plan, beforeSelling: { total: 4, done: 4 }, first: null } };
+
+  it("is ready only when nothing is left, including filings that wait on a structure", () => {
+    expect(readyForFirstSale(allDone)).toBe(true);
+    const waiting: JourneyInput = { ...allDone, structure: undecided, plan: { ...allDone.plan, waitsOnStructure: true } };
+    expect(readyForFirstSale(waiting)).toBe(false);
+    // Every view agrees: the stage stays open and the next move is the structure
+    expect(journeyStages(waiting)[3]).toMatchObject({ state: "todo", detail: "Some filings wait on your business structure." });
+    expect(nextMove(waiting)).toMatchObject({ href: "/structure", title: "Choose your business structure" });
+  });
+
+  it("isn't ready with questions, a review or changed answers waiting", () => {
+    expect(readyForFirstSale({ ...allDone, questions: 1 })).toBe(false);
+    expect(readyForFirstSale({ ...allDone, plan: { ...allDone.plan, proposal: true } })).toBe(false);
+    expect(readyForFirstSale({ ...allDone, answersChanged: true })).toBe(false);
+    expect(readyForFirstSale({ ...allDone, plan: { ...allDone.plan, steps: 0 } })).toBe(false);
   });
 });
 

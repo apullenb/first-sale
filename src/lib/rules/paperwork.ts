@@ -4,6 +4,7 @@ import {
   type ConditionAnswer,
   type Place,
   placeConditions,
+  placeGap,
   questionOf,
   RULE_CONDITION,
   type RequirementStatus,
@@ -43,7 +44,9 @@ export type Inclusion =
   | "find_out"
   // Waits on the owner's yes, no or not sure
   | "question"
-  // Waits on the owner's county, city or city limits
+  // The owner's county, city or city limits is unknown, so finding out is the task
+  | "check_place"
+  // The owner is outside the city's limits, so it may not apply
   | "place"
   // Only for some structures, and none is chosen yet
   | "structure"
@@ -55,7 +58,7 @@ export type Inclusion =
   // Not for the structure the owner chose
   | "other_structure";
 
-export const TASK_KINDS = ["task", "confirm", "find_out"] as const;
+export const TASK_KINDS = ["task", "confirm", "find_out", "check_place"] as const;
 export type TaskKind = (typeof TASK_KINDS)[number];
 export const isTaskKind = (inclusion: Inclusion): inclusion is TaskKind => (TASK_KINDS as readonly string[]).includes(inclusion);
 
@@ -132,24 +135,23 @@ export function standingOf<T extends PaperStep>(step: T, context: PaperworkConte
               : classified.question && !classified.answer
                 ? "question"
                 : place.length
-                  ? "place"
+                  ? "check_place"
                   : classified.answer === "unsure"
                     ? "find_out"
                     : classified.status === "verified"
                       ? "task"
                       : "confirm";
-  const requirementStatus: RequirementStatus = inclusion === "task" ? "verified" : inclusion === "confirm" ? "needs_confirmation" : classified.status;
-  const conditions = inclusion === "task" || inclusion === "confirm" ? [] : inclusion === "find_out" ? [question] : classified.conditions;
+  const requirementStatus: RequirementStatus =
+    inclusion === "task" ? "verified" : inclusion === "confirm" ? "needs_confirmation" : inclusion === "check_place" ? "conditional" : classified.status;
+  const conditions =
+    inclusion === "task" || inclusion === "confirm" ? [] : inclusion === "find_out" ? [question] : inclusion === "check_place" ? place : classified.conditions;
   return { step, inclusion, requirementStatus, conditions, question: classified.question, answer: classified.answer, place };
 }
 
 // The owner said they're outside city limits: a city rule isn't asked about, though their township may have its own
 const outsideCity = (step: Pick<PaperStep, "level">, place: Place) => step.level === "city" && place.insideCity === "no";
 
-// Place answers the owner can still give; being outside city limits is an answer, not a gap
-export function placeOpen(standing: Pick<Standing<PaperStep>, "inclusion" | "step">, place: Place): boolean {
-  return standing.inclusion === "place" && !outsideCity(standing.step, place);
-}
+
 
 export const GROUP_KEYS = ["register", "tax-ids", "where-you-work", "licenses", "hiring", "other", "after-you-open"] as const;
 export type GroupKey = (typeof GROUP_KEYS)[number];
@@ -277,12 +279,15 @@ export interface Paperwork<T extends PaperStep> {
   groups: PaperworkGroup<T>[];
   // The next task to do: needed before selling first
   first: PaperworkTask<T> | null;
-  // Questions and place answers the owner can still give on What applies to you
+  // Quick questions still to answer on What applies to you
   open: Standing<T>[];
+  // Filings needed before selling that wait on a structure decision
+  waitsOnStructure: boolean;
 }
 
 export const STRUCTURE_WHERE = "Business structure";
 export const CHECK_WHERE = "What applies to you";
+export const BUSINESS_WHERE = "Your business";
 
 export function groupHref(key: string): string {
   return `/start/${key}`;
@@ -363,8 +368,8 @@ export function paperwork<T extends PaperStep>(steps: readonly T[], context: Pap
   const tasks = groups.flatMap((group) => group.tasks);
   const taskByKey = new Map(tasks.map((task) => [task.step.key, task]));
   for (const task of tasks) {
-    // Asking whether it applies never waits on the filing's own prerequisites
-    task.blockers = task.kind === "find_out" ? [] : blockersOf(task.step, byKey, groupOfTask, context.place);
+    // Finding out whether it applies never waits on the filing's own prerequisites
+    task.blockers = task.kind === "find_out" || task.kind === "check_place" ? [] : blockersOf(task.step, byKey, groupOfTask, context.place);
     task.state = task.step.status === "done" ? "done" : task.step.status === "submitted" ? "waiting" : task.blockers.length ? "locked" : "ready";
   }
 
@@ -404,39 +409,72 @@ export function paperwork<T extends PaperStep>(steps: readonly T[], context: Pap
     tasks,
     groups,
     first: soon.find((task) => task.state === "ready") ?? later.find((task) => task.state === "ready") ?? null,
-    open: standings.filter((standing) => standing.inclusion === "question" || placeOpen(standing, context.place)),
+    open: standings.filter((standing) => standing.inclusion === "question"),
+    waitsOnStructure: waitingStructure.length > 0,
   };
 }
 
-// What holds a step up: unfinished tasks, a structure still to choose, or an answer still to give. Steps that don't apply never do.
-function blockersOf<T extends PaperStep>(
-  step: T,
+// A step's prerequisites that still matter, done or not; steps that don't apply never hold anything up
+function prerequisiteLinks<T extends PaperStep>(
+  step: PaperStep,
   byKey: ReadonlyMap<string, Standing<T>>,
   groupOf: ReadonlyMap<string, PaperworkGroup<T>>,
   place: Place,
-): Blocker[] {
-  const blockers: Blocker[] = [];
-  const add = (blocker: Blocker) => {
-    if (!blockers.some((each) => each.href === blocker.href)) blockers.push(blocker);
+): (Blocker & { done: boolean })[] {
+  const links: (Blocker & { done: boolean })[] = [];
+  const add = (link: Blocker & { done: boolean }) => {
+    if (!links.some((each) => each.href === link.href)) links.push(link);
   };
   for (const key of step.prerequisites) {
     const before = byKey.get(key);
-    if (!before || before.step.status === "done" || before.step.key === step.key) continue;
-    if (isTaskKind(before.inclusion)) {
+    if (!before || before.step.key === step.key) continue;
+    const done = before.step.status === "done";
+    const gap = before.inclusion === "check_place" ? placeGap(before.step.level, place) : null;
+    if (gap) {
+      add({ title: gap.action, href: "/business/edit", where: BUSINESS_WHERE, office: false, taskKey: null, done });
+    } else if (isTaskKind(before.inclusion)) {
       add({
         title: before.step.title,
         href: `/checklist/${before.step.id}`,
         where: groupOf.get(before.step.key)?.name ?? "",
         office: before.step.status === "submitted",
         taskKey: before.step.key,
+        done,
       });
     } else if (before.inclusion === "structure_choice" || before.inclusion === "structure") {
-      add({ title: "Choose your business structure", href: "/structure", where: STRUCTURE_WHERE, office: false, taskKey: null });
-    } else if (before.inclusion === "question" || placeOpen(before, place)) {
-      add({ title: `Answer whether “${before.step.title}” applies to you`, href: "/requirements#questions", where: CHECK_WHERE, office: false, taskKey: null });
+      add({ title: "Choose your business structure", href: "/structure", where: STRUCTURE_WHERE, office: false, taskKey: null, done });
+    } else if (before.inclusion === "question") {
+      add({ title: `Answer whether “${before.step.title}” applies to you`, href: "/requirements#questions", where: CHECK_WHERE, office: false, taskKey: null, done });
     }
   }
-  return blockers;
+  return links;
+}
+
+// What holds a step up: unfinished tasks, a structure still to choose, an answer still to give, or a place still to add
+function blockersOf<T extends PaperStep>(
+  step: T,
+  byKey: ReadonlyMap<string, Standing<T>>,
+  groupOf: ReadonlyMap<string, PaperworkGroup<T>>,
+  place: Place,
+): Blocker[] {
+  return prerequisiteLinks(step, byKey, groupOf, place)
+    .filter((link) => !link.done)
+    .map((link) => ({ title: link.title, href: link.href, where: link.where, office: link.office, taskKey: link.taskKey }));
+}
+
+// For a step's page: the prerequisites that still matter, by the same rules as the locks, and the tasks it unlocks
+export function stepLinks<T extends PaperStep>(view: Paperwork<T>, step: PaperStep, place: Place): { before: (Blocker & { done: boolean })[]; after: PaperworkTask<T>[] } {
+  const byKey = new Map(view.standings.map((standing) => [standing.step.key, standing]));
+  const groupOf = new Map(view.groups.flatMap((group) => group.tasks.map((task) => [task.step.key, group] as const)));
+  return {
+    before: prerequisiteLinks(step, byKey, groupOf, place),
+    after: view.tasks.filter((task) => task.step.key !== step.key && task.step.prerequisites.includes(step.key)),
+  };
+}
+
+// Rules that may apply but aren't settled: a question to answer, a structure to choose, or a city the owner says they're outside of
+export function stillToSettle<T extends PaperStep>(view: Pick<Paperwork<T>, "standings">): Standing<T>[] {
+  return view.standings.filter((standing) => standing.inclusion === "question" || standing.inclusion === "structure" || standing.inclusion === "place");
 }
 
 // Where to send the owner after a task: the next ready one in list order, then earlier ones, never a finished one
