@@ -327,18 +327,81 @@ Limits: 20 rounds of ideas, 120 files, and 250 MB per business. The owner can re
 
 ## Website
 
-On the Website page, owners pick where to build their site, choose a web address and get the words for each page. They build the site themselves on the platform they pick.
+On the Website page, owners pick how to build their site, choose a web address and approve the words for each page. First Sale can then build the site itself, show it live, and publish it when the owner says so. For Square, Wix or Shopify, it gives click-by-click steps with everything ready to paste.
 
-1. **Choose.** Square, Wix and Shopify, with prices checked on each company's own pages (`src/data/website-platforms.ts`, with sources and the date checked). Each card shows the plans, card fees, what a web address costs, a first-year total worked out by code, pros and cons, and what isn't included that the owner will likely need. Fixed rules (`src/lib/website/recommend.ts`) suggest one from the owner's answers and say why.
-2. **Explain more.** Muse Spark explains one option for this owner, using only that card's facts. Numbers that aren't in the facts are flagged. An explanation is kept until the card's facts change.
+1. **Choose.** Four options, with prices checked on each company's own pages (`src/data/website-platforms.ts`, with sources and the dates checked):
+   - **First Sale site**: built here and hosted on Netlify's Free plan.
+   - **Square, Wix and Shopify.**
+
+   Each card shows the plans, card fees, what a web address costs, a first-year total worked out by code, pros and cons, and what isn't included that the owner will likely need. Fixed rules (`src/lib/website/recommend.ts`) suggest one option and say why:
+   - Services only: the First Sale site.
+   - In person or at markets: Square.
+   - Mostly online with a budget: Shopify.
+2. **Explain more.** Muse Spark explains one option for this owner, using only that card's facts. Numbers that aren't in the facts are flagged. An explanation is kept until the card's facts change. Step instructions aren't facts, so changing them doesn't redo explanations.
 3. **Find more options.** Only when the owner asks, Muse searches the web for other builders. Code keeps an option only if its website is among the results and carries its name. Prices, other numbers and money words ("free", "no fees") stay only if they appear in that option's own sources.
-4. **Web address.** Ideas from the business name and town, and a check of any .com or .net against the official registry (Verisign RDAP). "Not registered yet" is a snapshot, not a promise. Checks are limited per owner, so the shared registry isn't flooded.
-5. **Words.** Muse Spark drafts each page from the intake answers, the business email, phone and purpose, and the business plan's answers about customers, what sets the business apart, and prices. Owner names, addresses, costs and funding are never sent. Numbers the owner didn't give are flagged, and missing facts become [bracketed] notes. The owner edits and approves; approving saves a PDF of the words to Documents.
-6. **Preview and build.** A rough preview with the brand kit's colors, logo and header picture. Then the platform's setup steps, each linking to its own help, as a checklist, and every piece of text ready to copy.
+4. **Web address.** Ideas come from the business name and town. Any .com or .net can be checked against the official registry (Verisign RDAP). "Not registered yet" is a snapshot, not a promise. Checks are limited per owner, so the shared registry isn't flooded.
+5. **Words.** Muse Spark drafts each page from:
+   - the intake answers;
+   - the business email, phone and purpose;
+   - the business plan's answers about customers, what sets the business apart, and prices.
+
+   Owner names, addresses, costs and funding are never sent. Numbers the owner didn't give are flagged, and missing facts become [bracketed] notes. The owner edits and approves the words, and approving saves a PDF of them to Documents.
+6. **Design and preview.** A live preview of the real site in a sandboxed iframe. The page is one plain HTML file from `src/lib/website/site/render.ts`:
+   - no scripts;
+   - a Content-Security-Policy that blocks outside requests and form posts;
+   - every piece of text escaped.
+
+   The owner picks a look (Clean, Bold or Warm), a main color from the brand kit or any color, and which parts show. They can show the logo and header picture, and email and call buttons built from their saved business details. For each item, they can set a price, an approved product photo and a buy link. The preview shows the site at computer and phone width, and marks [bracketed] notes in yellow.
+   - Prices show only when the owner types them.
+   - Buy links must be https. Links that aren't Stripe or Square get a "make sure it's yours" note.
+   - Choices are saved as the plan's `design`.
+7. **Publish** (First Sale site). Rules in `src/lib/website/site/ready.ts` must pass before anything goes out:
+   - the words are approved, written for this site and have no [bracketed] notes;
+   - buy links are valid;
+   - there's a way to get in touch;
+   - no practice logos or photos are shown, so a practice run passes only what a real publish would.
+
+   The owner clicks Publish and confirms. The confirm says what each publish costs in Netlify credits, and the panel says when nothing has changed since the last publish. The server checks that the site is still the version on screen (`siteSignature`) and that the Netlify connection is the one the owner confirmed (practice or real), then builds the files (`bundle.ts`: index.html plus copies of the pictures) and hands them to a host provider (`src/lib/website/hosting`):
+   - **Netlify** (`netlify.ts`): a file-digest deploy. It makes the site once and records it straight away (as not live yet, so a failed upload retries the same site), sends each file's SHA1, uploads only the files Netlify asks for, then waits for `ready`. Later publishes update the same site, and "Check again" asks Netlify about a deploy that was still finishing. A refused token (401) clears the connection and asks the owner to reconnect.
+   - **Practice** (`practice.ts`): runs every check and uploads nothing. Its result is labeled "Practice publish" and never shown as live. A practice run never replaces a real site's record.
+
+   "Download my site (.zip)" gives the same files, behind the same checks, with step-by-step Netlify Drop instructions for owners who publish by hand.
+8. **What only the owner can do.** Each platform's steps (checked in each vendor's help on 2026-10-28) have:
+   - where to click, with menus and buttons named as the help names them;
+   - a "Take me there" link to that page of the dashboard;
+   - a help link;
+   - the owner's own business name, search title and description, page words, questions, brand colors, logo, site icon, items with prices and photos, and DNS records for their web address, ready to copy or download.
+
+   Square shows its DNS records per site, so the step says where to find them. For the First Sale site, the steps cover the Netlify account, Stripe or Square payment links, the web address and HTTPS. The "Connect Netlify" step shows only where a Netlify app is set up.
 
 Words written for one platform must be drafted again before approving if the owner switches platforms. Prices change, so each card shows the date they were checked.
 
-**Practice mode:** the words are a fill-in-the-blanks template, "Explain more" restates the card's facts, and "Find more options" says it needs the AI service. Each is labeled.
+**Connecting Netlify.** Publishing for real needs a Netlify OAuth app, registered at https://app.netlify.com/applications with the callback `BETTER_AUTH_URL/website/netlify/callback`.
+- Set `NETLIFY_CLIENT_ID` and `NETLIFY_CLIENT_SECRET`. Without them, Publish is a practice run and the page offers the .zip and Netlify Drop steps instead.
+- The owner makes a free Netlify account, clicks "Connect Netlify" and approves, so the site lives in their own account.
+- A one-time state cookie ties Netlify's reply to the browser that asked.
+- The token is stored encrypted (AES-256-GCM, with a key made from `BETTER_AUTH_SECRET`). It is never sent to the browser, and only publishing reads it.
+- The authorize URL is from Netlify's API docs. The token URL (`https://api.netlify.com/oauth/token`) follows Netlify's own example app, since the docs page doesn't list it.
+
+**Why Netlify** (official docs read 2026-10-28):
+- Netlify documents a plain REST deploy, standard OAuth, published DNS values and free automatic HTTPS. Its Free plan includes custom domains with SSL. It also has limits:
+  - 300 credits a month, with a production deploy costing 15. If the credits run out, the site pauses until the next month.
+  - The API allows 3 deploys a minute and 100 a day.
+- Vercel's Hobby plan is non-commercial only, and GitHub Pages rules out online businesses.
+- Cloudflare's REST-only upload is for Workers static assets. Pages Direct Upload is documented only through Wrangler or the dashboard.
+- Site builders can't be built for owners from outside:
+  - Square has no API to make or edit site pages.
+  - Shopify can't make a store by API, and theme edits need an exemption.
+  - Webflow site creation is Enterprise only.
+  - Wix and WordPress.com have no public way to edit a new site's pages for an owner.
+
+**Practice mode:**
+- The words are a fill-in-the-blanks template.
+- "Explain more" restates the card's facts.
+- "Find more options" says it needs the AI service.
+- Publishing without a Netlify connection is a practice run.
+
+Each is labeled.
 
 ## AI models
 

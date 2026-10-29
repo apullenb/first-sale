@@ -4,6 +4,7 @@ import { useId, useLayoutEffect, useState } from "react";
 import { saveWebsiteCopyAction } from "@/app/(app)/website/actions";
 import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import type { WebsiteCopy } from "@/lib/website/types";
+import { placeholderCount } from "@/lib/website/words";
 
 interface Props {
   copy: WebsiteCopy;
@@ -11,12 +12,6 @@ interface Props {
   approved: boolean;
   // Changes whenever the saved copy does
   signature: string;
-}
-
-const PLACEHOLDER = /\[[^\]]+\]/g;
-
-function countPlaceholders(copy: WebsiteCopy): number {
-  return JSON.stringify(copy).match(PLACEHOLDER)?.length ?? 0;
 }
 
 // The owner's edits to the drafted words; approving saves a printable copy to Documents
@@ -36,7 +31,7 @@ export function CopyEditor({ copy: saved, flags, approved, signature }: Props) {
 
   const text = JSON.stringify(copy);
   const dirty = text !== JSON.stringify(saved);
-  const placeholders = countPlaceholders(copy);
+  const placeholders = placeholderCount(copy);
   const openFlags = flags.filter((flag) => {
     const quoted = flag.match(/“([^”]+)”/)?.[1];
     return !quoted || text.includes(quoted);

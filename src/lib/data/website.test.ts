@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createTestDb } from "@/test/db";
 import { seedOwners } from "@/test/fixtures";
-import { getWebsitePlanForOwner, saveWebsitePlanForOwner, updateWebsitePlanForOwner } from "./website";
+import { getHostConnectionForOwner, getWebsitePlanForOwner, saveWebsitePlanForOwner, updateWebsitePlanForOwner } from "./website";
 
 type TestDb = Awaited<ReturnType<typeof createTestDb>>;
 
@@ -39,5 +39,23 @@ describe("website plan data access", () => {
     await saveWebsitePlanForOwner(db, "owner-a", { platform: "wix" });
     expect(await getWebsitePlanForOwner(db, "owner-b")).toBeNull();
     expect(await saveWebsitePlanForOwner(db, "nobody", { platform: "wix" })).toBe(false);
+  });
+
+  it("keeps the host connection out of ordinary reads", async () => {
+    const connection = { provider: "netlify" as const, token: "v1.sealed", connectedAt: "2026-10-28T12:00:00Z" };
+    await saveWebsitePlanForOwner(db, "owner-a", { platform: "first_sale", hostConnection: connection });
+    const plan = await getWebsitePlanForOwner(db, "owner-a");
+    expect(plan).toMatchObject({ platform: "first_sale", hostConnected: true });
+    expect(plan).not.toHaveProperty("hostConnection");
+    expect(JSON.stringify(plan)).not.toContain("v1.sealed");
+    expect(await getHostConnectionForOwner(db, "owner-a")).toEqual(connection);
+    expect(await getHostConnectionForOwner(db, "owner-b")).toBeNull();
+
+    // Updates see whether it's connected, never the token
+    await updateWebsitePlanForOwner(db, "owner-a", (latest) => {
+      expect(latest).not.toHaveProperty("hostConnection");
+      return latest?.hostConnected ? { hostConnection: null } : null;
+    });
+    expect((await getWebsitePlanForOwner(db, "owner-a"))?.hostConnected).toBe(false);
   });
 });

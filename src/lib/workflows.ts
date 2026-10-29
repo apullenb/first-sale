@@ -187,6 +187,14 @@ export const WORKFLOWS = {
     timeLimitMs: 6 * MINUTE,
     offeredFor: [],
   },
+  website_publish: {
+    title: "Publish my website",
+    summary: "Checks your site is ready, then puts it online on the host you connected. Without one, it’s a practice run.",
+    actor: "rule",
+    usesAi: false,
+    timeLimitMs: 2 * MINUTE,
+    offeredFor: [],
+  },
   official_form: {
     title: "Get the official form",
     summary: "Downloads the form from the agency’s own site, checks it’s the right one, keeps it unchanged, and fills in what your details answer.",

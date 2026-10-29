@@ -4,6 +4,9 @@ import type { BusinessProfile } from "@/lib/domain";
 import { knownNumbers, numberFlags } from "@/lib/documents/business-plan";
 import { CHANNEL_LABELS, OFFERING_KIND_LABELS, STATE_NAMES } from "@/lib/intake/options";
 import type { PlatformId, WebsiteContent, WebsiteCopy } from "./types";
+import { copyTexts } from "./words";
+
+export { copyOf, copyTexts, placeholderCount } from "./words";
 
 // First-draft words for the owner's website. AI writes from the owner's own facts; missing facts become
 // [bracketed] notes, and any number the owner didn't give is flagged.
@@ -26,6 +29,8 @@ export const websiteCopySchema = z.object({
 });
 
 const PLATFORM_NOTES: Record<PlatformId, string> = {
+  first_sale:
+    "First Sale will build the site and host it on Netlify. It has no shopping cart: customers order by email or phone, or pay through a payment link the owner may add to each item.",
   square: "The site will be built on Square Online, which has an online store with checkout, pickup and delivery.",
   wix: "The site will be built on Wix’s Core plan, which has an online store with checkout.",
   shopify: "The site will be built on Shopify, which has an online store with checkout and shipping.",
@@ -89,28 +94,8 @@ export async function draftWebsite(model: ModelProvider, facts: WebsiteFacts, no
   return { ...copy, flags: copyFlags(copy, knownNumbers(message)), platform: facts.platform, generatedAt: now.toISOString(), simulated: model.simulated };
 }
 
-// Every piece of text on the site, for checks and counts
-export function copyTexts(copy: WebsiteCopy): string[] {
-  return [
-    copy.headline,
-    copy.subheadline,
-    copy.intro,
-    copy.about,
-    ...copy.offerings.flatMap((item) => [item.name, item.description]),
-    copy.howToBuy,
-    copy.contact,
-    ...copy.faq.flatMap((entry) => [entry.question, entry.answer]),
-    copy.seoTitle,
-    copy.seoDescription,
-  ];
-}
-
 export function copyFlags(copy: WebsiteCopy, known: ReadonlySet<string>): string[] {
   return [...new Set(copyTexts(copy).flatMap((text) => numberFlags(text, known)))];
-}
-
-export function placeholderCount(copy: WebsiteCopy): number {
-  return copyTexts(copy).reduce((sum, text) => sum + (text.match(/\[[^\]]+\]/g)?.length ?? 0), 0);
 }
 
 // Practice mode: a fill-in-the-blanks template from the owner's answers
@@ -123,7 +108,7 @@ registerMockFixture(WEBSITE_SCHEMA_NAME, (request) => {
   const place = String(facts.place ?? "");
   const items = String(facts.firstItems ?? "");
   const servicesOnly = (facts.whatTheySell as string[] | undefined)?.every((kind) => kind === OFFERING_KIND_LABELS.services) ?? false;
-  const store = /checkout/.test(String(facts.platformNote ?? "")) && !servicesOnly;
+  const store = /online store with checkout/.test(String(facts.platformNote ?? "")) && !servicesOnly;
   const copy: WebsiteCopy = {
     headline: name,
     subheadline: place ? `Based in ${place}. [Add what makes it special]` : "[Add what makes it special]",
@@ -147,9 +132,3 @@ registerMockFixture(WEBSITE_SCHEMA_NAME, (request) => {
   };
   return JSON.stringify(copy);
 });
-
-// Just the words, without flags or bookkeeping, for editing and comparing
-export function copyOf(content: WebsiteCopy): WebsiteCopy {
-  const { headline, subheadline, intro, about, offerings, howToBuy, contact, faq, seoTitle, seoDescription } = content;
-  return { headline, subheadline, intro, about, offerings, howToBuy, contact, faq, seoTitle, seoDescription };
-}

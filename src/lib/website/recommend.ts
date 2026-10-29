@@ -23,10 +23,11 @@ export function recommendPlatform(profile: BusinessProfile): Recommendation {
 
   if (servicesOnly) {
     return {
-      platform: "wix",
+      platform: "first_sale",
       reasons: [
         "You sell services, so your site’s main job is showing what you do and making it easy to get in touch.",
-        "Wix has lots of designs, so your site can look the way you want. If you don’t need to take payments online, its Light plan is the cheapest way to have your own web address with no ads.",
+        "First Sale can build it from your words and brand, and publish it on Netlify’s free plan once you approve it.",
+        "To take payments, you can add a Stripe or Square payment link to each service. If you’d rather have lots of designs to choose from, Wix is a good fit.",
       ],
     };
   }
@@ -58,7 +59,7 @@ export function recommendPlatform(profile: BusinessProfile): Recommendation {
   return {
     platform: "square",
     reasons: [
-      "Square Free is the only one of the three with a free plan that takes payments on your website. You pay a fee only when you make a sale.",
+      "Square Free is the only builder here with a free plan that takes payments on your website. You pay a fee only when you make a sale.",
       ...(online ? ["If your online sales grow, Shopify is a common next step."] : []),
     ],
   };

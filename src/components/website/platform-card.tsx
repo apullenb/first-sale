@@ -77,7 +77,7 @@ export function PlatformCard({
           </p>
         ) : (
           <p className="text-[15px] text-rule">
-            <strong>Card payments:</strong> none. There’s no checkout, so customers pay you another way.
+            <strong>Card payments:</strong> {platform.paymentNote ?? "none. There’s no checkout, so customers pay you another way."}
           </p>
         )}
         <p className="text-[15px]">

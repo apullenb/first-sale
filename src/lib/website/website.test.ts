@@ -77,8 +77,8 @@ describe("recommendPlatform", () => {
     expect(recommendPlatform(testProfile({ offeringKinds: ["handmade"], channels: ["own_website"], startupBudget: "under_1k" })).platform).toBe("square");
   });
 
-  it("suggests Wix for services, with nothing to ship or check out", () => {
-    expect(recommendPlatform(testProfile({ offeringKinds: ["services"], channels: ["in_person"] })).platform).toBe("wix");
+  it("suggests the site First Sale builds for services, with nothing to ship or check out", () => {
+    expect(recommendPlatform(testProfile({ offeringKinds: ["services"], channels: ["in_person"] })).platform).toBe("first_sale");
   });
 
   it("doesn't treat “something else” as services, or selling to shops as selling online", () => {
@@ -128,6 +128,8 @@ describe("draftWebsite", () => {
     expect((await draftWebsite(createMockProvider(), { ...facts, platform: "wix" })).howToBuy).toMatch(/check out/);
     const services = await draftWebsite(createMockProvider(), { ...facts, platform: "wix", profile: testProfile({ offeringKinds: ["services"] }) });
     expect(services.howToBuy).toMatch(/contact us/i);
+    // No cart on the built site, so goods are ordered by contact
+    expect((await draftWebsite(createMockProvider(), { ...facts, platform: "first_sale" })).howToBuy).toMatch(/contact us/i);
   });
 
   it("calls the place where the business is based, not where things are made", async () => {

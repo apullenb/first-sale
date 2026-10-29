@@ -6,7 +6,7 @@ import { ExplainOption } from "./explain-option";
 // Builders Muse found on request. Labeled as search results: First Sale didn't check these prices itself.
 export function MoreOptionsList({ found, explanations }: { found: MoreOptions; explanations: Record<string, OptionExplanation> }) {
   if (!found.options.length) {
-    return <p className="text-muted">The search didn’t turn up other options that fit. The three above cover most first websites.</p>;
+    return <p className="text-muted">The search didn’t turn up other options that fit. The options above cover most first websites.</p>;
   }
   return (
     <div className="flex flex-col gap-3">

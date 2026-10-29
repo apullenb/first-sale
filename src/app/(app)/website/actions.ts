@@ -30,7 +30,7 @@ const NO_BUSINESS = "Tell us about your business first.";
 
 export async function choosePlatformAction(platform: unknown): Promise<ActionResult> {
   const parsed = z.enum(PLATFORMS).nullable().safeParse(platform);
-  if (!parsed.success) return { ok: false, message: "Pick one of the three options." };
+  if (!parsed.success) return { ok: false, message: "Pick one of the options." };
   if (!(await saveMyWebsitePlan({ platform: parsed.data }))) return { ok: false, message: NO_BUSINESS };
   refresh();
   return { ok: true, value: null };
