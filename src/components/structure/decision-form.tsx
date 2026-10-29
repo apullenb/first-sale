@@ -5,9 +5,10 @@ import { recordDecisionsAction } from "@/app/(app)/structure/actions";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { ALERT, PRIMARY, SECONDARY } from "@/components/styles";
-import { Card, Chip } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { DETAILS, displayDetail, STRUCTURE_LABELS } from "@/lib/details";
 import type { BusinessStructure } from "@/lib/domain";
+import { ExplainWhy, RecommendedTag } from "./explain";
 
 type Values = { structure_choice: string; name_registration_plan: string; tax_classification_plan: string };
 type Key = keyof Values;
@@ -22,9 +23,16 @@ const MISSING: Record<Key, string> = {
 
 export interface StructureChoice {
   id: BusinessStructure;
-  suggested: boolean;
-  // The option's sourced details, rendered on the server
-  details: ReactNode;
+  // A few words under the name
+  short: string;
+  // Reasons, rendered on the server; only for the recommended option
+  why: ReactNode | null;
+}
+
+// A recommended answer for the name or tax question, with its reasons
+export interface PlanPick {
+  value: string;
+  why: ReactNode;
 }
 
 export interface PlanChange {
@@ -35,9 +43,10 @@ export interface PlanChange {
 const FOCUS = "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent";
 // A real radio, so the choice shows in every color mode; the card's ring shows focus
 const RADIO = "size-5 shrink-0 cursor-pointer accent-accent focus-visible:outline-none";
+// Links and folds inside a choice card sit above the label that covers it
+const ABOVE = "[&_a]:relative [&_a]:z-10 [&_summary]:relative [&_summary]:z-10";
 
-
-// The owner's own decision: pick from option cards, see exactly what will be recorded and what it changes, then confirm
+// The owner's own decision: answer three questions, see exactly what will be recorded and what it changes, then confirm
 export function DecisionForm({
   current,
   owners,
@@ -46,8 +55,11 @@ export function DecisionForm({
   recordedAt,
   choices,
   extra,
+  suggested,
   nameText,
   taxText,
+  namePicks,
+  taxPicks,
   changes,
   unsure,
 }: {
@@ -61,9 +73,14 @@ export function DecisionForm({
   choices: StructureChoice[];
   // A less common option, folded away
   extra: StructureChoice | null;
+  // The rules' suggestion, used for the name and tax picks until a structure is chosen
+  suggested: BusinessStructure;
   // What each structure means for the name and taxes, from the rules
   nameText: Partial<Record<string, string>>;
   taxText: Partial<Record<string, string>>;
+  // Recommended name and tax answers for each structure; no name pick when the answers don't make it clear
+  namePicks: Partial<Record<string, PlanPick | null>>;
+  taxPicks: Partial<Record<string, PlanPick | null>>;
   // Plan steps each structure keeps and leaves out; null before requirements are checked
   changes: Partial<Record<string, { kept: PlanChange[]; left: PlanChange[] }>> | null;
   unsure: ReactNode;
@@ -81,10 +98,14 @@ export function DecisionForm({
   // The view swaps between the options and the review, so focus moves with it
   const reviewHeading = useRef<HTMLHeadingElement>(null);
   const reviewButton = useRef<HTMLButtonElement>(null);
+  const status = useRef<HTMLParagraphElement>(null);
   const moved = useRef(false);
+  // After saving, the review button is disabled, so focus goes to the confirmation
+  const saved = useRef(false);
   useEffect(() => {
     if (!moved.current) return;
-    const target = confirming ? reviewHeading.current : reviewButton.current;
+    const target = confirming ? reviewHeading.current : saved.current ? status.current : reviewButton.current;
+    saved.current = false;
     target?.focus();
     target?.scrollIntoView({ block: "center" });
   }, [confirming]);
@@ -102,6 +123,11 @@ export function DecisionForm({
   const missing = KEYS.find((key) => !values[key]);
   const structure = values.structure_choice;
   const structureName = structure && structure !== "undecided" ? STRUCTURE_LABELS[structure as BusinessStructure] : null;
+  // Name and tax picks follow the chosen structure, or the suggested one until then
+  const basisFor = structureName ? structure : suggested;
+  const basisName = STRUCTURE_LABELS[basisFor as BusinessStructure].replace(/ \(LLC\)$/, "").toLowerCase();
+  const namePick = namePicks[basisFor] ?? null;
+  const taxPick = taxPicks[basisFor] ?? null;
 
   async function confirm() {
     setPending(true);
@@ -111,6 +137,7 @@ export function DecisionForm({
       if (!result.ok) setError(result.message);
       else {
         setDone(true);
+        saved.current = true;
         show(false);
       }
     } catch {
@@ -126,21 +153,21 @@ export function DecisionForm({
       <section aria-labelledby={`${uid}-review`} className="flex flex-col gap-5">
         <button type="button" onClick={() => show(false)} disabled={pending} className="inline-flex min-h-11 w-fit items-center gap-1.5 text-[15px] font-semibold text-muted hover:text-accent">
           <Icon name="back" size="sm" />
-          Back to your options
+          Back to the questions
         </button>
         <div className="flex flex-col gap-2">
           <p className="flex items-center gap-2 text-[13.5px] font-bold uppercase tracking-[0.08em] text-accent">
             <Icon name="stamp" size="sm" />
             Review
           </p>
-          <h2 id={`${uid}-review`} ref={reviewHeading} tabIndex={-1} className="font-display text-[28px] leading-tight focus:outline-none sm:text-[32px]">
+          <h3 id={`${uid}-review`} ref={reviewHeading} tabIndex={-1} className="font-display text-[28px] leading-tight focus:outline-none sm:text-[32px]">
             Ready to record your decision?
-          </h2>
+          </h3>
           <p className="max-w-2xl text-lg text-muted">Check what you’re choosing and what it changes. Nothing changes until you record it.</p>
         </div>
 
         <div className="grid items-start gap-5 md:grid-cols-2">
-          <Card title="You’re choosing" icon="scale" id={`${uid}-choosing`} bodyClassName="gap-0 pt-1">
+          <Card title="You’re choosing" icon="scale" id={`${uid}-choosing`} headingLevel={3} bodyClassName="gap-0 pt-1">
             <dl className="flex flex-col">
               {KEYS.map((key) => (
                 <div key={key} className="flex flex-col gap-0.5 border-b border-line py-2.5 last:border-b-0">
@@ -155,7 +182,7 @@ export function DecisionForm({
               ))}
             </dl>
           </Card>
-          <Card title="What recording does" icon="check" id={`${uid}-does`}>
+          <Card title="What recording does" icon="check" id={`${uid}-does`} headingLevel={3}>
             <ul className="flex flex-col gap-2 text-[15px]">
               {[
                 "Saves it as your decision. Your licenses, registrations and forms use it.",
@@ -173,7 +200,7 @@ export function DecisionForm({
           </Card>
         </div>
 
-        <Card title="What changes in your plan" icon="list" id={`${uid}-changes`}>
+        <Card title="What changes in your plan" icon="list" id={`${uid}-changes`} headingLevel={3}>
           {!changes ? (
             <p className="text-muted">Your requirements aren’t checked yet, so no steps change.</p>
           ) : !plan ? (
@@ -213,7 +240,7 @@ export function DecisionForm({
           ) : null}
         </Card>
 
-        <Card title="Based on these answers" icon="info" id={`${uid}-basis`}>
+        <Card title="Based on these answers" icon="info" id={`${uid}-basis`} headingLevel={3}>
           <ul className="flex flex-wrap gap-2">
             {basis.map((line) => (
               <li key={line} className="rounded-full border border-line bg-soft px-3 py-1 text-[14.5px] text-rule">
@@ -248,8 +275,8 @@ export function DecisionForm({
     return (
       <div
         key={choice.id}
-        className={`relative flex flex-col gap-3 rounded-[14px] border bg-surface p-5 shadow-card transition motion-reduce:transition-none [&_a]:relative [&_a]:z-10 [&_summary]:relative [&_summary]:z-10 ${FOCUS} ${
-          checked ? "border-accent shadow-[0_0_0_3px_var(--color-accent-tint),var(--shadow-card)]" : "border-line hover:border-line-strong"
+        className={`relative flex flex-col gap-2 rounded-[14px] border bg-surface p-4 shadow-soft transition motion-reduce:transition-none ${ABOVE} ${FOCUS} ${
+          checked ? "border-accent shadow-[0_0_0_3px_var(--color-accent-tint)]" : "border-line-strong hover:border-muted"
         }`}
       >
         <label className="flex cursor-pointer items-start gap-3 after:absolute after:inset-0 after:rounded-[14px]">
@@ -259,34 +286,47 @@ export function DecisionForm({
             value={choice.id}
             checked={checked}
             onChange={() => pick("structure_choice", choice.id)}
-            className={`relative z-10 mt-1.5 ${RADIO}`}
+            className={`relative z-10 mt-1 ${RADIO}`}
           />
-          <span className="flex min-w-0 flex-col gap-1.5">
-            <span className="font-display text-xl leading-snug">{STRUCTURE_LABELS[choice.id]}</span>
-            {choice.suggested ? (
-              <Chip tone="accent" icon="lightbulb">
-                Suggested for you
-              </Chip>
-            ) : null}
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="font-display text-lg leading-snug">{STRUCTURE_LABELS[choice.id]}</span>
+            <span className="text-[15px] text-muted">{choice.short}</span>
           </span>
         </label>
-        {choice.details}
+        {choice.why ? (
+          <div className="flex flex-col gap-0.5 pl-8">
+            <RecommendedTag />
+            <ExplainWhy>{choice.why}</ExplainWhy>
+          </div>
+        ) : null}
       </div>
     );
   };
 
-  const smallChoice = (key: Key, value: string, label: string) => {
+  // One answer to the name or tax question, with the rules' pick marked
+  const planChoice = (key: Key, value: string, label: string, hint: string | null, recommended: PlanPick | null) => {
     const checked = values[key] === value;
     return (
-      <label
+      <div
         key={value}
-        className={`flex min-h-[50px] cursor-pointer items-center gap-3 rounded-xl border bg-surface px-3.5 py-2.5 font-semibold leading-snug shadow-soft transition motion-reduce:transition-none ${FOCUS} ${
+        className={`relative flex flex-col gap-1 rounded-xl border bg-surface px-3.5 py-2.5 shadow-soft transition motion-reduce:transition-none ${ABOVE} ${FOCUS} ${
           checked ? "border-accent shadow-[0_0_0_3px_var(--color-accent-tint)]" : "border-line-strong hover:border-muted"
         }`}
       >
-        <input type="radio" name={`${uid}-${key}`} value={value} checked={checked} onChange={() => pick(key, value)} className={RADIO} />
-        <span>{label}</span>
-      </label>
+        <label className="flex min-h-[30px] cursor-pointer items-center gap-3 after:absolute after:inset-0 after:rounded-xl">
+          <input type="radio" name={`${uid}-${key}`} value={value} checked={checked} onChange={() => pick(key, value)} className={`relative z-10 ${RADIO}`} />
+          <span className="flex min-w-0 flex-col">
+            <span className="font-semibold leading-snug">{label}</span>
+            {hint ? <span className="text-sm text-muted">{hint}</span> : null}
+          </span>
+        </label>
+        {recommended?.value === value ? (
+          <div className="flex flex-col gap-0.5 pl-8">
+            <RecommendedTag />
+            <ExplainWhy>{recommended.why}</ExplainWhy>
+          </div>
+        ) : null}
+      </div>
     );
   };
 
@@ -305,8 +345,7 @@ export function DecisionForm({
 
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-3 font-display text-[22px] leading-snug">1. How will your business be owned?</legend>
-        <p className="-mt-1 text-[15px] text-muted">{DETAILS.structure_choice.help}</p>
-        <div className="grid items-start gap-4 md:grid-cols-2">{choices.map(optionCard)}</div>
+        <div className="grid items-start gap-3 md:grid-cols-2">{choices.map(optionCard)}</div>
         {extra ? (
           <details open={structure === extra.id} className="group/extra rounded-[14px] border border-line bg-surface shadow-soft">
             <summary className="flex min-h-[58px] cursor-pointer list-none items-center gap-3 px-[18px] py-3.5 [&::-webkit-details-marker]:hidden">
@@ -319,29 +358,28 @@ export function DecisionForm({
             <div className="px-[18px] pb-[18px]">{optionCard(extra)}</div>
           </details>
         ) : null}
-        <div className="max-w-sm">{smallChoice("structure_choice", "undecided", STRUCTURE_LABELS.undecided)}</div>
+        <div className="md:max-w-[calc(50%-6px)]">{planChoice("structure_choice", "undecided", STRUCTURE_LABELS.undecided, "Steps that depend on it wait until you decide", null)}</div>
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-3 font-display text-[22px] leading-snug">2. What name will you sell under?</legend>
-        <p className="-mt-1 text-[15px] text-muted">{DETAILS.name_registration_plan.help}</p>
-        {structureName && nameText[structure] ? (
+        {!namePick && nameText[basisFor] ? (
           <p className="rounded-xl border border-line bg-soft px-3.5 py-3 text-[15px] text-rule">
-            <span className="font-semibold">For a {structureName.replace(/ \(LLC\)$/, "").toLowerCase()}:</span> {nameText[structure]}
+            <span className="font-semibold">For a {basisName}:</span> {nameText[basisFor]}
           </p>
         ) : null}
-        <div className="grid gap-2 sm:grid-cols-2">{DETAILS.name_registration_plan.options.map(([value, label]) => smallChoice("name_registration_plan", value, label))}</div>
+        <div className="flex max-w-2xl flex-col gap-2">
+          {DETAILS.name_registration_plan.options.map(([value, label]) => planChoice("name_registration_plan", value, label, null, namePick))}
+        </div>
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-3 font-display text-[22px] leading-snug">3. How you’re taxed</legend>
-        <p className="-mt-1 text-[15px] text-muted">{DETAILS.tax_classification_plan.help}</p>
-        {structureName && taxText[structure] ? (
-          <p className="rounded-xl border border-line bg-soft px-3.5 py-3 text-[15px] text-rule">
-            <span className="font-semibold">The default for a {structureName.replace(/ \(LLC\)$/, "").toLowerCase()}:</span> {taxText[structure]}
-          </p>
-        ) : null}
-        <div className="grid gap-2 sm:grid-cols-2">{DETAILS.tax_classification_plan.options.map(([value, label]) => smallChoice("tax_classification_plan", value, label))}</div>
+        <legend className="mb-3 font-display text-[22px] leading-snug">3. How will you be taxed?</legend>
+        <div className="flex max-w-2xl flex-col gap-2">
+          {DETAILS.tax_classification_plan.options.map(([value, label]) =>
+            planChoice("tax_classification_plan", value, label, value === "default" && taxText[basisFor] ? `For a ${basisName}: ${taxText[basisFor]}` : null, taxPick),
+          )}
+        </div>
       </fieldset>
 
       <details className="group/unsure rounded-[14px] border border-line bg-surface shadow-soft">
@@ -350,8 +388,8 @@ export function DecisionForm({
             <Icon name="question" />
           </span>
           <span className="grid min-w-0 flex-1 gap-px">
-            <b className="text-[16.5px] font-bold">Not sure yet?</b>
-            <small className="text-[14.5px] text-muted">Questions to take to a professional, and where to get free help</small>
+            <b className="text-[16.5px] font-bold">Want a second opinion?</b>
+            <small className="text-[14.5px] text-muted">Questions to take to a professional, and where to get help</small>
           </span>
           <Icon name="chevron" className="text-faint transition-transform group-open/unsure:rotate-90 motion-reduce:transition-none" />
         </summary>
@@ -364,7 +402,7 @@ export function DecisionForm({
           <Icon name="arrow" size="sm" />
         </button>
         {missing ? <p className="text-[14.5px] text-muted">{MISSING[missing]}</p> : !changed.length && !stale ? <p className="text-[14.5px] text-muted">Change something above to record it again.</p> : null}
-        <p role="status" className={done ? "flex items-center gap-1.5 text-[15px] font-semibold text-done" : "sr-only"}>
+        <p ref={status} tabIndex={-1} role="status" className={done ? "flex items-center gap-1.5 text-[15px] font-semibold text-done focus:outline-none" : "sr-only"}>
           {done ? (
             <>
               <Icon name="check" size="sm" />
