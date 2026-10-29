@@ -39,6 +39,10 @@ const PATHS = {
   question: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01",
   pencil: "M4 20h4L19 9l-4-4L4 16zM14 6l4 4",
   box: "M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5 12 12l9-4.5M12 12v9",
+  arrow: "M5 12h14M13 6l6 6-6 6",
+  plus: "M12 5v14M5 12h14",
+  minus: "M5 12h14",
+  refresh: "M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5",
 } as const;
 
 export type IconName = keyof typeof PATHS;

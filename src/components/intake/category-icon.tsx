@@ -16,9 +16,9 @@ const PATHS: Record<IconName, string[]> = {
   spark: ["M12 3v4", "M12 17v4", "M3 12h4", "M17 12h4", "M6 6l2.5 2.5", "M15.5 15.5 18 18", "M18 6l-2.5 2.5", "M8.5 15.5 6 18"],
 };
 
-export function CategoryIcon({ name }: { name: IconName }) {
+export function CategoryIcon({ name, size = 22 }: { name: IconName; size?: number }) {
   return (
-    <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+    <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
       {PATHS[name].map((d) => (
         <path key={d} d={d} />
       ))}

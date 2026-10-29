@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Icon } from "@/components/icons";
 import { Elapsed } from "@/components/photos/working";
+import { EYEBROW } from "@/components/styles";
 
 const FINISH_STEP_MS = 220;
 
@@ -95,26 +97,31 @@ export function StepProgress({ title, steps, done, note }: { title: string; step
   useEffect(() => heading.current?.focus(), []);
   const current = Math.min(done, steps.length - 1);
   return (
-    <section aria-labelledby="step-progress-title" className="flex flex-col gap-3 rounded-2xl bg-ai-tint p-5 ring-1 ring-ai/15">
-      <h2 id="step-progress-title" ref={heading} tabIndex={-1} className="flex flex-wrap items-baseline gap-x-2 font-display text-lg font-bold text-ai-ink outline-none">
-        {title}
-        <span className="font-sans text-sm font-semibold text-ai">
-          <Elapsed />
-        </span>
-      </h2>
-      <ol className="flex flex-col gap-2">
+    <section aria-labelledby="step-progress-title" className="flex flex-col gap-6 rounded-2xl border border-line bg-surface px-4 py-6 shadow-card sm:p-7">
+      <div className="flex flex-col gap-2">
+        <p className={`${EYEBROW} flex items-center gap-2`}>
+          <Icon name="sparkles" size="sm" />
+          <span>
+            Working on it <Elapsed />
+          </span>
+        </p>
+        <h2 id="step-progress-title" ref={heading} tabIndex={-1} className="font-display text-[28px] leading-[1.15] tracking-[-0.01em] outline-none sm:text-[32px]">
+          {title}
+        </h2>
+      </div>
+      <ol className="flex flex-col gap-3.5">
         {steps.map((step, index) => {
           const state = index < done ? "done" : index === current ? "now" : "later";
           return (
-            <li key={step} className={`flex items-center gap-3 text-[15px] ${state === "later" ? "text-muted" : "text-ai-ink"}`}>
+            <li key={step} className={`flex items-center gap-3 font-semibold transition-colors ${state === "later" ? "text-muted" : "text-ink"}`}>
               <StepMark state={state} />
-              <span className={state === "now" ? "font-semibold" : undefined}>{step}</span>
+              <span>{step}</span>
               <span className="sr-only">{state === "done" ? "(done)" : state === "now" ? "(working on it)" : ""}</span>
             </li>
           );
         })}
       </ol>
-      {note ? <p className="text-sm text-ai-ink">{note}</p> : null}
+      {note ? <p className="text-[14.5px] text-muted">{note}</p> : null}
     </section>
   );
 }
@@ -127,19 +134,13 @@ export function stepStatus(steps: readonly string[], done: number): string {
 function StepMark({ state }: { state: "done" | "now" | "later" }) {
   if (state === "done") {
     return (
-      <span aria-hidden="true" className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-white">
-        <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3.5 8.5l3 3 6-7" />
-        </svg>
+      <span aria-hidden="true" className="grid size-[26px] shrink-0 place-items-center rounded-full bg-accent text-white">
+        <Icon name="check" size="xs" strokeWidth={2.6} className="pen-draw" />
       </span>
     );
   }
   if (state === "now") {
-    return (
-      <span aria-hidden="true" className="flex size-6 shrink-0 items-center justify-center">
-        <span className="size-3 animate-pulse rounded-full bg-ai" />
-      </span>
-    );
+    return <span aria-hidden="true" className="size-[26px] shrink-0 rounded-full border-2 border-accent-ring border-t-accent motion-safe:animate-spin" />;
   }
-  return <span aria-hidden="true" className="size-6 shrink-0 rounded-full border-2 border-field" />;
+  return <span aria-hidden="true" className="size-[26px] shrink-0 rounded-full border-[1.5px] border-line-strong" />;
 }
