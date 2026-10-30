@@ -6,7 +6,7 @@ import { describeBrandAction, saveBrandAction } from "@/app/(app)/brand/actions"
 import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { Done, InfoRows, SectionHead } from "@/components/marketing/pieces";
-import { Working } from "@/components/photos/working";
+import { Working } from "@/components/working";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, PRIMARY_LINK, SECONDARY } from "@/components/styles";
 import { Card, Chip } from "@/components/ui";
 import { PRACTICE_LABEL } from "@/lib/brand/practice";

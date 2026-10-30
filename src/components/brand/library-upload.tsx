@@ -3,7 +3,7 @@
 import { type FormEvent, useEffect, useId, useLayoutEffect, useState } from "react";
 import { uploadLibraryFileAction } from "@/app/(app)/brand-library/actions";
 import { Icon } from "@/components/icons";
-import { Working } from "@/components/photos/working";
+import { Working } from "@/components/working";
 import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { LIBRARY_GROUP_TEXT, type LibraryGroup, MAX_PICTURE_NAME } from "@/lib/brand/library";
 

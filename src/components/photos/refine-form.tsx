@@ -6,7 +6,7 @@ import { refinePhotoAction } from "@/app/(app)/photos/actions";
 import { Icon } from "@/components/icons";
 import { AI_BUTTON, ALERT, INPUT, SECONDARY } from "@/components/styles";
 import { MAX_CHANGE } from "@/lib/photos/instructions";
-import { useRequestKey, Working } from "./working";
+import { useRequestKey, Working } from "@/components/working";
 
 const EXAMPLES = ["Make the background ivory", "Remove the props", "Make it a little brighter", "Show more space around it"];
 

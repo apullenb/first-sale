@@ -8,6 +8,7 @@ import { uploadRecordAction } from "@/app/(app)/documents/form-actions";
 import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
+import { Working } from "@/components/working";
 import { Card } from "@/components/ui";
 import { WhoDoesWhat } from "./parts";
 
@@ -358,9 +359,7 @@ export function AddFormPanel({ steps, initialStep, initialKind, initialMode, acc
                 {pending ? "Adding…" : "Add this form"}
               </button>
             )}
-            <p role="status" className={pending ? HINT : "sr-only"}>
-              {status ?? ""}
-            </p>
+            <Working label={status ?? ""} active={pending} />
             {error ? (
               <p role="alert" className={ALERT}>
                 {error}

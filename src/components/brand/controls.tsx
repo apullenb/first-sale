@@ -5,7 +5,7 @@ import type { ActionResult } from "@/app/(app)/business/actions";
 import { drawRoundAction, editPictureAction, makeImagesAction, makeVersionsAction, moreLikeThisAction, refineLogoAction } from "@/app/(app)/brand/actions";
 import { Icon } from "@/components/icons";
 import { LABEL, PickOption } from "@/components/marketing/pieces";
-import { useRequestKey, Working } from "@/components/photos/working";
+import { useRequestKey, Working } from "@/components/working";
 import { AI_BUTTON, ALERT, INPUT, SECONDARY } from "@/components/styles";
 import { contrast } from "@/lib/brand/colors";
 import { MAX_CHANGE } from "@/lib/brand/prompts";

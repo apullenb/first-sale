@@ -96,6 +96,7 @@ export function ReceivedView({ doc, steps, run, matched, versions, acceptedTypes
           pendingLabel="Explaining…"
           pendingStatus="Reading it and writing an explanation… this can take a minute"
           variant={received ? "secondary" : "ai"}
+          ai
         />
       </Card>
 

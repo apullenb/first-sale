@@ -5,6 +5,7 @@ import { explainOptionAction } from "@/app/(app)/website/option-actions";
 import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { ALERT, SECONDARY } from "@/components/styles";
+import { Working } from "@/components/working";
 import type { OptionExplanation } from "@/lib/website/options";
 
 // "Explain more": fetched once per option, then shown or hidden
@@ -39,9 +40,7 @@ export function ExplainOption({ optionKey, name, explanation, firstYear }: { opt
         <Icon name={open ? "close" : "lightbulb"} size="sm" />
         {pending ? "Explaining…" : open ? "Hide the explanation" : `Explain ${name} more`}
       </button>
-      <p role="status" className={pending ? "text-sm text-muted" : "sr-only"}>
-        {pending ? `Writing a plain explanation of ${name} for your business.` : ""}
-      </p>
+      <Working label={`Writing a plain explanation of ${name} for your business.`} active={pending} />
       {error ? (
         <p role="alert" className={ALERT}>
           {error}
