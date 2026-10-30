@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
-import { Chip } from "@/components/ui";
+import { RecommendedBadge } from "@/components/recommended";
 import type { StructureExample } from "@/data/structure-examples";
 import { factSource } from "@/lib/structure/facts";
 import type { Reason } from "@/lib/structure/suggest";
@@ -10,14 +9,7 @@ import { SourceLink } from "./source-link";
 // Shared by the guide and the questions; no server-only imports, so client components can use it
 
 export function RecommendedTag() {
-  return (
-    <span className="inline-flex flex-wrap items-center gap-1.5">
-      <Chip tone="accent" icon="lightbulb">
-        Recommended for you
-      </Chip>
-      <ActorChip actor="rule" />
-    </span>
-  );
+  return <RecommendedBadge />;
 }
 
 const SUMMARY =

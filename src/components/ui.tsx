@@ -3,7 +3,7 @@ import { Icon, type IconName } from "./icons";
 
 // Building blocks for the Onramp look. Pages compose these instead of repeating class lists.
 
-type Tone = "accent" | "gray" | "warn" | "done" | "ai";
+type Tone = "accent" | "gray" | "warn" | "done" | "ai" | "pick";
 
 const TILE: Record<Tone, string> = {
   accent: "border-accent-ring bg-accent-tint text-accent",
@@ -11,6 +11,7 @@ const TILE: Record<Tone, string> = {
   warn: "border-check-ring bg-check-tint text-check",
   done: "border-done/25 bg-done-tint text-done",
   ai: "border-ai/20 bg-ai-tint text-ai",
+  pick: "border-pick-ring bg-pick-tint text-pick",
 };
 
 export function IconTile({ icon, tone = "accent", big = false }: { icon: IconName; tone?: Tone; big?: boolean }) {
@@ -67,6 +68,7 @@ const CHIP: Record<Tone | "plain", string> = {
   warn: "border-check-ring bg-check-tint text-check",
   done: "border-done/25 bg-done-tint text-done",
   ai: "border-ai/20 bg-ai-tint text-ai-ink",
+  pick: "border-pick-ring bg-pick-tint text-pick-ink",
 };
 
 export function Chip({ icon, tone = "plain", children }: { icon?: IconName; tone?: Tone | "plain"; children: ReactNode }) {

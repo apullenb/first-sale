@@ -7,6 +7,7 @@ import { Icon, type IconName } from "@/components/icons";
 import { Done } from "@/components/marketing/pieces";
 import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Card, Chip } from "@/components/ui";
+import { RecommendedBadge } from "@/components/recommended";
 import { dollars } from "@/lib/brand/cost";
 import { brandFileName, brandFileUrl } from "@/lib/brand/files";
 import { CHECKED, type Export, type Guide, IMAGE_SPECS, LOGO_SPECS, PROFILE_FACTS } from "@/lib/brand/sizes";
@@ -89,7 +90,7 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
   ) : newest ? (
     <Chip tone="gray">Not used yet</Chip>
   ) : recommend ? (
-    <Chip tone="accent">Recommended</Chip>
+    <RecommendedBadge>Recommended</RecommendedBadge>
   ) : null;
   return (
     <Card title={title} icon={ICONS[kind]} id={`slot-${kind}`} headingLevel={3} action={status} className="flex h-full flex-col" bodyClassName="flex-1">
