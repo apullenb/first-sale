@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { verifiedRequirement } from "@/test/fixtures";
+import { placeOf } from "@/lib/research/applicability";
+import { testProfile, verifiedRequirement } from "@/test/fixtures";
 import {
   applyPlan,
   buildPlan,
@@ -24,6 +25,51 @@ describe("slugKey", () => {
     expect(slugKey("  --Café licence--  ")).toBe("cafe-licence");
     expect(slugKey("a".repeat(30) + " " + "b".repeat(30))).toBe("a".repeat(30) + "-" + "b".repeat(9));
     expect(slugKey("!!!")).toBe("step");
+  });
+});
+
+describe("asking offices", () => {
+  const place = placeOf(testProfile({ location: { state: "TX", county: "Denton County", city: "Aubrey", insideCityLimits: "yes" } }));
+  const open = (key: string, { background = "", ...overrides }: Parameters<typeof verifiedRequirement>[0] & { background?: string } = {}) => ({
+    ...verifiedRequirement({ key, title: `Rule ${key}`, level: "city", agency: "City clerk", whatToAsk: [`Does ${key} apply?`], ...overrides }),
+    status: "needs_confirmation" as const,
+    background,
+  });
+  const aubrey = {
+    key: "city:city-of-aubrey",
+    name: "City of Aubrey",
+    level: "city" as const,
+    contacts: { emails: [{ value: "permits@aubreytx.gov", url: "https://www.aubreytx.gov/contact" }], phones: [] },
+    site: { title: "Contact us", url: "https://www.aubreytx.gov/contact" },
+  };
+
+  it("makes one step and one message per city for rules no page confirmed, with background and contacts", () => {
+    const plan = buildPlan(
+      [open("license", { background: "Many small cities don’t license home sellers." }), open("home"), verifiedRequirement({ key: "ein", verification: "sourced" })],
+      sources,
+      false,
+      { place, offices: [aubrey] },
+    );
+    expect(plan.map((step) => step.key)).toEqual(["ask-city-of-aubrey", "ein"]);
+    expect(plan[0]).toMatchObject({
+      title: "Ask the City of Aubrey about 2 rules",
+      requirementStatus: "needs_confirmation",
+      whatToAsk: ["Does license apply?", "Does home apply?"],
+      notes: [{ title: "Rule license", background: "Many small cities don’t license home sellers." }],
+      contacts: aubrey.contacts,
+      links: [{ url: "https://www.aubreytx.gov/contact", confirms: false }],
+    });
+  });
+
+  it("keeps rules for different county offices apart, and leaves a lone rule as its own step", () => {
+    const plan = buildPlan(
+      [open("food", { level: "county", agency: "Your county health department" }), open("vendor", { level: "county", agency: "The market organizer" }), open("license")],
+      sources,
+      false,
+      { place, offices: [aubrey] },
+    );
+    expect(plan.map((step) => step.key)).toEqual(["food", "vendor", "license"]);
+    expect(plan[2].contacts).toEqual(aubrey.contacts);
   });
 });
 

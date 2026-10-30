@@ -6,7 +6,9 @@ import { buildPlan } from "@/lib/rules/plan";
 import { createTestDb } from "@/test/db";
 import { researchedRequirement, retrievedPage, testProfile } from "@/test/fixtures";
 import { createBusinessForOwner } from "./businesses";
-import { getResearchForOwner, saveResearchForOwner } from "./research";
+import { placeOf } from "@/lib/research/applicability";
+import { officeOf } from "@/lib/research/office";
+import { getResearchForOwner, saveFollowUpForOwner, saveResearchForOwner } from "./research";
 
 const profile = testProfile({ name: null });
 
@@ -161,5 +163,65 @@ describe("research kept for returning owners", () => {
     });
     expect(saved?.requirements[0]).toMatchObject({ status: "optional", conditions: ["Only if"], timing: "later", renewal: "every year", renewalFeeCents: 500 });
     expect(await getResearchForOwner(db, "owner-b")).toBeNull();
+  });
+});
+
+describe("follow-up", () => {
+  const cityProfile = testProfile({ name: null, location: { state: "TX", county: "Denton County", city: "Aubrey", insideCityLimits: "yes" } });
+  const place = placeOf(cityProfile);
+  const checkedAt = new Date("2026-10-26T15:00:00Z");
+  const open = (key: string) =>
+    researchedRequirement({ key, title: `Rule ${key}`, level: "city", agency: "City clerk", whatToAsk: [`Does ${key} apply?`], verification: "needs_verification" });
+
+  async function saveOpenRules() {
+    const reqs = [open("license"), open("home"), open("sign")];
+    const pages = [retrievedPage({ text: "…" })];
+    const result = { ...research("Get an EIN", checkedAt), requirements: reqs, plan: buildPlan(reqs, pages, true, { place }) };
+    await saveResearchForOwner(db, "owner-a", result, "key-1");
+  }
+
+  const office = officeOf({ level: "city", agency: "" }, place);
+
+  it("confirms what a new page backs, gives the rest background, and keeps one step per office", async () => {
+    await saveOpenRules();
+    const page = retrievedPage({ id: "fu-license-1", text: "A license is required.", url: "https://www.example.gov/license" });
+    const outcome = await saveFollowUpForOwner(
+      db,
+      "owner-a",
+      checkedAt,
+      {
+        pages: [page],
+        confirmed: [{ ...open("license"), sourceIds: ["fu-license-1"], evidence: "A license is required.", verification: "sourced", problems: [] }],
+        notes: [
+          { key: "home", background: "Home rules usually turn on customer visits.", questions: ["Do I need a home permit?"] },
+          { key: "sign", background: "", questions: ["Do I need a sign permit?"] },
+        ],
+        offices: [{ ...office, contacts: { emails: [{ value: "clerk@example.gov", url: page.url }], phones: [] }, site: null }],
+      },
+      cityProfile,
+      [],
+    );
+    expect(outcome).toBe("applied");
+
+    const saved = await getResearchForOwner(db, "owner-a");
+    expect(saved?.followedUpAt).toBeInstanceOf(Date);
+    expect(saved?.sources.map((source) => source.key)).toContain("fu-license-1");
+    const byKey = new Map(saved!.requirements.map((row) => [row.key, row]));
+    expect(byKey.get("license")).toMatchObject({ verification: "sourced", evidence: "A license is required.", background: "" });
+    expect(byKey.get("home")).toMatchObject({ background: "Home rules usually turn on customer visits.", whatToAsk: ["Do I need a home permit?"] });
+
+    // Nothing was started, so this finishes the check's own plan: the confirmed rule is a step, the other two one message
+    const tasks = await db.select().from(checklistTasks);
+    const ask = tasks.find((task) => task.key.startsWith("ask-"));
+    expect(tasks.map((task) => task.key).sort()).toEqual([ask!.key, "license"].sort());
+    expect(ask).toMatchObject({ contacts: { emails: [{ value: "clerk@example.gov", url: page.url }], phones: [] } });
+    expect(ask!.notes).toEqual([{ title: "Rule home", background: "Home rules usually turn on customer visits." }]);
+  });
+
+  it("does nothing when a newer check replaced the one it followed", async () => {
+    await saveOpenRules();
+    const outcome = await saveFollowUpForOwner(db, "owner-a", new Date("2026-10-25T00:00:00Z"), { pages: [], confirmed: [], notes: [], offices: [] }, cityProfile, []);
+    expect(outcome).toBe("stale");
+    expect((await getResearchForOwner(db, "owner-a"))?.followedUpAt).toBeNull();
   });
 });

@@ -4,6 +4,7 @@ import { getDb } from "@/db/client";
 import { getCurrentUser } from "@/lib/auth/server";
 import type { DetailKey } from "@/lib/details";
 import { businessProfileSchema, type BusinessProfile, type TaskStatus } from "@/lib/domain";
+import type { FollowUpResult } from "@/lib/research/follow-up";
 import { profileKey, type ResearchResult } from "@/lib/research/requirements";
 import type { WorkflowId } from "@/lib/workflows";
 import { getBusinessForOwner } from "./businesses";
@@ -19,7 +20,7 @@ import {
   updateDocumentForOwner,
 } from "./documents";
 import { getPlanForOwner, getStepForOwner, replanForOwner, reviewPlanForOwner, setStepStatusForOwner } from "./plan";
-import { getResearchBasisForOwner, getResearchForOwner, type ResearchBasis, type ResearchSnapshot, saveResearchForOwner } from "./research";
+import { getResearchBasisForOwner, getResearchForOwner, type ResearchBasis, type ResearchSnapshot, saveFollowUpForOwner, saveResearchForOwner } from "./research";
 import { listConditionAnswersForOwner, setConditionAnswerForOwner } from "./condition-answers";
 import {
   getWebsitePlanForOwner,
@@ -128,6 +129,11 @@ export async function getMyResearch(): Promise<ResearchSnapshot | null> {
 }
 
 // Saved with the answers it ran on, so the page can tell when they've changed since
+export async function saveMyFollowUp(checkedAt: Date, result: FollowUpResult, profile: BusinessProfile, details: readonly { key: string; value: string }[]) {
+  const user = await getCurrentUser();
+  return saveFollowUpForOwner(getDb(), user.id, checkedAt, result, profile, details);
+}
+
 export async function saveMyResearch(research: ResearchResult, profile: BusinessProfile) {
   const user = await getCurrentUser();
   return saveResearchForOwner(getDb(), user.id, research, profileKey(profile));

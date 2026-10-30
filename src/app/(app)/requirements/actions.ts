@@ -6,9 +6,11 @@ import type { ActionResult } from "@/app/(app)/business/actions";
 import { getDb } from "@/db/client";
 import { getModel } from "@/lib/ai";
 import { OwnerFacingError } from "@/lib/errors";
-import { getMyBusiness, getMyDetails, getMyPlan, getMyResearch, myAiKey, replanMyPlan, saveMyResearch, setMyConditionAnswer } from "@/lib/data/my-business";
+import { getMyBusiness, getMyDetails, getMyPlan, getMyResearch, myAiKey, replanMyPlan, saveMyFollowUp, saveMyResearch, setMyConditionAnswer } from "@/lib/data/my-business";
+import { draftOf } from "@/lib/data/research";
 import { dbSearchCache } from "@/lib/data/search-cache";
-import { CONDITION_ANSWERS } from "@/lib/research/applicability";
+import { CONDITION_ANSWERS, placeOf } from "@/lib/research/applicability";
+import { followUpCandidates, followUpRequirements } from "@/lib/research/follow-up";
 import { profileKey, researchRequirements } from "@/lib/research/requirements";
 import { runWorkflow } from "@/lib/workflow-runner";
 
@@ -24,6 +26,31 @@ export async function checkRequirementsAction(): Promise<ActionResult> {
     const existingKeys = [...(plan?.steps ?? []), ...(plan?.retired ?? [])].map((step) => step.key);
     const research = await researchRequirements(getModel(), profile, { existingKeys, userKey: await myAiKey(), details, searchCache: dbSearchCache(getDb()) });
     if (!(await saveMyResearch(research, profile))) throw new OwnerFacingError("Your business wasn’t found. Reload the page and try again.");
+  });
+  if (!result.ok) return result;
+  refresh();
+  return { ok: true, value: null };
+}
+
+// Runs right after a check: looks deeper into what no official page confirmed, on each office's own site.
+// What's still open becomes one step per office, with background and a message to send.
+export async function followUpAction(): Promise<ActionResult> {
+  const [business, research] = await Promise.all([getMyBusiness(), getMyResearch()]);
+  if (!business?.profile || !research?.profile) return { ok: false, message: "Find your requirements first." };
+  if (profileKey(business.profile) !== research.profileKey) {
+    return { ok: false, message: "Your answers changed since your requirements were checked. Re-check sources first." };
+  }
+  const candidates = followUpCandidates(research.requirements);
+  if (!candidates.length) return { ok: true, value: null };
+  const checked = research.profile;
+
+  const result = await runWorkflow("follow_up", null, async () => {
+    const found = await followUpRequirements(getModel(), checked, placeOf(checked), candidates.map(draftOf), {
+      userKey: await myAiKey(),
+      cache: dbSearchCache(getDb()),
+    });
+    const outcome = await saveMyFollowUp(research.checkedAt, found, business.profile!, await getMyDetails());
+    if (outcome === "no_business") throw new OwnerFacingError("Your business wasn’t found. Reload the page and try again.");
   });
   if (!result.ok) return result;
   refresh();

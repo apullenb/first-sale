@@ -1,5 +1,6 @@
 import type { JurisdictionLevel } from "@/lib/domain";
 import { pdfText } from "@/lib/documents/pdf";
+import { type Contacts, pageContacts } from "./contacts";
 import type { ResearchCategory } from "./coverage";
 import { MAX_SOURCE_CHARS, pageText } from "./page-text";
 import { isAllowedHost } from "./source-pack";
@@ -31,6 +32,8 @@ export interface RetrievedPage extends RetrievedSource {
   discovered: boolean;
   text: string;
   categories?: ResearchCategory[];
+  // Printed on the page, footer included; not saved
+  contacts?: Contacts;
 }
 
 export interface UnreadSource {
@@ -86,6 +89,7 @@ export async function retrieveSources(
       text,
       retrievedAt: now.toISOString(),
       categories: source.categories,
+      contacts: fetched.html ? pageContacts(fetched.html, fetched.finalUrl) : undefined,
     });
   }
   return { pages, unread };

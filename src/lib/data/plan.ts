@@ -60,6 +60,8 @@ export function toStep(row: TaskRow): PlanStep {
     jurisdiction: row.jurisdiction,
     alreadyHave: row.alreadyHave,
     question: row.question,
+    notes: row.notes,
+    contacts: row.contacts,
     position: row.position,
     evidenceNote: row.evidenceNote,
     completedAt: row.completedAt,
@@ -184,6 +186,8 @@ async function writePlan(
       jurisdiction: task.jurisdiction,
       alreadyHave: task.alreadyHave,
       question: task.question ?? "",
+      notes: task.notes ?? [],
+      contacts: task.contacts ?? null,
       updatedAt: now,
     };
     if (id) {
@@ -266,71 +270,94 @@ export async function replanForOwner(
   return db.transaction(async (tx) => {
     const businessId = await businessIdFor(tx, ownerId, true);
     if (!businessId) return "no_business";
-    const [snapshot] = await tx.select().from(researchSnapshots).where(eq(researchSnapshots.businessId, businessId));
-    if (!snapshot) return "no_research";
-    const rows = await tx.select().from(requirements).where(eq(requirements.businessId, businessId)).orderBy(asc(requirements.position));
-    const read = await tx.select().from(sources).where(eq(sources.businessId, businessId));
-    const taskRows = await tx.select().from(checklistTasks).where(eq(checklistTasks.businessId, businessId)).for("update");
-    // The page each step's quote was found on, as the current plan recorded it; requirements don't keep it
-    const keyOfUrl = new Map(read.map((source) => [source.url, source.key]));
-    const confirmedFor = new Map(
-      taskRows.map((task) => [task.key, task.links.filter((link) => link.confirms).flatMap((link) => keyOfUrl.get(link.url) ?? [])]),
-    );
-
-    const place = placeOf(profile);
-    const decision = structureOf(profile, details);
-    const checked = rows.map((row) => {
-      const requirement = {
-        key: row.key,
-        title: row.title,
-        topic: row.topic,
-        whyItApplies: row.whyItApplies,
-        level: row.level,
-        agency: row.agency,
-        sourceIds: row.sourceIds,
-        evidence: row.evidence,
-        feeUsd: row.feeCents === null ? null : row.feeCents / 100,
-        deadline: row.deadline,
-        needsProfessional: row.needsProfessional,
-        whoToCall: row.whoToCall,
-        whatToAsk: row.whatToAsk,
-        gather: row.gather,
-        doneWhen: row.doneWhen,
-        dependsOn: row.dependsOn,
-        applicability: row.applicability,
-        condition: row.condition,
-        timing: row.timing,
-        forStructures: row.forStructures,
-        renewal: row.renewal,
-        renewalFeeUsd: row.renewalFeeCents === null ? null : row.renewalFeeCents / 100,
-        verification: row.verification,
-        problems: row.problems,
-        confirmedBy: row.verification === "sourced" ? (confirmedFor.get(slugKey(row.key)) ?? []) : [],
-      };
-      return { ...requirement, ...classify(requirement, profile, place, decision) };
-    });
-    const proposal = buildPlan(
-      checked,
-      read.map((source) => ({ id: source.key, title: source.title, url: source.url, government: source.government, retrievedAt: source.retrievedAt.toISOString() })),
-      snapshot.simulated,
-    );
-    for (const [index, row] of rows.entries()) {
-      const { status, conditions, fitsStructure } = checked[index];
-      await tx.update(requirements).set({ status, conditions, fitsStructure }).where(eq(requirements.id, row.id));
-    }
-
-    const current = taskRows.map(toStep);
-    const changes = diffPlan(current, proposal);
-    // Its own time, so a review of an earlier proposal can't apply this one unseen
-    await tx
-      .update(researchSnapshots)
-      .set({ structure: decision.structure, planProposal: proposal, planReviewedAt: changes.length ? null : now, proposedAt: now })
-      .where(eq(researchSnapshots.businessId, businessId));
-    if (changes.length === 0) return "unchanged";
-    if (current.length === 0) {
-      await writePlan(tx, businessId, current, proposal, new Set(changes.map((change) => change.key)), now);
-      return "applied";
-    }
-    return "proposed";
+    return rebuildPlan(tx, businessId, profile, details, now);
   });
+}
+
+// The plan from saved research, re-classified with these answers and decisions. Changes wait for the owner's review,
+// unless there's no plan yet, or `continues` says this finishes the check the current plan came from and nothing's started.
+export async function rebuildPlan(
+  tx: Tx,
+  businessId: string,
+  profile: BusinessProfile,
+  details: readonly { key: string; value: string }[],
+  now: Date,
+  options: { continues?: readonly PlanTaskDraft[] | null } = {},
+): Promise<ReplanOutcome> {
+  const [snapshot] = await tx.select().from(researchSnapshots).where(eq(researchSnapshots.businessId, businessId));
+  if (!snapshot) return "no_research";
+  const rows = await tx.select().from(requirements).where(eq(requirements.businessId, businessId)).orderBy(asc(requirements.position));
+  const read = await tx.select().from(sources).where(eq(sources.businessId, businessId));
+  const taskRows = await tx.select().from(checklistTasks).where(eq(checklistTasks.businessId, businessId)).for("update");
+  // The page each step's quote was found on, as the current plan recorded it; requirements don't keep it
+  const keyOfUrl = new Map(read.map((source) => [source.url, source.key]));
+  const confirmedFor = new Map(
+    taskRows.map((task) => [task.key, task.links.filter((link) => link.confirms).flatMap((link) => keyOfUrl.get(link.url) ?? [])]),
+  );
+
+  const place = placeOf(profile);
+  const decision = structureOf(profile, details);
+  const checked = rows.map((row) => {
+    const requirement = {
+      key: row.key,
+      title: row.title,
+      topic: row.topic,
+      whyItApplies: row.whyItApplies,
+      level: row.level,
+      agency: row.agency,
+      sourceIds: row.sourceIds,
+      evidence: row.evidence,
+      feeUsd: row.feeCents === null ? null : row.feeCents / 100,
+      deadline: row.deadline,
+      needsProfessional: row.needsProfessional,
+      whoToCall: row.whoToCall,
+      whatToAsk: row.whatToAsk,
+      gather: row.gather,
+      doneWhen: row.doneWhen,
+      dependsOn: row.dependsOn,
+      applicability: row.applicability,
+      condition: row.condition,
+      timing: row.timing,
+      forStructures: row.forStructures,
+      renewal: row.renewal,
+      renewalFeeUsd: row.renewalFeeCents === null ? null : row.renewalFeeCents / 100,
+      verification: row.verification,
+      problems: row.problems,
+      confirmedBy: row.verification === "sourced" ? (confirmedFor.get(slugKey(row.key)) ?? []) : [],
+      background: row.background,
+    };
+    return { ...requirement, ...classify(requirement, profile, place, decision) };
+  });
+  const proposal = buildPlan(
+    checked,
+    read.map((source) => ({ id: source.key, title: source.title, url: source.url, government: source.government, retrievedAt: source.retrievedAt.toISOString() })),
+    snapshot.simulated,
+    { place, offices: snapshot.offices },
+  );
+  for (const [index, row] of rows.entries()) {
+    const { status, conditions, fitsStructure } = checked[index];
+    await tx.update(requirements).set({ status, conditions, fitsStructure }).where(eq(requirements.id, row.id));
+  }
+
+  const current = taskRows.map(toStep);
+  const changes = diffPlan(current, proposal);
+  // Background and contact details never change what applies, so they reach the current steps without a review
+  const next = new Map(proposal.map((draft) => [draft.key, draft]));
+  for (const row of taskRows) {
+    const draft = next.get(row.key);
+    if (draft && !row.retired) await tx.update(checklistTasks).set({ notes: draft.notes ?? [], contacts: draft.contacts ?? null }).where(eq(checklistTasks.id, row.id));
+  }
+  const untouched = current.every((task) => task.status === "todo" && !task.retired);
+  const finishesCheck = Boolean(options.continues) && untouched && diffPlan(current, options.continues ?? []).length === 0;
+  // Its own time, so a review of an earlier proposal can't apply this one unseen
+  await tx
+    .update(researchSnapshots)
+    .set({ structure: decision.structure, planProposal: proposal, planReviewedAt: changes.length ? null : now, proposedAt: now })
+    .where(eq(researchSnapshots.businessId, businessId));
+  if (changes.length === 0) return "unchanged";
+  if (current.length === 0 || finishesCheck) {
+    await writePlan(tx, businessId, current, proposal, new Set(changes.map((change) => change.key)), now);
+    return "applied";
+  }
+  return "proposed";
 }

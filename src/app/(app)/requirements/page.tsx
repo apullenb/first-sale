@@ -12,6 +12,7 @@ import { PracticeBanner } from "@/components/practice-banner";
 import { CheckRequirementsButton } from "@/components/requirements/check-button";
 import { AnswerButtons, ChangeAnswer, UndoAnswer } from "@/components/requirements/condition-answer";
 import { CoverageList } from "@/components/requirements/coverage-list";
+import { FollowUpButton } from "@/components/requirements/follow-up-button";
 import { SourceLinks } from "@/components/requirements/sources";
 import { ResearchRunStatus } from "@/components/requirements/research-run";
 import { WrittenInquiry } from "@/components/requirements/written-inquiry";
@@ -23,6 +24,7 @@ import type { ResearchSnapshot } from "@/lib/data/research";
 import type { BusinessProfile } from "@/lib/domain";
 import { classify, type Place, placeLabel, placeOf, STRUCTURE_NAMES } from "@/lib/research/applicability";
 import { answerChanges } from "@/lib/research/changes";
+import { followUpCandidates } from "@/lib/research/follow-up";
 import { writtenInquiry } from "@/lib/research/inquiry";
 import { profileKey } from "@/lib/research/requirements";
 import { type PaperworkGroup, type Standing, summaryOf } from "@/lib/rules/paperwork";
@@ -198,6 +200,8 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
   const groupOf = (key: string) => view.groups.find((group) => group.tasks.some((task) => task.step.key === key)) ?? null;
   const open = view.open.length;
   const applies = view.tasks.length;
+  // Saved without the deeper look, such as a check from before it existed
+  const unsettled = followUpCandidates(research.requirements).length;
 
   return (
     <>
@@ -244,6 +248,21 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
             from={paper.plan.proposal.from}
           />
         </div>
+      ) : null}
+
+      {!recheck && !research.followedUpAt && unsettled ? (
+        <section aria-labelledby="deeper-heading" className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6">
+          <div className="flex items-center gap-3">
+            <IconTile icon="search" tone="ai" />
+            <h2 id="deeper-heading" className="font-display text-[22px] leading-snug">
+              Some rules aren’t settled yet
+            </h2>
+          </div>
+          <p className="text-rule">
+            Official pages from your check didn’t settle {unsettled === 1 ? "one rule" : `${unsettled} rules`}. First Sale can search each office’s own site, explain what usually decides each one, and find who to write to about the rest, with one message per office.
+          </p>
+          <FollowUpButton count={unsettled} />
+        </section>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-2">

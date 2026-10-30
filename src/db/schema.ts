@@ -39,7 +39,9 @@ import type {
   GeneratedContent,
 } from "@/lib/documents/types";
 import type { PlanLink, PlanTaskDraft } from "@/lib/rules/plan";
+import type { Contacts } from "@/lib/research/contacts";
 import type { CoverageCell } from "@/lib/research/coverage";
+import type { OfficeContact } from "@/lib/research/office";
 import type { FormVerification } from "@/lib/documents/official-forms";
 import type { MoreOptions, OptionExplanation } from "@/lib/website/options";
 import { type DomainCheck, type ExistingSite, PLATFORMS, type SiteFinish, type WebsiteContent } from "@/lib/website/types";
@@ -127,6 +129,10 @@ export const researchSnapshots = pgTable("research_snapshots", {
   coverage: jsonb("coverage").$type<CoverageCell[]>().notNull().default([]),
   // Where official pages disagree, as the model reported them, cited pages checked in code
   conflicts: jsonb("conflicts").$type<{ about: string; explanation: string; sourceIds: string[] }[]>().notNull().default([]),
+  // The second, narrower look at what no official page confirmed; null until it runs
+  followedUpAt: timestamp("followed_up_at", { withTimezone: true }),
+  // Contact details each office's own pages list, found by that look
+  offices: jsonb("offices").$type<OfficeContact[]>().notNull().default([]),
 });
 
 // Pages the research step actually fetched; requirements cite their keys
@@ -188,6 +194,8 @@ export const requirements = pgTable(
     renewal: text("renewal"),
     renewalFeeCents: integer("renewal_fee_cents"),
     alreadyHave: text("already_have"),
+    // General background from the follow-up check, for a rule no official page settled
+    background: text("background").notNull().default(""),
   },
   (table) => [index("requirements_business_id_idx").on(table.businessId)],
 );
@@ -239,6 +247,9 @@ export const checklistTasks = pgTable(
     alreadyHave: text("already_have"),
     // The model's condition, asked of the owner; empty when it doesn't depend on one
     question: text("question").notNull().default(""),
+    // For a step to confirm: background on each rule it covers, and the office's contact details
+    notes: jsonb("notes").$type<{ title: string; background: string }[]>().notNull().default([]),
+    contacts: jsonb("contacts").$type<Contacts>(),
     // Filing progress: submitted, then done once the office approves; never set by opening a link
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
     submissionNote: text("submission_note"),
