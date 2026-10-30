@@ -12,6 +12,7 @@ import { categoriesOfTopics, type CoverageCell, coverageFor } from "./coverage";
 import { discoverOfficialPages, type SearchCache, type SearchGap } from "./discover";
 import { mockResearch } from "./mock-research";
 import { governmentFor } from "./official-sites";
+import { followUpQuestions, pageForOffice } from "./open-questions";
 import { type RetrievedPage, retrieveSources, type SourceToRead, type UnreadSource } from "./retrieve";
 import type { SourcePack } from "./source-pack";
 import { type VerifiedRequirement, verifyRequirements } from "./verify";
@@ -37,6 +38,8 @@ export type ResearchedRequirement = VerifiedRequirement & Classified;
 export interface OpenQuestion {
   question: string;
   whoToCall: string;
+  // Best official page read for it, by source id
+  sourceId?: string;
 }
 
 export interface ResearchResult {
@@ -214,29 +217,62 @@ export async function researchRequirements(
     throw new ResearchError("This check came back empty, which isn’t right for any business. Your last results are kept. Try again in a few minutes.");
   }
 
-  const allowedHosts = [...new Set([...packs.flatMap((pack) => pack.allowedHosts), ...discovery.sources.flatMap((s) => s.allowedHosts)])];
-  const verified = verifyRequirements(reply.requirements, pages, allowedHosts);
+  // Follow-ups only with time for search (20 s), reads (20 s), an answer (40 s) and the claims check after
+  const forFollowUp = 270_000 - (Date.now() - started);
+  const followUp =
+    forFollowUp >= 100_000
+      ? await followUpQuestions(model, profile, reply.openQuestions, {
+          read: pages,
+          fetchImpl: options.fetchImpl,
+          now,
+          userKey: options.userKey,
+          searchTimeoutMs: 20_000,
+          answerTimeoutMs: 40_000,
+        })
+      : { pages: [], answers: new Map(), best: new Map<number, string>() };
+  const allPages = [...pages, ...followUp.pages];
+  const followUpHosts = followUp.pages.flatMap((page) => governmentFor(page.url)?.domain ?? []);
+  const allowedHosts = [
+    ...new Set([...packs.flatMap((pack) => pack.allowedHosts), ...discovery.sources.flatMap((s) => s.allowedHosts), ...followUpHosts]),
+  ];
+  // Taken keys are left alone, so an answer never replaces a requirement
+  const taken = new Set(reply.requirements.map((requirement) => requirement.key));
+  const answered = [...followUp.answers].filter(([, draft]) => !taken.has(draft.key) && taken.add(draft.key));
+  const verified = verifyRequirements([...reply.requirements, ...answered.map(([, draft]) => draft)], allPages, allowedHosts);
   // The claims check gets what's left of the page's 300 s; when too little is left, code checks stand alone
   const left = 270_000 - (Date.now() - started);
   const judged = left >= 20_000 ? (await checkClaims(model, verified, { userKey: options.userKey, timeoutMs: Math.min(30_000, left) })).requirements : verified;
-  const requirements = judged.map((requirement) => ({
+  // An answer that failed a check stays a question, and isn't listed as a requirement
+  const settled = new Set<number>();
+  const kept = judged.filter((requirement, position) => {
+    if (position < reply.requirements.length) return true;
+    if (requirement.verification !== "sourced") return false;
+    settled.add(answered[position - reply.requirements.length][0]);
+    return true;
+  });
+  const openQuestions = reply.openQuestions.flatMap((question, index): OpenQuestion[] => {
+    if (settled.has(index)) return [];
+    const sourceId = followUp.best.get(index) ?? pageForOffice(question.whoToCall, allPages)?.id;
+    return [sourceId ? { ...question, sourceId } : question];
+  });
+  const requirements = kept.map((requirement) => ({
     ...requirement,
     ...classify(requirement, profile, place, decision),
   }));
-  const read = new Set(pages.map((page) => page.id));
+  const read = new Set(allPages.map((page) => page.id));
   const searched = Boolean(model.webSearch);
   return {
     checkedAt: now,
     model: model.name,
     simulated: model.simulated,
     searched,
-    pages,
+    pages: allPages,
     unread,
     requirements,
     assumptions: reply.assumptions,
-    openQuestions: [...placeQuestions(profile, discovery.gaps, searched), ...reply.openQuestions],
-    plan: buildPlan(requirements, pages, model.simulated, { place }),
-    coverage: coverageFor({ profile, place, searched, gaps: discovery.gaps, pages, unread, requirements }),
+    openQuestions: [...placeQuestions(profile, discovery.gaps, searched), ...openQuestions],
+    plan: buildPlan(requirements, allPages, model.simulated, { place }),
+    coverage: coverageFor({ profile, place, searched, gaps: discovery.gaps, pages: allPages, unread, requirements }),
     // Only conflicts about pages that were actually read
     conflicts: reply.conflicts
       .map((conflict) => ({ ...conflict, sourceIds: conflict.sourceIds.filter((id) => read.has(id)) }))
