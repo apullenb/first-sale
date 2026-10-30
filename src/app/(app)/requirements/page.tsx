@@ -23,6 +23,7 @@ import type { ResearchSnapshot } from "@/lib/data/research";
 import type { BusinessProfile } from "@/lib/domain";
 import { classify, type Place, placeLabel, placeOf, STRUCTURE_NAMES } from "@/lib/research/applicability";
 import { answerChanges } from "@/lib/research/changes";
+import { pageForOffice } from "@/lib/research/follow-up";
 import { writtenInquiry } from "@/lib/research/inquiry";
 import { profileKey } from "@/lib/research/requirements";
 import { type PaperworkGroup, type Standing, summaryOf } from "@/lib/rules/paperwork";
@@ -176,6 +177,11 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
   // A change no watched answer explains, or a snapshot saved before answers were kept, can only say that something changed
   const unknownChange = recheck && !changes.some((change) => change.recheck);
   const sourceIds = new Map(research.sources.map((source) => [source.key, source]));
+  // The page follow-up search found, else a read page from the office named
+  const linkFor = (item: { whoToCall: string; sourceId?: string }) => {
+    const source = (item.sourceId ? sourceIds.get(item.sourceId) : undefined) ?? pageForOffice(item.whoToCall, research.sources);
+    return source ? { title: source.title, url: source.url } : null;
+  };
   const place = context.place;
 
   const by = (inclusion: Standing<PlanStep>["inclusion"]) => view.standings.filter((standing) => standing.inclusion === inclusion);
@@ -419,9 +425,9 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
                     </summary>
                     <div className="mt-1 text-[15px]">
                       <WrittenInquiry
-                        inquiry={writtenInquiry({ title: "a question about my business’s requirements", questions: [item.question], profile, place: placeOf(profile) })}
+                        inquiry={writtenInquiry({ questions: [item.question], profile, place: placeOf(profile) })}
                         office={item.whoToCall}
-                        link={null}
+                        link={linkFor(item)}
                       />
                     </div>
                   </details>

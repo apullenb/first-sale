@@ -104,10 +104,29 @@ describe("writtenInquiry", () => {
     });
     expect(inquiry.subject).toBe("Question from a new small business: Home bakery registration");
     expect(inquiry.body).toContain("in Columbus, Franklin County, Ohio");
-    expect(inquiry.body).toContain("1. Do I need it for cookies?");
+    expect(inquiry.body).toContain("My question is about “Home bakery registration”:\nDo I need it for cookies?");
+    expect(inquiry.body).toContain("I plan to sell cookies at markets and events.");
     expect(inquiry.body).toContain("[Your name]");
     expect(inquiry.body).not.toMatch(/\d{5}/);
     expect(inquiry.body).not.toMatch(/call/i);
+  });
+
+  it("asks a free-standing question in the owner's own voice, without a made-up title", () => {
+    const inquiry = writtenInquiry({
+      questions: ["Are my home goods taxable?"],
+      profile: testProfile({ firstItems: "Home goods", channels: ["in_person", "own_website"], location: { county: "Franklin", city: "Columbus" } }),
+      place,
+    });
+    expect(inquiry.subject).toBe("Question from a new small business in Columbus, Franklin County, Ohio");
+    expect(inquiry.body).toContain("I plan to sell home goods in person and on my own website.");
+    expect(inquiry.body).toContain("follow the rules. I plan");
+    expect(inquiry.body).toContain("\n\nAre my home goods taxable?\n");
+    expect(inquiry.body).not.toMatch(/question is about|your own/i);
+  });
+
+  it("keeps product names that aren't plain capitalized words as typed", () => {
+    const inquiry = writtenInquiry({ questions: ["Q?"], profile: testProfile({ firstItems: "DVDs", channels: [] }), place });
+    expect(inquiry.body).toContain("I plan to sell DVDs.");
   });
 });
 
