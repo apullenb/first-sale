@@ -235,7 +235,7 @@ export async function researchRequirements(
     requirements,
     assumptions: reply.assumptions,
     openQuestions: [...placeQuestions(profile, discovery.gaps, searched), ...reply.openQuestions],
-    plan: buildPlan(requirements, pages, model.simulated),
+    plan: buildPlan(requirements, pages, model.simulated, { place }),
     coverage: coverageFor({ profile, place, searched, gaps: discovery.gaps, pages, unread, requirements }),
     // Only conflicts about pages that were actually read
     conflicts: reply.conflicts

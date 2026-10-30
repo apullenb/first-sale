@@ -27,6 +27,14 @@ export const WORKFLOWS = {
     timeLimitMs: 6 * MINUTE,
     offeredFor: [],
   },
+  follow_up: {
+    title: "Look deeper",
+    summary: "Searches each office’s own site for what official pages didn’t settle, and finds who to write to about the rest.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 6 * MINUTE,
+    offeredFor: [],
+  },
   read_document: {
     title: "Read a document",
     summary: "Pulls the text and the blanks to fill in out of a form, photo or scan.",

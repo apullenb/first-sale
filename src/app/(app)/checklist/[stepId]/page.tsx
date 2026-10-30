@@ -335,11 +335,10 @@ async function StepDetail({ params }: { params: Params }) {
             </>
           ) : (
             <>
-              {confirm ? (
-                <Note icon="info">
-                  No official page confirmed this yet, so confirm with the office first. A message you can send is under “Not sure it applies? Ask in
-                  writing” below.
-                </Note>
+              {confirm && profile && place ? (
+                <AskOffice step={step} profile={profile} place={place} />
+              ) : confirm ? (
+                <Note icon="info">No official page confirmed this yet, so confirm with the office first.</Note>
               ) : null}
               <h2 id="part-heading" className={STATE_TITLE}>
                 {choosesStructure(step)
@@ -455,7 +454,7 @@ async function StepDetail({ params }: { params: Params }) {
           <StatusChip sourced={sourced} />
         </Fold>
 
-        {unresolved && profile && place && !findOut ? (
+        {unresolved && profile && place && !findOut && !confirm ? (
           <Fold title="Not sure it applies? Ask in writing" summary="A message you can send. You never have to call." icon="mail" open={confirm && step.status === "todo"}>
             <WrittenInquiry
               inquiry={writtenInquiry({ title: step.title, questions: step.whatToAsk, profile, place })}
@@ -703,5 +702,41 @@ function PrerequisiteState({ done, office }: { done: boolean; office: boolean })
       <Icon name="lock" size="xs" />
       Not done yet
     </span>
+  );
+}
+
+// A rule no official page settled: what usually decides it, then one message to the office that can say for sure
+function AskOffice({ step, profile, place }: { step: PlanStep; profile: BusinessProfile; place: Place }) {
+  const office = step.whoToCall || step.agency;
+  const notes = step.notes ?? [];
+  return (
+    <section aria-labelledby="ask-heading" className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6">
+      <h2 id="ask-heading" className={STATE_TITLE}>
+        {notes.length ? "What we found" : "Ask the office to be sure"}
+      </h2>
+      {notes.length ? (
+        <>
+          <ul className="flex flex-col gap-3">
+            {notes.map((note) => (
+              <li key={note.title} className="flex flex-col gap-1">
+                <p className="font-semibold">{note.title}</p>
+                <p className="text-rule">{note.background}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="text-sm text-muted">
+            Official pages we read don’t settle {notes.length === 1 ? "this" : "these"} for your business. This is general background, not {office ? `${office}’s` : "the office’s"} rule, so ask to find out for sure.
+          </p>
+        </>
+      ) : (
+        <p className="text-rule">No official page we read settles this for your business. That doesn’t mean it doesn’t apply, so ask to find out for sure.</p>
+      )}
+      <WrittenInquiry
+        inquiry={writtenInquiry({ title: step.title, questions: step.whatToAsk, profile, place })}
+        office={office}
+        link={step.links[0] ? { title: step.links[0].title, url: step.links[0].url } : null}
+        contacts={step.contacts}
+      />
+    </section>
   );
 }
