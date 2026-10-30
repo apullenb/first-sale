@@ -1,5 +1,6 @@
 import type { BusinessProfile, BusinessStructure, JurisdictionLevel, PlanTopic, TaskStatus, VerificationState } from "@/lib/domain";
 import {
+  asksAboutRules,
   classify,
   type ConditionAnswer,
   type Place,
@@ -98,10 +99,10 @@ export interface Standing<T extends PaperStep> {
 
 // Plans saved before questions were kept: the model's condition is the first one the rules didn't write
 export function questionFor(step: Pick<PaperStep, "question" | "requirementStatus" | "conditions">): string {
-  if (step.question) return step.question;
+  if (step.question) return asksAboutRules(step.question) ? "" : step.question;
   if (step.requirementStatus !== "conditional") return "";
   if (!step.conditions.length) return questionOf({ applicability: "conditional", condition: "" }) ?? "";
-  return step.conditions.find((condition) => !RULE_CONDITION.test(condition)) ?? "";
+  return step.conditions.find((condition) => !RULE_CONDITION.test(condition) && !asksAboutRules(condition)) ?? "";
 }
 
 export function standingOf<T extends PaperStep>(step: T, context: PaperworkContext): Standing<T> {

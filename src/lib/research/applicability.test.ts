@@ -75,6 +75,15 @@ describe("classify", () => {
     expect(classify(checked({ applicability: "conditional" }), profile, place, undecided).question).toMatch(/couldn’t tell/);
   });
 
+  it("never asks the owner what a government requires: that's for First Sale to confirm", () => {
+    const rule = checked({ applicability: "conditional", condition: "Whether Aubrey requires a general business license or home-based permit for this shop", level: "city" }, "needs_verification");
+    expect(classify(rule, profile, place, undecided)).toMatchObject({ status: "needs_confirmation", question: null, conditions: [] });
+    const market = checked({ applicability: "conditional", condition: "Whether each market or city where you sell requires a vendor permit" });
+    expect(classify(market, profile, place, undecided).question).toBeNull();
+    // A fact about the owner's own business is still theirs to answer
+    expect(classify(checked({ applicability: "conditional", condition: "Will customers come to your home?" }), profile, place, undecided).question).toBe("Will customers come to your home?");
+  });
+
   it("notes registrations the owner says they already have", () => {
     const owner = testProfile({ alreadyHave: ["ein", "sales_tax"] });
     expect(classify(checked({ key: "ein", title: "Get an EIN" }), owner, place, undecided).alreadyHave).toMatch(/already have an EIN/);

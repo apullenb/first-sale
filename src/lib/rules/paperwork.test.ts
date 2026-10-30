@@ -109,6 +109,14 @@ describe("what counts as a task", () => {
     expect(view.first?.kind).toBe("check_place");
   });
 
+  it("turns a saved question about a government's rules into a step to confirm, not one for the owner", () => {
+    const rule = "Whether Denton County requires any permit for home storage, customer visits, or market sales";
+    const saved = step("county-permit", { level: "county", requirementStatus: "conditional", verification: "needs_verification", conditions: [rule], question: rule });
+    expect(standingOf(saved, context())).toMatchObject({ inclusion: "confirm", question: null });
+    const legacy = { ...saved, question: "" };
+    expect(standingOf(legacy, context()).inclusion).toBe("confirm");
+  });
+
   it("reads plans saved before questions were kept", () => {
     const legacy = step("permit", { requirementStatus: "conditional", conditions: [TAXED, "Only if you set up as an LLC. Decide your business structure first."], question: "" });
     expect(standingOf(legacy, context()).question).toBe(TAXED);
