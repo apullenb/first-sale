@@ -93,7 +93,8 @@ const WHY: Record<StepId, string> = {
 
 function detailsTitle(a: IntakeAnswers): string {
   const category = categoryFor(a.category);
-  return category && category.id !== "other" ? `About your ${category.label.toLowerCase()}` : "A few details";
+  if (!category || category.id === "other") return "A few details";
+  return category.id === "resale_shop" ? "About your shop" : `About your ${category.label.toLowerCase()}`;
 }
 
 // Steps whose title is the question itself, so the reason sits right under it

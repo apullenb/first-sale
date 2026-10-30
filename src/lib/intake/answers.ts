@@ -398,6 +398,7 @@ export function stepProblem(step: StepId, a: IntakeAnswers): string | null {
   switch (step) {
     case "sell":
       if (!a.category) return "Pick the kind of business closest to yours. “Something else” works too.";
+      if (a.category === "resale_shop" && !a.productTags.length && !a.firstItems.trim()) return "Say what kind of shop it is, or pick what you’ll sell.";
       return kindsOf(a).length ? null : "Pick at least one kind of thing you’ll sell.";
     case "name":
       return a.noName || a.name.trim() ? null : "Enter a name, or tick “I haven’t picked a name yet”.";

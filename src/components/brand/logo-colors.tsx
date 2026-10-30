@@ -2,7 +2,6 @@
 
 import { useEffect, useId, useLayoutEffect, useState } from "react";
 import { setLogoColorsAction } from "@/app/(app)/brand/actions";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { ALERT, PRIMARY, SECONDARY } from "@/components/styles";
 import { colorName } from "@/lib/brand/colors";
@@ -88,7 +87,7 @@ export function LogoColors({ assetId, src, saved }: { assetId: string; src: stri
       </p>
       <div className="flex flex-col gap-2">
         <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
-          <ActorChip actor="rule" /> Found in your logo by counting its pixels, not by AI.
+          Found in your logo by counting its pixels, not by AI.
         </p>
         {found === null ? (
           <p className="text-sm text-muted">Looking at your logo…</p>

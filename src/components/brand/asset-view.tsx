@@ -1,4 +1,3 @@
-import { ActorChip } from "@/components/actor-chip";
 import { Chip } from "@/components/ui";
 import { PRACTICE_LABEL } from "@/lib/brand/practice";
 import type { AssetCheck, DriftKind } from "@/lib/brand/types";
@@ -21,7 +20,7 @@ export function MadeBy({ simulated, what = "Drawn by Meta’s Muse Image" }: { s
   if (simulated) return <PracticeTag />;
   return (
     <span className="flex flex-wrap items-center gap-2 text-sm text-muted">
-      <ActorChip actor="ai" /> {what}
+      {what}
     </span>
   );
 }
@@ -39,7 +38,7 @@ export function CheckNotes({ check, simulated, checking }: { check: AssetCheck |
       {problems.length ? (
         <div className="rounded-xl border border-check-ring bg-check-tint px-3.5 py-3 text-check">
           <p className="flex flex-wrap items-center gap-2 font-semibold">
-            <ActorChip actor="ai" /> Check this before you use it
+            Check this before you use it
           </p>
           <ul className="mt-1 flex list-disc flex-col gap-1 pl-5">
             {problems.map((problem) => (
@@ -49,7 +48,6 @@ export function CheckNotes({ check, simulated, checking }: { check: AssetCheck |
         </div>
       ) : (
         <p className="flex flex-wrap items-center gap-2 text-rule">
-          <ActorChip actor="ai" />
           {check.lettering && check.lettering.read.length
             ? `AI read “${check.lettering.read.join(" ")}”, which matches.`
             : check.lettering

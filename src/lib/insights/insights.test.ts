@@ -199,6 +199,6 @@ describe("writeInsights", () => {
     const saved = await writeInsights(createMockProvider(), { inputs: buildInputs(sources({ profile, research: null, steps: [] })), feedback: {} }, NOW);
     expect(saved.removed).toBe(0);
     expect(saved.opening).toMatch(/^Your business is off to a real start/);
-    expect(saved.items.find((each) => each.section === "watch")).toMatchObject({ title: "Find out which rules apply to you", link: { href: "/requirements" } });
+    expect(saved.items.find((each) => each.section === "watch")).toMatchObject({ title: "See which rules apply to you", link: { href: "/requirements" } });
   });
 });

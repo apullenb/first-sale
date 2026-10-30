@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { type ReactNode, Suspense } from "react";
 import { approveMarketingPlanAction } from "@/app/(app)/marketing/actions";
-import { ActorChip } from "@/components/actor-chip";
 import { AlreadyHave } from "@/components/already-have";
 import { Completed, Revisit } from "@/components/completed";
 import { Icon } from "@/components/icons";
@@ -186,19 +185,6 @@ async function MarketingView() {
         <Card title="Your steps" icon="checklist" id="steps-heading" bodyClassName="gap-4">
           {stepsNote ? <Note>{stepsNote}</Note> : null}
           {steps.some((step) => step.practice) ? <PracticeBanner what="These steps come from a plan drafted in practice mode." /> : null}
-          <ul aria-label="Who does what" className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted">
-            <li className="flex items-center gap-2">
-              <ActorChip actor="rule" /> picks the steps and how much help each gets
-            </li>
-            {steps.some((step) => step.by === "ai") ? (
-              <li className="flex items-center gap-2">
-                <ActorChip actor="ai" /> wrote the plan’s own first actions
-              </li>
-            ) : null}
-            <li className="flex items-center gap-2">
-              <ActorChip actor="owner" /> tick each one off
-            </li>
-          </ul>
           <MarketingStepList steps={shown} done={done} auto={auto} next={move.kind === "step" ? move.step.key : null} />
         </Card>
       ) : null}
@@ -279,17 +265,6 @@ function NextCard({
             ? "Write your plan again so it matches your new answers."
             : "First Sale looks at everything you’ve told it, from what you sell to your budget, launch date, brand and website, and drafts a plan for you to check."}
         </p>
-        <ul aria-label="Who does what" className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted">
-          <li className="flex items-center gap-2">
-            <ActorChip actor="ai" /> drafts it
-          </li>
-          <li className="flex items-center gap-2">
-            <ActorChip actor="rule" /> keep out places you said no to
-          </li>
-          <li className="flex items-center gap-2">
-            <ActorChip actor="owner" /> approve it
-          </li>
-        </ul>
         {runNotice}
         {running ? null : <WritePlanButton again={move.again} />}
       </NextUp>

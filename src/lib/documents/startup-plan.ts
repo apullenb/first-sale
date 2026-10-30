@@ -36,9 +36,9 @@ export function startupPlanBlocks(input: { steps: readonly Step[]; maybe?: reado
     const bullets = [
       ...step.prepare.map((item) => `Have ready: ${item}`),
       ...step.links.map((link) => `${link.confirms ? "Official source" : "Related official page"}: ${link.url}`),
-      ...step.uncertainty.map((note) => `Still to check: ${note}`),
     ];
-    if (step.verification !== "sourced" && step.whoToCall) bullets.push(`Ask ${step.whoToCall} in writing: ${step.whatToAsk.join(" ")}`);
+    const reason = step.verification === "sourced" ? null : step.notes?.[0]?.background;
+    if (reason) paragraphs.push(`Why you need this: ${reason}`);
     return { heading: `${index + 1}. ${step.title}${PROGRESS[step.status]}`, paragraphs, bullets };
   });
   const maybe = input.maybe ?? [];
@@ -46,10 +46,10 @@ export function startupPlanBlocks(input: { steps: readonly Step[]; maybe?: reado
   return [
     ...blocks,
     {
-      heading: "May apply: still to settle",
-      paragraphs: ["These depend on an answer, a decision or where your business is. They aren’t steps yet. Settle each one in First Sale."],
+      heading: "Waiting on your answers",
+      paragraphs: ["These depend on your plans, your business structure or where your business is. Answer in First Sale and they’re settled."],
     },
-    ...maybe.map((each) => ({ heading: `${each.title} (may apply)`, paragraphs: [each.why, ...each.conditions.map((condition) => `Still to settle: ${condition}`)].filter(Boolean) })),
+    ...maybe.map((each) => ({ heading: each.title, paragraphs: [each.why, ...each.conditions.map((condition) => `Depends on: ${condition}`)].filter(Boolean) })),
   ];
 }
 
@@ -61,7 +61,7 @@ export async function startupPlanPdf(input: { businessName: string; steps: reado
   return writePdf({
     title: `Licenses and registrations for ${input.businessName}`,
     subtitle: `Made ${day(input.now.toISOString())} with First Sale`,
-    notice: `A plan to help you get started, not legal advice. Steps marked “Still to check” weren’t confirmed on an official page.${practice}`,
+    notice: `A plan to help you get started, not legal advice.${practice}`,
     blocks,
     footer: "First Sale licenses and registrations",
   });

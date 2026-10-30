@@ -3,31 +3,12 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
-import { createMyDocument, getMyPaperwork, reviewMyPlan, setMyStepStatus } from "@/lib/data/my-business";
+import { createMyDocument, getMyPaperwork, setMyStepStatus } from "@/lib/data/my-business";
 import { looksLikeIdNumber } from "@/lib/details";
 import { EMPTY_CONTENT } from "@/lib/documents/types";
 import { startupPlanPdf } from "@/lib/documents/startup-plan";
 import { stillToSettle } from "@/lib/rules/paperwork";
 import { displayName } from "@/lib/intake/answers";
-
-const reviewSchema = z.object({ checkedAt: z.iso.datetime(), acceptedKeys: z.array(z.string().max(60)).max(100) });
-
-export async function reviewPlanAction(input: unknown): Promise<ActionResult> {
-  const parsed = reviewSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, message: "Something was off with that review. Reload the page and try again." };
-  const outcome = await reviewMyPlan({ checkedAt: new Date(parsed.data.checkedAt), acceptedKeys: parsed.data.acceptedKeys });
-  refresh();
-  switch (outcome) {
-    case "applied":
-      return { ok: true, value: null };
-    case "stale":
-      return { ok: false, message: "Your requirements were re-checked since you opened this. Review the latest changes." };
-    case "no_proposal":
-      return { ok: false, message: "These changes were already handled. Reload the page to see your plan." };
-    default:
-      return { ok: false, message: "Your business wasn’t found. Reload the page and try again." };
-  }
-}
 
 const statusSchema = z.object({
   stepId: z.string().max(60),

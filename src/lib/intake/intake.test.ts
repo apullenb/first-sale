@@ -207,6 +207,8 @@ describe("stepProblem", () => {
   it("blocks the required steps until answered", () => {
     expect(stepProblem("sell", EMPTY_ANSWERS)).toMatch(/kind of business/);
     expect(stepProblem("sell", { ...EMPTY_ANSWERS, category: "other" })).toMatch(/at least one/);
+    expect(stepProblem("sell", { ...EMPTY_ANSWERS, category: "resale_shop", offeringKinds: ["resale"] })).toMatch(/kind of shop/);
+    expect(stepProblem("sell", { ...EMPTY_ANSWERS, category: "resale_shop", offeringKinds: ["resale"], firstItems: "plants" })).toBeNull();
     expect(stepProblem("place", EMPTY_ANSWERS)).toMatch(/state/);
     expect(stepProblem("owners", EMPTY_ANSWERS)).toMatch(/owns/);
     expect(stepProblem("channels", EMPTY_ANSWERS)).toMatch(/at least one/);

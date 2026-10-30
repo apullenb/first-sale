@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon, type IconName } from "@/components/icons";
 import { ALERT } from "@/components/styles";
 import { Chip } from "@/components/ui";
@@ -36,7 +35,6 @@ export function PlanView({ plan }: { plan: MarketingPlan }) {
   return (
     <div className="flex flex-col gap-5">
       <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
-        {plan.simulated ? <ActorChip actor="rule" /> : <ActorChip actor="ai" />}
         {plan.simulated ? "Drafted in practice mode, from a template" : "Drafted by AI from your answers"}, then checked by rules: platforms you said no to are never in it.
       </p>
       {plan.summary ? <p className="border-l-[3px] border-accent-ring pl-4 font-display text-xl leading-snug">{plan.summary}</p> : null}

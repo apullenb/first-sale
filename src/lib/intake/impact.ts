@@ -57,7 +57,7 @@ export function profileImpact(before: BusinessProfile, after: BusinessProfile, c
       context.researchCheckedAt
         ? {
             title: "What applies to you",
-            detail: "It was checked with your old answers. Check again so it matches what you’ve changed.",
+            detail: "First Sale updates it for your new answers when you open it.",
             href: "/requirements",
           }
         : { title: "What applies to you", detail: "It’ll use your new answers when you find what applies.", href: "/requirements" },
@@ -65,7 +65,7 @@ export function profileImpact(before: BusinessProfile, after: BusinessProfile, c
     if (context.planSteps > 0) {
       effects.push({
         title: "Start your business",
-        detail: "Checking again may add or remove steps. You’ll review any change first, and steps you’ve finished stay finished.",
+        detail: "Your steps update to match. Steps you’ve finished stay finished.",
         href: "/start",
       });
     }

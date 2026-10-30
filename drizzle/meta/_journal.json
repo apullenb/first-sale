@@ -134,6 +134,13 @@
       "when": 1793395454611,
       "tag": "0018_follow_up",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793403044803,
+      "tag": "0019_verdict",
+      "breakpoints": true
     }
   ]
 }

@@ -209,17 +209,24 @@ export async function saveFollowUpForOwner(
           verification: "sourced",
           problems: [],
           background: "",
+          verdict: "applies",
         })
         .where(and(eq(requirements.businessId, business.id), eq(requirements.key, confirmed.key)));
     }
     for (const note of result.notes) {
+      const quoted = note.evidence ? { sourceIds: note.sourceIds, evidence: note.evidence, verification: "sourced" as const, problems: [] } : {};
       await tx
         .update(requirements)
-        .set({ ...settled, background: note.background, whatToAsk: note.questions })
+        .set({ ...settled, ...quoted, background: note.background, verdict: note.verdict })
         .where(and(eq(requirements.businessId, business.id), eq(requirements.key, note.key)));
     }
-    await tx.update(researchSnapshots).set({ followedUpAt: now, offices: result.offices }).where(eq(researchSnapshots.businessId, business.id));
-    return rebuildPlan(tx, business.id, profile, details, now, { continues: snapshot.planProposal });
+    const answered = new Map(result.answers.map((each) => [each.question, each.answer]));
+    const openQuestions = snapshot.openQuestions.map((question) => {
+      const answer = answered.get(question.question);
+      return answer ? { ...question, answer } : question;
+    });
+    await tx.update(researchSnapshots).set({ followedUpAt: now, offices: result.offices, openQuestions }).where(eq(researchSnapshots.businessId, business.id));
+    return rebuildPlan(tx, business.id, profile, details, now);
   });
 }
 

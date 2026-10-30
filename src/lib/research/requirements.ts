@@ -40,6 +40,8 @@ export interface OpenQuestion {
   whoToCall: string;
   // Best official page read for it, by source id
   sourceId?: string;
+  // The deeper look's plain answer
+  answer?: string;
 }
 
 export interface ResearchResult {
@@ -76,8 +78,9 @@ List the requirements that apply to this business, most important first:
 - agency: the office responsible, named as the source names it when one does.
 - Also list state, county and city requirements that commonly apply to a business like this one but that no source here covers. Use an empty sourceIds and null evidence for those. Missing sources never mean a requirement doesn't exist.
 - whyItApplies: one or two plain sentences that tie the requirement to this owner's answers. When it depends on something, say what it depends on instead of saying it definitely applies.
-- applicability: "applies" when the sources and the owner's answers show it applies, and also when it commonly applies but no source here confirms it (empty sourceIds: First Sale has the owner confirm it with the office in writing); "conditional" only when it turns on a fact about the owner's own business or plans that their answers don't settle, and then condition is a short yes-or-no question to the owner about that fact, such as "Will customers come to your home?"; "optional" for a choice the owner may make but doesn't have to; "outside_coverage" for rules about a particular product or activity that these sources don't cover, so the owner knows to look into it.
-- Never ask the owner what a government requires or allows. They don't know, and finding out is First Sale's job: list it as a requirement to confirm, with whoToCall and whatToAsk.
+- Each requirement is one specific thing to do, such as a named license, permit, registration or tax account. Never a catch-all like "Check county rules" or "Confirm city requirements": what you couldn't settle goes in openQuestions.
+- applicability: "applies" when the sources and the owner's answers show it applies, and also when it commonly applies but no source here confirms it (empty sourceIds: First Sale looks deeper and decides); "conditional" only when it turns on a fact about the owner's own business or plans that their answers don't settle, and then condition is a short yes-or-no question about what the owner will do, in everyday words, such as "Will customers come to your home?" or "Will you sell at farmers markets or fairs?"; "optional" for a choice the owner may make but doesn't have to. Rules about a particular product or activity, such as a federal license, are "applies" with an empty sourceIds when no source here covers them: First Sale researches them like any other. Never use "outside_coverage".
+- A condition never mentions a law, rule, permit, license, approval, registration, filing or government. The owner doesn't know those, and deciding them is First Sale's job: list it as "applies" and let the deeper look decide.
 - Answers that are null, empty or "unsure" are unknown, never "no". When an unknown answer decides whether a requirement applies, mark it conditional and say which answer decides it.
 - The owner's place comes only from their answers. Never guess a county or city from a ZIP code or a mailing city.
 - forStructures: the business structures it's for, such as ["llc"] for forming an LLC. Empty when it applies to any structure. <decisions> says which structure the owner chose, if any.
@@ -86,12 +89,12 @@ List the requirements that apply to this business, most important first:
 - gather: the information and documents to have ready, from the sources when they list them.
 - doneWhen: what finishing this step looks like, in plain words. Name a specific document only if a source names it.
 - dependsOn: keys of other requirements that must be finished first, only when this one truly needs them.
-- whoToCall: the kind of office that can confirm it in writing, such as "your county health department". No phone numbers or web addresses. Never make calling an office a step: the owner will write to them.
-- whatToAsk: two to four short questions the owner can send that office in writing.
+- whoToCall: the office that handles it, such as "your county health department". No phone numbers or web addresses.
+- whatToAsk: two to four short questions First Sale should settle about it.
 - needsProfessional: true when a lawyer or accountant is usually worth consulting.
 - If the owner says they already registered their business, leave out formation steps they've finished but keep the ones that may remain.
 - assumptions: anything you assumed about the owner's situation that changes the list, such as which foods they make. Leave it empty if you assumed nothing.
-- openQuestions: things you couldn't settle that the owner should ask about, with who to ask.
+- openQuestions: things you couldn't settle, for First Sale to look into, with the office that would know.
 - conflicts: where cited sources disagree, or where one source leaves something unclear that matters for this owner, with the source ids. Explain it plainly; don't pick a side the sources don't support.
 - Write for someone with no business background. Short sentences, plain words, no legal jargon. Explain any official term the first time you use it.
 - At most 15 requirements.`;
@@ -195,7 +198,7 @@ export async function researchRequirements(
     throw new ResearchError("We couldn’t reach the official government sites just now. Try again in a few minutes.");
   }
 
-  const reply = await generateObject(model, {
+  const raw = await generateObject(model, {
     name: RESEARCH_SCHEMA_NAME,
     schema: researchReplySchema,
     effort: "high",
@@ -212,6 +215,7 @@ export async function researchRequirements(
     ],
   });
 
+  const reply = withoutCatchAlls(raw);
   // An empty list means the check went wrong, not that nothing applies
   if (reply.requirements.length === 0) {
     throw new ResearchError("This check came back empty, which isn’t right for any business. Your last results are kept. Try again in a few minutes.");
@@ -279,6 +283,20 @@ export async function researchRequirements(
       .filter((conflict) => conflict.sourceIds.length > 0),
     profile,
     structure: decision.structure,
+  };
+}
+
+// An unsourced "Check county rules" isn't a step anyone can do: it becomes an open question for the deeper look
+const CATCH_ALL = /^(check|confirm|find out|research|look into|ask|review|verify|learn)\b/i;
+export function withoutCatchAlls<
+  T extends { requirements: { title: string; whoToCall: string; whyItApplies: string; sourceIds: string[] }[]; openQuestions: { question: string; whoToCall: string }[] },
+>(reply: T): T {
+  const vague = reply.requirements.filter((requirement) => !requirement.sourceIds.length && CATCH_ALL.test(requirement.title.trim()));
+  if (!vague.length) return reply;
+  return {
+    ...reply,
+    requirements: reply.requirements.filter((requirement) => !vague.includes(requirement)),
+    openQuestions: [...reply.openQuestions, ...vague.map((requirement) => ({ question: `${requirement.title}: ${requirement.whyItApplies}`.slice(0, 300), whoToCall: requirement.whoToCall }))],
   };
 }
 

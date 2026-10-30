@@ -2,7 +2,6 @@ import Link from "next/link";
 import { chooseLogoAction } from "@/app/(app)/brand/actions";
 import { removeChosenLogoAction } from "@/app/(app)/logo/actions";
 import { ActionButton } from "@/components/action-button";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { Done } from "@/components/marketing/pieces";
 import { SECONDARY_LINK } from "@/components/styles";
@@ -55,7 +54,6 @@ export function ChosenLogo({ chosen, edits, before, hasPicks, practice, business
           <figcaption>
             <Done>
               <span className="flex flex-wrap items-center gap-2">
-                <ActorChip actor="owner" />
                 {caption(chosen)}
               </span>
             </Done>
@@ -109,7 +107,7 @@ export function ChosenLogo({ chosen, edits, before, hasPicks, practice, business
                 </p>
                 {logo.origin === "uploaded" ? (
                   <p className="flex items-center gap-2 text-sm text-muted">
-                    <ActorChip actor="owner" /> Uploaded by you
+                    Uploaded by you
                   </p>
                 ) : (
                   <>

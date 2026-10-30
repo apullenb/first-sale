@@ -22,7 +22,6 @@ export interface JourneyInput {
   plan: {
     // Paperwork tasks that apply
     steps: number;
-    proposal: boolean;
     // Required before selling; later ones left out
     beforeSelling: { total: number; done: number };
     // later: it comes after the first sale
@@ -60,7 +59,6 @@ export function readyForFirstSale(input: JourneyInput): boolean {
     input.business === "done" &&
     input.researched &&
     !input.answersChanged &&
-    !plan.proposal &&
     !input.questions &&
     !plan.waitsOnStructure &&
     plan.steps > 0 &&
@@ -88,10 +86,8 @@ export function journeyStages(input: JourneyInput): Stage[] {
     !input.researched
       ? stage("/requirements", "todo", "Not checked yet. First Sale checks official government sites for you.")
       : input.answersChanged
-        ? stage("/requirements", "check", "Your answers changed since they were checked.")
-        : plan.proposal
-          ? stage("/requirements", "check", "A re-check changed some steps. They wait for your OK.")
-          : input.questions
+        ? stage("/requirements", "check", "Your answers changed, so First Sale updates what applies when you open it.")
+        : input.questions
             ? stage("/requirements", "todo", `${input.questions} quick ${input.questions === 1 ? "question" : "questions"} left to answer.`)
             : stage("/requirements", "done", "Checked on official government sites, and every question answered."),
     !plan.steps
@@ -144,21 +140,18 @@ export function nextMove(input: JourneyInput): NextMove {
   if (!input.researched) {
     return move(
       "Find out what applies to you",
-      "First Sale checks official government sites for the rules that fit your business, then asks about the ones that depend on you.",
+      "First Sale checks official government sites and works out the rules that fit your business.",
       "/requirements",
       "Find what applies to me",
     );
   }
   if (input.answersChanged) {
-    return move("See what your new answers change", "You changed some answers since your requirements were checked.", "/requirements", "See what changed");
-  }
-  if (plan.proposal) {
-    return move("Review the changes to your steps", "A re-check changed some steps. Nothing changes until you OK it.", "/requirements#review", "Review the changes");
+    return move("Update what applies to you", "You changed some answers, so First Sale checks again and updates your steps.", "/requirements", "Update my steps");
   }
   if (input.questions) {
     return move(
       `Answer ${input.questions === 1 ? "a quick question" : `${input.questions} quick questions`}`,
-      "Each one decides whether a rule applies to you. “Not sure” is a fine answer.",
+      "Each one is about your own plans, so First Sale can tell you exactly what applies.",
       "/requirements#questions",
       "Answer the questions",
     );

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { checkAgainAction, deletePhotoAction, removeFromLibraryAction } from "@/app/(app)/photos/actions";
 import { ActionButton } from "@/components/action-button";
-import { ActorChip } from "@/components/actor-chip";
 import { RunNotice } from "@/components/documents/run-notice";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
@@ -170,9 +169,7 @@ function VersionView({ photo, version, checking, canRefine }: ViewProps) {
           {version.simulated ? (
             <Chip tone="warn">Development preview, not made by Muse</Chip>
           ) : (
-            <>
-              <ActorChip actor="ai" /> Edited by Meta’s Muse Image
-            </>
+            "Edited by Meta’s Muse Image"
           )}
           <span>
             · <LocalDate iso={version.createdAt.toISOString()} />
@@ -224,7 +221,7 @@ function VersionView({ photo, version, checking, canRefine }: ViewProps) {
         <div className="flex flex-col gap-2">
           <Done>
             <span className="flex flex-wrap items-center gap-2">
-              <ActorChip actor="owner" /> In your product library · approved <LocalDate iso={version.approvedAt.toISOString()} />
+              In your product library · approved <LocalDate iso={version.approvedAt.toISOString()} />
             </span>
           </Done>
           <ActionButton action={removeFromLibraryAction.bind(null, version.id)} label="Remove from library" pendingLabel="Removing…" />

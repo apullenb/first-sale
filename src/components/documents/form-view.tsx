@@ -7,7 +7,6 @@ import {
   readAgainAction,
 } from "@/app/(app)/documents/actions";
 import { ActionButton } from "@/components/action-button";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { PracticeBanner } from "@/components/practice-banner";
@@ -22,7 +21,7 @@ import { AnswersEditor, type EditorField } from "./answers-editor";
 import { AskForm } from "./ask-form";
 import { DocumentHead } from "./document-head";
 import { fileHref, isReadable, originSentence, READ_METHOD_LABELS } from "./labels";
-import { docIcon, ReadText, SubFold, WhoDoesWhat } from "./parts";
+import { docIcon, ReadText, SubFold } from "./parts";
 import { RunNotice } from "./run-notice";
 import { StepLink } from "./step-link";
 
@@ -173,12 +172,6 @@ function Explain({ doc, run }: { doc: StoredDocument; run: RunState | null }) {
   const guide = doc.guide;
   return (
     <Card title="What this form is for" icon="lightbulb" id="explain-heading">
-      <WhoDoesWhat
-        items={[
-          ["ai", "AI explains the form in plain words, using only what the form says."],
-          ["rule", "Every quote is checked against the form’s text, so you can find it on the page."],
-        ]}
-      />
       <RunNotice run={run} what="Explaining this form" />
       {guide ? <Guide guide={guide} /> : <p className="text-rule">Get a plain-language explanation of this form, what to gather first, and what each blank asks for.</p>}
       <ActionButton
@@ -280,7 +273,6 @@ function Ask({ doc, maxQuestion }: { doc: StoredDocument; maxQuestion: number })
               <li key={`${entry.askedAt}-${index}`} className="flex flex-col gap-2 rounded-xl border border-line bg-surface px-4 py-3.5 shadow-soft">
                 <p className="font-semibold">{entry.question}</p>
                 <p className="flex items-start gap-2.5">
-                  <ActorChip actor="ai" />
                   <span className="min-w-0 whitespace-pre-wrap">{entry.answer}</span>
                 </p>
                 <AnchorNote anchor={entry.anchor} missing="The form doesn’t say this directly." />

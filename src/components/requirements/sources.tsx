@@ -30,12 +30,7 @@ export function SourceLinks({ sources }: { sources: Source[] }) {
   );
 }
 
+// Shown only when an official page backs it; First Sale's own decisions carry their reason instead
 export function StatusChip({ sourced }: { sourced: boolean }) {
-  return sourced ? (
-    <Chip icon="link">Official source</Chip>
-  ) : (
-    <Chip tone="warn" icon="info">
-      Needs verification
-    </Chip>
-  );
+  return sourced ? <Chip icon="link">Official source</Chip> : null;
 }

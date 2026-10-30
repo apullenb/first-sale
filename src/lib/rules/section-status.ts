@@ -35,7 +35,6 @@ export interface JourneyFacts {
   business: boolean;
   research: "none" | "stale" | "current";
   // Plan changes from a re-check or a new decision, waiting for the owner's review
-  proposal: boolean;
   // Questions and place answers still open on What applies to you
   questionsOpen: number;
   structureChosen: boolean;
@@ -144,7 +143,7 @@ const locked = (waitsOn: string[]): PartStatus => ({ state: "locked", count: 0, 
 
 export function sidebarStatus(facts: JourneyFacts): SidebarStatus {
   const marked = (key: string) => facts.marks.has(key);
-  const checkDone = facts.research === "current" && !facts.proposal && facts.questionsOpen === 0;
+  const checkDone = facts.research === "current" && facts.questionsOpen === 0;
   const groups = Object.fromEntries(
     facts.groups.map((group): [string, PartStatus] => [
       group.href,
@@ -172,7 +171,7 @@ export function sidebarStatus(facts: JourneyFacts): SidebarStatus {
       ? locked(["Your business"])
       : checkDone
         ? DONE
-        : { state: "todo", count: facts.research === "current" && !facts.proposal ? facts.questionsOpen : 0, minutes: CHECK_MINUTES, unit: "question" },
+        : { state: "todo", count: facts.research === "current" ? facts.questionsOpen : 0, minutes: CHECK_MINUTES, unit: "question" },
     ...(facts.groups.length ? groups : { [PAPERWORK_PLACEHOLDER.href]: checkDone ? DONE : locked([CHECK_WHERE]) }),
     // Not a step: just a count of documents to check
     "/documents": { state: facts.libraryToCheck ? "todo" : "done", count: facts.libraryToCheck, minutes: 0 },

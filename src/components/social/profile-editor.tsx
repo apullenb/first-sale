@@ -2,7 +2,6 @@
 
 import { useId, useLayoutEffect, useState } from "react";
 import { draftSocialBiosAction, saveSocialProfileAction } from "@/app/(app)/social/actions";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { AiProgressButton } from "@/components/marketing/ai-progress";
 import { ALERT, INPUT, PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles";
@@ -25,7 +24,6 @@ interface Props {
 }
 
 // Practice drafts come from built-in rules, not AI
-const BY_ACTOR = { ai: "ai", practice: "rule", rule: "rule", owner: "owner" } as const;
 const BY_TEXT = { ai: "Drafted by AI", practice: "Practice draft", rule: "Plain draft from your answers", owner: "Written by you" } as const;
 
 function Counter({ count, max, target }: { count: number; max: number | null; target: number }) {
@@ -88,7 +86,6 @@ export function ProfileEditor({ platform, platformName, facts, initial, handles,
           </Chip>
           {initial.bioBy && facts.bio ? (
             <span className="flex items-center gap-2 text-sm text-muted">
-              <ActorChip actor={BY_ACTOR[initial.bioBy]} />
               {BY_TEXT[initial.bioBy]}
             </span>
           ) : null}
@@ -184,7 +181,6 @@ export function ProfileEditor({ platform, platformName, facts, initial, handles,
           ) : null}
           {initial.bioBy && !changedBio ? (
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-              <ActorChip actor={BY_ACTOR[initial.bioBy]} />
               {BY_TEXT[initial.bioBy]}
               {initial.bioBy === "ai" || initial.bioBy === "practice" ? ". Read it, then change anything that isn’t right." : null}
             </div>
@@ -203,7 +199,6 @@ export function ProfileEditor({ platform, platformName, facts, initial, handles,
             <ul aria-label="What First Sale changed in the draft" className="flex flex-col gap-1 text-sm text-muted">
               {initial.notes.map((note) => (
                 <li key={note} className="flex items-start gap-2">
-                  <ActorChip actor="rule" />
                   <span className="pt-px">{note}</span>
                 </li>
               ))}

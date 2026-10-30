@@ -19,7 +19,6 @@ const group = (href: string, overrides: Partial<GroupFacts> = {}): GroupFacts =>
 const facts = (overrides: Partial<JourneyFacts> = {}): JourneyFacts => ({
   business: true,
   research: "current",
-  proposal: false,
   questionsOpen: 0,
   structureChosen: true,
   structureStep: { left: 0, minutes: 0 },
@@ -111,10 +110,9 @@ describe("sidebarStatus", () => {
     expect(status[PAPERWORK_PLACEHOLDER.href]).toMatchObject({ state: "locked", waitsOn: ["What applies to you"] });
   });
 
-  it("keeps What applies to you open until the check is current, reviewed and every question answered", () => {
+  it("keeps What applies to you open until the check is current and every question answered", () => {
     expect(sidebarStatus(facts({ research: "none" }))["/requirements"]).toMatchObject({ state: "todo", count: 0, minutes: 10 });
     expect(sidebarStatus(facts({ research: "stale" }))["/requirements"].state).toBe("todo");
-    expect(sidebarStatus(facts({ proposal: true }))["/requirements"].state).toBe("todo");
     expect(sidebarStatus(facts({ questionsOpen: 2 }))["/requirements"]).toEqual({ state: "todo", count: 2, minutes: 10, unit: "question" });
     expect(sidebarStatus(facts())["/requirements"].state).toBe("done");
   });

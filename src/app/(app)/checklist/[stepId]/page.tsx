@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ActorChip } from "@/components/actor-chip";
 import { AgreementCard } from "@/components/documents/agreement-card";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
@@ -16,8 +15,6 @@ import { StructureDecision } from "@/components/plan/structure-decision";
 import { PracticeBanner } from "@/components/practice-banner";
 import { StatusChip } from "@/components/requirements/sources";
 import { RequirementStatusChip } from "@/components/requirements/requirement-status";
-import { AnswerButtons } from "@/components/requirements/condition-answer";
-import { WrittenInquiry } from "@/components/requirements/written-inquiry";
 import { PAGE_TITLE, PRIMARY_LINK, SECONDARY, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Chip, Fact, Fold, Note } from "@/components/ui";
 import { OFFICIAL_FORMS } from "@/data/official-forms";
@@ -31,9 +28,7 @@ import { agreementName, agreementStepKey, agreementStructure } from "@/lib/docum
 import { formatFee } from "@/lib/documents/startup-plan";
 import { ACCEPTED_TYPES } from "@/lib/documents/upload";
 import { LEVEL_LABELS, TOPIC_LABELS } from "@/lib/labels";
-import type { BusinessProfile } from "@/lib/domain";
-import { jurisdictionName, type Place, placeGap, placeOf, structureOf } from "@/lib/research/applicability";
-import { findOutInquiry, placeInquiry, writtenInquiry } from "@/lib/research/inquiry";
+import { jurisdictionName, placeGap, placeOf, structureOf } from "@/lib/research/applicability";
 import { filingSteps } from "@/lib/rules/filing";
 import { choosesStructure } from "@/lib/rules/plan";
 import { nextTaskAfter, type Standing, stepLinks } from "@/lib/rules/paperwork";
@@ -120,7 +115,8 @@ async function StepDetail({ params }: { params: Params }) {
   const next = nextTask ? { ...nextTask.step, requirementStatus: nextTask.requirementStatus } : null;
   const back = group ? { href: group.href, label: group.name } : { href: "/start", label: "Start your business" };
   const accept = Object.keys(ACCEPTED_TYPES).join(",");
-  const unresolved = !sourced || conditions.length > 0 || step.requirementStatus !== "verified";
+  // First Sale's reason, when no official page spells the rule out for this place
+  const reason = sourced ? null : (step.notes?.[0]?.background ?? null);
 
   const minutes = formatMinutes(stepMinutes(step));
   // Two official pages that disagree are shown in the numbered steps, never settled here
@@ -173,9 +169,6 @@ async function StepDetail({ params }: { params: Params }) {
   const locked = blockers.length > 0;
   const checkPlace = task?.kind === "check_place";
   const gap = checkPlace && paper ? placeGap(step.level, paper.context.place) : null;
-  // Finding out comes before doing: whether it applies, or where the business is
-  const findOut = task?.kind === "find_out" || checkPlace;
-  const confirm = task?.kind === "confirm";
   const ready = !step.retired && step.status === "todo" && !locked;
   const confirming = step.links.find((link) => link.confirms) ?? null;
   const howSourced = how.some((each) => each.lines.some((line) => line.source));
@@ -204,18 +197,13 @@ async function StepDetail({ params }: { params: Params }) {
             <Chip tone="gray" icon={TOPIC_ICONS[step.topic]}>
               {TOPIC_LABELS[step.topic]}
             </Chip>
-            {findOut ? (
-              <Chip tone="warn" icon="question">
-                Find out if this applies
-              </Chip>
-            ) : confirm ? (
-              <Chip tone="warn" icon="info">
-                Confirm with the office first
+            {checkPlace ? (
+              <Chip tone="warn" icon="pin">
+                Add where you are
               </Chip>
             ) : (
               <RequirementStatusChip status={step.requirementStatus} />
             )}
-            {sourced ? null : <StatusChip sourced={false} />}
             {step.status === "done" ? (
               <Chip tone="done" icon="check">
                 Done
@@ -248,7 +236,7 @@ async function StepDetail({ params }: { params: Params }) {
         ) : feeCents !== null ? (
           <Fact icon="coins">{feeCents === 0 ? "Free" : formatFee(feeCents)}</Fact>
         ) : fileable ? (
-          <Fact icon="coins">Fee not confirmed</Fact>
+          <Fact icon="coins">Fee set by the office</Fact>
         ) : null}
         {step.agency ? <Fact icon="office">{step.agency}</Fact> : null}
         <Fact icon="pin">
@@ -316,29 +304,23 @@ async function StepDetail({ params }: { params: Params }) {
       ) : (
         <section aria-labelledby="part-heading" className={`${STATE_CARD} bg-surface shadow-lift`}>
           <p className={`${KICKER} text-accent`}>
-            <Icon name={findOut ? "question" : TOPIC_ICONS[step.topic]} size="sm" />
-            {findOut ? "Find out if this applies" : "Your part"} · about {minutes}
+            <Icon name={checkPlace ? "pin" : TOPIC_ICONS[step.topic]} size="sm" />
+            {checkPlace ? "Add where you are" : "Your part"} · about {minutes}
           </p>
-          {findOut ? (
+          {checkPlace ? (
             <>
               <h2 id="part-heading" className={STATE_TITLE}>
-                {gap ? "Find out where your business is" : "Ask the office whether this applies to you"}
+                Tell us where your business is
               </h2>
-              {profile && place && gap ? (
-                <PlaceFindOut step={step} profile={profile} place={place} gap={gap} condition={step.conditions[0] ?? ""} />
-              ) : profile && place ? (
-                <FindOut step={step} profile={profile} place={place} question={standing?.question ?? ""} />
-              ) : null}
-              <p id="progress-heading" className="border-t border-line pt-4 text-[15px] text-muted">
-                If it applies, it becomes a step here, and how to do it is under “How to do it yourself” below.
-              </p>
+              {gap ? <PlaceGap gap={gap} condition={step.conditions[0] ?? ""} /> : null}
             </>
           ) : (
             <>
-              {confirm && profile && place ? (
-                <AskOffice step={step} profile={profile} place={place} />
-              ) : confirm ? (
-                <Note icon="info">No official page confirmed this yet, so confirm with the office first.</Note>
+              {reason ? (
+                <Note icon="lightbulb">
+                  <p className="font-semibold">Why you need this</p>
+                  <p>{reason}</p>
+                </Note>
               ) : null}
               <h2 id="part-heading" className={STATE_TITLE}>
                 {choosesStructure(step)
@@ -361,11 +343,13 @@ async function StepDetail({ params }: { params: Params }) {
                   <div className="flex flex-col gap-3 border-t border-line pt-4">
                     <h3 id="progress-heading" className="flex scroll-mt-4 items-center gap-2.5 font-bold">
                       Record what you did
-                      <ActorChip actor="owner" />
                     </h3>
                     {progress}
                   </div>
                   <p className="text-sm text-muted">Opening a link or a form never changes this. You record what you did. First Sale never files anything for you.</p>
+                  {step.contacts && (step.contacts.emails.length || step.contacts.phones.length) ? (
+                    <OfficeContacts office={step.agency || step.whoToCall} contacts={step.contacts} />
+                  ) : null}
                 </>
               )}
             </>
@@ -383,7 +367,7 @@ async function StepDetail({ params }: { params: Params }) {
       ) : null}
 
       <div className="flex flex-col gap-3">
-        {ready && !choosesStructure(step) && !findOut ? null : (
+        {ready && !choosesStructure(step) && !checkPlace ? null : (
           <Fold
             title="How to do it yourself"
             summary={`${step.status === "done" || step.retired ? "The steps" : `Read ahead: ${how.length} steps`}${howSourced ? ", with official sources" : ""}`}
@@ -410,18 +394,11 @@ async function StepDetail({ params }: { params: Params }) {
               {step.alreadyHave}
             </Note>
           ) : null}
-          {step.uncertainty.length ? (
-            <ul className="flex list-disc flex-col gap-1 pl-5 text-[15px] text-rule marker:text-faint">
-              {step.uncertainty.map((item, index) => (
-                <li key={index}>{item}</li>
-              ))}
-            </ul>
-          ) : null}
         </Fold>
 
         <Fold
           title="Official source"
-          summary={confirming ? confirming.title : step.links[0] ? `A related page: ${step.links[0].title}` : "No official page confirmed this yet"}
+          summary={confirming ? confirming.title : step.links[0] ? `A related page: ${step.links[0].title}` : "Decided by First Sale from how this works for businesses like yours"}
           icon="link"
         >
           {step.links.length ? (
@@ -449,20 +426,10 @@ async function StepDetail({ params }: { params: Params }) {
               ))}
             </ul>
           ) : (
-            <p className="text-rule">No official page confirmed this yet. That doesn’t mean it doesn’t apply.</p>
+            <p className="text-rule">The official pages First Sale read don’t spell this out for your area, so it decided from how it works for businesses like yours.</p>
           )}
-          <StatusChip sourced={sourced} />
+          {sourced ? <StatusChip sourced /> : null}
         </Fold>
-
-        {unresolved && profile && place && !findOut && !confirm ? (
-          <Fold title="Not sure it applies? Ask in writing" summary="A message you can send. You never have to call." icon="mail" open={confirm && step.status === "todo"}>
-            <WrittenInquiry
-              inquiry={writtenInquiry({ title: step.title, questions: step.whatToAsk, profile, place })}
-              office={step.whoToCall || step.agency}
-              link={step.links[0] ? { title: step.links[0].title, url: step.links[0].url } : null}
-            />
-          </Fold>
-        ) : null}
 
         {before.length || after.length ? (
           <Fold
@@ -616,12 +583,12 @@ function LinkedDocuments({ docs }: { docs: StoredDocument[] }) {
 function NotOnList({ standing }: { standing: Standing<PlanStep> }) {
   const step = standing.step;
   const say: Partial<Record<Standing<PlanStep>["inclusion"], { text: string; href: string; action: string }>> = {
-    no: { text: "You said this doesn’t apply to you, so it isn’t on your list.", href: "/requirements#not-for-you", action: "Change your answer" },
-    question: { text: `Whether this applies depends on you: ${standing.question ?? ""}`, href: "/requirements#questions", action: "Answer on What applies to you" },
+    no: { text: "From your answer about your plans, you don’t need this.", href: "/requirements#not-for-you", action: "Change your answer" },
+    question: { text: `This depends on your plans: ${standing.question ?? ""}`, href: "/requirements#questions", action: "Answer on What applies to you" },
     place: { text: standing.place[0] ?? "Whether this applies depends on where you are.", href: "/business/edit", action: "Confirm your place" },
     structure: { text: "This is for some business structures only. It shows up on your list once you choose one.", href: "/structure", action: "Go to Business structure" },
     optional: { text: "This one is your choice, so it isn’t on your list.", href: "/requirements", action: "See what applies to you" },
-    outside: { text: `First Sale doesn’t research this kind of rule.${step.whoToCall ? ` Ask ${step.whoToCall}.` : ""}`, href: "/requirements", action: "See what applies to you" },
+    outside: { text: `First Sale doesn’t research this kind of rule.${step.whoToCall ? ` It’s handled by ${step.whoToCall}.` : ""}`, href: "/requirements", action: "See what applies to you" },
     other_structure: { text: "This step isn’t for the business structure you chose.", href: "/requirements", action: "See what changes" },
   };
   const note = say[standing.inclusion];
@@ -636,48 +603,16 @@ function NotOnList({ standing }: { standing: Standing<PlanStep> }) {
   );
 }
 
-// A "find out" step: ask in writing, then answer once the office replies
-function FindOut({ step, profile, place, question }: { step: PlanStep; profile: BusinessProfile; place: Place; question: string }) {
+// Where the business is isn't known yet, so it's added to the answers
+function PlaceGap({ gap, condition }: { gap: NonNullable<ReturnType<typeof placeGap>>; condition: string }) {
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-line bg-soft p-4">
-      <p>
-        You weren’t sure whether this applies to you: <span className="font-semibold">{question}</span> Send the office this message. You never have to
-        call.
-      </p>
-      <WrittenInquiry
-        inquiry={findOutInquiry({ title: step.title, condition: question, questions: step.whatToAsk, profile, place })}
-        office={step.whoToCall || step.agency}
-        link={step.links[0] ? { title: step.links[0].title, url: step.links[0].url } : null}
-      />
-      <div className="flex flex-col gap-2 border-t border-line pt-3">
-        <p id="found-out" className="font-semibold">
-          Once you hear back: does it apply to you?
-        </p>
-        <AnswerButtons stepKey={step.key} condition={question} current="unsure" labelledBy="found-out" />
-      </div>
-    </div>
-  );
-}
-
-// Where the business is isn't known yet: add it to the answers, or ask in writing
-function PlaceFindOut({ step, profile, place, gap, condition }: { step: PlanStep; profile: BusinessProfile; place: Place; gap: NonNullable<ReturnType<typeof placeGap>>; condition: string }) {
-  return (
-    <div className="flex flex-col gap-4 rounded-xl border border-line bg-soft p-4">
-      <p>
-        Whether this applies depends on where your business is: <span className="font-semibold">{condition}</span>
-      </p>
-      <div className="flex flex-col gap-2">
-        <p className="font-semibold">Know the answer?</p>
-        <Link href="/business/edit" className={`${SECONDARY_LINK} w-fit`}>
-          <Icon name="pencil" size="sm" />
-          {gap.action}
-        </Link>
-        <p className="text-sm text-muted">Then check again on What applies to you, and this step updates.</p>
-      </div>
-      <div className="flex flex-col gap-2 border-t border-line pt-3">
-        <p className="font-semibold">Not sure? Ask in writing. You never have to call.</p>
-        <WrittenInquiry inquiry={placeInquiry({ title: step.title, question: gap.question, profile, place })} office={gap.office} link={null} />
-      </div>
+    <div className="flex flex-col gap-3 rounded-xl border border-line bg-soft p-4">
+      <p>{condition}</p>
+      <Link href="/business/edit" className={`${SECONDARY_LINK} w-fit`}>
+        <Icon name="pencil" size="sm" />
+        {gap.action}
+      </Link>
+      <p className="text-sm text-muted">Your property tax bill or lease shows it. Once it’s saved, First Sale updates this step.</p>
     </div>
   );
 }
@@ -705,38 +640,24 @@ function PrerequisiteState({ done, office }: { done: boolean; office: boolean })
   );
 }
 
-// A rule no official page settled: what usually decides it, then one message to the office that can say for sure
-function AskOffice({ step, profile, place }: { step: PlanStep; profile: BusinessProfile; place: Place }) {
-  const office = step.whoToCall || step.agency;
-  const notes = step.notes ?? [];
+// Where to reach the office if something comes up while applying, read from its official pages
+function OfficeContacts({ office, contacts }: { office: string; contacts: NonNullable<PlanStep["contacts"]> }) {
+  const email = contacts.emails[0] ?? null;
+  const phone = contacts.phones[0] ?? null;
   return (
-    <section aria-labelledby="ask-heading" className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6">
-      <h2 id="ask-heading" className={STATE_TITLE}>
-        {notes.length ? "What we found" : "Ask the office to be sure"}
-      </h2>
-      {notes.length ? (
-        <>
-          <ul className="flex flex-col gap-3">
-            {notes.map((note) => (
-              <li key={note.title} className="flex flex-col gap-1">
-                <p className="font-semibold">{note.title}</p>
-                <p className="text-rule">{note.background}</p>
-              </li>
-            ))}
-          </ul>
-          <p className="text-sm text-muted">
-            Official pages we read don’t settle {notes.length === 1 ? "this" : "these"} for your business. This is general background, not {office ? `${office}’s` : "the office’s"} rule, so ask to find out for sure.
-          </p>
-        </>
-      ) : (
-        <p className="text-rule">No official page we read settles this for your business. That doesn’t mean it doesn’t apply, so ask to find out for sure.</p>
-      )}
-      <WrittenInquiry
-        inquiry={writtenInquiry({ title: step.title, questions: step.whatToAsk, profile, place })}
-        office={office}
-        link={step.links[0] ? { title: step.links[0].title, url: step.links[0].url } : null}
-        contacts={step.contacts}
-      />
-    </section>
+    <p className="text-sm text-muted">
+      Questions while you apply? {office ? `${office}: ` : ""}
+      {email ? (
+        <a href={`mailto:${email.value}`} className={`${TEXT_LINK} break-all`}>
+          {email.value}
+        </a>
+      ) : null}
+      {email && phone ? " · " : null}
+      {phone ? (
+        <a href={`tel:${phone.value.replace(/\D/g, "")}`} className={TEXT_LINK}>
+          {phone.value}
+        </a>
+      ) : null}
+    </p>
   );
 }

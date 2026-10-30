@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { pickFileAction, unpickFileAction } from "@/app/(app)/brand/actions";
 import { ActionButton } from "@/components/action-button";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon, type IconName } from "@/components/icons";
 import { Done } from "@/components/marketing/pieces";
 import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
@@ -132,7 +131,7 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <Done>
                 <span className="flex flex-wrap items-center gap-2">
-                  <ActorChip actor="owner" /> You’re using this one
+                  You’re using this one
                 </span>
               </Done>
               <ActionButton action={unpickFileAction.bind(null, kind)} label="Stop using it" pendingLabel="Removing…" />

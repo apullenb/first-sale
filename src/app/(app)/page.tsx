@@ -74,12 +74,11 @@ async function Overview() {
     questions: view?.open.length ?? 0,
     plan: {
       steps: priced.length,
-      proposal: Boolean(paper?.plan.proposal),
       beforeSelling,
       first: first
         ? {
             id: first.step.id,
-            title: first.kind === "find_out" ? `Find out if “${first.step.title}” applies to you` : first.step.title,
+            title: first.step.title,
             later: first.step.timing === "later", group: { name: groupOf(first.group)!.name, href: groupOf(first.group)!.href },
           }
         : null,
@@ -95,18 +94,11 @@ async function Overview() {
   const stages = journeyStages(input);
 
   const waiting: { text: string; href: string; action: string }[] = [];
-  if (paper?.plan.proposal) {
-    waiting.push({
-      text: paper.plan.proposal.from === "replan" ? "Your decisions changed some steps. Review them first." : "Your requirements were re-checked, and some changes to your steps need your review.",
-      href: "/requirements#review",
-      action: "Review the changes",
-    });
-  }
   if (changes.length) {
     waiting.push({
-      text: `Your answers changed since your requirements were checked (${changes.map((change) => change.what.toLowerCase()).join(", ")}).`,
+      text: `You changed your answers (${changes.map((change) => change.what.toLowerCase()).join(", ")}), so your steps need updating.`,
       href: "/requirements",
-      action: "See what it changes",
+      action: "Update my steps",
     });
   }
   if (outdated.length) {

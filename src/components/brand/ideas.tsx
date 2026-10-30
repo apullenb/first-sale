@@ -1,6 +1,5 @@
 import { chooseLogoAction } from "@/app/(app)/brand/actions";
 import { ActionButton } from "@/components/action-button";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { Done, SectionHead, SOFT } from "@/components/marketing/pieces";
@@ -81,7 +80,6 @@ function Round({ round, drawing, basedOn, ...shared }: Shared & { round: RoundSu
   return (
     <div className="@container flex flex-col gap-3">
       <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
-        <ActorChip actor="ai" />
         {basedOn ? `More like “${basedOn}”` : `${round.concepts.length} ideas`} · <LocalDate iso={round.createdAt.toISOString()} />
         {round.simulated ? <PracticeTag /> : null}
       </p>
@@ -206,7 +204,7 @@ function Draft({
         {chosen ? (
           <Done>
             <span className="flex flex-wrap items-center gap-2">
-              <ActorChip actor="owner" /> Your chosen logo
+              Your chosen logo
             </span>
           </Done>
         ) : (

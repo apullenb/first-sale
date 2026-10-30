@@ -55,9 +55,9 @@ const said = (key: string, answer: SavedAnswer["answer"], condition = TAXED): Sa
 const inclusion = (each: PaperStep, overrides: Partial<PaperworkContext> = {}) => standingOf(each, context(overrides)).inclusion;
 
 describe("what counts as a task", () => {
-  it("lists a requirement an official page confirms, and one to confirm with the office first", () => {
+  it("lists a requirement an official page confirms, and one First Sale decided applies", () => {
     expect(inclusion(step("a"))).toBe("task");
-    expect(inclusion(step("b", { requirementStatus: "needs_confirmation", verification: "needs_verification" }))).toBe("confirm");
+    expect(standingOf(step("b", { requirementStatus: "needs_confirmation", verification: "needs_verification" }), context())).toMatchObject({ inclusion: "task", requirementStatus: "needs_confirmation" });
   });
 
   it("leaves out optional rules and rules outside what First Sale checks", () => {
@@ -69,11 +69,11 @@ describe("what counts as a task", () => {
     const permit = conditional("permit");
     expect(inclusion(permit)).toBe("question");
     expect(inclusion(permit, { answers: [said("permit", "yes")] })).toBe("task");
-    expect(inclusion({ ...permit, verification: "needs_verification" }, { answers: [said("permit", "yes")] })).toBe("confirm");
+    expect(inclusion({ ...permit, verification: "needs_verification" }, { answers: [said("permit", "yes")] })).toBe("task");
     expect(inclusion(permit, { answers: [said("permit", "no")] })).toBe("no");
-    // "Not sure" is an answer, never a no: finding out becomes the task
+    // "Not decided yet" is never a no: the step stays in, so the owner is covered
     const unsure = standingOf(permit, context({ answers: [said("permit", "unsure")] }));
-    expect(unsure).toMatchObject({ inclusion: "find_out", requirementStatus: "conditional", conditions: [TAXED], answer: "unsure" });
+    expect(unsure).toMatchObject({ inclusion: "task", conditions: [TAXED], answer: "unsure" });
   });
 
   it("asks again when the condition is reworded, and never matches another step's answer", () => {
@@ -98,7 +98,7 @@ describe("what counts as a task", () => {
     const unknown = placeOf(testProfile({ location: { state: "TX", county: "Travis", city: "Austin", insideCityLimits: "unsure" } }));
     expect(standingOf(city, context({ place: unknown }))).toMatchObject({ inclusion: "check_place", requirementStatus: "conditional" });
     expect(standingOf(city, context({ place: unknown })).conditions[0]).toMatch(/inside Austin city limits/);
-    expect(inclusion(city)).toBe("confirm");
+    expect(inclusion(city)).toBe("task");
     const noCounty = placeOf(testProfile({ location: { state: "TX", county: "", city: "Austin", insideCityLimits: "unsure" } }));
     const view = paperwork([city, step("county", { level: "county" })], context({ place: noCounty }));
     expect(view.tasks.map((task) => [task.step.key, task.kind, task.state])).toEqual([
@@ -109,12 +109,14 @@ describe("what counts as a task", () => {
     expect(view.first?.kind).toBe("check_place");
   });
 
-  it("turns a saved question about a government's rules into a step to confirm, not one for the owner", () => {
+  it("never asks the owner about a government's rules: those are First Sale's to decide", () => {
     const rule = "Whether Denton County requires any permit for home storage, customer visits, or market sales";
     const saved = step("county-permit", { level: "county", requirementStatus: "conditional", verification: "needs_verification", conditions: [rule], question: rule });
-    expect(standingOf(saved, context())).toMatchObject({ inclusion: "confirm", question: null });
+    expect(standingOf(saved, context())).toMatchObject({ inclusion: "task", question: null });
     const legacy = { ...saved, question: "" };
-    expect(standingOf(legacy, context()).inclusion).toBe("confirm");
+    expect(standingOf(legacy, context()).inclusion).toBe("task");
+    const approval = "You do work that needs county approval or you file a county DBA.";
+    expect(standingOf(step("county", { requirementStatus: "conditional", conditions: [approval], question: approval }), context()).inclusion).toBe("task");
   });
 
   it("reads plans saved before questions were kept", () => {
@@ -232,9 +234,9 @@ describe("locks", () => {
     expect(no.tasks.find((task) => task.step.key === "c")?.state).toBe("ready");
   });
 
-  it("lets the owner find out whether a step applies before its prerequisites are done", () => {
+  it("keeps a step the owner hasn't decided on, waiting on its prerequisites like any other", () => {
     const steps = [step("structure", { topic: "structure" }), conditional("permit", { prerequisites: ["structure"] })];
-    expect(paperwork(steps, context({ answers: [said("permit", "unsure")] })).tasks[0]).toMatchObject({ kind: "find_out", state: "ready", blockers: [] });
+    expect(paperwork(steps, context({ answers: [said("permit", "unsure")] })).tasks[0]).toMatchObject({ kind: "task", state: "locked" });
     expect(paperwork(steps, context({ answers: [said("permit", "yes")] })).tasks[0]).toMatchObject({ kind: "task", state: "locked" });
   });
 

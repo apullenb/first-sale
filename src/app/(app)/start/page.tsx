@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { ActionButton } from "@/components/action-button";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { PlanCosts, StepGroup } from "@/components/plan/next-actions";
@@ -11,7 +10,7 @@ import { StepRow } from "@/components/plan/step-row";
 import { PracticeBanner } from "@/components/practice-banner";
 import { ResearchRunStatus } from "@/components/requirements/research-run";
 import { TEXT_LINK } from "@/components/styles";
-import { Card, Chip, Fold, Note, PageHead } from "@/components/ui";
+import { Card, Chip, Fold, PageHead } from "@/components/ui";
 import { getMyBusiness, getMyPaperwork, lastMyRun, type MyPaperwork } from "@/lib/data/my-business";
 import { displayName } from "@/lib/intake/answers";
 import { STRUCTURE_NAMES } from "@/lib/research/applicability";
@@ -53,14 +52,6 @@ async function Overview() {
       <ResearchRunStatus run={run} retryHref="/requirements" />
       {paper?.view.tasks.some((task) => task.step.simulated) ? <PracticeBanner what="Steps here came from practice results." /> : null}
       {paper ? <Progress paper={paper} /> : null}
-      {paper?.plan.proposal ? (
-        <Note icon="refresh">
-          A re-check changed some steps. Nothing changes until you OK it.{" "}
-          <Link href="/requirements#review" className="font-bold underline underline-offset-4">
-            Review the changes
-          </Link>
-        </Note>
-      ) : null}
 
       <ol className="flex flex-col gap-7">
         <Subsection number={1} title="Your business" id="sub-business">
@@ -197,17 +188,15 @@ function CheckRow({ paper, answered }: { paper: MyPaperwork | null; answered: bo
   const basis = paper?.basis ?? null;
   const stale = Boolean(paper && basis && profileKey(paper.profile) !== basis.profileKey);
   const open = paper?.view.open.length ?? 0;
-  const done = Boolean(basis) && !stale && !paper?.plan.proposal && !open;
+  const done = Boolean(basis) && !stale && !open;
   const state: TaskState = !answered ? "locked" : done ? "done" : "ready";
   const summary = !basis
-    ? "First Sale checks official government sites for the rules that fit your business, then asks about the ones that depend on you."
+    ? "First Sale checks official government sites and works out the rules that fit your business."
     : stale
-      ? "Your answers changed since the check. Check again to see what applies now."
-      : paper?.plan.proposal
-        ? "A re-check changed some steps. Review them before they change."
-        : open
-          ? `${open} quick ${open === 1 ? "question" : "questions"} left. Each one decides whether a rule applies to you.`
-          : "Checked on official government sites, and every question answered.";
+      ? "You changed your answers. Open this and First Sale updates your steps."
+      : open
+        ? `${open} quick ${open === 1 ? "question" : "questions"} about your plans left.`
+        : "Checked on official government sites, and every question answered.";
   return (
     <ListRow
       href={open ? "/requirements#questions" : "/requirements"}
@@ -277,7 +266,6 @@ function Paperwork({ paper }: { paper: MyPaperwork | null }) {
 
 function Extras({ paper }: { paper: MyPaperwork }) {
   const priced = priceTasks(paper.view.tasks, paper.context.place, paper.context.decision.structure);
-  const practice = paper.view.tasks.some((task) => task.step.simulated);
   return (
     <>
       <PlanCosts costs={planCosts(priced.map(actionStep))} />
@@ -294,25 +282,6 @@ function Extras({ paper }: { paper: MyPaperwork }) {
       </Card>
 
       <Fold title="How this list was made" summary="Who drafted the steps, and who decides" icon="info">
-        <ul aria-label="Who did what" className="flex flex-col gap-2 text-[15px]">
-          <li className="flex items-center gap-2.5">
-            {practice ? (
-              <>
-                <ActorChip actor="rule" /> drafted the steps in practice mode
-              </>
-            ) : (
-              <>
-                <ActorChip actor="ai" /> drafted the steps from official pages
-              </>
-            )}
-          </li>
-          <li className="flex items-center gap-2.5">
-            <ActorChip actor="rule" /> decided what applies from your answers, the groups and the order
-          </li>
-          <li className="flex items-center gap-2.5">
-            <ActorChip actor="owner" /> submit each one and record it
-          </li>
-        </ul>
         <p className="text-sm text-muted">
           Times are rough estimates of your own hands-on time. Time waiting on an office isn’t counted. Groups longer than {formatMinutes(MAX_SITTING_MINUTES)} are split
           into parts.

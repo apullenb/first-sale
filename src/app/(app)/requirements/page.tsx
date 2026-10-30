@@ -1,21 +1,16 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
-import { ActionButton } from "@/components/action-button";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { StepGroup } from "@/components/plan/next-actions";
 import { GroupFacts } from "@/components/plan/paperwork";
-import { ReviewChanges } from "@/components/plan/review-changes";
 import { PracticeBanner } from "@/components/practice-banner";
 import { CheckRequirementsButton } from "@/components/requirements/check-button";
 import { AnswerButtons, ChangeAnswer, UndoAnswer } from "@/components/requirements/condition-answer";
 import { CoverageList } from "@/components/requirements/coverage-list";
-import { FollowUpButton } from "@/components/requirements/follow-up-button";
 import { SourceLinks } from "@/components/requirements/sources";
 import { ResearchRunStatus } from "@/components/requirements/research-run";
-import { WrittenInquiry } from "@/components/requirements/written-inquiry";
 import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Card, Chip, Fold, IconTile, Note, PageHead } from "@/components/ui";
 import { getMyBusiness, getMyPaperwork, getMyResearch, lastMyRun, type MyPaperwork } from "@/lib/data/my-business";
@@ -25,13 +20,10 @@ import type { BusinessProfile } from "@/lib/domain";
 import { classify, type Place, placeLabel, placeOf, STRUCTURE_NAMES } from "@/lib/research/applicability";
 import { answerChanges } from "@/lib/research/changes";
 import { followUpCandidates } from "@/lib/research/follow-up";
-import { writtenInquiry } from "@/lib/research/inquiry";
-import { pageForOffice } from "@/lib/research/open-questions";
 import { profileKey } from "@/lib/research/requirements";
 import { type PaperworkGroup, type Standing, summaryOf } from "@/lib/rules/paperwork";
 import { CHECK_MINUTES, formatMinutes, MAX_SITTING_MINUTES } from "@/lib/rules/progress";
 import { sectionMetadata } from "@/lib/sections";
-import { replanAction } from "./actions";
 
 export const metadata = sectionMetadata("/requirements");
 // Re-checking reads several official pages, then waits on a long model call
@@ -48,7 +40,7 @@ export default function RequirementsPage() {
           </span>
         }
         title="What applies to you"
-        lead={`First Sale checks official government sites for the rules that fit your business. Then a few quick questions settle the ones that depend on you. About ${formatMinutes(CHECK_MINUTES)}.`}
+        lead={`First Sale checks official government sites and works out every rule that fits your business. If something turns on your plans, it asks you. About ${formatMinutes(CHECK_MINUTES)}.`}
       />
       <Suspense fallback={<p className="text-muted">Loading what applies to you…</p>}>
         <Requirements />
@@ -125,7 +117,6 @@ function FirstCheck({ place, paper }: { place: Place; paper: MyPaperwork }) {
   const structure = paper.context.decision.structure;
   return (
     <Card title={`Find what applies to you in ${place.stateName}`} icon="search" id="first-check" bodyClassName="gap-4">
-      <HowChecked />
       <p className="text-[15px] text-rule">
         {structure ? (
           `The check uses your business structure: ${STRUCTURE_NAMES[structure]}.`
@@ -138,37 +129,11 @@ function FirstCheck({ place, paper }: { place: Place; paper: MyPaperwork }) {
           </>
         )}
       </p>
-      <CheckRequirementsButton label="Find what applies to me" variant="primary" />
+      <CheckRequirementsButton label="Find what applies to me" variant="primary" auto />
     </Card>
   );
 }
 
-// Without a snapshot, says how a check works; with one, how that check went
-function HowChecked({ research }: { research?: ResearchSnapshot }) {
-  return (
-    <ul className="flex flex-col gap-2.5 text-[15px]">
-      <li className="flex items-start gap-2.5">
-        <ActorChip actor={research?.simulated ? "rule" : "ai"} />
-        <span>
-          {research?.simulated
-            ? "Practice rules read official pages and matched your answers to a fixed list. No AI looked at your business, and state and local sites weren’t searched."
-            : !research
-              ? "AI looks for official government (.gov) sites for your state, county and city, plus federal guidance, and lists what applies to your business."
-              : research.searched
-                ? "AI searched official government (.gov) sites for your state, county and city, plus federal guidance."
-                : "AI read official government (.gov) pages, including federal guidance. First Sale didn’t search state and local sites this time."}
-        </span>
-      </li>
-      <li className="flex items-start gap-2.5">
-        <ActorChip actor="rule" />
-        <span>
-          Only sites on the official .gov list count as official, and every quote, fee and deadline {research ? "was" : "is"} checked against the
-          page. Rules then decide whether each one applies to you, from your answers.
-        </span>
-      </li>
-    </ul>
-  );
-}
 
 function Results({ profile, research, paper }: { profile: BusinessProfile; research: ResearchSnapshot; paper: MyPaperwork }) {
   const { view, context } = paper;
@@ -179,11 +144,6 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
   // A change no watched answer explains, or a snapshot saved before answers were kept, can only say that something changed
   const unknownChange = recheck && !changes.some((change) => change.recheck);
   const sourceIds = new Map(research.sources.map((source) => [source.key, source]));
-  // The page follow-up search found, else a read page from the office named
-  const linkFor = (item: { whoToCall: string; sourceId?: string }) => {
-    const source = (item.sourceId ? sourceIds.get(item.sourceId) : undefined) ?? pageForOffice(item.whoToCall, research.sources);
-    return source ? { title: source.title, url: source.url } : null;
-  };
   const place = context.place;
 
   const by = (inclusion: Standing<PlanStep>["inclusion"]) => view.standings.filter((standing) => standing.inclusion === inclusion);
@@ -206,8 +166,11 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
   const groupOf = (key: string) => view.groups.find((group) => group.tasks.some((task) => task.step.key === key)) ?? null;
   const open = view.open.length;
   const applies = view.tasks.length;
-  // Saved without the deeper look, such as a check from before it existed
-  const unsettled = followUpCandidates(research.requirements).length;
+  // Looked into and decided against, each with First Sale's reason
+  const notNeeded = research.requirements.filter((requirement) => classify(requirement, context.profile, place, decision).status === "not_needed");
+  const answers = research.openQuestions.filter((item) => item.answer);
+  // The deeper look didn't finish, such as after a failed attempt: it runs again now
+  const deeper = !research.followedUpAt && (followUpCandidates(research.requirements).length > 0 || research.openQuestions.some((item) => !item.answer));
 
   return (
     <>
@@ -218,7 +181,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
           <div className="flex items-center gap-3">
             <IconTile icon="refresh" tone="warn" />
             <h2 id="changed-heading" className="font-display text-[22px] leading-snug">
-              Your answers changed since this check
+              You changed your answers
             </h2>
           </div>
           {changes.length ? (
@@ -236,49 +199,21 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
           ) : (
             <p>Some of your answers changed.</p>
           )}
-          <p className="text-rule">Nothing in your steps changes until you review it. Steps you’ve finished stay finished.</p>
-          {recheck ? (
-            <CheckRequirementsButton label="Check again" variant="primary" />
-          ) : (
-            <ActionButton action={replanAction} label="Show what changes" pendingLabel="Working it out…" variant="primary" />
-          )}
+          <p className="text-rule">First Sale is updating what applies for these answers. Steps you’ve finished stay finished.</p>
+          <CheckRequirementsButton label="Update my steps" variant="primary" auto from={recheck ? "check" : "replan"} />
         </section>
       ) : null}
 
-      {paper.plan.proposal ? (
-        <div id="review" className="scroll-mt-4">
-          <ReviewChanges
-            key={paper.plan.proposal.checkedAt.toISOString()}
-            checkedAt={paper.plan.proposal.checkedAt.toISOString()}
-            changes={paper.plan.proposal.changes}
-            from={paper.plan.proposal.from}
-          />
-        </div>
-      ) : null}
-
-      {!recheck && !research.followedUpAt && unsettled ? (
-        <section aria-labelledby="deeper-heading" className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6">
-          <div className="flex items-center gap-3">
-            <IconTile icon="search" tone="ai" />
-            <h2 id="deeper-heading" className="font-display text-[22px] leading-snug">
-              Some rules aren’t settled yet
-            </h2>
-          </div>
-          <p className="text-rule">
-            Official pages from your check didn’t settle {unsettled === 1 ? "one rule" : `${unsettled} rules`}. First Sale can search each office’s own site, explain what usually decides each one, and find who to write to about the rest, with one message per office.
-          </p>
-          <FollowUpButton count={unsettled} />
-        </section>
-      ) : null}
+      {deeper && !recheck ? <CheckRequirementsButton label="Finish the check" variant="primary" auto from="follow" /> : null}
 
       <div className="flex flex-wrap items-center gap-2">
         <Chip tone="accent" icon="check">
           {applies} {applies === 1 ? "applies" : "apply"} to you
         </Chip>
         <Chip tone={open ? "warn" : "done"} icon={open ? "question" : "check"}>
-          {open ? `${open} ${open === 1 ? "question" : "questions"} left` : "Every question answered"}
+          {open ? `${open} ${open === 1 ? "question" : "questions"} about your plans` : "Nothing left to answer"}
         </Chip>
-        {said.length ? <Chip icon="minus">{said.length} you said don’t apply</Chip> : null}
+        {notNeeded.length ? <Chip icon="minus">{notNeeded.length} not needed</Chip> : null}
         <span className="text-sm text-muted">
           Checked <LocalDate iso={research.checkedAt.toISOString()} />
         </span>
@@ -287,10 +222,10 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
       <section id="questions" aria-labelledby="questions-heading" className="flex scroll-mt-4 flex-col gap-3">
         <div className="flex flex-col gap-1">
           <h2 id="questions-heading" className="font-display text-[24px] leading-snug">
-            Quick questions
+            About your plans
           </h2>
           <p className="text-[15px] text-muted">
-            Each one decides whether a rule applies to you. “Not sure” is a fine answer: finding out becomes a step, with a message you can send.
+            First Sale works out the rules. These are about what you plan to do, so it can tell you exactly which ones are yours. If you haven’t decided, say so: the step stays in your plan so you’re covered.
           </p>
         </div>
         {questions.length ? (
@@ -301,7 +236,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
           </ol>
         ) : open ? null : (
           <Note icon="check" tone="quiet">
-            No questions left. Everything that applies to you is in your paperwork below.
+            Nothing left to answer. Everything that applies to you is in your paperwork below.
           </Note>
         )}
         {places.length ? (
@@ -318,7 +253,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
                   )}
                   <span className="text-[15px] text-rule">{standing.place[0]}</span>
                   {standing.inclusion === "check_place" ? (
-                    <span className="text-sm text-muted">Added to your paperwork as a step to find out where you are.</span>
+                    <span className="text-sm text-muted">Add where you are to your answers, and First Sale settles this.</span>
                   ) : null}
                 </li>
               ))}
@@ -346,7 +281,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
           </Card>
         ) : null}
         {answered.length ? (
-          <Fold title={`Your answers (${answered.length})`} summary="What you said applies, or aren’t sure about" icon="check">
+          <Fold title={`Your answers (${answered.length})`} summary="What you told First Sale about your plans" icon="check">
             <ul className="flex flex-col divide-y divide-line">
               {answered.map((standing) => (
                 <AnsweredRow key={standing.step.id} standing={standing} group={groupOf(standing.step.key)} />
@@ -360,19 +295,33 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
 
       <div className="flex flex-col gap-3">
         {said.length ? (
-          <StepGroup level={2} id="not-for-you" title="Doesn’t apply to you" help="You said no. Undo one to be asked again." icon="minus" count={said.length}>
+          <StepGroup level={2} id="not-for-you" title="Left out, from your answers" help="Your plans don’t include these. Undo one if that changes." icon="minus" count={said.length}>
             <ul className="flex flex-col divide-y divide-line">
               {said.map((standing) => (
                 <li key={standing.step.id} className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1 py-2.5">
                   <span className="flex min-w-0 flex-1 basis-64 flex-col">
                     <span className="font-semibold">{standing.step.title}</span>
-                    <span className="text-sm text-muted">You said no to: {standing.question}</span>
+                    <span className="text-sm text-muted">You said no: {standing.question}</span>
                   </span>
                   <UndoAnswer stepKey={standing.step.key} condition={standing.question ?? ""} title={standing.step.title} />
                 </li>
               ))}
             </ul>
           </StepGroup>
+        ) : null}
+
+        {notNeeded.length ? (
+          <Fold title={`Not needed for your business (${notNeeded.length})`} summary="First Sale looked into these, and they don’t apply to you" icon="minus">
+            <ul className="flex flex-col divide-y divide-line">
+              {notNeeded.map((requirement) => (
+                <li key={requirement.id} className="flex flex-col gap-0.5 py-2.5 first:pt-0 last:pb-0">
+                  <span className="font-semibold">{requirement.title}</span>
+                  {requirement.background ? <span className="text-[15px] text-rule">{requirement.background}</span> : null}
+                  {requirement.evidence ? <span className="text-sm text-muted">From the official page: “{requirement.evidence}”</span> : null}
+                </li>
+              ))}
+            </ul>
+          </Fold>
         ) : null}
 
         {optional.length ? (
@@ -387,7 +336,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
               items={outside.map((standing) => ({
                 key: standing.step.id,
                 title: standing.step.title,
-                detail: standing.step.whoToCall ? `Ask ${standing.step.whoToCall}.` : summaryOf(standing.step),
+                detail: standing.step.whoToCall ? `Handled by ${standing.step.whoToCall}.` : summaryOf(standing.step),
                 href: `/checklist/${standing.step.id}`,
               }))}
             />
@@ -406,9 +355,6 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
 
         {research.conflicts.length ? (
           <Fold title={`Where official pages disagree (${research.conflicts.length})`} summary="Read each one before you rely on it" icon="alert">
-            <p className="flex items-center gap-2 text-sm text-muted">
-              <ActorChip actor="ai" /> found these
-            </p>
             <ul className="flex flex-col gap-4">
               {research.conflicts.map((conflict, index) => (
                 <li key={index} className="flex flex-col gap-1.5">
@@ -423,33 +369,13 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
           </Fold>
         ) : null}
 
-        {research.openQuestions.length ? (
-          <Fold title={`Still to find out (${research.openQuestions.length})`} summary="Gaps in what First Sale could check, each with a message you can send" icon="question">
+        {answers.length ? (
+          <Fold title={`More First Sale looked into (${answers.length})`} summary="Questions that came up while checking, and what they mean for you" icon="search">
             <ul className="flex flex-col gap-2.5">
-              {research.openQuestions.map((item, index) => (
+              {answers.map((item, index) => (
                 <li key={index} className="flex flex-col gap-1 rounded-xl border border-line bg-soft px-3.5 py-3">
                   <span className="font-semibold">{item.question}</span>
-                  {item.whoToCall ? (
-                    <span className="flex items-center gap-1.5 text-sm text-rule">
-                      <Icon name="office" size="xs" className="text-faint" />
-                      <span>
-                        <span className="font-semibold">Who can tell you:</span> {item.whoToCall}
-                      </span>
-                    </span>
-                  ) : null}
-                  <details className="group/ask">
-                    <summary className="flex min-h-11 w-fit cursor-pointer list-none items-center gap-1.5 text-[15px] font-semibold text-accent hover:text-accent-ink [&::-webkit-details-marker]:hidden">
-                      <Icon name="chevron" size="sm" className="transition-transform group-open/ask:rotate-90 motion-reduce:transition-none" />
-                      Ask in writing
-                    </summary>
-                    <div className="mt-1 text-[15px]">
-                      <WrittenInquiry
-                        inquiry={writtenInquiry({ questions: [item.question], profile, place: placeOf(profile) })}
-                        office={item.whoToCall}
-                        link={linkFor(item)}
-                      />
-                    </div>
-                  </details>
+                  <span className="text-[15px] text-rule">{item.answer}</span>
                 </li>
               ))}
             </ul>
@@ -458,8 +384,8 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
 
         {research.assumptions.length ? (
           <Fold title="What we assumed" summary="These guesses about your business shaped the list" icon="lightbulb">
-            <p className="flex items-center gap-2 text-sm text-muted">
-              <ActorChip actor="ai" /> If one is wrong, correct your answers, then check again.
+            <p className="text-sm text-muted">
+              If one is wrong, correct your answers, then check again.
             </p>
             <ul className="flex list-disc flex-col gap-1 pl-5 marker:text-faint">
               {research.assumptions.map((assumption, index) => (
@@ -477,8 +403,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
           {research.coverage.length ? <CoverageList cells={research.coverage} /> : <p className="text-muted">Check again to see what each part covered.</p>}
         </Fold>
 
-        <Fold title="How this was checked" summary={`${research.sources.length} official ${research.sources.length === 1 ? "page" : "pages"}, and who decided what`} icon="info">
-          <HowChecked research={research} />
+        <Fold title="How this was checked" summary={`${research.sources.length} official ${research.sources.length === 1 ? "page" : "pages"}`} icon="info">
           <div className="text-sm">
             <SourceLinks sources={research.sources} />
           </div>
@@ -503,7 +428,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
 
       {changes.length || unknownChange ? null : (
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-muted">Rules change. Checking again keeps your answers to these questions unless a question’s wording changes.</p>
+          <p className="text-sm text-muted">Rules change. Checking again keeps your answers about your plans.</p>
           <CheckRequirementsButton label="Check again" variant="secondary" />
         </div>
       )}
@@ -516,12 +441,12 @@ function QuestionCard({ standing }: { standing: Standing<PlanStep> }) {
   const why = summaryOf(standing.step);
   return (
     <li className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-4 shadow-card sm:p-5">
-      <p className="text-[13.5px] font-bold uppercase tracking-[0.08em] text-accent">Does this apply to you?</p>
+      <p className="text-[13.5px] font-bold uppercase tracking-[0.08em] text-accent">About your plans</p>
       <p id={id} className="font-display text-[20px] leading-snug">
         {standing.question}
       </p>
       <p className="text-[15px] text-muted">
-        <span className="font-semibold text-rule">About: {standing.step.title}.</span> {why}
+        <span className="font-semibold text-rule">It decides: {standing.step.title}.</span> {why}
       </p>
       <AnswerButtons stepKey={standing.step.key} condition={standing.question ?? ""} labelledBy={id} />
     </li>
@@ -540,13 +465,13 @@ function AnsweredRow({ standing, group }: { standing: Standing<PlanStep>; group:
           <span className="text-sm text-muted">{standing.question}</span>
         </span>
         <Chip tone={standing.answer === "yes" ? "accent" : "warn"} icon={standing.answer === "yes" ? "check" : "question"}>
-          {standing.answer === "yes" ? "You said yes" : "You’re not sure"}
+          {standing.answer === "yes" ? "You said yes" : "Not decided yet"}
         </Chip>
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[15px]">
         {group ? (
           <Link href={`/checklist/${standing.step.id}`} className={TEXT_LINK}>
-            {standing.answer === "unsure" ? "Find out if this applies" : "Open this step"}, in {group.name}
+            Open this step, in {group.name}
           </Link>
         ) : null}
         <ChangeAnswer stepKey={standing.step.key} condition={standing.question ?? ""} current={standing.answer!} labelledBy={id} />

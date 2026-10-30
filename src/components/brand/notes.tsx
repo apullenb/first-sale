@@ -4,7 +4,6 @@ import { Icon, type IconName } from "@/components/icons";
 import { TEXT_LINK } from "@/components/styles";
 import { Card } from "@/components/ui";
 import { getImageModel, getModel } from "@/lib/ai";
-import { dollars } from "@/lib/brand/cost";
 import { CHECKED, USPTO } from "@/lib/brand/sizes";
 
 // Where brand files go depends on which AI service this copy of First Sale is set up with
@@ -49,19 +48,6 @@ export async function BrandNotes() {
             <li key={point}>{point}</li>
           ))}
           <li>Nothing is posted for you. Files you choose wait in your brand kit and Brand Library until you download them.</li>
-        </ul>
-      </Note>
-      <Note icon="dollar" title="What it costs">
-        <ul className="flex list-disc flex-col gap-1.5 pl-5 text-rule marker:text-accent">
-          <li>
-            Meta charges {dollars(1)} for each picture Muse Image makes, and nothing for ones that fail or are blocked (
-            <a href="https://dev.meta.ai/docs/pricing-rate-limits" target="_blank" rel="noreferrer" className={TEXT_LINK}>
-              Meta’s pricing
-            </a>
-            , checked {CHECKED}). Every button says how many pictures it makes.
-          </li>
-          <li>Writing ideas and checking spelling use Muse Spark, which Meta charges by how much it reads and writes, not per picture.</li>
-          <li>If you press a button again after a lost connection, First Sale returns what was already made instead of paying twice.</li>
         </ul>
       </Note>
     </Card>

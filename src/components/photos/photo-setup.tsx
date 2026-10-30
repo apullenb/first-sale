@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useId, useLayoutEffect, useRef, useState } from "react";
 import { generatePhotoAction } from "@/app/(app)/photos/actions";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { PICKS, PickOption } from "@/components/marketing/pieces";
 import { AI_BUTTON, ALERT, INPUT } from "@/components/styles";
@@ -118,7 +117,7 @@ export function PhotoSetup({ photoId, objects, question, aiCategory, initial, se
       {question ? (
         <div className="flex flex-col gap-1.5">
           <label htmlFor={`${uid}-answer`} className="flex flex-wrap items-center gap-2 text-[17px] font-bold">
-            <ActorChip actor="ai" /> {question}
+            {question}
           </label>
           <input
             id={`${uid}-answer`}

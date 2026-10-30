@@ -2,7 +2,6 @@
 
 import { type FormEvent, type ReactNode, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { deleteProductAction, saveProductAction } from "@/app/(app)/products/actions";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { ALERT, DANGER, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { dollars, formOf, marginOf, PRODUCT_LIMITS, type ProductForm, type ProductPhotoRef, type ProductValues } from "@/lib/rules/products";
@@ -108,7 +107,6 @@ function ProductRow({ product, photo, missingPhoto, onEdit }: { product: ListedP
         <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
           {margin ? (
             <li className="flex flex-wrap items-center gap-1.5">
-              <ActorChip actor="rule" />
               Costs you {dollars(product.unitCostCents ?? 0)}, so {margin.cents >= 0 ? `${dollars(margin.cents)} is left` : `you lose ${dollars(-margin.cents)}`} from each sale
               {margin.percent !== null && margin.cents >= 0 ? ` (${margin.percent}%)` : ""}
             </li>

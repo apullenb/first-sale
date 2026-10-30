@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { type ReactNode, useLayoutEffect, useOptimistic, useRef, useState, useTransition } from "react";
 import { markInsightAction, writeInsightsAction } from "@/app/(app)/insights/actions";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon, type IconName } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { PracticeBanner } from "@/components/practice-banner";
@@ -155,7 +154,6 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
           First Sale reads what you’ve told it so far, like your answers, licenses and registrations, brand and website, and shares what’s strong, a few
           things to keep an eye on, tips for success and creative ideas.
         </p>
-        <WhoDoesWhat simulated={practice} />
         {practice ? (
           <p className="flex items-start gap-2 text-sm text-check">
             <Icon name="info" size="sm" className="mt-px" />
@@ -236,7 +234,6 @@ function SavedInsights({ insights, marks, changed, onMark, refreshButton, errorA
       <InsightSections items={insights.items} marks={marks} onMark={onMark} />
 
       <footer className="flex flex-col gap-3 border-t border-line pt-5">
-        <WhoDoesWhat simulated={insights.simulated} />
         <p className="text-sm text-muted">
           Anything about laws, permits, taxes or fees links to pages First Sale checked against official sources. Points that state their own
           rules, fees or numbers are left out.
@@ -250,22 +247,6 @@ function SavedInsights({ insights, marks, changed, onMark, refreshButton, errorA
   );
 }
 
-function WhoDoesWhat({ simulated }: { simulated: boolean }) {
-  return (
-    <ul aria-label="Who does what" className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-rule">
-      <li className="flex items-center gap-2">
-        {simulated ? <ActorChip actor="rule" /> : <ActorChip actor="ai" />}
-        {simulated ? "make sample insights in practice mode" : "writes insights from your answers"}
-      </li>
-      <li className="flex items-center gap-2">
-        <ActorChip actor="rule" /> keep them kind and stick to your facts
-      </li>
-      <li className="flex items-center gap-2">
-        <ActorChip actor="owner" /> keep what’s useful
-      </li>
-    </ul>
-  );
-}
 
 // One clear next action: the first thing to plan for, else the first tip, that the owner hasn't dismissed
 function NextStep({ items, marks }: { items: Insight[]; marks: Marks }) {

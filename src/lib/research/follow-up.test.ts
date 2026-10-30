@@ -46,7 +46,7 @@ describe("officeOf", () => {
 });
 
 describe("followUpRequirements", () => {
-  it("runs offline in practice mode: no search, background and questions for each rule, no made-up contacts", async () => {
+  it("runs offline in practice mode: no search, a decision and reason for each rule and open question, no made-up contacts", async () => {
     const unconfirmed = [
       { ...requirementDraft({ key: "license", title: "City business license", level: "city", agency: "City clerk" }), verification: "needs_verification" },
       { ...requirementDraft({ key: "home", title: "Home business permit", level: "city", agency: "Planning" }), verification: "needs_verification" },
@@ -54,12 +54,13 @@ describe("followUpRequirements", () => {
     const fetchImpl = async () => {
       throw new Error("nothing is fetched without search");
     };
-    const result = await followUpRequirements(createMockProvider(), profile, place, unconfirmed, { fetchImpl });
+    const result = await followUpRequirements(createMockProvider(), profile, place, unconfirmed, { fetchImpl, open: [{ question: "Do markets need their own permit?" }] });
     expect(result.pages).toEqual([]);
     expect(result.confirmed).toEqual([]);
     expect(result.notes.map((note) => note.key)).toEqual(["license", "home"]);
-    expect(result.notes[0].background).toMatch(/^Practice background/);
-    expect(result.notes[0].questions[0]).toMatch(/City business license/);
+    expect(result.notes[0]).toMatchObject({ verdict: "applies", evidence: null });
+    expect(result.notes[0].background).toMatch(/^Practice reason/);
+    expect(result.answers).toEqual([{ question: "Do markets need their own permit?", answer: expect.stringMatching(/^Practice answer/) }]);
     expect(result.offices).toEqual([{ key: "city:city-of-aubrey", name: "City of Aubrey", level: "city", contacts: { emails: [], phones: [] }, site: null }]);
   });
 });

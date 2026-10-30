@@ -76,7 +76,7 @@ describe("condition answers", () => {
     await setConditionAnswerForOwner(db, "owner-a", { stepKey: "sales-tax", condition: TAXED, answer: "no" });
     expect(await inclusionOf("owner-a", "sales-tax")).toBe("no");
     await setConditionAnswerForOwner(db, "owner-a", { stepKey: "sales-tax", condition: TAXED, answer: "unsure" });
-    expect(await inclusionOf("owner-a", "sales-tax")).toBe("find_out");
+    expect(await inclusionOf("owner-a", "sales-tax")).toBe("task");
     await setConditionAnswerForOwner(db, "owner-a", { stepKey: "sales-tax", condition: TAXED, answer: null });
     expect(await listConditionAnswersForOwner(db, "owner-a")).toEqual([]);
   });

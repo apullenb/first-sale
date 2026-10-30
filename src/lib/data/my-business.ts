@@ -19,7 +19,7 @@ import {
   type NewDocument,
   updateDocumentForOwner,
 } from "./documents";
-import { getPlanForOwner, getStepForOwner, replanForOwner, reviewPlanForOwner, setStepStatusForOwner } from "./plan";
+import { getPlanForOwner, getStepForOwner, replanForOwner, setStepStatusForOwner } from "./plan";
 import { getResearchBasisForOwner, getResearchForOwner, type ResearchBasis, type ResearchSnapshot, saveFollowUpForOwner, saveResearchForOwner } from "./research";
 import { listConditionAnswersForOwner, setConditionAnswerForOwner } from "./condition-answers";
 import {
@@ -202,11 +202,6 @@ export async function getMyPaperwork(): Promise<MyPaperwork | null> {
   if (!business?.profile || !plan) return null;
   const context = paperworkContext(business.profile, details, basis, answers);
   return { business, profile: business.profile, plan, details, basis, context, view: paperwork(plan.steps, context) };
-}
-
-export async function reviewMyPlan(input: { checkedAt: Date; acceptedKeys: readonly string[] }) {
-  const user = await getCurrentUser();
-  return reviewPlanForOwner(getDb(), user.id, input);
 }
 
 export async function getMyStep(stepId: string) {
@@ -578,7 +573,7 @@ export async function listMyHistory(filter: { kind?: BusinessEvent["kind"]; limi
 
 // Requirements, plan and documents
 
-// Rebuilds the plan from saved research after an answer or decision changes; changes wait for the owner's review
+// Rebuilds the plan from saved research after a decision changes, applied straight away
 export async function replanMyPlan(profile: BusinessProfile, details: readonly { key: string; value: string }[]) {
   const user = await getCurrentUser();
   return replanForOwner(getDb(), user.id, profile, details);
