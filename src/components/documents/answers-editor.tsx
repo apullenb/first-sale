@@ -5,7 +5,6 @@ import { draftAnswersAction, saveAnswersAction } from "@/app/(app)/documents/act
 import { refreshDraftAction } from "@/app/(app)/documents/form-actions";
 import { Icon } from "@/components/icons";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
-import { WhoDoesWhat } from "./parts";
 import { Working } from "@/components/working";
 import type { FieldKind } from "@/lib/documents/types";
 
@@ -118,19 +117,7 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
 
   return (
     <div className="flex flex-col gap-4">
-      <WhoDoesWhat
-        items={[
-          [
-            practice || rules ? "rule" : "ai",
-            rules
-              ? "First Sale’s checked rules for this form filled blanks from your business details. Nothing is guessed, and blanks your details don’t answer stay empty."
-              : practice
-                ? "Practice mode matched blanks to your business details with simple word matching, not AI. Check every one closely."
-                : "AI matched blanks to your business details. It never makes up an answer.",
-          ],
-          ["owner", "You check and confirm each one. Only confirmed answers go into a filled copy."],
-        ]}
-      />
+      {practice && !rules ? <p className="text-[15px] text-rule">Practice mode matched blanks to your business details with simple word matching, not AI. Check every one closely.</p> : null}
 
       {draftBlocked ? (
         <p className="text-sm text-muted">{draftBlocked}</p>

@@ -10,7 +10,6 @@ import { Icon } from "@/components/icons";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { Working } from "@/components/working";
 import { Card } from "@/components/ui";
-import { WhoDoesWhat } from "./parts";
 
 // "have": a paper the owner already has or got in the mail; "fill": a form to fill in
 export type AddKind = "have" | "fill";
@@ -151,20 +150,14 @@ export function AddFormPanel({ steps, initialStep, initialKind, initialMode, acc
       >
         <div className="flex flex-col gap-2.5">
           {kind === "have" ? (
-            <>
-              <p className="text-rule">
-                Upload papers you already have, like your LLC certificate or EIN letter, or a letter you got in the mail and aren’t sure about. First Sale can
-                explain what it is, what it means, and anything you need to do.
-              </p>
-              <WhoDoesWhat items={[["ai", "AI reads it only if you ask for an explanation. Social Security, tax ID and card numbers are left out of the explanation."]]} />
-            </>
+            <p className="text-rule">
+              Upload papers you already have, like your LLC certificate or EIN letter, or a letter you got in the mail and aren’t sure about. First Sale can
+              explain what it is, what it means, and anything you need to do.
+            </p>
           ) : (
-            <>
-              <p className="text-rule">
-                Add a form you need to fill in, such as a registration or permit application. First Sale reads it, explains it, and helps you draft answers.
-              </p>
-              <WhoDoesWhat items={[["ai", "AI reads the form and finds the blanks to fill in. First Sale never files or submits anything for you."]]} />
-            </>
+            <p className="text-rule">
+              Add a form you need to fill in, such as a registration or permit application. First Sale reads it, explains it, and helps you draft answers.
+            </p>
           )}
         </div>
 

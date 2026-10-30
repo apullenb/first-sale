@@ -182,7 +182,7 @@ describe("follow-up", () => {
 
   const office = officeOf({ level: "city", agency: "" }, place);
 
-  it("confirms what a new page backs, gives the rest background, and keeps one step per office", async () => {
+  it("confirms what a new page backs, decides the rest with a reason, and leaves out what isn't needed", async () => {
     await saveOpenRules();
     const page = retrievedPage({ id: "fu-license-1", text: "A license is required.", url: "https://www.example.gov/license" });
     const outcome = await saveFollowUpForOwner(
@@ -193,9 +193,10 @@ describe("follow-up", () => {
         pages: [page],
         confirmed: [{ ...open("license"), sourceIds: ["fu-license-1"], evidence: "A license is required.", verification: "sourced", problems: [] }],
         notes: [
-          { key: "home", background: "Home rules usually turn on customer visits.", questions: ["Do I need a home permit?"] },
-          { key: "sign", background: "", questions: ["Do I need a sign permit?"] },
+          { key: "home", verdict: "applies", background: "Home bakeries here usually need this.", sourceIds: [], evidence: null },
+          { key: "sign", verdict: "not_needed", background: "Small home businesses without a sign don’t need this.", sourceIds: [], evidence: null },
         ],
+        answers: [],
         offices: [{ ...office, contacts: { emails: [{ value: "clerk@example.gov", url: page.url }], phones: [] }, site: null }],
       },
       cityProfile,
@@ -207,20 +208,21 @@ describe("follow-up", () => {
     expect(saved?.followedUpAt).toBeInstanceOf(Date);
     expect(saved?.sources.map((source) => source.key)).toContain("fu-license-1");
     const byKey = new Map(saved!.requirements.map((row) => [row.key, row]));
-    expect(byKey.get("license")).toMatchObject({ verification: "sourced", evidence: "A license is required.", background: "" });
-    expect(byKey.get("home")).toMatchObject({ background: "Home rules usually turn on customer visits.", whatToAsk: ["Do I need a home permit?"] });
+    expect(byKey.get("license")).toMatchObject({ verification: "sourced", evidence: "A license is required.", background: "", verdict: "applies" });
+    expect(byKey.get("home")).toMatchObject({ verdict: "applies", background: "Home bakeries here usually need this." });
+    expect(byKey.get("sign")).toMatchObject({ verdict: "not_needed", status: "not_needed" });
 
-    // Nothing was started, so this finishes the check's own plan: the confirmed rule is a step, the other two one message
+    // What applies is a step with its reason and the office's contacts; what isn't needed leaves the plan
     const tasks = await db.select().from(checklistTasks);
-    const ask = tasks.find((task) => task.key.startsWith("ask-"));
-    expect(tasks.map((task) => task.key).sort()).toEqual([ask!.key, "license"].sort());
-    expect(ask).toMatchObject({ contacts: { emails: [{ value: "clerk@example.gov", url: page.url }], phones: [] } });
-    expect(ask!.notes).toEqual([{ title: "Rule home", background: "Home rules usually turn on customer visits." }]);
+    expect(tasks.map((task) => task.key).sort()).toEqual(["home", "license"]);
+    const home = tasks.find((task) => task.key === "home")!;
+    expect(home.notes).toEqual([{ title: "Rule home", background: "Home bakeries here usually need this." }]);
+    expect(home.contacts).toEqual({ emails: [{ value: "clerk@example.gov", url: page.url }], phones: [] });
   });
 
   it("does nothing when a newer check replaced the one it followed", async () => {
     await saveOpenRules();
-    const outcome = await saveFollowUpForOwner(db, "owner-a", new Date("2026-10-25T00:00:00Z"), { pages: [], confirmed: [], notes: [], offices: [] }, cityProfile, []);
+    const outcome = await saveFollowUpForOwner(db, "owner-a", new Date("2026-10-25T00:00:00Z"), { pages: [], confirmed: [], notes: [], answers: [], offices: [] }, cityProfile, []);
     expect(outcome).toBe("stale");
     expect((await getResearchForOwner(db, "owner-a"))?.followedUpAt).toBeNull();
   });

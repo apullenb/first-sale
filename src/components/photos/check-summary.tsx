@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { PRIMARY_LINK } from "@/components/styles";
 import { PROBLEM_LABELS } from "@/lib/photos/looks";
@@ -27,7 +26,6 @@ export function CheckSummary({ check }: { check: PhotoCheck }) {
   return (
     <div className="flex flex-col gap-3">
       <p className="flex flex-wrap items-start gap-2.5 text-rule">
-        <ActorChip actor="ai" />
         <span className="min-w-0 flex-1">{check.summary || "AI looked at your photo."}</span>
       </p>
 

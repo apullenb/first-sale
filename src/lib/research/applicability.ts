@@ -4,23 +4,25 @@ import { STATE_NAMES } from "@/lib/intake/options";
 // Plain rules over a checked requirement and the owner's confirmed answers: does it apply, and on what.
 // "Unsure" and unanswered are unknowns, never "no". The owner's place comes from their answers, never a ZIP code.
 
-export const REQUIREMENT_STATUSES = ["verified", "conditional", "optional", "needs_confirmation", "outside_coverage"] as const;
+export const REQUIREMENT_STATUSES = ["verified", "conditional", "optional", "needs_confirmation", "outside_coverage", "not_needed"] as const;
 export type RequirementStatus = (typeof REQUIREMENT_STATUSES)[number];
 
 export const STATUS_LABELS: Record<RequirementStatus, string> = {
   verified: "Applies to you",
   conditional: "Depends on something",
   optional: "Your choice",
-  needs_confirmation: "To confirm",
+  needs_confirmation: "Applies to you",
   outside_coverage: "Outside what we check",
+  not_needed: "Not needed",
 };
 
 export const STATUS_HELP: Record<RequirementStatus, string> = {
   verified: "An official page confirms this, and it fits your answers.",
   conditional: "It applies only if something is true. Each one says what.",
   optional: "Not required, but worth knowing about.",
-  needs_confirmation: "No official page confirmed it yet. That doesn’t mean it doesn’t apply.",
+  needs_confirmation: "Official pages don’t spell this out for your area, so First Sale decided from how it works for businesses like yours. Each one says why.",
   outside_coverage: "First Sale doesn’t research this kind of rule. Each one links to who does.",
+  not_needed: "First Sale looked into it, and it doesn’t apply to a business like yours. Each one says why.",
 };
 
 export interface Place {
@@ -83,9 +85,14 @@ export const STRUCTURE_NAMES: Record<BusinessStructure, string> = {
 
 type Checked = Pick<RequirementDraft, "key" | "title" | "topic" | "level" | "applicability" | "condition" | "forStructures"> & {
   verification: VerificationState;
+  // The deeper look's decision on a rule no official page settled
+  verdict?: Verdict | null;
 };
 
-// The owner's answer to "does this apply to you?"; "unsure" is an answer, kept as an open question
+export const VERDICTS = ["applies", "not_needed"] as const;
+export type Verdict = (typeof VERDICTS)[number];
+
+// The owner's answer to a question about their own plans; "unsure" plans on the step, so they're covered
 export const CONDITION_ANSWERS = ["yes", "no", "unsure"] as const;
 export type ConditionAnswer = (typeof CONDITION_ANSWERS)[number];
 
@@ -102,8 +109,9 @@ export interface Classified {
   answer: ConditionAnswer | null;
 }
 
-// What a government requires is for First Sale to confirm with the office, never a question for the owner
-const ABOUT_RULES = /\b(require[sd]?|requiring|allows?|allowed|prohibits?|bans?)\b/i;
+// What a government requires is for First Sale to decide, never a question for the owner: only facts about their own plans are asked
+const ABOUT_RULES =
+  /\b(require[sd]?|requiring|allows?|allowed|prohibits?|bans?|approv\w*|permits?|permitted|licen[cs]\w*|regist\w*|files?|filing|dba|zon\w*|compl(y|ies|iance)|rules?|regulat\w*|ordinances?|exempt\w*|inspect\w*|county|city)\b/i;
 export const asksAboutRules = (condition: string) => ABOUT_RULES.test(condition);
 
 // Conditional with no reason given is still a question, never a "yes"
@@ -133,7 +141,9 @@ export function classify(requirement: Checked, profile: BusinessProfile, place: 
   conditions.push(...placeConditions(requirement.level, place));
 
   const status: RequirementStatus =
-    requirement.applicability === "outside_coverage"
+    requirement.verdict === "not_needed"
+      ? "not_needed"
+      : requirement.applicability === "outside_coverage" && requirement.verdict !== "applies"
       ? "outside_coverage"
       : requirement.applicability === "optional"
         ? "optional"
@@ -159,27 +169,12 @@ export function placeConditions(level: JurisdictionLevel, place: Place): string[
   return [];
 }
 
-// What's missing about the owner's place for a rule at this level: the fix, and a written question for whoever can tell them
-export function placeGap(level: JurisdictionLevel, place: Place): { action: string; question: string; office: string } | null {
-  const county = place.county ? `${place.county} County` : "county";
-  if (level === "county" && !place.county) {
-    return { action: "Add your county to your answers", question: "My business address is [your address]. Which county is it in?", office: "your county’s property tax office" };
-  }
+// What's missing about the owner's place for a rule at this level, as the fix in their answers
+export function placeGap(level: JurisdictionLevel, place: Place): { action: string } | null {
+  if (level === "county" && !place.county) return { action: "Add your county to your answers" };
   if (level !== "city") return null;
-  if (!place.city) {
-    return {
-      action: "Add your city to your answers",
-      question: "My business address is [your address]. Is it inside a city’s limits, and which city?",
-      office: `the ${county} planning office`,
-    };
-  }
-  if (place.insideCity === "unknown") {
-    return {
-      action: `Confirm whether you’re inside ${place.city} city limits`,
-      question: `My business address is [your address]. Is it inside the city limits of ${place.city}?`,
-      office: `the ${county} property or planning office`,
-    };
-  }
+  if (!place.city) return { action: "Add your city to your answers" };
+  if (place.insideCity === "unknown") return { action: `Confirm whether you’re inside ${place.city} city limits` };
   return null;
 }
 

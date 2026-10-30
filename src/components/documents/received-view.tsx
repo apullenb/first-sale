@@ -14,7 +14,7 @@ import type { ReceivedGuide } from "@/lib/documents/types";
 import { AnchorNote } from "./anchor-note";
 import { DocumentHead } from "./document-head";
 import { fileHref, isReadable } from "./labels";
-import { docIcon, Tag, VersionList, WhoDoesWhat } from "./parts";
+import { docIcon, Tag, VersionList } from "./parts";
 import { ReplaceFile } from "./replace-file";
 import { RunNotice } from "./run-notice";
 import { StepLink } from "./step-link";
@@ -75,12 +75,6 @@ export function ReceivedView({ doc, steps, run, matched, versions, acceptedTypes
       {simulated ? <PracticeBanner what="This document was explained in practice mode." /> : null}
 
       <Card title="What this document is" icon="lightbulb" id="explain-heading">
-        <WhoDoesWhat
-          items={[
-            ["ai", "AI explains it in plain words, using only what the document says."],
-            ["rule", "Quotes, deadlines and amounts are checked against its text, and web addresses against the official .gov list."],
-          ]}
-        />
         <RunNotice run={run} what="Explaining this document" />
         {received ? (
           <Explanation received={received} flags={doc.guide?.flags ?? []} explainedAt={doc.guide?.createdAt ?? null} matched={matched} doc={doc} />
@@ -154,7 +148,7 @@ function Explanation({ received, flags, explainedAt, matched, doc }: Explanation
         <Note>
           <p className="font-semibold">It says it isn’t from a government office</p>
           <AnchorNote anchor={received.notGovernment} on={ON} />
-          <p className="mt-1 text-[14.5px]">Mail like this can look official. Before you pay, look the office up yourself and check with them directly.</p>
+          <p className="mt-1 text-[14.5px]">Mail like this can look official, but it’s a company selling a service, not a bill you owe. Your real filings and fees are in your steps.</p>
         </Note>
       ) : null}
 

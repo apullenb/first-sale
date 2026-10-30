@@ -27,13 +27,13 @@ const step: PlanTaskDraft & { status: "todo" } = {
 };
 
 describe("startupPlanBlocks", () => {
-  it("numbers the steps that apply, then lists rules still to settle apart, never as steps", () => {
+  it("numbers the steps that apply, then lists rules waiting on the owner's answers apart, never as steps", () => {
     const blocks = startupPlanBlocks({
       steps: [step],
       maybe: [{ title: "Sales tax permit", why: "Texas requires it for taxable sales.", conditions: ["Only if you sell anything Texas taxes."] }],
     });
-    expect(blocks.map((block) => block.heading)).toEqual(["1. Business license", "May apply: still to settle", "Sales tax permit (may apply)"]);
-    expect(blocks[2].paragraphs).toEqual(["Texas requires it for taxable sales.", "Still to settle: Only if you sell anything Texas taxes."]);
+    expect(blocks.map((block) => block.heading)).toEqual(["1. Business license", "Waiting on your answers", "Sales tax permit"]);
+    expect(blocks[2].paragraphs).toEqual(["Texas requires it for taxable sales.", "Depends on: Only if you sell anything Texas taxes."]);
   });
 
   it("leaves the part out when everything is settled", () => {

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { type ReactNode, Suspense } from "react";
 import { draftSocialBiosAction } from "@/app/(app)/social/actions";
-import { ActorChip } from "@/components/actor-chip";
 import { AlreadyHave } from "@/components/already-have";
 import { Icon, type IconName } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
@@ -196,17 +195,6 @@ async function SocialView() {
             A short bio for {toDraft.length === 1 ? PLATFORM_DATA[toDraft[0].id].name : `each of your ${toDraft.length} accounts`}, from what you’ve told First Sale. You
             change anything you like before approving.
           </p>
-          <ul aria-label="Who does what" className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted">
-            <li className="flex items-center gap-2">
-              <ActorChip actor="ai" /> drafts each bio
-            </li>
-            <li className="flex items-center gap-2">
-              <ActorChip actor="rule" /> fit it to each limit and take out links, prices and claims
-            </li>
-            <li className="flex items-center gap-2">
-              <ActorChip actor="owner" /> edit and approve
-            </li>
-          </ul>
           <AiProgressButton action={draftSocialBiosAction.bind(null, { platform: null })} label="Draft my bios" {...BIO_PROGRESS} />
         </NextUp>
       ) : null}

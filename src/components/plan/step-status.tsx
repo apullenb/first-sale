@@ -115,7 +115,7 @@ export function StepStatus({ stepId, title, status, note, submittedAt, submissio
 
   return (
     <div className="flex flex-col items-start gap-3">
-      {confirm(filing ? "I submitted this myself. First Sale doesn’t file or submit anything for me." : "I finished this step myself.")}
+      {confirm(filing ? "I submitted this myself." : "I finished this step myself.")}
       {noteField(filing ? "For example: filed online on May 3, confirmation emailed" : "For example: checked the rules on May 3")}
       <div className="flex flex-wrap gap-2.5">
         <button type="button" disabled={pending || !confirmed} onClick={() => save(filing ? "submitted" : "done")} className={PRIMARY}>

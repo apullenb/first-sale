@@ -14,8 +14,8 @@ import { followUpCandidates, followUpRequirements } from "@/lib/research/follow-
 import { profileKey, researchRequirements } from "@/lib/research/requirements";
 import { runWorkflow } from "@/lib/workflow-runner";
 
-// Searches for official pages (or reuses a search from the past week), reads them live, then replaces the saved requirements; the last results stay if it fails.
-// A plan that already exists isn't changed: the new one waits for the owner's review.
+// Searches for official pages (or reuses a search from the past week), reads them live, then replaces the saved requirements and the plan;
+// the last results stay if it fails. The page refreshes after the deeper look that always follows, so that look isn't started twice.
 export async function checkRequirementsAction(): Promise<ActionResult> {
   const business = await getMyBusiness();
   if (!business?.profile) return { ok: false, message: "Answer the questions about your business first." };
@@ -28,33 +28,39 @@ export async function checkRequirementsAction(): Promise<ActionResult> {
     if (!(await saveMyResearch(research, profile))) throw new OwnerFacingError("Your business wasn’t found. Reload the page and try again.");
   });
   if (!result.ok) return result;
-  refresh();
   return { ok: true, value: null };
 }
 
-// Runs right after a check: looks deeper into what no official page confirmed, on each office's own site.
-// What's still open becomes one step per office, with background and a message to send.
+// Runs right after a check: looks deeper into what no official page confirmed, on each office's own site,
+// and decides each one (applies or not needed) with a reason. Open questions get plain answers the same way.
 export async function followUpAction(): Promise<ActionResult> {
+  const outcome = await followUp();
+  refresh();
+  return outcome;
+}
+
+async function followUp(): Promise<ActionResult> {
   const [business, research] = await Promise.all([getMyBusiness(), getMyResearch()]);
   if (!business?.profile || !research?.profile) return { ok: false, message: "Find your requirements first." };
   if (profileKey(business.profile) !== research.profileKey) {
     return { ok: false, message: "Your answers changed since your requirements were checked. Re-check sources first." };
   }
+  if (research.followedUpAt) return { ok: true, value: null };
   const candidates = followUpCandidates(research.requirements);
-  if (!candidates.length) return { ok: true, value: null };
+  const open = research.openQuestions.filter((question) => !question.answer);
+  if (!candidates.length && !open.length) return { ok: true, value: null };
   const checked = research.profile;
 
   const result = await runWorkflow("follow_up", null, async () => {
     const found = await followUpRequirements(getModel(), checked, placeOf(checked), candidates.map(draftOf), {
       userKey: await myAiKey(),
       cache: dbSearchCache(getDb()),
+      open,
     });
     const outcome = await saveMyFollowUp(research.checkedAt, found, business.profile!, await getMyDetails());
     if (outcome === "no_business") throw new OwnerFacingError("Your business wasn’t found. Reload the page and try again.");
   });
-  if (!result.ok) return result;
-  refresh();
-  return { ok: true, value: null };
+  return result.ok ? { ok: true, value: null } : result;
 }
 
 // After a decision like the business structure changes: rebuilds the plan from saved research, no new search

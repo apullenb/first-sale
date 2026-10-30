@@ -29,7 +29,7 @@ import {
   type BusinessProfile,
   type BusinessStructure,
 } from "@/lib/domain";
-import { CONDITION_ANSWERS, REQUIREMENT_STATUSES } from "@/lib/research/applicability";
+import { CONDITION_ANSWERS, REQUIREMENT_STATUSES, VERDICTS } from "@/lib/research/applicability";
 import { DOCUMENT_ROLES } from "@/lib/documents/library";
 import type {
   DocumentContent,
@@ -116,7 +116,7 @@ export const researchSnapshots = pgTable("research_snapshots", {
   searched: boolean("searched").notNull().default(false),
   unreadSources: jsonb("unread_sources").$type<{ key: string; title: string; url: string; reason: string }[]>().notNull(),
   assumptions: jsonb("assumptions").$type<string[]>().notNull().default([]),
-  openQuestions: jsonb("open_questions").$type<{ question: string; whoToCall: string; sourceId?: string }[]>().notNull().default([]),
+  openQuestions: jsonb("open_questions").$type<{ question: string; whoToCall: string; sourceId?: string; answer?: string }[]>().notNull().default([]),
   // Plan built from this run; the owner reviews it when a plan already exists
   planProposal: jsonb("plan_proposal").$type<PlanTaskDraft[]>(),
   planReviewedAt: timestamp("plan_reviewed_at", { withTimezone: true }),
@@ -194,13 +194,14 @@ export const requirements = pgTable(
     renewal: text("renewal"),
     renewalFeeCents: integer("renewal_fee_cents"),
     alreadyHave: text("already_have"),
-    // General background from the follow-up check, for a rule no official page settled
+    // The deeper look's decision on a rule no official page settled, and why (background)
+    verdict: text("verdict", { enum: VERDICTS }),
     background: text("background").notNull().default(""),
   },
   (table) => [index("requirements_business_id_idx").on(table.businessId)],
 );
 
-// The startup plan. Rows are replaced only when the owner accepts a proposed change; done steps stay done.
+// The startup plan. A re-check or a changed decision rewrites it; done steps stay done.
 export const checklistTasks = pgTable(
   "checklist_tasks",
   {
@@ -247,7 +248,7 @@ export const checklistTasks = pgTable(
     alreadyHave: text("already_have"),
     // The model's condition, asked of the owner; empty when it doesn't depend on one
     question: text("question").notNull().default(""),
-    // For a step to confirm: background on each rule it covers, and the office's contact details
+    // Why First Sale decided a rule no official page spells out, and the office's contact details
     notes: jsonb("notes").$type<{ title: string; background: string }[]>().notNull().default([]),
     contacts: jsonb("contacts").$type<Contacts>(),
     // Filing progress: submitted, then done once the office approves; never set by opening a link

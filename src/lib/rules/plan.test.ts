@@ -28,10 +28,10 @@ describe("slugKey", () => {
   });
 });
 
-describe("asking offices", () => {
+describe("rules First Sale decided", () => {
   const place = placeOf(testProfile({ location: { state: "TX", county: "Denton County", city: "Aubrey", insideCityLimits: "yes" } }));
-  const open = (key: string, { background = "", ...overrides }: Parameters<typeof verifiedRequirement>[0] & { background?: string } = {}) => ({
-    ...verifiedRequirement({ key, title: `Rule ${key}`, level: "city", agency: "City clerk", whatToAsk: [`Does ${key} apply?`], ...overrides }),
+  const decided = (key: string, { background = "", ...overrides }: Parameters<typeof verifiedRequirement>[0] & { background?: string } = {}) => ({
+    ...verifiedRequirement({ key, title: `Rule ${key}`, level: "city", agency: "City clerk", ...overrides }),
     status: "needs_confirmation" as const,
     background,
   });
@@ -43,33 +43,21 @@ describe("asking offices", () => {
     site: { title: "Contact us", url: "https://www.aubreytx.gov/contact" },
   };
 
-  it("makes one step and one message per city for rules no page confirmed, with background and contacts", () => {
+  it("makes each one its own step, with First Sale's reason and the office's contacts, never a step to ask the office", () => {
     const plan = buildPlan(
-      [open("license", { background: "Many small cities don’t license home sellers." }), open("home"), verifiedRequirement({ key: "ein", verification: "sourced" })],
+      [decided("license", { background: "Aubrey licenses businesses that sell from home." }), decided("home"), verifiedRequirement({ key: "ein", level: "federal", verification: "sourced" })],
       sources,
       false,
       { place, offices: [aubrey] },
     );
-    expect(plan.map((step) => step.key)).toEqual(["ask-city-of-aubrey", "ein"]);
-    expect(plan[0]).toMatchObject({
-      title: "Ask the City of Aubrey about 2 rules",
-      requirementStatus: "needs_confirmation",
-      whatToAsk: ["Does license apply?", "Does home apply?"],
-      notes: [{ title: "Rule license", background: "Many small cities don’t license home sellers." }],
-      contacts: aubrey.contacts,
-      links: [{ url: "https://www.aubreytx.gov/contact", confirms: false }],
-    });
+    expect(plan.map((step) => step.key)).toEqual(["license", "home", "ein"]);
+    expect(plan[0]).toMatchObject({ notes: [{ title: "Rule license", background: "Aubrey licenses businesses that sell from home." }], contacts: aubrey.contacts, uncertainty: [] });
+    expect(plan[2].contacts).toBeNull();
   });
 
-  it("keeps rules for different county offices apart, and leaves a lone rule as its own step", () => {
-    const plan = buildPlan(
-      [open("food", { level: "county", agency: "Your county health department" }), open("vendor", { level: "county", agency: "The market organizer" }), open("license")],
-      sources,
-      false,
-      { place, offices: [aubrey] },
-    );
-    expect(plan.map((step) => step.key)).toEqual(["food", "vendor", "license"]);
-    expect(plan[2].contacts).toEqual(aubrey.contacts);
+  it("leaves out rules First Sale decided aren't needed", () => {
+    const plan = buildPlan([{ ...decided("sign"), status: "not_needed" as const }, decided("license")], sources, false, { place, offices: [aubrey] });
+    expect(plan.map((step) => step.key)).toEqual(["license"]);
   });
 });
 
@@ -160,20 +148,15 @@ describe("buildPlan", () => {
     expect(unsourced).toMatchObject({ feeCents: 500, feeCheckedAt: null });
   });
 
-  it("explains what's uncertain, depending on whether a page was cited", () => {
-    const [sourced, cited, uncited, professional] = buildPlan(
+  it("never passes doubt on to the owner as a step's uncertainty", () => {
+    const plan = buildPlan(
       [
-        verifiedRequirement({ key: "sourced", sourceIds: ["irs-ein"], verification: "sourced" }),
         verifiedRequirement({ key: "cited", sourceIds: ["irs-ein"], verification: "needs_verification" }),
-        verifiedRequirement({ key: "uncited", sourceIds: [], verification: "needs_verification" }),
-        verifiedRequirement({ key: "professional", sourceIds: ["irs-ein"], verification: "sourced", needsProfessional: true }),
+        verifiedRequirement({ key: "uncited", sourceIds: [], verification: "needs_verification", needsProfessional: true }),
       ],
       sources,
     );
-    expect(sourced.uncertainty).toEqual([]);
-    expect(cited.uncertainty).toEqual(["The official page we found doesn’t confirm the details of this step."]);
-    expect(uncited.uncertainty).toEqual(["We didn’t find an official page for this yet. That doesn’t mean it doesn’t apply."]);
-    expect(professional.uncertainty).toEqual(["A lawyer or accountant can help you decide how this applies to you."]);
+    expect(plan.map((step) => step.uncertainty)).toEqual([[], []]);
   });
 
   it("links each cited page, marking it as confirming only when the step is sourced", () => {

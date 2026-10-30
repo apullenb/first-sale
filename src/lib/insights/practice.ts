@@ -54,9 +54,9 @@ export function samplesFromMessage(message: string): InsightsReply {
   if (!checked) {
     watch.push(
       item(
-        "Find out which rules apply to you",
-        "Every place has its own rules for new businesses. First Sale can read the official pages for where you are and list what applies.",
-        "Run “Find my requirements” when you have a few minutes.",
+        "See which rules apply to you",
+        "Every place has its own rules for new businesses. First Sale reads the official pages for where you are and works out what applies.",
+        "Open What applies to you, and First Sale starts checking.",
         "requirements",
       ),
     );

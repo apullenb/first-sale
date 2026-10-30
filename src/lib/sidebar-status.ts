@@ -27,7 +27,6 @@ export async function getMySidebarStatus(): Promise<{ business: MyBusiness | nul
 const NO_FACTS = {
   business: false,
   research: "none",
-  proposal: false,
   questionsOpen: 0,
   structureChosen: false,
   structureStep: { left: 0, minutes: 0 },
@@ -59,7 +58,6 @@ async function statusFor(business: MyBusiness): Promise<NavStatus> {
   const parts = sidebarStatus({
     business: Boolean(profile),
     research: !paper?.basis ? "none" : profile && profileKey(profile) === paper.basis.profileKey ? "current" : "stale",
-    proposal: Boolean(paper?.plan.proposal),
     questionsOpen: view?.open.length ?? 0,
     structureChosen: Boolean(paper?.context.decision.structure),
     structureStep: { left: structureWork.left.length, minutes: structureWork.minutes },

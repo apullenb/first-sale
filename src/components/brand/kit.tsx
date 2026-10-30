@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { saveLogoGuideAction } from "@/app/(app)/brand/actions";
 import { ActionButton } from "@/components/action-button";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { SectionHead } from "@/components/marketing/pieces";
 import { TEXT_LINK } from "@/components/styles";
@@ -25,7 +24,7 @@ export function KitSection({ kit, guideId, number }: { kit: BrandKit; guideId: s
 
       <Card title="Colors" icon="palette" id="kit-colors" headingLevel={3}>
         <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
-          <ActorChip actor="rule" /> Readability on white is worked out from each color’s contrast (the WCAG standard), not by AI.
+          Readability on white is worked out from each color’s contrast (the WCAG standard), not by AI.
         </p>
         {kit.colors.length === 0 ? <p className="text-[15px] text-muted">No colors saved yet. Pick your logo’s colors above, and they’ll show here.</p> : null}
         <ul className="grid gap-2.5 @2xl:grid-cols-2">

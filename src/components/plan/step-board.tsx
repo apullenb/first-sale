@@ -106,7 +106,7 @@ export function StepBoard({ tasks, costs, skip = null }: Props) {
         <p>
           Fees confirmed so far: {formatFee(costs.startupCents)}
           {costs.yearlyCents ? `, then ${formatFee(costs.yearlyCents)} a year` : ""}
-          {costs.unknown.length ? ` (${costs.unknown.length} not confirmed yet)` : ""}
+          {costs.unknown.length ? ` (${costs.unknown.length} set by the office)` : ""}
         </p>
         <Link href="/start" className={`flex min-h-11 items-center ${TEXT_LINK}`}>
           See every step to start your business

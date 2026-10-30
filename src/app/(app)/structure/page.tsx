@@ -22,7 +22,7 @@ import { ReasonList } from "@/components/structure/explain";
 import { GuideSection, NameInfo, TaxInfo } from "@/components/structure/guide-sections";
 import { History } from "@/components/structure/history";
 import { OptionCard } from "@/components/structure/option-card";
-import { AskAProfessional, StructureWhy, SuggestedPath } from "@/components/structure/suggested-path";
+import { StructureWhy, SuggestedPath } from "@/components/structure/suggested-path";
 import { WhatIfPanel } from "@/components/structure/what-if";
 import { Card, Chip, Fold, Note, PageHead } from "@/components/ui";
 import { getMyBusiness, getMyDetails, getMyResearch, listMyHistory } from "@/lib/data/my-business";
@@ -179,7 +179,6 @@ async function Structure() {
         namePicks={namePicks}
         taxPicks={taxPicks}
         changes={changes}
-        unsure={<AskAProfessional questions={suggestion.askAProfessional} />}
     >
       <section aria-labelledby="know-heading" className="flex flex-col gap-5">
         <PartHead
@@ -235,7 +234,7 @@ async function Structure() {
           question={<TaxQuestion />}
         />
 
-        <StateRules state={state} research={research} rules={stateRules} />
+        {research ? <StateRules state={state} research={research} rules={stateRules} /> : null}
       </section>
 
       <section id="questions" aria-labelledby="answers-heading" className="flex scroll-mt-6 flex-col gap-5">
@@ -322,8 +321,8 @@ function NameFilings({ state, filings }: { state: string; filings: number }) {
   );
 }
 
-function StateRules({ state, research, rules }: { state: string; research: Research | null; rules: Research["requirements"] }) {
-  const sourceFor = (ids: string[]) => research?.sources.find((source) => ids.includes(source.key));
+function StateRules({ state, research, rules }: { state: string; research: Research; rules: Research["requirements"] }) {
+  const sourceFor = (ids: string[]) => research.sources.find((source) => ids.includes(source.key));
   return (
     <GuideSection
       id="state-rules"
@@ -331,15 +330,8 @@ function StateRules({ state, research, rules }: { state: string; research: Resea
       title={`${state}’s filings and fees`}
       lead="From your check of what applies to you, with the official page and the date it was read. Which ones you need depends on your answers."
     >
-      {research?.simulated ? <PracticeBanner what="These requirements came from practice research." /> : null}
-      {!research ? (
-        <Note>
-          <p>Not checked yet. That’s the next step, after you answer here. Until then, treat {state}’s fees and filing steps as unknown. We don’t guess them.</p>
-          <Link href="/requirements" className="mt-1 inline-flex min-h-11 items-center font-bold underline underline-offset-4">
-            Find what applies to you on official {state} sites
-          </Link>
-        </Note>
-      ) : rules.length ? (
+      {research.simulated ? <PracticeBanner what="These requirements came from practice research." /> : null}
+      {rules.length ? (
         <ul className="flex flex-col gap-2.5">
           {rules.map((rule) => {
             const source = sourceFor(rule.sourceIds);
@@ -358,7 +350,7 @@ function StateRules({ state, research, rules }: { state: string; research: Resea
                     </p>
                   ) : null}
                   <p className="text-[15px]">
-                    {sourced && rule.feeCents !== null ? `Fee: $${(rule.feeCents / 100).toFixed(2)}. ` : "Fee: not confirmed. "}
+                    {sourced && rule.feeCents !== null ? `Fee: $${(rule.feeCents / 100).toFixed(2)}. ` : "Fee: set by the state. "}
                     <span className="text-muted">
                       {source ? `From ${source.title}, checked ` : "Checked "}
                       <LocalDate iso={rule.checkedAt.toISOString()} />.

@@ -287,7 +287,7 @@ export function whyRecommended(p: BusinessProfile, path: PathSuggestion = sugges
 }
 
 export type NamePlan = "register_dba" | "legal_name";
-export type TaxPlan = "default" | "ask_professional";
+export type TaxPlan = "default" | "s_corp";
 
 export interface Recommendation<T extends string> {
   value: T;
@@ -311,25 +311,30 @@ export function recommendedNamePlan(p: BusinessProfile, option: BusinessStructur
   return null;
 }
 
+// S corporation status is the pick for a corporation, and worth knowing about for a company expecting large sales
+export function sCorpWorthKnowing(p: BusinessProfile, option: BusinessStructure): boolean {
+  return option === "corporation" || (option !== "sole_proprietorship" && growingPlans(p) && p.firstYearSales === "over_100k");
+}
+
 export function recommendedTaxPlan(p: BusinessProfile, option: BusinessStructure): Recommendation<TaxPlan> {
   const tax = taxFor(option, p.owners.count);
   if (option === "corporation") {
     return {
-      value: "ask_professional",
+      value: "s_corp",
       reasons: [
         { text: tax.text, fact: tax.fact },
-        { text: "It can elect S corporation status instead, which passes its income through to shareholders.", fact: "s_corp_pass_through" },
-        { text: "That election takes Form 2553, so it’s worth asking before you file.", fact: "s_corp_election" },
+        { text: "S corporation status passes its income through to shareholders instead, so it isn’t taxed twice.", fact: "s_corp_pass_through" },
+        { text: "You choose it by filing Form 2553, which First Sale adds to your steps.", fact: "s_corp_election" },
       ],
     };
   }
   // A sole proprietor has no tax status to choose; that takes forming a company first
   if (option !== "sole_proprietorship" && growingPlans(p) && p.firstYearSales === "over_100k") {
     return {
-      value: "ask_professional",
+      value: "default",
       reasons: [
         { text: "You expect over $100,000 in sales and hope to grow." },
-        { text: "It may be worth asking whether S corporation tax status makes sense. The SBA calls it a tax status, not strictly a structure.", fact: "tax_status" },
+        { text: "Start with the default. Once your profit, not just your sales, grows large, S corporation status can lower your self-employment tax, and you can switch to it then.", fact: "tax_status" },
       ],
     };
   }
@@ -337,9 +342,9 @@ export function recommendedTaxPlan(p: BusinessProfile, option: BusinessStructure
   if (option === "sole_proprietorship") reasons.push({ text: "If you form an LLC later, it can choose another tax status, such as S corp.", fact: "tax_status" });
   if (option === "llc") reasons.push({ text: "Keeping the default needs no election form. Choosing to be taxed as a corporation would take Form 8832.", fact: tax.fact });
   if (p.firstYearSales === null || p.firstYearSales === "unsure") {
-    reasons.push({ text: "You haven’t said how much you expect to sell. If sales grow large, ask a tax professional about other choices.", caveat: true });
+    reasons.push({ text: "For a new business, the default is the simple choice. If your profit grows large, you can switch later.", caveat: true });
   } else if (p.firstYearSales === "over_100k") {
-    reasons.push({ text: "You expect over $100,000 in sales. If that holds, ask a tax professional whether another tax status would help.", caveat: true });
+    reasons.push({ text: "You expect over $100,000 in sales. If your profit grows large too, S corporation status can lower your self-employment tax, and you can switch to it then.", caveat: true });
   } else {
     reasons.push({ text: "Nothing in your answers, like very high sales, points to choosing another yet." });
   }

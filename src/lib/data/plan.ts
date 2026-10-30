@@ -5,7 +5,7 @@ import { businesses, checklistTasks, requirements, researchSnapshots, sources } 
 import type { BusinessProfile, TaskStatus } from "@/lib/domain";
 import { classify, placeOf, structureOf } from "@/lib/research/applicability";
 import { orderTasks } from "@/lib/rules/checklist";
-import { applyPlan, buildPlan, type CurrentTask, diffPlan, PLAN_DEFAULTS, type PlanChange, type PlanTaskDraft, slugKey } from "@/lib/rules/plan";
+import { applyPlan, buildPlan, type CurrentTask, diffPlan, type PlanTaskDraft, slugKey } from "@/lib/rules/plan";
 
 // Owner-scoped like businesses.ts: the business is always looked up by its owner.
 
@@ -24,8 +24,6 @@ export interface PlanView {
   steps: PlanStep[];
   // Done steps a later plan dropped, kept as a record
   retired: PlanStep[];
-  // Changes waiting for the owner's review: from a re-check, or from a changed decision ("replan")
-  proposal: { checkedAt: Date; changes: PlanChange[]; from: "recheck" | "replan" } | null;
 }
 
 export function toStep(row: TaskRow): PlanStep {
@@ -70,11 +68,6 @@ export function toStep(row: TaskRow): PlanStep {
   };
 }
 
-// Proposals saved before a field existed get its default
-function withDefaults(drafts: readonly PlanTaskDraft[]): PlanTaskDraft[] {
-  return drafts.map((draft) => ({ ...PLAN_DEFAULTS, ...draft }));
-}
-
 // Prerequisites first, then plan order; prerequisites that no longer exist are ignored
 export function orderSteps(steps: readonly PlanStep[]): PlanStep[] {
   const sorted = [...steps].sort((a, b) => a.position - b.position);
@@ -103,43 +96,22 @@ export async function getPlanForOwner(db: Db, ownerId: string): Promise<PlanView
         .from(checklistTasks)
         .where(eq(checklistTasks.businessId, businessId))
         .orderBy(asc(checklistTasks.position));
-      const [snapshot] = await tx
-        .select({
-          checkedAt: researchSnapshots.checkedAt,
-          proposedAt: researchSnapshots.proposedAt,
-          proposal: researchSnapshots.planProposal,
-          reviewedAt: researchSnapshots.planReviewedAt,
-        })
-        .from(researchSnapshots)
-        .where(eq(researchSnapshots.businessId, businessId));
-
       const all = rows.map(toStep);
-      const proposal =
-        snapshot?.proposal && !snapshot.reviewedAt
-          ? {
-              checkedAt: snapshot.proposedAt ?? snapshot.checkedAt,
-              changes: diffPlan(all, withDefaults(snapshot.proposal)),
-              from: snapshot.proposedAt && snapshot.proposedAt > snapshot.checkedAt ? ("replan" as const) : ("recheck" as const),
-            }
-          : null;
       return {
         steps: orderSteps(all.filter((step) => !step.retired)),
         retired: all.filter((step) => step.retired),
-        proposal: proposal && proposal.changes.length ? proposal : null,
       };
     },
     { isolationLevel: "repeatable read", accessMode: "read only" },
   );
 }
 
-// Called inside the research save: the first plan applies straight away, and so does one that changes nothing that matters
+// Called inside the research save: the new plan applies straight away. Started steps are kept, as a record if dropped.
 export async function proposePlan(tx: Tx, businessId: string, proposal: readonly PlanTaskDraft[], now: Date): Promise<void> {
   // Locked, so a step marked done meanwhile waits for this and isn't deleted from under it
   const rows = await tx.select().from(checklistTasks).where(eq(checklistTasks.businessId, businessId)).for("update");
   const current = rows.map(toStep);
-  const changes = diffPlan(current, proposal);
-  if (current.length > 0 && changes.length > 0) return;
-  await writePlan(tx, businessId, current, proposal, new Set(changes.map((change) => change.key)), now);
+  await writePlan(tx, businessId, current, proposal, new Set(diffPlan(current, proposal).map((change) => change.key)), now);
 }
 
 async function writePlan(
@@ -199,29 +171,6 @@ async function writePlan(
   await tx.update(researchSnapshots).set({ planReviewedAt: now }).where(eq(researchSnapshots.businessId, businessId));
 }
 
-export type ReviewOutcome = "applied" | "stale" | "no_proposal" | "no_business";
-
-// Applies the changes the owner ticked; the rest of the current plan stays as it is.
-// `checkedAt` is the re-check the owner reviewed, so a newer one can't be applied unseen.
-export async function reviewPlanForOwner(
-  db: Db,
-  ownerId: string,
-  input: { checkedAt: Date; acceptedKeys: readonly string[] },
-  now = new Date(),
-): Promise<ReviewOutcome> {
-  return db.transaction(async (tx) => {
-    const businessId = await businessIdFor(tx, ownerId, true);
-    if (!businessId) return "no_business";
-    const [snapshot] = await tx.select().from(researchSnapshots).where(eq(researchSnapshots.businessId, businessId));
-    if (!snapshot?.planProposal || snapshot.planReviewedAt) return "no_proposal";
-    if ((snapshot.proposedAt ?? snapshot.checkedAt).getTime() !== input.checkedAt.getTime()) return "stale";
-
-    const rows = await tx.select().from(checklistTasks).where(eq(checklistTasks.businessId, businessId)).for("update");
-    await writePlan(tx, businessId, rows.map(toStep), withDefaults(snapshot.planProposal), new Set(input.acceptedKeys), now);
-    return "applied";
-  });
-}
-
 export async function setStepStatusForOwner(
   db: Db,
   ownerId: string,
@@ -256,10 +205,9 @@ export async function getStepForOwner(db: Db, ownerId: string, stepId: string): 
   return step ? { step, all } : null;
 }
 
-export type ReplanOutcome = "proposed" | "applied" | "unchanged" | "no_research" | "no_business";
+export type ReplanOutcome = "applied" | "unchanged" | "no_research" | "no_business";
 
 // Rebuilds the plan from the saved research with the owner's current answers and decisions, without searching again.
-// Changes wait for the owner's review like a re-check's; a first plan applies straight away.
 export async function replanForOwner(
   db: Db,
   ownerId: string,
@@ -274,15 +222,13 @@ export async function replanForOwner(
   });
 }
 
-// The plan from saved research, re-classified with these answers and decisions. Changes wait for the owner's review,
-// unless there's no plan yet, or `continues` says this finishes the check the current plan came from and nothing's started.
+// The plan from saved research, re-classified with these answers and decisions, applied straight away
 export async function rebuildPlan(
   tx: Tx,
   businessId: string,
   profile: BusinessProfile,
   details: readonly { key: string; value: string }[],
   now: Date,
-  options: { continues?: readonly PlanTaskDraft[] | null } = {},
 ): Promise<ReplanOutcome> {
   const [snapshot] = await tx.select().from(researchSnapshots).where(eq(researchSnapshots.businessId, businessId));
   if (!snapshot) return "no_research";
@@ -325,6 +271,7 @@ export async function rebuildPlan(
       problems: row.problems,
       confirmedBy: row.verification === "sourced" ? (confirmedFor.get(slugKey(row.key)) ?? []) : [],
       background: row.background,
+      verdict: row.verdict,
     };
     return { ...requirement, ...classify(requirement, profile, place, decision) };
   });
@@ -341,23 +288,17 @@ export async function rebuildPlan(
 
   const current = taskRows.map(toStep);
   const changes = diffPlan(current, proposal);
-  // Background and contact details never change what applies, so they reach the current steps without a review
+  // Background and contact details never change what applies, so they're refreshed on every step
   const next = new Map(proposal.map((draft) => [draft.key, draft]));
   for (const row of taskRows) {
     const draft = next.get(row.key);
     if (draft && !row.retired) await tx.update(checklistTasks).set({ notes: draft.notes ?? [], contacts: draft.contacts ?? null }).where(eq(checklistTasks.id, row.id));
   }
-  const untouched = current.every((task) => task.status === "todo" && !task.retired);
-  const finishesCheck = Boolean(options.continues) && untouched && diffPlan(current, options.continues ?? []).length === 0;
-  // Its own time, so a review of an earlier proposal can't apply this one unseen
   await tx
     .update(researchSnapshots)
-    .set({ structure: decision.structure, planProposal: proposal, planReviewedAt: changes.length ? null : now, proposedAt: now })
+    .set({ structure: decision.structure, planProposal: proposal, planReviewedAt: now, proposedAt: now })
     .where(eq(researchSnapshots.businessId, businessId));
   if (changes.length === 0) return "unchanged";
-  if (current.length === 0 || finishesCheck) {
-    await writePlan(tx, businessId, current, proposal, new Set(changes.map((change) => change.key)), now);
-    return "applied";
-  }
-  return "proposed";
+  await writePlan(tx, businessId, current, proposal, new Set(changes.map((change) => change.key)), now);
+  return "applied";
 }

@@ -98,9 +98,9 @@ export function DashboardWidgets({ left, minutes, waiting, parts, spentCents, to
         )}
         <p className={SUB}>
           {toGoCents
-            ? `${dollars(toGoCents)} more to go${unknownFees ? `, plus ${unknownFees} not confirmed` : ""}`
+            ? `${dollars(toGoCents)} more to go${unknownFees ? `, plus ${unknownFees} set by the office` : ""}`
             : unknownFees
-              ? `${unknownFees} ${unknownFees === 1 ? "fee" : "fees"} not confirmed yet`
+              ? `${unknownFees} ${unknownFees === 1 ? "fee" : "fees"} set by the office`
               : "No more fees found"}
         </p>
         <Link href="/start#costs-heading" className={LINK}>

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useLayoutEffect, useState } from "react";
 import { setMarketingStepAction } from "@/app/(app)/marketing/actions";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { Note } from "@/components/ui";
 import { ALERT, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
@@ -145,7 +144,6 @@ export function MarketingStepList({ steps, done, auto = [], next }: { steps: Sho
                     {index + 1}. {step.title}
                   </label>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-                    <ActorChip actor={step.by} />
                     {step.platform ? <span>{PLATFORM_DATA[step.platform].name}</span> : null}
                     {isDone ? (
                       <span className="inline-flex items-center gap-1 font-semibold text-accent">

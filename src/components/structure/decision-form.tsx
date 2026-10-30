@@ -68,7 +68,6 @@ type Props = {
   taxPicks: Partial<Record<string, PlanPick | null>>;
   // Plan steps each structure keeps and leaves out; null before requirements are checked
   changes: Partial<Record<string, { kept: PlanChange[]; left: PlanChange[] }>> | null;
-  unsure: ReactNode;
 };
 
 const DecisionContext = createContext<ReturnType<typeof useDecisionState> | null>(null);
@@ -322,7 +321,6 @@ export function DecisionReview() {
     stale,
     recordedAt,
     changes,
-    unsure,
     values,
     pending,
     done,
@@ -392,12 +390,8 @@ export function DecisionReview() {
         </Card>
       </div>
 
-      <Card title="What changes in your plan" icon="list" id={`${uid}-changes`} headingLevel={3}>
-        {!changes ? (
-          <p className="text-muted">Your requirements aren’t checked yet, so no steps change.</p>
-        ) : !plan ? (
-          <p className="text-muted">Steps for one structure wait until you decide.</p>
-        ) : plan.kept.length || plan.left.length ? (
+      {plan && (plan.kept.length || plan.left.length) ? (
+        <Card title="What changes in your plan" icon="list" id={`${uid}-changes`} headingLevel={3}>
           <ul className="flex flex-col gap-1.5">
             {plan.kept.map((step) => (
               <li key={`k-${step.title}`} className="flex items-start gap-2.5">
@@ -424,13 +418,9 @@ export function DecisionReview() {
               </li>
             ))}
           </ul>
-        ) : (
-          <p className="text-muted">None of your steps depend on this choice.</p>
-        )}
-        {changes ? (
-          <p className="text-sm text-muted">What applies to you shows these for you to review before anything changes. Steps you’ve finished stay finished.</p>
-        ) : null}
-      </Card>
+          <p className="text-sm text-muted">Your steps update as soon as you record this. Steps you’ve finished stay finished.</p>
+        </Card>
+      ) : null}
 
       <Card title="Based on these answers" icon="info" id={`${uid}-basis`} headingLevel={3}>
         <ul className="flex flex-wrap gap-2">
@@ -474,20 +464,6 @@ export function DecisionReview() {
           </span>
         </p>
       ) : null}
-
-      <details className="group/unsure rounded-[14px] border border-line bg-surface shadow-soft">
-        <summary className="flex min-h-[58px] cursor-pointer list-none items-center gap-3 px-[18px] py-3.5 [&::-webkit-details-marker]:hidden">
-          <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-accent-ring bg-accent-tint text-accent">
-            <Icon name="question" />
-          </span>
-          <span className="grid min-w-0 flex-1 gap-px">
-            <b className="text-[16.5px] font-bold">Want a second opinion?</b>
-            <small className="text-[14.5px] text-muted">Questions to take to a professional, and where to get help</small>
-          </span>
-          <Icon name="chevron" className="text-faint transition-transform group-open/unsure:rotate-90 motion-reduce:transition-none" />
-        </summary>
-        <div className="px-[18px] pb-[18px]">{unsure}</div>
-      </details>
 
       <div className="flex flex-col items-start gap-2">
         <button ref={reviewButton} type="button" onClick={() => show(true)} disabled={!complete || (!changed.length && !stale)} className={PRIMARY}>

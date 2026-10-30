@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { describeBrandAction, saveBrandAction } from "@/app/(app)/brand/actions";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { Done, InfoRows, SectionHead } from "@/components/marketing/pieces";
 import { Working } from "@/components/working";
@@ -257,13 +256,13 @@ export function BrandForm({ initial, practice }: { initial: BrandBrief; practice
             <p className="flex flex-wrap items-center gap-2 text-[15px] text-muted">
               {brief.storyByOwner ? (
                 <>
-                  <ActorChip actor="owner" /> In your words. It guides your logo ideas and every picture.
+                  In your words. It guides your logo ideas and every picture.
                 </>
               ) : practice ? (
                 <Chip tone="warn">{PRACTICE_LABEL}</Chip>
               ) : (
                 <>
-                  <ActorChip actor="ai" /> Written by AI from the words you picked. It guides your logo ideas and every picture.
+                  Written by AI from the words you picked. It guides your logo ideas and every picture.
                 </>
               )}
             </p>
@@ -310,7 +309,7 @@ export function BrandForm({ initial, practice }: { initial: BrandBrief; practice
               <div className="flex flex-col gap-4">
                 <Done>
                   <span className="flex flex-wrap items-center gap-2">
-                    <ActorChip actor="owner" /> You said this feels like your business. This step is done.
+                    You said this feels like your business. This step is done.
                   </span>
                 </Done>
                 <div className="flex flex-wrap gap-3">

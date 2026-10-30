@@ -49,7 +49,7 @@ export const DETAILS = {
     kind: "choice",
     options: [
       ["default", "Keep the default for my structure"],
-      ["ask_professional", "Ask a tax professional about choosing another first"],
+      ["s_corp", "Choose S corporation status"],
       ["undecided", "Not sure yet"],
     ],
     maxLength: 40,

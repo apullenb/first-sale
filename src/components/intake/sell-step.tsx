@@ -132,15 +132,20 @@ export function SellStep({
       {category ? (
         <div className="flex flex-col gap-1.5">
           <label htmlFor={id("first-items")} className="text-[15.5px] font-semibold">
-            {category.id === "other" ? "What will you sell, in a few words?" : "Anything else, or your specialty? (optional)"}
+            {category.id === "other"
+              ? "What will you sell, in a few words?"
+              : category.id === "resale_shop"
+                ? "What kind of shop is it, in a few words?"
+                : "Anything else, or your specialty? (optional)"}
           </label>
           <input
             id={id("first-items")}
+            aria-describedby={category.id === "resale_shop" ? errorId : undefined}
             type="text"
             maxLength={100}
             value={answers.firstItems}
             onChange={(e) => onFirstItems(e.target.value)}
-            placeholder={`For example: ${SPECIALTY[category.kind ?? "other"]}`}
+            placeholder={`For example: ${category.id === "resale_shop" ? "a plant shop" : SPECIALTY[category.kind ?? "other"]}`}
             className={INPUT}
           />
         </div>

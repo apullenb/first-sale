@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getOfficialFormAction, prepareAnswerGuideAction, refreshDraftAction } from "@/app/(app)/documents/form-actions";
 import { ActionButton } from "@/components/action-button";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
@@ -31,7 +30,6 @@ export function OfficialFormCard({ stepId, form, original, guide, reviewed }: { 
             <h4 id={`form-${form.key}`} className="font-bold leading-snug">
               {form.pdfUrl ? "The official form" : "Your answers for the application"}
             </h4>
-            <ActorChip actor="rule" />
           </div>
           <p className="font-semibold text-rule">{form.title}</p>
           <p className="text-sm text-muted">

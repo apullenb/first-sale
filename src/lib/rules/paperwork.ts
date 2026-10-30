@@ -37,12 +37,8 @@ export interface PaperStep {
 }
 
 export type Inclusion =
-  // Applies, and an official page confirms it
+  // Applies: an official page confirms it, or First Sale decided it does
   | "task"
-  // Applies, but no official page confirmed it: confirm with the office first
-  | "confirm"
-  // The owner isn't sure it applies, so finding out is the task
-  | "find_out"
   // Waits on the owner's yes, no or not sure
   | "question"
   // The owner's county, city or city limits is unknown, so finding out is the task
@@ -59,7 +55,7 @@ export type Inclusion =
   // Not for the structure the owner chose
   | "other_structure";
 
-export const TASK_KINDS = ["task", "confirm", "find_out", "check_place"] as const;
+export const TASK_KINDS = ["task", "check_place"] as const;
 export type TaskKind = (typeof TASK_KINDS)[number];
 export const isTaskKind = (inclusion: Inclusion): inclusion is TaskKind => (TASK_KINDS as readonly string[]).includes(inclusion);
 
@@ -137,15 +133,11 @@ export function standingOf<T extends PaperStep>(step: T, context: PaperworkConte
                 ? "question"
                 : place.length
                   ? "check_place"
-                  : classified.answer === "unsure"
-                    ? "find_out"
-                    : classified.status === "verified"
-                      ? "task"
-                      : "confirm";
+                  : "task";
+  // An unsure answer plans on the step, so the owner is covered either way
   const requirementStatus: RequirementStatus =
-    inclusion === "task" ? "verified" : inclusion === "confirm" ? "needs_confirmation" : inclusion === "check_place" ? "conditional" : classified.status;
-  const conditions =
-    inclusion === "task" || inclusion === "confirm" ? [] : inclusion === "find_out" ? [question] : inclusion === "check_place" ? place : classified.conditions;
+    inclusion === "task" ? (classified.status === "verified" ? "verified" : "needs_confirmation") : inclusion === "check_place" ? "conditional" : classified.status;
+  const conditions = inclusion === "task" ? (classified.answer === "unsure" ? [question] : []) : inclusion === "check_place" ? place : classified.conditions;
   return { step, inclusion, requirementStatus, conditions, question: classified.question, answer: classified.answer, place };
 }
 
@@ -369,8 +361,8 @@ export function paperwork<T extends PaperStep>(steps: readonly T[], context: Pap
   const tasks = groups.flatMap((group) => group.tasks);
   const taskByKey = new Map(tasks.map((task) => [task.step.key, task]));
   for (const task of tasks) {
-    // Finding out whether it applies never waits on the filing's own prerequisites
-    task.blockers = task.kind === "find_out" || task.kind === "check_place" ? [] : blockersOf(task.step, byKey, groupOfTask, context.place);
+    // Adding where you are never waits on the filing's own prerequisites
+    task.blockers = task.kind === "check_place" ? [] : blockersOf(task.step, byKey, groupOfTask, context.place);
     task.state = task.step.status === "done" ? "done" : task.step.status === "submitted" ? "waiting" : task.blockers.length ? "locked" : "ready";
   }
 

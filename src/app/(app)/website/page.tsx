@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import { draftWebsiteAction } from "@/app/(app)/website/actions";
 import { findMoreOptionsAction } from "@/app/(app)/website/option-actions";
 import { ActionButton } from "@/components/action-button";
-import { ActorChip } from "@/components/actor-chip";
 import { Completed, Revisit } from "@/components/completed";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
@@ -123,7 +122,7 @@ async function WebsitePlanView() {
       <section aria-labelledby="step-choose" className="flex flex-col gap-4">
         <SectionHead id="step-choose" number={1} title="Choose a package">
           <p className="max-w-2xl text-muted">
-            <ActorChip actor="rule" /> We recommend <strong className="text-ink">{PLATFORM_DATA[recommendation.platform].name}</strong> for {name}, from your answers
+            We recommend <strong className="text-ink">{PLATFORM_DATA[recommendation.platform].name}</strong> for {name}, from your answers
             about what you sell and how. Each package shows the same five things and a cost summary, so you can compare.{" "}
             <Link href="/business/edit" className={TEXT_LINK}>
               Change your answers
@@ -176,15 +175,6 @@ async function WebsitePlanView() {
 
           <section aria-labelledby="step-words" className="flex flex-col gap-4">
             <SectionHead id="step-words" number={3} title="Write your pages">
-              <ul aria-label="Who does what" className="flex flex-wrap gap-x-5 gap-y-2 pt-1 text-sm text-muted">
-                <li className="flex items-center gap-2">
-                  {content?.simulated ? <ActorChip actor="rule" /> : <ActorChip actor="ai" />}
-                  {content?.simulated ? "drafts in practice mode, from a template" : "drafts from your answers, without making up facts"}
-                </li>
-                <li className="flex items-center gap-2">
-                  <ActorChip actor="owner" /> edit and approve every word
-                </li>
-              </ul>
             </SectionHead>
             <Card bodyClassName="gap-4">
               {run && (run.status === "running" || run.message === CUT_OFF_MESSAGE) ? (

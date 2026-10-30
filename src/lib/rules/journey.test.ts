@@ -12,7 +12,6 @@ const base: JourneyInput = {
   questions: 0,
   plan: {
     steps: 6,
-    proposal: false,
     beforeSelling: { total: 4, done: 1 },
     first: { id: "s2", title: "Get an EIN", later: false, group: licenses },
     waitsOnStructure: false,
@@ -30,7 +29,7 @@ describe("nextMove", () => {
   });
 
   it("asks for updated answers before anything else", () => {
-    expect(nextMove({ ...base, business: "update", plan: { ...base.plan, proposal: true } }).href).toBe("/business/edit");
+    expect(nextMove({ ...base, business: "update", }).href).toBe("/business/edit");
   });
 
   it("goes to Business structure after the business answers, and moves on once “Not sure yet” is recorded", () => {
@@ -40,9 +39,8 @@ describe("nextMove", () => {
     expect(nextMove({ ...fresh, structure: { structure: "sole_proprietorship", from: "registered", recorded: false } }).href).toBe("/requirements");
   });
 
-  it("shows what changed answers mean, then plan changes to review, then the quick questions", () => {
-    expect(nextMove({ ...base, answersChanged: true, plan: { ...base.plan, proposal: true } }).action).toBe("See what changed");
-    expect(nextMove({ ...base, questions: 2, plan: { ...base.plan, proposal: true } })).toMatchObject({ href: "/requirements#review", stage: "/requirements" });
+  it("updates the steps for changed answers, then asks the questions about the owner's plans", () => {
+    expect(nextMove({ ...base, answersChanged: true, questions: 2 }).action).toBe("Update my steps");
     expect(nextMove({ ...base, questions: 2 })).toMatchObject({ title: "Answer 2 quick questions", href: "/requirements#questions", stage: "/requirements" });
     expect(nextMove({ ...base, questions: 1 }).title).toBe("Answer a quick question");
   });
@@ -94,9 +92,8 @@ describe("readyForFirstSale", () => {
     expect(nextMove(waiting)).toMatchObject({ href: "/structure", title: "Choose your business structure" });
   });
 
-  it("isn't ready with questions, a review or changed answers waiting", () => {
+  it("isn't ready with questions or changed answers waiting", () => {
     expect(readyForFirstSale({ ...allDone, questions: 1 })).toBe(false);
-    expect(readyForFirstSale({ ...allDone, plan: { ...allDone.plan, proposal: true } })).toBe(false);
     expect(readyForFirstSale({ ...allDone, answersChanged: true })).toBe(false);
     expect(readyForFirstSale({ ...allDone, plan: { ...allDone.plan, steps: 0 } })).toBe(false);
   });
@@ -135,7 +132,7 @@ describe("journeyStages", () => {
   });
 
   it("marks stages that wait on the owner, without moving up next past them", () => {
-    expect(states({ ...base, answersChanged: true, plan: { ...base.plan, proposal: true }, documents: { total: 3, waiting: 1 } })).toEqual([
+    expect(states({ ...base, answersChanged: true, documents: { total: 3, waiting: 1 } })).toEqual([
       ["/business", "done"],
       ["/structure", "done"],
       ["/requirements", "check"],

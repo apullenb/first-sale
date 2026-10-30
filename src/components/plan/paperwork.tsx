@@ -34,9 +34,7 @@ export function actionStep(task: PricedTask): PlanStep & ActionStep {
 
 export const KIND_LABELS: Record<TaskKind, string | null> = {
   task: null,
-  confirm: "Confirm with the office first",
-  find_out: "Find out if this applies",
-  check_place: "Find out if this applies",
+  check_place: "Add where you are",
 };
 
 const MARKS: Record<TaskState, string> = {
@@ -166,7 +164,7 @@ export function TaskListRow({ task, next = false }: { task: PricedTask; next?: b
           </span>
         ) : null}
         {kind ? (
-          <Chip tone="warn" icon={task.kind === "find_out" ? "question" : "info"}>
+          <Chip tone="warn" icon="pin">
             {kind}
           </Chip>
         ) : null}

@@ -2,7 +2,6 @@
 
 import { useLayoutEffect, useState } from "react";
 import { explainOptionAction } from "@/app/(app)/website/option-actions";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { ALERT, SECONDARY } from "@/components/styles";
 import { Working } from "@/components/working";
@@ -49,7 +48,6 @@ export function ExplainOption({ optionKey, name, explanation, firstYear }: { opt
       {open && explanation ? (
         <div className="flex flex-col gap-2.5 rounded-xl border border-ai/15 bg-ai-tint px-4 py-3.5 text-[15px]">
           <p className="flex items-center gap-2 text-sm font-semibold text-ai-ink">
-            {explanation.simulated ? <ActorChip actor="rule" /> : <ActorChip actor="ai" />}
             {explanation.simulated ? "Practice mode: no AI explanation" : "Explained by AI from the facts on this card"}
           </p>
           {explanation.flags.length ? (
@@ -64,9 +62,7 @@ export function ExplainOption({ optionKey, name, explanation, firstYear }: { opt
           <Part title="Why it could fit you" text={explanation.goodFit} />
           <Part title="What to watch out for" text={explanation.watchOut} />
           <div>
-            <p className="flex items-center gap-2 font-bold">
-              Your first year <ActorChip actor="rule" />
-            </p>
+            <p className="font-bold">Your first year</p>
             <p className="text-rule">{firstYear}</p>
           </div>
           {explanation.stillNeed.length ? (

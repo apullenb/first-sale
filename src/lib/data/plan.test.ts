@@ -12,7 +12,6 @@ import {
   orderSteps,
   type PlanStep,
   replanForOwner,
-  reviewPlanForOwner,
   setStepStatusForOwner,
 } from "./plan";
 import { saveResearchForOwner } from "./research";
@@ -72,7 +71,6 @@ describe("plan data access", () => {
     await saveResearchForOwner(db, "owner-a", research(firstPlan, FIRST), "key-1");
 
     const plan = await getPlanForOwner(db, "owner-a");
-    expect(plan?.proposal).toBeNull();
     expect(plan?.retired).toEqual([]);
     expect(plan?.steps.map((step) => [step.key, step.status, step.position])).toEqual([
       ["structure", "todo", 0],
@@ -91,73 +89,26 @@ describe("plan data access", () => {
     await saveResearchForOwner(db, "owner-a", research(reworded, SECOND), "key-2");
 
     const plan = await getPlanForOwner(db, "owner-a");
-    expect(plan?.proposal).toBeNull();
     expect(plan?.steps[0].title).toBe("Choose a structure, reworded");
   });
 
-  it("holds a re-check with real changes for the owner's review", async () => {
-    await saveResearchForOwner(db, "owner-a", research(firstPlan, FIRST), "key-1");
-    expect(await setStepStatusForOwner(db, "owner-a", { stepId: await stepId("owner-a", "vendor"), status: "done", note: null })).toBe(true);
-    await saveResearchForOwner(db, "owner-a", research(secondPlan, SECOND), "key-2");
-
-    const plan = await getPlanForOwner(db, "owner-a");
-    // Nothing changes until the owner reviews
-    expect(plan?.steps.map((step) => step.title)).toEqual(["Choose a structure", "Get an EIN", "Business license", "Vendor permit"]);
-    expect(plan?.proposal?.checkedAt.toISOString()).toBe(SECOND.toISOString());
-    expect(plan?.proposal?.changes).toEqual([
-      { kind: "changed", key: "ein", title: "Get an EIN", what: ["Fee"] },
-      { kind: "added", key: "sales-tax", title: "Sales tax permit" },
-      { kind: "removed", key: "license", title: "Business license", done: false },
-      { kind: "removed", key: "vendor", title: "Vendor permit", done: true },
-    ]);
-  });
-
-  it("applies only the changes the owner accepts, keeping done steps done", async () => {
+  it("applies a re-check's changes straight away, keeping started steps as a record", async () => {
     await saveResearchForOwner(db, "owner-a", research(firstPlan, FIRST), "key-1");
     const done = new Date("2026-10-26T18:00:00Z");
     await setStepStatusForOwner(db, "owner-a", { stepId: await stepId("owner-a", "ein"), status: "done", note: "Got it" }, done);
     await setStepStatusForOwner(db, "owner-a", { stepId: await stepId("owner-a", "vendor"), status: "done", note: null }, done);
     await saveResearchForOwner(db, "owner-a", research(secondPlan, SECOND), "key-2");
 
-    expect(
-      await reviewPlanForOwner(db, "owner-a", { checkedAt: SECOND, acceptedKeys: ["ein", "license", "vendor"] }),
-    ).toBe("applied");
-
     const plan = await getPlanForOwner(db, "owner-a");
-    expect(plan?.proposal).toBeNull();
     expect(plan?.steps.map((step) => ({ key: step.key, title: step.title, status: step.status, feeCents: step.feeCents }))).toEqual([
-      // No change that matters, so the new wording comes in with the plan
       { key: "structure", title: "Pick a business structure", status: "todo", feeCents: null },
       { key: "ein", title: "Get an EIN", status: "done", feeCents: 1000 },
+      { key: "sales-tax", title: "Sales tax permit", status: "todo", feeCents: null },
     ]);
     expect(plan?.steps[1]).toMatchObject({ evidenceNote: "Got it", completedAt: done });
     // A removed step that was done is kept as a record; the todo one is gone
     expect(plan?.retired.map((step) => [step.key, step.status])).toEqual([["vendor", "done"]]);
     expect(await db.select().from(checklistTasks).where(eq(checklistTasks.key, "license"))).toEqual([]);
-    expect(await db.select().from(checklistTasks).where(eq(checklistTasks.key, "sales-tax"))).toEqual([]);
-
-    expect(await reviewPlanForOwner(db, "owner-a", { checkedAt: SECOND, acceptedKeys: ["sales-tax"] })).toBe("no_proposal");
-  });
-
-  it("keeps the old step when its change isn't accepted", async () => {
-    await saveResearchForOwner(db, "owner-a", research(firstPlan, FIRST), "key-1");
-    await saveResearchForOwner(db, "owner-a", research(secondPlan, SECOND), "key-2");
-    await reviewPlanForOwner(db, "owner-a", { checkedAt: SECOND, acceptedKeys: ["sales-tax"] });
-
-    const plan = await getPlanForOwner(db, "owner-a");
-    expect(plan?.steps.map((step) => step.key)).toEqual(["structure", "ein", "sales-tax", "license", "vendor"]);
-    expect(plan?.steps.find((step) => step.key === "ein")?.feeCents).toBe(0);
-  });
-
-  it("won't apply a review of an older re-check", async () => {
-    await saveResearchForOwner(db, "owner-a", research(firstPlan, FIRST), "key-1");
-    await saveResearchForOwner(db, "owner-a", research(secondPlan, SECOND), "key-2");
-
-    expect(await reviewPlanForOwner(db, "owner-a", { checkedAt: FIRST, acceptedKeys: ["ein"] })).toBe("stale");
-    expect((await getPlanForOwner(db, "owner-a"))?.proposal).not.toBeNull();
-    expect(await reviewPlanForOwner(db, "owner-b", { checkedAt: SECOND, acceptedKeys: ["ein"] })).toBe("no_proposal");
-    await db.delete(users).where(eq(users.id, "owner-b"));
-    expect(await reviewPlanForOwner(db, "owner-b", { checkedAt: SECOND, acceptedKeys: [] })).toBe("no_business");
   });
 
   it("lets owners change only their own steps", async () => {
@@ -183,13 +134,6 @@ describe("plan data access", () => {
     await db.insert(users).values({ id: "owner-c", name: "C", email: "c@example.test" });
     expect(await getPlanForOwner(db, "owner-c")).toBeNull();
     expect(await setStepStatusForOwner(db, "owner-c", { stepId: "x", status: "done", note: null })).toBe(false);
-  });
-
-  it("shows no proposal when a pending one turns out to change nothing", async () => {
-    await saveResearchForOwner(db, "owner-a", research(firstPlan, FIRST), "key-1");
-    const [business] = await db.select({ id: researchSnapshots.businessId }).from(researchSnapshots);
-    await db.update(researchSnapshots).set({ planReviewedAt: null }).where(eq(researchSnapshots.businessId, business.id));
-    expect((await getPlanForOwner(db, "owner-a"))?.proposal).toBeNull();
   });
 });
 
@@ -238,31 +182,25 @@ describe("replanForOwner", () => {
   const llc = researchedRequirement({ key: "llc-articles", title: "File articles of organization", topic: "structure", level: "state", forStructures: ["llc"], conditions: ["Only if you set up as an LLC. Decide your business structure first."], status: "conditional" });
   const owner = testProfile();
 
-  it("rebuilds the plan when the structure decision changes, waiting for review, without searching again", async () => {
+  it("rebuilds the plan when the structure decision changes, straight away, without searching again", async () => {
     const result = research(firstPlan, FIRST);
     const withLlc = { ...result, requirements: [...result.requirements, llc], plan: buildPlan([...result.requirements, llc], result.pages, true) };
     await saveResearchForOwner(db, "owner-a", withLlc, "key-1");
     expect((await getPlanForOwner(db, "owner-a"))!.steps.find((step) => step.key === "llc-articles")).toMatchObject({ requirementStatus: "conditional" });
 
-    // A sole proprietor doesn't form an LLC: its step is proposed for removal, not removed
-    expect(await replanForOwner(db, "owner-a", owner, [{ key: "structure_choice", value: "sole_proprietorship" }], SECOND)).toBe("proposed");
-    const plan = (await getPlanForOwner(db, "owner-a"))!;
-    expect(plan.steps.some((step) => step.key === "llc-articles")).toBe(true);
-    expect(plan.proposal?.changes).toEqual([{ kind: "removed", key: "llc-articles", title: "File articles of organization", done: false }]);
-    expect(plan.proposal?.checkedAt).toEqual(SECOND);
+    // A sole proprietor doesn't form an LLC, so its step goes
+    expect(await replanForOwner(db, "owner-a", owner, [{ key: "structure_choice", value: "sole_proprietorship" }], SECOND)).toBe("applied");
+    expect((await getPlanForOwner(db, "owner-a"))!.steps.some((step) => step.key === "llc-articles")).toBe(false);
     const [snapshot] = await db.select().from(researchSnapshots);
     expect(snapshot).toMatchObject({ structure: "sole_proprietorship", checkedAt: FIRST });
-
-    expect(await reviewPlanForOwner(db, "owner-a", { checkedAt: SECOND, acceptedKeys: ["llc-articles"] })).toBe("applied");
-    expect((await getPlanForOwner(db, "owner-a"))!.steps.some((step) => step.key === "llc-articles")).toBe(false);
   });
 
   it("settles the condition once the owner picks the structure the step is for", async () => {
     const result = research(firstPlan, FIRST);
     await saveResearchForOwner(db, "owner-a", { ...result, requirements: [...result.requirements, llc], plan: buildPlan([...result.requirements, llc], result.pages, true) }, "key-1");
-    expect(await replanForOwner(db, "owner-a", owner, [{ key: "structure_choice", value: "llc" }], SECOND)).toBe("proposed");
-    const change = (await getPlanForOwner(db, "owner-a"))!.proposal?.changes.find((each) => each.key === "llc-articles");
-    expect(change).toMatchObject({ kind: "changed", what: ["Whether it applies to you"] });
+    expect(await replanForOwner(db, "owner-a", owner, [{ key: "structure_choice", value: "llc" }], SECOND)).toBe("applied");
+    const step = (await getPlanForOwner(db, "owner-a"))!.steps.find((each) => each.key === "llc-articles");
+    expect(step?.requirementStatus).not.toBe("conditional");
   });
 
   it("says when there's nothing to plan from", async () => {

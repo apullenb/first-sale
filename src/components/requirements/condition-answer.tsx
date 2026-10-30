@@ -8,7 +8,7 @@ import type { ConditionAnswer } from "@/lib/research/applicability";
 const CHOICES: { value: ConditionAnswer; label: string }[] = [
   { value: "yes", label: "Yes" },
   { value: "no", label: "No" },
-  { value: "unsure", label: "Not sure" },
+  { value: "unsure", label: "Not decided yet" },
 ];
 
 const CHOICE =

@@ -1,7 +1,7 @@
 import { type ExampleTopic, type NameCase, STRUCTURE_EXAMPLES, type StructureExample } from "@/data/structure-examples";
 import type { BusinessProfile, BusinessStructure } from "@/lib/domain";
 import { optionsFor } from "./options";
-import { nameNeed, type PathSuggestion, recommendedTaxPlan, suggestPath } from "./suggest";
+import { nameNeed, type PathSuggestion, sCorpWorthKnowing, suggestPath } from "./suggest";
 
 // What the guide shows open for these answers, what it folds away, and which made-up examples fit
 
@@ -28,7 +28,7 @@ export function guideFor(p: BusinessProfile, path: PathSuggestion = suggestPath(
     main: options.filter(open),
     more: options.filter((id) => !open(id)),
     nameFolded: nameFoldedWhy(p, basis),
-    otherTaxOpen: recommendedTaxPlan(p, basis).value === "ask_professional",
+    otherTaxOpen: sCorpWorthKnowing(p, basis),
     spouseNote: p.owners.count > 1 && p.ownerRelation === "spouse",
   };
 }
@@ -74,7 +74,7 @@ export function nameExamples(p: BusinessProfile, structure: BusinessStructure): 
 
 export function taxExamples(p: BusinessProfile, structure: BusinessStructure): StructureExample[] {
   const fits = about("tax").filter((example) => example.structure === structure && forOwners(example, p.owners.count));
-  const asking = recommendedTaxPlan(p, structure).value === "ask_professional";
+  const asking = sCorpWorthKnowing(p, structure);
   const base = fits.filter((example) => !example.otherTaxStatus);
   const other = asking ? fits.filter((example) => example.otherTaxStatus) : [];
   return [...ranked(base, p).slice(0, 1), ...other];

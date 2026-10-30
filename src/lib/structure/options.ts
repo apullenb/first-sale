@@ -313,7 +313,7 @@ export function taxPoints(options: readonly BusinessStructure[], spouses: boolea
   if (options.includes("sole_proprietorship")) lines.push({ text: "Sole proprietors who owe self-employment tax file it on Schedule SE.", fact: "sp_schedule_se" });
   if (options.includes("llc")) lines.push({ text: "LLC members pay self-employment tax too, toward Social Security and Medicare.", fact: "llc_self_employment" });
   if (spouses) {
-    lines.push({ text: "If you’re married to your co-owner, the IRS says married couples may choose not to be a partnership. Ask a tax professional whether that fits.", fact: "married_couples" });
+    lines.push({ text: "If you’re married to your co-owner, the IRS says married couples may choose not to be a partnership. Then each of you reports your share on your own return, which is usually simpler if you file jointly.", fact: "married_couples" });
   }
   return lines;
 }

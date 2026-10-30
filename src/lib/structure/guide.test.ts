@@ -112,11 +112,11 @@ describe("recommendations", () => {
     expect(recommendedNamePlan(partners, "partnership")).toBeNull();
   });
 
-  it("recommends the default tax treatment unless another is worth asking about", () => {
+  it("picks the tax treatment: S corporation status for a corporation, the default otherwise", () => {
     expect(recommendedTaxPlan(baker, "sole_proprietorship").value).toBe("default");
     expect(recommendedTaxPlan(partners, "llc")).toMatchObject({ value: "default", reasons: [{ fact: "llc_multi_tax" }, {}, {}] });
-    expect(recommendedTaxPlan(testProfile({ goals: ["grow"], firstYearSales: "over_100k" }), "llc").value).toBe("ask_professional");
-    expect(recommendedTaxPlan(baker, "corporation").value).toBe("ask_professional");
+    expect(recommendedTaxPlan(testProfile({ goals: ["grow"], firstYearSales: "over_100k" }), "llc").value).toBe("default");
+    expect(recommendedTaxPlan(baker, "corporation").value).toBe("s_corp");
   });
 
   it("never sends a sole proprietor to ask about S corporation status, which takes forming a company first", () => {
@@ -231,7 +231,7 @@ describe("tax caveats and S corporation examples", () => {
   it("marks an unanswered sales question as a caveat", () => {
     const reasons = recommendedTaxPlan(testProfile({ firstYearSales: "unsure" }), "sole_proprietorship").reasons;
     expect(reasons.at(-1)).toMatchObject({ caveat: true });
-    expect(reasons.at(-1)?.text).toMatch(/haven’t said how much you expect to sell/);
+    expect(reasons.at(-1)?.text).toMatch(/default is the simple choice/);
   });
 
   it("shows an S corporation example only for the same structure and number of owners", () => {

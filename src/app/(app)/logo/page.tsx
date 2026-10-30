@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import { chooseLogoAction, clearIdeasAction } from "@/app/(app)/brand/actions";
 import { removeUploadedLogoAction } from "@/app/(app)/logo/actions";
 import { ActionButton } from "@/components/action-button";
-import { ActorChip } from "@/components/actor-chip";
 import { AlreadyHave } from "@/components/already-have";
 import { Completed, Revisit } from "@/components/completed";
 import { ChosenLogo } from "@/components/brand/chosen-logo";
@@ -205,7 +204,7 @@ function BrandDescription({ brief, ready }: { brief: BrandBrief; ready: boolean 
             <blockquote className="border-l-[3px] border-accent-ring py-1 pl-4 font-display text-[21px] leading-snug sm:text-[22px]">{brief.story}</blockquote>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted">
               <span className="flex items-center gap-2">
-                <ActorChip actor="owner" /> You approved this description.
+                You approved this description.
               </span>
               {brief.vibes.length ? <span>Feel: {brief.vibes.join(", ")}</span> : null}
               <Link href="/brand" className={`${TEXT_LINK} inline-flex min-h-11 items-center`}>

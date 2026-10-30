@@ -4,7 +4,7 @@ import { approveAgreementAction } from "@/app/(app)/documents/agreement-actions"
 import { ActionButton } from "@/components/action-button";
 import { AgreementForm } from "@/components/documents/agreement-form";
 import { fileHref } from "@/components/documents/labels";
-import { BackToLibrary, ChangedFacts, WhoDoesWhat } from "@/components/documents/parts";
+import { BackToLibrary, ChangedFacts } from "@/components/documents/parts";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { PRIMARY_LINK, SECONDARY_LINK } from "@/components/styles";
@@ -144,15 +144,6 @@ async function Agreement() {
   return (
     <>
       <Header name={name} lead={intro} />
-      <WhoDoesWhat
-        items={[
-          ["rule", "First Sale fills in its fixed wording from your details and answers. No AI writes any of it."],
-          [
-            "owner",
-            `You read it and approve it. Then ${basis.owners.length > 1 ? `every ${who} signs` : "you sign"} the printed copy. Have a lawyer review it, especially with more than one owner.`,
-          ],
-        ]}
-      />
       <Reasons structure={structure} texas={texas} />
 
       <Card title="From your details" icon="building" id="basis-heading">
@@ -221,7 +212,7 @@ async function Agreement() {
                 <li key={item}>{item}</li>
               ))}
             </ul>
-            <p className="text-[15px] text-rule">Ask a lawyer about adding these.</p>
+            <p className="text-[15px] text-rule">Most new businesses don’t need these at the start. If yours does, a lawyer can add them.</p>
           </div>
 
           {draft.approvedAt ? (

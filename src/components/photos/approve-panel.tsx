@@ -2,7 +2,6 @@
 
 import { type FormEvent, useId, useLayoutEffect, useState } from "react";
 import { approveVersionAction } from "@/app/(app)/photos/actions";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { PickOption } from "@/components/marketing/pieces";
 import { ALERT, PRIMARY } from "@/components/styles";
@@ -44,7 +43,7 @@ export function ApprovePanel({ photoId, versionId, preview }: { photoId: string;
         layout="top"
         label={
           <span className="flex flex-wrap items-center gap-2">
-            <ActorChip actor="owner" /> I compared it with my original photo
+            I compared it with my original photo
           </span>
         }
         description={

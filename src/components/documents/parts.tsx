@@ -1,10 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon, type IconName } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import type { StoredDocument } from "@/lib/data/documents";
-import type { Actor, GeneratedKind } from "@/lib/domain";
+import type { GeneratedKind } from "@/lib/domain";
 import { roleOf } from "@/lib/documents/library";
 import type { DocumentContent } from "@/lib/documents/types";
 
@@ -20,20 +19,7 @@ export function BackToLibrary() {
   );
 }
 
-// Who does what on this page: AI, rules or the owner
-export function WhoDoesWhat({ items, className = "" }: { items: [Actor, ReactNode][]; className?: string }) {
-  return (
-    <ul className={`flex flex-col gap-2 text-[15px] text-rule ${className}`}>
-      {items.map(([actor, text], index) => (
-        <li key={index} className="flex items-start gap-2.5">
-          <ActorChip actor={actor} />
-          <span className="min-w-0">{text}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
+// Short notes on what happens on this page
 const KIND_ICONS: Record<GeneratedKind, IconName> = {
   business_plan: "book",
   filled_form: "filecheck",
