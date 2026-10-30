@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { Completed, Revisit } from "@/components/completed";
 import { BackToLibrary } from "@/components/documents/parts";
 import { PlanEditor } from "@/components/documents/plan-editor";
 import { PlanInputs } from "@/components/documents/plan-inputs";
@@ -62,17 +63,35 @@ async function Plan() {
   const doc = documents.find((candidate) => candidate.generatedKind === "business_plan") ?? null;
   const draft = doc?.draft ?? null;
   const drafted = Boolean(doc && draft?.sections.length);
+  const savedAt = doc?.hasFile && draft?.approvedAt ? draft.approvedAt : null;
+  const inputs = (
+    <PlanInputs
+      facts={facts}
+      basis={basis}
+      initial={restoreAnswers(basis, facts, draft?.answers, draft?.inputs ?? {})}
+      hasDraft={drafted}
+    />
+  );
 
   return (
     <>
       <RunNotice run={run} what="Drafting your business plan" />
 
-      <PlanInputs
-        facts={facts}
-        basis={basis}
-        initial={restoreAnswers(basis, facts, draft?.answers, draft?.inputs ?? {})}
-        hasDraft={drafted}
-      />
+      {doc && savedAt ? (
+        <>
+          <Completed eyebrow="Your business plan" title="Your business plan is saved" when={savedAt} whenLabel="Saved">
+            <Link href={`/documents/${doc.id}`} className={`${PRIMARY_LINK} w-fit`}>
+              Open the saved plan
+              <Icon name="arrow" size="sm" />
+            </Link>
+          </Completed>
+          <Revisit label="Revisit what your plan is drafted from" summary="Check the facts and answers again, and draft a new version if you want.">
+            {inputs}
+          </Revisit>
+        </>
+      ) : (
+        inputs
+      )}
 
       {doc && draft && drafted ? (
         <Card title="Review your plan" icon="book" id="plan-review-heading">

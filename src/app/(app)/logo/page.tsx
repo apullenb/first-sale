@@ -5,6 +5,7 @@ import { removeUploadedLogoAction } from "@/app/(app)/logo/actions";
 import { ActionButton } from "@/components/action-button";
 import { ActorChip } from "@/components/actor-chip";
 import { AlreadyHave } from "@/components/already-have";
+import { Completed, Revisit } from "@/components/completed";
 import { ChosenLogo } from "@/components/brand/chosen-logo";
 import { IdeasSection } from "@/components/brand/ideas";
 import { KitSection } from "@/components/brand/kit";
@@ -102,33 +103,20 @@ async function Logo({ searchParams }: { searchParams: SearchParams }) {
         : null;
   const mark = marks.find((each) => each.key === "logo") ?? null;
 
-  return (
+  const alreadyHave = (
+    <AlreadyHave
+      markKey="logo"
+      label="I already have a logo"
+      help="Upload your logo, and First Sale uses it for your logo versions, brand images and website. Or just mark this step done if you’d rather keep your logo files elsewhere."
+      done={mark ? { url: mark.url, note: mark.note } : null}
+    >
+      <LogoUpload businessName={brief.name} maxBytes={MAX_UPLOAD_BYTES} replacing={false} />
+      <OwnLogoList logos={ownLogos(state.assets, null)} hasPicks={false} titled />
+    </AlreadyHave>
+  );
+  const making = (
     <>
-      {banner}
-      {chosen ? (
-        <Note icon="info" tone="quiet">
-          <p className="text-rule">
-            You’re making new logo ideas. Your current logo stays in use until you choose a different one.{" "}
-            <Link href="/logo" className={TEXT_LINK}>
-              Back to my logo
-            </Link>
-          </p>
-        </Note>
-      ) : null}
-
       <BrandDescription brief={brief} ready={storyReady} />
-
-      {chosen ? null : (
-        <AlreadyHave
-          markKey="logo"
-          label="I already have a logo"
-          help="Upload your logo, and First Sale uses it for your logo versions, brand images and website. Or just mark this step done if you’d rather keep your logo files elsewhere."
-          done={mark ? { url: mark.url, note: mark.note } : null}
-        >
-          <LogoUpload businessName={brief.name} maxBytes={MAX_UPLOAD_BYTES} replacing={false} />
-          <OwnLogoList logos={ownLogos(state.assets, null)} hasPicks={false} titled />
-        </AlreadyHave>
-      )}
 
       <RunNotice run={ideasRun} what="Writing logo ideas" />
       <LogoChoices
@@ -167,6 +155,41 @@ async function Logo({ searchParams }: { searchParams: SearchParams }) {
           ) : null}
         </div>
       ) : null}
+    </>
+  );
+
+  // Marked "I already have a logo" without one chosen here: that's the decision, and making one here waits behind Revisit
+  if (mark && !chosen && params.ideas !== "new") {
+    return (
+      <>
+        {banner}
+        <Completed eyebrow="Your logo" title="You already have a logo">
+          {alreadyHave}
+        </Completed>
+        <Revisit label="Revisit this step" summary="Make logo ideas here after all, or upload your logo so First Sale can use it.">
+          {making}
+        </Revisit>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {banner}
+      {chosen ? (
+        <Note icon="info" tone="quiet">
+          <p className="text-rule">
+            You’re making new logo ideas. Your current logo stays in use until you choose a different one.{" "}
+            <Link href="/logo" className={TEXT_LINK}>
+              Back to my logo
+            </Link>
+          </p>
+        </Note>
+      ) : null}
+
+      {chosen ? null : alreadyHave}
+
+      {making}
     </>
   );
 }

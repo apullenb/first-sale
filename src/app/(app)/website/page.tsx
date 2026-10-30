@@ -4,6 +4,7 @@ import { draftWebsiteAction } from "@/app/(app)/website/actions";
 import { findMoreOptionsAction } from "@/app/(app)/website/option-actions";
 import { ActionButton } from "@/components/action-button";
 import { ActorChip } from "@/components/actor-chip";
+import { Completed, Revisit } from "@/components/completed";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { Kicker, SectionHead } from "@/components/marketing/pieces";
@@ -112,24 +113,9 @@ async function WebsitePlanView() {
   );
   const next = nextStep({ chosen, content: Boolean(content), approved: Boolean(plan?.contentApprovedAt), finished: Boolean(plan?.finished), existing: Boolean(existing || mark), name: chosen ? PLATFORM_DATA[chosen].name : "" });
 
-  return (
+  const existingPanel = <ExistingSitePanel connected={existing} marked={mark ? { url: mark.url, note: mark.note } : null} />;
+  const steps = (
     <>
-      <p className="-mt-3 flex items-start gap-2.5 rounded-xl border border-accent-ring bg-accent-tint px-4 py-3 text-accent-ink">
-        <Icon name={next.done ? "check" : "arrow"} size="sm" className="mt-1" strokeWidth={2.2} />
-        <span>
-          <strong>{next.done ? "Done: " : "Next: "}</strong>
-          {next.href ? (
-            <a href={next.href} className={TEXT_LINK}>
-              {next.text}
-            </a>
-          ) : (
-            next.text
-          )}
-        </span>
-      </p>
-
-      <ExistingSitePanel connected={existing} marked={mark ? { url: mark.url, note: mark.note } : null} />
-
       <Fold open={!chosen} icon="book" title="New to websites? Start here" summary="The five things you’ll need to be online">
         <WebsiteBasics exampleDomain={ideas[0] ?? "yourbusiness.com"} />
       </Fold>
@@ -274,6 +260,53 @@ async function WebsitePlanView() {
           )}
         </>
       ) : null}
+    </>
+  );
+
+  // Finished, or already has a site: that leads, and every step waits behind Revisit
+  if (next.done) {
+    const builtDemo = chosen === "first_sale" && Boolean(plan?.finished);
+    return (
+      <>
+        <Completed
+          eyebrow="Your website"
+          title={builtDemo ? "Your website is ready" : "You already have a website"}
+          lines={[
+            ...(chosen ? [{ label: "Package", value: PLATFORM_DATA[chosen].name }] : []),
+            ...(plan?.domain ? [{ label: "Web address", value: plan.domain }] : []),
+          ]}
+        >
+          {builtDemo ? <p className="text-[15px] text-rule">This is a demo: nothing is published online.</p> : null}
+          {builtDemo ? null : existingPanel}
+        </Completed>
+        <Revisit label="Revisit your website" summary="Compare packages, change your words or design, or build a site here.">
+          {builtDemo ? existingPanel : null}
+          {steps}
+        </Revisit>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <p className="-mt-3 flex items-start gap-2.5 rounded-xl border border-accent-ring bg-accent-tint px-4 py-3 text-accent-ink">
+        <Icon name={next.done ? "check" : "arrow"} size="sm" className="mt-1" strokeWidth={2.2} />
+        <span>
+          <strong>{next.done ? "Done: " : "Next: "}</strong>
+          {next.href ? (
+            <a href={next.href} className={TEXT_LINK}>
+              {next.text}
+            </a>
+          ) : (
+            next.text
+          )}
+        </span>
+      </p>
+
+      <ExistingSitePanel connected={existing} marked={mark ? { url: mark.url, note: mark.note } : null} />
+
+
+      {steps}
     </>
   );
 }

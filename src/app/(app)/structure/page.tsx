@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { Completed, Revisit } from "@/components/completed";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { PracticeBanner } from "@/components/practice-banner";
@@ -51,7 +52,7 @@ export default function StructurePage() {
 
 async function Structure() {
   const [business, details, research, history] = await Promise.all([getMyBusiness(), getMyDetails(), getMyResearch(), listMyHistory({ kind: "decision" })]);
-  const header = (
+  const header = (lead = "Three choices that shape your paperwork: how your business is owned, the name you sell under, and how it’s taxed. Read what each means for you first, then answer three short questions.") => (
     <PageHead
       kicker={
         <span className="inline-flex items-center gap-2">
@@ -60,13 +61,13 @@ async function Structure() {
         </span>
       }
       title="Business structure"
-      lead="Three choices that shape your paperwork: how your business is owned, the name you sell under, and how it’s taxed. Read what each means for you first, then answer three short questions."
+      lead={lead}
     />
   );
   if (!business?.profile) {
     return (
       <div className="flex max-w-4xl flex-col gap-6">
-        {header}
+        {header()}
         <Card>
           <p className="text-rule">{business ? "Some of your answers need updating first." : "Answer a few questions about your business first. The options here depend on them."}</p>
           <Link href={business ? "/business/edit" : "/business/new"} className={PRIMARY_LINK}>
@@ -135,34 +136,24 @@ async function Structure() {
       )
     : null;
 
-  return (
-    <div className="flex max-w-4xl flex-col gap-6">
-      {header}
-      <div className="-mt-2 flex flex-wrap items-center gap-2">
-        {chosen ? (
-          <span className="inline-flex items-center gap-1.5 rounded-lg border border-done/25 bg-done-tint px-2.5 py-1.5 text-[13.5px] font-semibold leading-tight text-done">
-            <Icon name="check" size="xs" />
-            You chose {STRUCTURE_LABELS[chosen]}
-          </span>
-        ) : (
-          <Chip tone="accent" icon="scale">
-            Three questions at the end
-          </Chip>
-        )}
-        <Chip icon="clock">About {formatMinutes(stepMinutes({ topic: "structure" }))}</Chip>
-        <a href="#questions" className={`inline-flex min-h-11 items-center gap-1 px-1 text-[15px] ${TEXT_LINK}`}>
-          Skip to the questions
-        </a>
+  // Settled: a recorded choice that still fits the answers. Anything that needs another look opens Revisit.
+  const settled = Boolean(chosen) && !stale && !suggestion.mismatch && recorded.status !== "no_longer_fits";
+  const nameAnswer = saved.get("name_registration_plan");
+  const taxAnswer = saved.get("tax_classification_plan");
+  const next = (
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-done/20 pt-4">
+      <div className="flex min-w-0 flex-col">
+        <p className="text-sm font-semibold text-muted">Next, step 3</p>
+        <p className="font-semibold">Find what applies to you{research ? ", and answer a few quick questions" : ""}</p>
       </div>
-
-      {suggestion.mismatch ? (
-        <OwnerMismatch owners={owners} structure={suggestion.mismatch} said="registered" />
-      ) : recorded.status === "no_longer_fits" ? (
-        <OwnerMismatch owners={owners} structure={recorded.was} said="recorded" />
-      ) : null}
-
-      {stale ? <StaleDecision decided={decided} then={stale.answers} now={basisLines(profile)} /> : null}
-
+      <Link href="/requirements" className={PRIMARY_LINK}>
+        Go to What applies to you
+        <Icon name="arrow" size="sm" />
+      </Link>
+    </div>
+  );
+  const guideAndQuestions = (
+    <>
       <section aria-labelledby="know-heading" className="flex flex-col gap-5">
         <PartHead id="know-heading" part="Part 1 of 2" title="What to know first" lead="Nothing to answer yet. Read what each choice means for you, compare, and open the examples." />
 
@@ -240,18 +231,51 @@ async function Structure() {
         </div>
       </section>
 
-      {decided ? (
-        <section aria-label="What’s next" className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-2xl border border-line bg-surface px-5 py-4 shadow-soft">
-          <div className="flex min-w-0 flex-col">
-            <p className="text-sm font-semibold text-muted">Next, step 3</p>
-            <p className="font-semibold">Find what applies to you{research ? ", and answer a few quick questions" : ""}</p>
-          </div>
-          <Link href="/requirements" className={PRIMARY_LINK}>
-            Go to What applies to you
-            <Icon name="arrow" size="sm" />
-          </Link>
-        </section>
+    </>
+  );
+
+  return (
+    <div className="flex max-w-4xl flex-col gap-6">
+      {chosen ? header("How your business is owned, the name you sell under, and how it’s taxed. Your choices are below.") : header()}
+      {chosen ? null : (
+        <div className="-mt-2 flex flex-wrap items-center gap-2">
+          <Chip tone="accent" icon="scale">
+            Three questions at the end
+          </Chip>
+          <Chip icon="clock">About {formatMinutes(stepMinutes({ topic: "structure" }))}</Chip>
+          <a href="#questions" className={`inline-flex min-h-11 items-center gap-1 px-1 text-[15px] ${TEXT_LINK}`}>
+            Skip to the questions
+          </a>
+        </div>
+      )}
+
+      {suggestion.mismatch ? (
+        <OwnerMismatch owners={owners} structure={suggestion.mismatch} said="registered" />
+      ) : recorded.status === "no_longer_fits" ? (
+        <OwnerMismatch owners={owners} structure={recorded.was} said="recorded" />
       ) : null}
+
+      {stale ? <StaleDecision decided={decided} then={stale.answers} now={basisLines(profile)} /> : null}
+
+      {chosen ? (
+        <>
+          <Completed
+            title={`You chose ${STRUCTURE_LABELS[chosen]}`}
+            when={lastDecision?.createdAt.toISOString() ?? null}
+            lines={[
+              ...(nameAnswer ? [{ label: "The name you sell under", value: displayDetail("name_registration_plan", nameAnswer) }] : []),
+              ...(taxAnswer ? [{ label: "How it’s taxed", value: displayDetail("tax_classification_plan", taxAnswer) }] : []),
+            ]}
+          >
+            {settled ? next : null}
+          </Completed>
+          <Revisit id="revisit" open={!settled}>
+            {guideAndQuestions}
+          </Revisit>
+        </>
+      ) : (
+        guideAndQuestions
+      )}
 
       <History title="Decision history" events={history} empty="No decisions recorded yet." />
     </div>
