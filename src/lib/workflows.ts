@@ -28,11 +28,19 @@ export const WORKFLOWS = {
     offeredFor: [],
   },
   follow_up: {
-    title: "Look deeper",
-    summary: "Searches each office’s own site for what official pages didn’t settle, and finds who to write to about the rest.",
+    title: "Settle the open rules",
+    summary: "Searches each office’s own site, code and forms for what official pages didn’t settle, and decides what applies.",
     actor: "ai",
     usesAi: true,
     timeLimitMs: 6 * MINUTE,
+    offeredFor: [],
+  },
+  structure_advice: {
+    title: "Recommend a structure",
+    summary: "Weighs everything you told First Sale and recommends a structure, a name plan and a tax plan.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 4 * MINUTE,
     offeredFor: [],
   },
   read_document: {

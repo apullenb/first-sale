@@ -2,6 +2,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { getDb } from "@/db/client";
 import { getCurrentUser } from "@/lib/auth/server";
+import type { StructureAdvice } from "@/lib/structure/advise";
 import type { DetailKey } from "@/lib/details";
 import { businessProfileSchema, type BusinessProfile, type TaskStatus } from "@/lib/domain";
 import type { FollowUpResult } from "@/lib/research/follow-up";
@@ -85,6 +86,7 @@ import { createBusinessWithHistoryForOwner, listHistoryForOwner, updateProfileWi
 import { deleteIntakeDraftForOwner, getIntakeDraftForOwner, saveIntakeDraftForOwner } from "./intake-drafts";
 import type { InsightMark, SavedInsights } from "@/lib/insights/types";
 import { getInsightsForOwner, markInsightForOwner, saveInsightsForOwner } from "./insights";
+import { getStructureAdviceForOwner, saveStructureAdviceForOwner } from "./structure-advice";
 import {
   addLibraryFileForOwner,
   deleteLibraryFileForOwner,
@@ -577,6 +579,18 @@ export async function listMyHistory(filter: { kind?: BusinessEvent["kind"]; limi
 export async function replanMyPlan(profile: BusinessProfile, details: readonly { key: string; value: string }[]) {
   const user = await getCurrentUser();
   return replanForOwner(getDb(), user.id, profile, details);
+}
+
+// Structure recommendation
+
+export async function getMyStructureAdvice() {
+  const user = await getCurrentUser();
+  return getStructureAdviceForOwner(getDb(), user.id);
+}
+
+export async function saveMyStructureAdvice(advice: StructureAdvice) {
+  const user = await getCurrentUser();
+  return saveStructureAdviceForOwner(getDb(), user.id, advice);
 }
 
 // Business insights

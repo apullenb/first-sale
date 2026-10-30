@@ -30,6 +30,7 @@ import {
   type BusinessStructure,
 } from "@/lib/domain";
 import { CONDITION_ANSWERS, REQUIREMENT_STATUSES, VERDICTS } from "@/lib/research/applicability";
+import type { StructureAdvice } from "@/lib/structure/advise";
 import { DOCUMENT_ROLES } from "@/lib/documents/library";
 import type {
   DocumentContent,
@@ -95,6 +96,8 @@ export const businesses = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     isDemo: boolean("is_demo").notNull().default(false),
     profile: jsonb("profile").$type<BusinessProfile>().notNull(),
+    // The AI's structure, name and tax recommendation, for the answers it was made from
+    structureAdvice: jsonb("structure_advice").$type<StructureAdvice>(),
     createdAt: createdAt(),
   },
   // One business per owner

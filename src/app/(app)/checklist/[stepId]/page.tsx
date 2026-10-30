@@ -15,6 +15,7 @@ import { StructureDecision } from "@/components/plan/structure-decision";
 import { PracticeBanner } from "@/components/practice-banner";
 import { StatusChip } from "@/components/requirements/sources";
 import { RequirementStatusChip } from "@/components/requirements/requirement-status";
+import { WrittenInquiry } from "@/components/requirements/written-inquiry";
 import { PAGE_TITLE, PRIMARY_LINK, SECONDARY, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Chip, Fact, Fold, Note } from "@/components/ui";
 import { OFFICIAL_FORMS } from "@/data/official-forms";
@@ -28,7 +29,9 @@ import { agreementName, agreementStepKey, agreementStructure } from "@/lib/docum
 import { formatFee } from "@/lib/documents/startup-plan";
 import { ACCEPTED_TYPES } from "@/lib/documents/upload";
 import { LEVEL_LABELS, TOPIC_LABELS } from "@/lib/labels";
-import { jurisdictionName, placeGap, placeOf, structureOf } from "@/lib/research/applicability";
+import type { BusinessProfile } from "@/lib/domain";
+import { jurisdictionName, type Place, placeGap, placeOf, structureOf } from "@/lib/research/applicability";
+import { writtenInquiry } from "@/lib/research/inquiry";
 import { filingSteps } from "@/lib/rules/filing";
 import { choosesStructure } from "@/lib/rules/plan";
 import { nextTaskAfter, type Standing, stepLinks } from "@/lib/rules/paperwork";
@@ -116,7 +119,7 @@ async function StepDetail({ params }: { params: Params }) {
   const back = group ? { href: group.href, label: group.name } : { href: "/start", label: "Start your business" };
   const accept = Object.keys(ACCEPTED_TYPES).join(",");
   // First Sale's reason, when no official page spells the rule out for this place
-  const reason = sourced ? null : (step.notes?.[0]?.background ?? null);
+  const reason = sourced || task?.kind === "confirm" ? null : (step.notes?.[0]?.background ?? null);
 
   const minutes = formatMinutes(stepMinutes(step));
   // Two official pages that disagree are shown in the numbered steps, never settled here
@@ -168,6 +171,7 @@ async function StepDetail({ params }: { params: Params }) {
   const steps = <FilingSteps steps={how} extras={{ form: formsHere, receipt }} />;
   const locked = blockers.length > 0;
   const checkPlace = task?.kind === "check_place";
+  const findOut = task?.kind === "confirm";
   const gap = checkPlace && paper ? placeGap(step.level, paper.context.place) : null;
   const ready = !step.retired && step.status === "todo" && !locked;
   const confirming = step.links.find((link) => link.confirms) ?? null;
@@ -200,6 +204,10 @@ async function StepDetail({ params }: { params: Params }) {
             {checkPlace ? (
               <Chip tone="warn" icon="pin">
                 Add where you are
+              </Chip>
+            ) : findOut ? (
+              <Chip tone="warn" icon="question">
+                Find out for sure
               </Chip>
             ) : (
               <RequirementStatusChip status={step.requirementStatus} />
@@ -316,6 +324,7 @@ async function StepDetail({ params }: { params: Params }) {
             </>
           ) : (
             <>
+              {findOut && profile && place ? <AskOffice step={step} profile={profile} place={place} /> : null}
               {reason ? (
                 <Note icon="lightbulb">
                   <p className="font-semibold">Why you need this</p>
@@ -347,7 +356,7 @@ async function StepDetail({ params }: { params: Params }) {
                     {progress}
                   </div>
                   <p className="text-sm text-muted">Opening a link or a form never changes this. You record what you did. First Sale never files anything for you.</p>
-                  {step.contacts && (step.contacts.emails.length || step.contacts.phones.length) ? (
+                  {!findOut && step.contacts && (step.contacts.emails.length || step.contacts.phones.length) ? (
                     <OfficeContacts office={step.agency || step.whoToCall} contacts={step.contacts} />
                   ) : null}
                 </>
@@ -659,5 +668,37 @@ function OfficeContacts({ office, contacts }: { office: string; contacts: NonNul
         </a>
       ) : null}
     </p>
+  );
+}
+
+// A rule even the deeper look couldn't settle: what First Sale found, then one message to the office that can say for sure
+function AskOffice({ step, profile, place }: { step: PlanStep; profile: BusinessProfile; place: Place }) {
+  const office = step.whoToCall || step.agency;
+  const notes = step.notes ?? [];
+  return (
+    <section aria-labelledby="ask-heading" className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6">
+      <h2 id="ask-heading" className={STATE_TITLE}>
+        What First Sale found
+      </h2>
+      {notes.length ? (
+        <ul className="flex flex-col gap-3">
+          {notes.map((note) => (
+            <li key={note.title} className="flex flex-col gap-1">
+              <p className="font-semibold">{note.title}</p>
+              <p className="text-rule">{note.background}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <p className="text-rule">
+        First Sale searched {office ? `${office}’s` : "the office’s"} official site, its code and its forms, and couldn’t say for sure how this works for your business. They can tell you in writing.
+      </p>
+      <WrittenInquiry
+        inquiry={writtenInquiry({ title: step.title, questions: step.whatToAsk, profile, place })}
+        office={office}
+        link={step.links[0] ? { title: step.links[0].title, url: step.links[0].url } : null}
+        contacts={step.contacts}
+      />
+    </section>
   );
 }

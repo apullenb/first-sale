@@ -39,6 +39,8 @@ export interface PaperStep {
 export type Inclusion =
   // Applies: an official page confirms it, or First Sale decided it does
   | "task"
+  // Even the deeper look couldn't settle it: finding out from the office is the step
+  | "confirm"
   // Waits on the owner's yes, no or not sure
   | "question"
   // The owner's county, city or city limits is unknown, so finding out is the task
@@ -55,7 +57,7 @@ export type Inclusion =
   // Not for the structure the owner chose
   | "other_structure";
 
-export const TASK_KINDS = ["task", "check_place"] as const;
+export const TASK_KINDS = ["task", "confirm", "check_place"] as const;
 export type TaskKind = (typeof TASK_KINDS)[number];
 export const isTaskKind = (inclusion: Inclusion): inclusion is TaskKind => (TASK_KINDS as readonly string[]).includes(inclusion);
 
@@ -133,10 +135,20 @@ export function standingOf<T extends PaperStep>(step: T, context: PaperworkConte
                 ? "question"
                 : place.length
                   ? "check_place"
-                  : "task";
+                  : step.requirementStatus === "to_find_out"
+                    ? "confirm"
+                    : "task";
   // An unsure answer plans on the step, so the owner is covered either way
   const requirementStatus: RequirementStatus =
-    inclusion === "task" ? (classified.status === "verified" ? "verified" : "needs_confirmation") : inclusion === "check_place" ? "conditional" : classified.status;
+    inclusion === "task"
+      ? classified.status === "verified"
+        ? "verified"
+        : "needs_confirmation"
+      : inclusion === "confirm"
+        ? "to_find_out"
+        : inclusion === "check_place"
+          ? "conditional"
+          : classified.status;
   const conditions = inclusion === "task" ? (classified.answer === "unsure" ? [question] : []) : inclusion === "check_place" ? place : classified.conditions;
   return { step, inclusion, requirementStatus, conditions, question: classified.question, answer: classified.answer, place };
 }
