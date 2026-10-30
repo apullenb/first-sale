@@ -6,6 +6,7 @@ import { refreshDraftAction } from "@/app/(app)/documents/form-actions";
 import { Icon } from "@/components/icons";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { WhoDoesWhat } from "./parts";
+import { Working } from "@/components/working";
 import type { FieldKind } from "@/lib/documents/types";
 
 export interface EditorField {
@@ -145,6 +146,7 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
                   ? "Draft answers again"
                   : "Draft answers from my business details"}
           </button>
+          <Working label="Matching the form’s blanks to your business details. This can take a minute." active={status === "drafting"} />
         </div>
       )}
 
@@ -187,10 +189,8 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
           </button>
         </div>
         {dirty && status !== "saving" ? <p className="text-[14.5px] font-semibold text-check">You have changes that aren’t saved yet.</p> : null}
-        <p role="status" className={status === "idle" ? "sr-only" : "text-[14.5px] text-muted"}>
-          {status === "drafting"
-            ? "Matching the form’s blanks to your business details. This can take a minute."
-            : status === "saving"
+        <p role="status" className={status === "idle" || status === "drafting" ? "sr-only" : "text-[14.5px] text-muted"}>
+          {status === "saving"
               ? "Saving your answers…"
               : status === "saved"
                 ? "Your answers are saved."

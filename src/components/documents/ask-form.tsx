@@ -4,6 +4,7 @@ import { type FormEvent, useId, useLayoutEffect, useState } from "react";
 import { askDocumentAction } from "@/app/(app)/documents/actions";
 import { Icon } from "@/components/icons";
 import { AI_BUTTON, ALERT, INPUT } from "@/components/styles";
+import { Working } from "@/components/working";
 
 interface Props {
   documentId: string;
@@ -77,9 +78,7 @@ export function AskForm({ documentId, fields, maxQuestion }: Props) {
           <Icon name="sparkles" size="sm" />
           {pending ? "Looking for the answer…" : "Ask"}
         </button>
-        <p role="status" className={pending ? "text-[14.5px] text-muted" : "sr-only"}>
-          {pending ? "Looking through the form for the answer. This can take a minute." : ""}
-        </p>
+        <Working label="Looking through the form for the answer. This can take a minute." active={pending} />
         {error ? (
           <p role="alert" className={ALERT}>
             {error}

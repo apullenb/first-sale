@@ -3,7 +3,7 @@
 import { type FormEvent, useEffect, useId, useLayoutEffect, useState } from "react";
 import { uploadLogoAction } from "@/app/(app)/logo/actions";
 import { Icon } from "@/components/icons";
-import { useRequestKey, Working } from "@/components/photos/working";
+import { useRequestKey, Working } from "@/components/working";
 import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { MAX_LOGO_WORDS, SMALL_LOGO_SIDE } from "@/lib/brand/library";
 

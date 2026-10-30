@@ -10,7 +10,7 @@ import { AI_BUTTON, ALERT, INPUT } from "@/components/styles";
 import { MAX_ANSWER } from "@/lib/photos/instructions";
 import { CATEGORIES, CROPS, LOOKS } from "@/lib/photos/looks";
 import { PHOTO_CATEGORIES, PHOTO_CROPS, PHOTO_LOOKS, type PhotoCategory, type PhotoCrop, type PhotoLook } from "@/lib/photos/types";
-import { useRequestKey, Working } from "./working";
+import { useRequestKey, Working } from "@/components/working";
 
 const LEGEND = "mb-2 text-[17px] font-bold";
 

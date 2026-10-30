@@ -7,7 +7,7 @@ import { Icon } from "@/components/icons";
 import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { IconTile } from "@/components/ui";
 import { preparePhoto } from "./prepare-photo";
-import { Working } from "./working";
+import { Working } from "@/components/working";
 
 const PICKER = `${SECONDARY} cursor-pointer has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent`;
 

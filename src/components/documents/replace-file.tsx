@@ -5,6 +5,7 @@ import { useId, useLayoutEffect, useRef, useState } from "react";
 import { replaceDocumentAction } from "@/app/(app)/documents/form-actions";
 import { Icon } from "@/components/icons";
 import { ALERT, SECONDARY } from "@/components/styles";
+import { Working } from "@/components/working";
 import { SubFold } from "./parts";
 
 // Uploads a newer file as the next version; the one shown now stays in the history
@@ -52,6 +53,7 @@ export function ReplaceFile({ documentId, accept }: { documentId: string; accept
           <Icon name="upload" size="sm" />
           {pending ? "Uploading…" : "Upload as a new version"}
         </button>
+        <Working label="Saving the new version and reading it. This can take a minute." active={pending} />
         {error ? (
           <p role="alert" className={ALERT}>
             {error}

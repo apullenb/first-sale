@@ -7,6 +7,7 @@ import { Icon } from "@/components/icons";
 import { PICKS, PickTile, Why } from "@/components/marketing/pieces";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { Card, Chip } from "@/components/ui";
+import { Working } from "@/components/working";
 import {
   FACT_GROUPS,
   type FactGroup,
@@ -93,11 +94,10 @@ export function PlanInputs({ facts, basis, initial, hasDraft }: Props) {
             <Icon name="sparkles" size="sm" />
             {status === "drafting" ? "Drafting your plan…" : hasDraft ? "Draft my plan again" : "Draft my plan"}
           </button>
-          <p role="status" className="text-[14.5px] text-muted">
-            {status === "drafting"
-              ? "Writing your business plan. This can take a minute or two."
-              : "Writes a formal business plan from the facts and answers above. Nothing is shared or sent."}
-          </p>
+          {status === "drafting" ? null : (
+            <p className="text-[14.5px] text-muted">Writes a formal business plan from the facts and answers above. Nothing is shared or sent.</p>
+          )}
+          <Working label="Writing your business plan. This can take a minute or two." active={status === "drafting"} />
           {error ? (
             <p role="alert" className={ALERT}>
               {error}

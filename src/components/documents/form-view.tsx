@@ -187,6 +187,7 @@ function Explain({ doc, run }: { doc: StoredDocument; run: RunState | null }) {
         pendingLabel="Explaining…"
         pendingStatus="Reading the form and writing an explanation… this can take a minute"
         variant={guide ? "secondary" : "ai"}
+        ai
       />
     </Card>
   );

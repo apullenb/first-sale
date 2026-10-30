@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
-import { Elapsed } from "@/components/photos/working";
+import { Elapsed } from "@/components/working";
 import { EYEBROW } from "@/components/styles";
 
 const FINISH_STEP_MS = 220;

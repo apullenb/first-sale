@@ -4,7 +4,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { drawRoundAction, getIdeasAction, suggestTaglinesAction } from "@/app/(app)/brand/actions";
 import { Icon } from "@/components/icons";
 import { PickTile, SectionHead, SOFT } from "@/components/marketing/pieces";
-import { useRequestKey, Working } from "@/components/photos/working";
+import { useRequestKey, Working } from "@/components/working";
 import { AI_BUTTON, ALERT, INPUT, SECONDARY } from "@/components/styles";
 import { Card, Chip } from "@/components/ui";
 import type { LogoChoices as Choices } from "@/lib/brand/brief";
