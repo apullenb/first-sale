@@ -116,7 +116,7 @@ export const researchSnapshots = pgTable("research_snapshots", {
   searched: boolean("searched").notNull().default(false),
   unreadSources: jsonb("unread_sources").$type<{ key: string; title: string; url: string; reason: string }[]>().notNull(),
   assumptions: jsonb("assumptions").$type<string[]>().notNull().default([]),
-  openQuestions: jsonb("open_questions").$type<{ question: string; whoToCall: string }[]>().notNull().default([]),
+  openQuestions: jsonb("open_questions").$type<{ question: string; whoToCall: string; sourceId?: string }[]>().notNull().default([]),
   // Plan built from this run; the owner reviews it when a plan already exists
   planProposal: jsonb("plan_proposal").$type<PlanTaskDraft[]>(),
   planReviewedAt: timestamp("plan_reviewed_at", { withTimezone: true }),
