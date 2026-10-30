@@ -102,10 +102,16 @@ export interface Classified {
   answer: ConditionAnswer | null;
 }
 
+// What a government requires is for First Sale to confirm with the office, never a question for the owner
+const ABOUT_RULES = /\b(require[sd]?|requiring|allows?|allowed|prohibits?|bans?)\b/i;
+export const asksAboutRules = (condition: string) => ABOUT_RULES.test(condition);
+
 // Conditional with no reason given is still a question, never a "yes"
 export function questionOf(requirement: Pick<Checked, "applicability" | "condition">): string | null {
   if (requirement.applicability !== "conditional") return null;
-  return requirement.condition.trim() || "Whether this applies depends on something First Sale couldn’t tell from your answers.";
+  const condition = requirement.condition.trim();
+  if (condition && asksAboutRules(condition)) return null;
+  return condition || "Whether this applies depends on something First Sale couldn’t tell from your answers.";
 }
 
 // Conditions the rules write (structure and place), as opposed to the model's own
