@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { AlreadyHave } from "@/components/already-have";
 import { BrandForm } from "@/components/brand/brand-form";
+import { Completed, Revisit } from "@/components/completed";
 import { LibraryUpload } from "@/components/brand/library-upload";
 import { Icon } from "@/components/icons";
 import { Kicker, SectionHead } from "@/components/marketing/pieces";
@@ -58,18 +59,48 @@ async function Brand() {
   const practice = practiceMode();
   const mark = marks.find((each) => each.key === "brand") ?? null;
   const pictures = files.filter((file) => file.group === "brand_images");
+  const approved = state.brief?.storyApproved && state.brief.story ? state.brief.story : null;
+  const alreadyHave = (
+    <AlreadyHave
+      markKey="brand"
+      label="I already have a brand"
+      help="Mark this step done if you already know how your business looks and feels, with colors and a style you use. Add brand pictures you have below, so they’re kept with everything else."
+      done={mark ? { url: mark.url, note: mark.note } : null}
+    />
+  );
+  const form = <BrandForm initial={briefDefaults(business.profile, state.brief)} practice={practice} />;
+  const next = (
+    <Link href="/logo" className={`${PRIMARY_LINK} w-fit`}>
+      Next: Create your logo
+      <Icon name="arrow" size="sm" />
+    </Link>
+  );
 
   return (
     <>
       {practice ? <PracticeBanner what="Your brand description here is a placeholder, not written by Muse." /> : null}
-      <AlreadyHave
-        markKey="brand"
-        label="I already have a brand"
-        help="Mark this step done if you already know how your business looks and feels, with colors and a style you use. Add brand pictures you have below, so they’re kept with everything else."
-        done={mark ? { url: mark.url, note: mark.note } : null}
-      />
-
-      <BrandForm initial={briefDefaults(business.profile, state.brief)} practice={practice} />
+      {approved ? (
+        <>
+          <Completed eyebrow="Your brand" title="You approved your brand description">
+            <blockquote className="border-l-[3px] border-done/40 py-1 pl-4 font-display text-[21px] leading-snug sm:text-[23px]">{approved}</blockquote>
+            {next}
+          </Completed>
+          <Revisit summary="See your picks and the description again, and change or rewrite it if you want.">{form}</Revisit>
+        </>
+      ) : mark ? (
+        <>
+          <Completed eyebrow="Your brand" title="You already have a brand">
+            {alreadyHave}
+            {next}
+          </Completed>
+          <Revisit summary="Describe your brand here after all, to guide your logo and pictures.">{form}</Revisit>
+        </>
+      ) : (
+        <>
+          {alreadyHave}
+          {form}
+        </>
+      )}
 
       <section aria-labelledby="own-pictures-heading" className="flex flex-col gap-4">
         <SectionHead

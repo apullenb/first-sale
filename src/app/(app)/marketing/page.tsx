@@ -3,6 +3,7 @@ import { type ReactNode, Suspense } from "react";
 import { approveMarketingPlanAction } from "@/app/(app)/marketing/actions";
 import { ActorChip } from "@/components/actor-chip";
 import { AlreadyHave } from "@/components/already-have";
+import { Completed, Revisit } from "@/components/completed";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { ApproveOrRewrite, WritePlanButton } from "@/components/marketing/ai-progress";
@@ -150,12 +151,28 @@ async function MarketingView() {
   );
 
   if (move.kind === "intake" || move.kind === "business") {
+    const questions = (
+      <section aria-label="Questions" className="rounded-2xl border border-line bg-surface px-4 py-5 shadow-card sm:p-7">
+        <MarketingIntakeForm initial={stored} hasPlan={Boolean(plan)} known={known} />
+      </section>
+    );
+    // Marked "I already have a plan": that's the decision, and the questions wait behind Revisit
+    if (mark) {
+      return (
+        <>
+          <Completed eyebrow="Your marketing plan" title="You already have a marketing plan">
+            {alreadyHave}
+          </Completed>
+          <Revisit label="Revisit this step" summary="Answer the questions here after all, and First Sale writes a plan with you.">
+            {questions}
+          </Revisit>
+        </>
+      );
+    }
     return (
       <>
         {alreadyHave}
-        <section aria-label="Questions" className="rounded-2xl border border-line bg-surface px-4 py-5 shadow-card sm:p-7">
-          <MarketingIntakeForm initial={stored} hasPlan={Boolean(plan)} known={known} />
-        </section>
+        {questions}
       </>
     );
   }
