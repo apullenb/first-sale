@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { type AIEvent, onAIEvent } from "../telemetry";
 import { AIProviderError } from "../types";
 import { createMockProvider } from "./mock";
 import {
@@ -510,5 +511,32 @@ describe("mock provider", () => {
     expect(mock.simulated).toBe(true);
     expect(mock.capabilities.webSearch).toBe(false);
     expect(mock.webSearch).toBeUndefined();
+  });
+});
+
+describe("measuring events", () => {
+  it("reports each retry and each search's query count and tokens, without any text", async () => {
+    const events: AIEvent[] = [];
+    const stop = onAIEvent((event) => events.push(event));
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(new Response("busy", { status: 503 }))
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              output: [{ type: "web_search_call", results: [] }, { type: "web_search_call", results: [] }],
+              usage: { input_tokens: 900, output_tokens: 40, input_tokens_details: { cached_tokens: 100 }, output_tokens_details: { reasoning_tokens: 10 } },
+            }),
+            { status: 200 },
+          ),
+        ),
+    );
+    await createOpenAICompatibleProvider(config).webSearch!({ question: "q" });
+    stop();
+    expect(events.map((event) => event.type)).toEqual(["retry", "search"]);
+    expect(events[0]).toMatchObject({ status: 503 });
+    expect(events[1]).toMatchObject({ queries: 2, usage: { inputTokens: 900, cachedInputTokens: 100, outputTokens: 40, reasoningTokens: 10 } });
   });
 });

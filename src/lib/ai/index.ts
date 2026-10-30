@@ -2,6 +2,8 @@ export { registerMockFixture } from "./providers/mock";
 export { getImageModel, getModel, MUSE_DEFAULTS, MUSE_IMAGE_DEFAULTS } from "./registry";
 export { generateObject, StructuredOutputError } from "./structured";
 export { AIProviderError } from "./types";
+export { onAIEvent } from "./telemetry";
+export type { AIEvent } from "./telemetry";
 export type {
   ChatMessage,
   CompletionRequest,

@@ -9,6 +9,7 @@ import {
   type WebSearchRequest,
   type WebSearchResult,
 } from "../types";
+import { emitAIEvent } from "../telemetry";
 
 export interface OpenAICompatibleConfig {
   name: string;
@@ -120,6 +121,7 @@ async function withRetries<T>(config: OpenAICompatibleConfig, timeoutMs: number,
       if (!(error instanceof AIProviderError) || !error.retryable || tries >= retries) throw error;
       const wait = backoffMs(tries, error.retryAfterMs);
       if (deadline - Date.now() - wait < timeoutMs / 4) throw error;
+      emitAIEvent({ type: "retry", status: error.status, waitMs: Math.round(wait) });
       await (config.wait ?? sleep)(wait);
     }
   }
@@ -328,6 +330,7 @@ async function webSearch(
   if (config.capabilities.reasoningEffort) body.reasoning = { effort: "low" };
   if (request.userKey && config.sendUserKey) body.safety_identifier = request.userKey;
 
+  const started = Date.now();
   let response: Response;
   try {
     response = await fetch(url, {
@@ -349,14 +352,27 @@ async function webSearch(
     throw new AIProviderError(`${config.name} search returned a non-JSON body`, response.status, true);
   }
   if (data.error) throw new AIProviderError(`${config.name} search failed: ${data.error.message ?? "unknown"}`, response.status, true);
-  logSearch(data);
+  logSearch(data, Date.now() - started);
   return readSearchOutput(data);
 }
 
 // Searches are billed per query on top of tokens, and one call can run several: counts only, never the question or results
-function logSearch(data: WireResponsesOutput) {
+function logSearch(data: WireResponsesOutput, ms: number) {
   const searches = (data.output ?? []).filter((item) => item.type === "web_search_call").length;
   const usage = data.usage;
+  emitAIEvent({
+    type: "search",
+    ms,
+    queries: searches,
+    usage: usage
+      ? {
+          inputTokens: usage.input_tokens ?? 0,
+          cachedInputTokens: usage.input_tokens_details?.cached_tokens ?? 0,
+          outputTokens: usage.output_tokens ?? 0,
+          reasoningTokens: usage.output_tokens_details?.reasoning_tokens ?? 0,
+        }
+      : null,
+  });
   console.info(
     `AI web_search: ${searches} ${searches === 1 ? "query" : "queries"}, ${usage?.input_tokens ?? 0} in (${usage?.input_tokens_details?.cached_tokens ?? 0} cached), ${usage?.output_tokens ?? 0} out (${usage?.output_tokens_details?.reasoning_tokens ?? 0} reasoning)`,
   );
