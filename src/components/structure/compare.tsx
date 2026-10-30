@@ -1,5 +1,5 @@
 import { Icon } from "@/components/icons";
-import { Chip } from "@/components/ui";
+import { RECOMMENDED_FILL, RecommendedBadge } from "@/components/recommended";
 import type { BusinessStructure } from "@/lib/domain";
 import { compareRows, structureOption } from "@/lib/structure/options";
 import { FACTS_CHECKED, SourceLink, StateRule } from "./source-link";
@@ -41,14 +41,10 @@ export function Comparison({
                 <span className="sr-only">Topic</span>
               </th>
               {options.map((id) => (
-                <th key={id} scope="col" className={`px-4 py-3 align-top ${id === recommended ? "bg-accent-tint" : ""}`}>
+                <th key={id} scope="col" className={`px-4 py-3 align-top ${id === recommended ? RECOMMENDED_FILL : ""}`}>
                   <span className="flex flex-col items-start gap-1.5">
                     <span className="font-display text-lg leading-snug">{structureOption(id).label}</span>
-                    {id === recommended ? (
-                      <Chip tone="accent" icon="lightbulb">
-                        Recommended for you
-                      </Chip>
-                    ) : null}
+                    {id === recommended ? <RecommendedBadge /> : null}
                   </span>
                 </th>
               ))}
@@ -61,7 +57,7 @@ export function Comparison({
                   {row.label}
                 </th>
                 {options.map((id) => (
-                  <td key={id} className={`px-4 py-3 align-top ${id === recommended ? "bg-accent-tint/40" : ""}`}>
+                  <td key={id} className={`px-4 py-3 align-top ${id === recommended ? "bg-pick-tint/40" : ""}`}>
                     {cell(id, index)}
                   </td>
                 ))}
@@ -78,7 +74,7 @@ export function Comparison({
             <dd className={`grid gap-3 ${options.length > 2 ? "grid-cols-1" : "grid-cols-2"}`}>
               {options.map((id) => (
                 <div key={id} className="flex min-w-0 flex-col gap-0.5 text-[15px]">
-                  <span className={`flex items-center gap-1 text-sm font-semibold ${id === recommended ? "text-accent-ink" : "text-rule"}`}>
+                  <span className={`flex items-center gap-1 text-sm font-semibold ${id === recommended ? "text-pick-ink" : "text-rule"}`}>
                     {id === recommended ? <Icon name="lightbulb" size="xs" /> : null}
                     {SHORT[id]}
                     {id === recommended ? <span className="sr-only">, recommended for you</span> : null}

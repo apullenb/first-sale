@@ -299,10 +299,10 @@ function NextStep({ items, marks }: { items: Insight[]; marks: Marks }) {
   );
 }
 
-const SECTION_LOOK: Record<InsightSection, { icon: IconName; tone: "done" | "warn" | "accent" }> = {
+const SECTION_LOOK: Record<InsightSection, { icon: IconName; tone: "done" | "warn" | "accent" | "pick" }> = {
   strengths: { icon: "check", tone: "done" },
   watch: { icon: "flag", tone: "warn" },
-  tips: { icon: "lightbulb", tone: "accent" },
+  tips: { icon: "lightbulb", tone: "pick" },
   ideas: { icon: "sparkles", tone: "accent" },
 };
 

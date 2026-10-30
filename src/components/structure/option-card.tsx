@@ -38,7 +38,7 @@ export function OptionCard({
   return (
     <article
       className={`flex flex-col gap-4 rounded-[14px] border bg-surface p-5 shadow-card ${
-        why ? "border-accent-ring shadow-[0_0_0_3px_var(--color-accent-tint),var(--shadow-card)]" : "border-line"
+        why ? "border-pick-ring shadow-[0_0_0_3px_var(--color-pick-tint),var(--shadow-card)]" : "border-line"
       }`}
     >
       <div className="flex flex-col gap-2">

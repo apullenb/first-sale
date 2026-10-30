@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon } from "@/components/icons";
 import { TEXT_LINK } from "@/components/styles";
-import { IconTile } from "@/components/ui";
+import { RecommendedPanel } from "@/components/recommended";
 import type { PathSuggestion, Reason } from "@/lib/structure/suggest";
 import { ReasonList } from "./explain";
 import { SourceLink } from "./source-link";
@@ -10,17 +9,10 @@ import { SourceLink } from "./source-link";
 // The rules' starting point for ownership, kept apart from any legal determination
 export function SuggestedPath({ suggestion }: { suggestion: PathSuggestion }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-accent-ring bg-accent-tint/50 p-4">
-      <IconTile icon="lightbulb" />
-      <div className="flex min-w-0 flex-col gap-1">
-        <p className="flex flex-wrap items-center gap-2 text-[13px] font-bold uppercase tracking-[0.08em] text-accent">
-          Our suggestion
-          <ActorChip actor="rule" />
-        </p>
-        <p className="font-display text-xl leading-snug">{suggestion.headline}</p>
-        <p className="text-sm text-muted">Worked out from your answers by fixed rules, not a legal decision. You choose, and you can change it later.</p>
-      </div>
-    </div>
+    <RecommendedPanel eyebrow="Recommended for you" big>
+      <p className="font-display text-xl leading-snug">{suggestion.headline}</p>
+      <p className="text-sm text-muted">Worked out from your answers by fixed rules, not a legal decision. You choose, and you can change it later.</p>
+    </RecommendedPanel>
   );
 }
 

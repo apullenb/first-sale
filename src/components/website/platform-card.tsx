@@ -1,10 +1,10 @@
 import { Fragment, type ReactNode } from "react";
-import { ActorChip } from "@/components/actor-chip";
 import { Icon, type IconName } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { LABEL } from "@/components/marketing/pieces";
 import { TEXT_LINK } from "@/components/styles";
 import { Chip } from "@/components/ui";
+import { RecommendedBadge } from "@/components/recommended";
 import { comparePlan, type CostLine, costSummary, firstYearText, lower, usd } from "@/lib/website/costs";
 import type { OptionExplanation } from "@/lib/website/options";
 import type { PlatformInfo } from "@/lib/website/platforms";
@@ -68,11 +68,7 @@ export function PlatformCard({
               Demo
             </Chip>
           ) : null}
-          {recommended ? (
-            <Chip tone="accent" icon="sparkles">
-              Recommended for you
-            </Chip>
-          ) : null}
+          {recommended ? <RecommendedBadge /> : null}
           {chosen ? (
             <Chip tone="done" icon="check">
               Your choice
@@ -87,9 +83,9 @@ export function PlatformCard({
               <Icon name="chevron" size="sm" className="transition-transform group-open/why:rotate-90" />
               Explain why
             </summary>
-            <div className="flex flex-col gap-2 rounded-xl border border-accent-ring bg-accent-tint px-3.5 py-3">
-              <p className="flex items-center gap-2 text-sm font-semibold text-accent-ink">
-                <ActorChip actor="rule" /> From your answers about what you sell and how
+            <div className="flex flex-col gap-2 rounded-xl border border-pick-ring bg-pick-tint/70 px-3.5 py-3">
+              <p className="flex items-center gap-2 text-sm font-semibold text-pick-ink">
+                From your answers about what you sell and how
               </p>
               <List items={recommended.reasons} tone="good" />
             </div>
