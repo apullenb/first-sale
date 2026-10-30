@@ -22,10 +22,11 @@ import { ReasonList } from "@/components/structure/explain";
 import { GuideSection, NameInfo, TaxInfo } from "@/components/structure/guide-sections";
 import { History } from "@/components/structure/history";
 import { OptionCard } from "@/components/structure/option-card";
-import { StructureWhy, SuggestedPath } from "@/components/structure/suggested-path";
+import { AdviceRunner } from "@/components/structure/advice-runner";
+import { AskAProfessional, StructureWhy, SuggestedPath } from "@/components/structure/suggested-path";
 import { WhatIfPanel } from "@/components/structure/what-if";
 import { Card, Chip, Fold, Note, PageHead } from "@/components/ui";
-import { getMyBusiness, getMyDetails, getMyResearch, listMyHistory } from "@/lib/data/my-business";
+import { getMyBusiness, getMyDetails, getMyResearch, getMyStructureAdvice, listMyHistory } from "@/lib/data/my-business";
 import { displayDetail, STRUCTURE_LABELS } from "@/lib/details";
 import { formatFee } from "@/lib/documents/startup-plan";
 import type { BusinessStructure } from "@/lib/domain";
@@ -59,7 +60,13 @@ export default function StructurePage() {
 }
 
 async function Structure() {
-  const [business, details, research, history] = await Promise.all([getMyBusiness(), getMyDetails(), getMyResearch(), listMyHistory({ kind: "decision" })]);
+  const [business, details, research, history, advice] = await Promise.all([
+    getMyBusiness(),
+    getMyDetails(),
+    getMyResearch(),
+    listMyHistory({ kind: "decision" }),
+    getMyStructureAdvice(),
+  ]);
   const header = (lead = "Three choices that shape your paperwork: how your business is owned, the name you sell under, and how it’s taxed. Each part explains one choice, then asks you to make it.") => (
     <PageHead
       kicker={
@@ -90,7 +97,18 @@ async function Structure() {
   const profile = business.profile;
   const state = STATE_NAMES[profile.location.state];
   const owners = profile.owners.count;
-  const suggestion = suggestPath(profile);
+  // The AI's recommendation for these answers; the rules' stand in until it's ready
+  const current = advice && advice.profileKey === profileKey(profile) ? advice : null;
+  const rules = suggestPath(profile);
+  const suggestion = current
+    ? {
+        ...rules,
+        option: current.structure,
+        headline: current.headline,
+        alternatives: rules.alternatives.filter((each) => each.option !== current.structure),
+        askAProfessional: current.askAProfessional.length ? current.askAProfessional : rules.askAProfessional,
+      }
+    : rules;
   const saved = new Map(details.map((detail) => [detail.key, detail.value]));
   const decided = saved.get("structure_choice") ?? "";
   // A recorded structure that no longer fits the number of owners isn't described as if it did
@@ -105,7 +123,7 @@ async function Structure() {
   const lastDecision = history.find((event) => event.key === "structure_choice");
   const stale = lastDecision?.basis && lastDecision.basis.profileKey !== profileKey(profile) ? lastDecision.basis : null;
   const all = [...guide.main, ...guide.more];
-  const structureWhy = <StructureWhy reasons={whyRecommended(profile, suggestion)} suggestion={suggestion} />;
+  const structureWhy = <StructureWhy reasons={current ? current.reasons : whyRecommended(profile, suggestion)} suggestion={suggestion} />;
   const choice = (id: BusinessStructure): StructureChoice => ({ id, short: structureOption(id).short, why: id === suggestion.option ? structureWhy : null });
   const card = (id: BusinessStructure) => {
     const option = structureOption(id);
@@ -122,8 +140,12 @@ async function Structure() {
       />
     );
   };
-  const namePicks = Object.fromEntries(all.map((id) => [id, planPick(recommendedNamePlan(profile, id))]));
-  const taxPicks = Object.fromEntries(all.map((id) => [id, planPick(recommendedTaxPlan(profile, id))]));
+  const namePicks = Object.fromEntries(
+    all.map((id) => [id, planPick(current?.structure === id ? (current.name.plan ? { value: current.name.plan, reasons: current.name.reasons } : null) : recommendedNamePlan(profile, id))]),
+  );
+  const taxPicks = Object.fromEntries(
+    all.map((id) => [id, planPick(current?.structure === id ? { value: current.tax.plan, reasons: current.tax.reasons } : recommendedTaxPlan(profile, id))]),
+  );
   // Research steps tied to a structure: kept or left out by each choice, worked out from what the research recorded
   const tied = research ? research.requirements.filter((requirement) => requirement.forStructures.length) : [];
   const change = (requirement: (typeof tied)[number]) => ({
@@ -179,6 +201,7 @@ async function Structure() {
         namePicks={namePicks}
         taxPicks={taxPicks}
         changes={changes}
+        unsure={<AskAProfessional questions={suggestion.askAProfessional} />}
     >
       <section aria-labelledby="know-heading" className="flex flex-col gap-5">
         <PartHead
@@ -249,6 +272,7 @@ async function Structure() {
   return (
     <div className="flex max-w-4xl flex-col gap-6">
       {chosen ? header("How your business is owned, the name you sell under, and how it’s taxed. Your choices are below.") : header()}
+      {current ? null : <AdviceRunner />}
       {chosen ? null : (
         <div className="-mt-2 flex flex-wrap items-center gap-2">
           <Chip tone="accent" icon="scale">

@@ -217,7 +217,7 @@ export async function saveFollowUpForOwner(
       const quoted = note.evidence ? { sourceIds: note.sourceIds, evidence: note.evidence, verification: "sourced" as const, problems: [] } : {};
       await tx
         .update(requirements)
-        .set({ ...settled, ...quoted, background: note.background, verdict: note.verdict })
+        .set({ ...settled, ...quoted, background: note.background, verdict: note.verdict, ...(note.questions.length ? { whatToAsk: note.questions } : {}) })
         .where(and(eq(requirements.businessId, business.id), eq(requirements.key, note.key)));
     }
     const answered = new Map(result.answers.map((each) => [each.question, each.answer]));

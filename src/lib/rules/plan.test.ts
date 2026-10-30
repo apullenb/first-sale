@@ -55,6 +55,17 @@ describe("rules First Sale decided", () => {
     expect(plan[2].contacts).toBeNull();
   });
 
+  it("sends rules even the deeper look couldn't settle to their office: one step and one message for each", () => {
+    const plan = buildPlan(
+      [{ ...decided("license"), status: "to_find_out" as const }, { ...decided("home"), status: "to_find_out" as const }, decided("sign")],
+      sources,
+      false,
+      { place, offices: [aubrey] },
+    );
+    expect(plan.map((step) => step.key)).toEqual(["ask-city-of-aubrey", "sign"]);
+    expect(plan[0]).toMatchObject({ title: "Ask the City of Aubrey about 2 rules", requirementStatus: "to_find_out", contacts: aubrey.contacts });
+  });
+
   it("leaves out rules First Sale decided aren't needed", () => {
     const plan = buildPlan([{ ...decided("sign"), status: "not_needed" as const }, decided("license")], sources, false, { place, offices: [aubrey] });
     expect(plan.map((step) => step.key)).toEqual(["license"]);

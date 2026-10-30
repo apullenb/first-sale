@@ -30,14 +30,19 @@ export async function BrandNotes() {
   await connection();
   return (
     <Card title="Good to know" icon="info" tone="gray" id="brand-notes-heading" bodyClassName="gap-5">
-      <Note icon="search" title="Check your logo isn’t taken">
+      <Note icon="search" title="We recommend a trademark search">
         <p className="text-rule">
-          A logo made with AI can look like a mark another business already uses, and using one that’s too close can cause trouble later. Before you print it or
-          spend money on it, search the{" "}
+          Do it before you print signs, labels or packaging, buy a web address, or file a name with your state. If another business already uses a name or logo
+          close to yours for similar goods, they can make you stop using it, and everything printed with it is wasted. It matters most if you’ll sell online or in
+          more than one state, since your customers can come from anywhere.
+        </p>
+        <p className="text-rule">
+          Search the{" "}
           <a href={USPTO.url} target="_blank" rel="noreferrer" className={TEXT_LINK}>
             U.S. trademark database
           </a>{" "}
-          for similar names and designs (link checked {CHECKED}). A trademark attorney can do a fuller search. First Sale doesn’t check this for you.
+          for your business name and for words and designs like your logo (link checked {CHECKED}). It’s free. A logo made with AI can look like one already in use,
+          so check it too. If your business grows, registering your own trademark protects the name nationwide, and a trademark attorney can handle the filing.
         </p>
       </Note>
       <Note icon="lock" title="Who sees your brand files">

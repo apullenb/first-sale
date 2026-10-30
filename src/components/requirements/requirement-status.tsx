@@ -9,6 +9,7 @@ const LOOK: Record<RequirementStatus, { tone: "accent" | "gray" | "warn" | "plai
   needs_confirmation: { tone: "accent", icon: "check" },
   outside_coverage: { tone: "plain", icon: "external" },
   not_needed: { tone: "plain", icon: "minus" },
+  to_find_out: { tone: "warn", icon: "question" },
 };
 
 // Whether a requirement applies; the icon only repeats the words

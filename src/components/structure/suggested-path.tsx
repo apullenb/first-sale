@@ -4,6 +4,7 @@ import { TEXT_LINK } from "@/components/styles";
 import { RecommendedPanel } from "@/components/recommended";
 import type { PathSuggestion, Reason } from "@/lib/structure/suggest";
 import { ReasonList } from "./explain";
+import { SourceLink } from "./source-link";
 
 // The rules' starting point for ownership, kept apart from any legal determination
 export function SuggestedPath({ suggestion }: { suggestion: PathSuggestion }) {
@@ -35,5 +36,28 @@ export function StructureWhy({ reasons, suggestion }: { reasons: Reason[]; sugge
         Correct an answer
       </Link>
     </>
+  );
+}
+
+// Questions to take to a professional, for the "Not sure yet?" fold
+export function AskAProfessional({ questions }: { questions: string[] }) {
+  return (
+    <div className="flex flex-col gap-2">
+      {questions.length ? (
+        <>
+          <h3 className="font-bold">Questions worth asking a tax professional</h3>
+          <ul className="flex list-disc flex-col gap-1.5 pl-5 text-[15px] marker:text-faint">
+            {questions.map((question) => (
+              <li key={question}>{question}</li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      <p className="text-[15px] text-muted">
+        The SBA offers counseling through its resource partners
+        <SourceLink fact="sba_counseling" />. It also says business counselors, attorneys and accountants can help
+        <SourceLink fact="counselors" />.
+      </p>
+    </div>
   );
 }

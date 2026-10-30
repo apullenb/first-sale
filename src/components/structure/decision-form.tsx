@@ -68,6 +68,7 @@ type Props = {
   taxPicks: Partial<Record<string, PlanPick | null>>;
   // Plan steps each structure keeps and leaves out; null before requirements are checked
   changes: Partial<Record<string, { kept: PlanChange[]; left: PlanChange[] }>> | null;
+  unsure: ReactNode;
 };
 
 const DecisionContext = createContext<ReturnType<typeof useDecisionState> | null>(null);
@@ -321,6 +322,7 @@ export function DecisionReview() {
     stale,
     recordedAt,
     changes,
+    unsure,
     values,
     pending,
     done,
@@ -464,6 +466,20 @@ export function DecisionReview() {
           </span>
         </p>
       ) : null}
+
+      <details className="group/unsure rounded-[14px] border border-line bg-surface shadow-soft">
+        <summary className="flex min-h-[58px] cursor-pointer list-none items-center gap-3 px-[18px] py-3.5 [&::-webkit-details-marker]:hidden">
+          <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-accent-ring bg-accent-tint text-accent">
+            <Icon name="question" />
+          </span>
+          <span className="grid min-w-0 flex-1 gap-px">
+            <b className="text-[16.5px] font-bold">You might want to ask a tax professional</b>
+            <small className="text-[14.5px] text-muted">What’s worth asking them, and free help from the SBA</small>
+          </span>
+          <Icon name="chevron" className="text-faint transition-transform group-open/unsure:rotate-90 motion-reduce:transition-none" />
+        </summary>
+        <div className="px-[18px] pb-[18px]">{unsure}</div>
+      </details>
 
       <div className="flex flex-col items-start gap-2">
         <button ref={reviewButton} type="button" onClick={() => show(true)} disabled={!complete || (!changed.length && !stale)} className={PRIMARY}>

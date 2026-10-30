@@ -60,6 +60,11 @@ describe("what counts as a task", () => {
     expect(standingOf(step("b", { requirementStatus: "needs_confirmation", verification: "needs_verification" }), context())).toMatchObject({ inclusion: "task", requirementStatus: "needs_confirmation" });
   });
 
+  it("makes a rule even the deeper look couldn't settle a step to find out for sure", () => {
+    const unsettled = step("c", { requirementStatus: "to_find_out", verification: "needs_verification" });
+    expect(standingOf(unsettled, context())).toMatchObject({ inclusion: "confirm", requirementStatus: "to_find_out" });
+  });
+
   it("leaves out optional rules and rules outside what First Sale checks", () => {
     expect(inclusion(step("a", { requirementStatus: "optional" }))).toBe("optional");
     expect(inclusion(step("b", { requirementStatus: "outside_coverage" }))).toBe("outside");

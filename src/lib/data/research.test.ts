@@ -193,8 +193,8 @@ describe("follow-up", () => {
         pages: [page],
         confirmed: [{ ...open("license"), sourceIds: ["fu-license-1"], evidence: "A license is required.", verification: "sourced", problems: [] }],
         notes: [
-          { key: "home", verdict: "applies", background: "Home bakeries here usually need this.", sourceIds: [], evidence: null },
-          { key: "sign", verdict: "not_needed", background: "Small home businesses without a sign don’t need this.", sourceIds: [], evidence: null },
+          { key: "home", verdict: "applies", background: "Home bakeries here usually need this.", sourceIds: [], evidence: null, questions: [] },
+          { key: "sign", verdict: "not_needed", background: "Small home businesses without a sign don’t need this.", sourceIds: [], evidence: null, questions: [] },
         ],
         answers: [],
         offices: [{ ...office, contacts: { emails: [{ value: "clerk@example.gov", url: page.url }], phones: [] }, site: null }],
