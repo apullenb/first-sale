@@ -7,11 +7,19 @@ import { PracticeBanner } from "@/components/practice-banner";
 import { StatusChip } from "@/components/requirements/sources";
 import { SourceButton } from "@/components/requirements/source-button";
 import { PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
-import { Areas } from "@/components/structure/areas";
+import { Areas, areaFor } from "@/components/structure/areas";
 import { Comparison } from "@/components/structure/compare";
-import { DecisionForm, type PlanPick, type StructureChoice } from "@/components/structure/decision-form";
+import {
+  DecisionProvider,
+  DecisionReview,
+  NameQuestion,
+  OwnershipQuestion,
+  type PlanPick,
+  type StructureChoice,
+  TaxQuestion,
+} from "@/components/structure/decision-form";
 import { ReasonList } from "@/components/structure/explain";
-import { ForYou, GuideSection, NameInfo, TaxInfo } from "@/components/structure/guide-sections";
+import { GuideSection, NameInfo, TaxInfo } from "@/components/structure/guide-sections";
 import { History } from "@/components/structure/history";
 import { OptionCard } from "@/components/structure/option-card";
 import { AskAProfessional, StructureWhy, SuggestedPath } from "@/components/structure/suggested-path";
@@ -20,7 +28,7 @@ import { Card, Chip, Fold, Note, PageHead } from "@/components/ui";
 import { getMyBusiness, getMyDetails, getMyResearch, listMyHistory } from "@/lib/data/my-business";
 import { displayDetail, STRUCTURE_LABELS } from "@/lib/details";
 import { formatFee } from "@/lib/documents/startup-plan";
-import type { BusinessProfile, BusinessStructure } from "@/lib/domain";
+import type { BusinessStructure } from "@/lib/domain";
 import { STATE_NAMES } from "@/lib/intake/options";
 import { profileKey } from "@/lib/research/requirements";
 import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
@@ -52,7 +60,7 @@ export default function StructurePage() {
 
 async function Structure() {
   const [business, details, research, history] = await Promise.all([getMyBusiness(), getMyDetails(), getMyResearch(), listMyHistory({ kind: "decision" })]);
-  const header = (lead = "Three choices that shape your paperwork: how your business is owned, the name you sell under, and how it’s taxed. Read what each means for you first, then answer three short questions.") => (
+  const header = (lead = "Three choices that shape your paperwork: how your business is owned, the name you sell under, and how it’s taxed. Each part explains one choice, then asks you to make it.") => (
     <PageHead
       kicker={
         <span className="inline-flex items-center gap-2">
@@ -114,8 +122,6 @@ async function Structure() {
       />
     );
   };
-  const namePick = recommendedNamePlan(profile, basis);
-  const taxPick = recommendedTaxPlan(profile, basis);
   const namePicks = Object.fromEntries(all.map((id) => [id, planPick(recommendedNamePlan(profile, id))]));
   const taxPicks = Object.fromEntries(all.map((id) => [id, planPick(recommendedTaxPlan(profile, id))]));
   // Research steps tied to a structure: kept or left out by each choice, worked out from what the research recorded
@@ -153,9 +159,35 @@ async function Structure() {
     </div>
   );
   const guideAndQuestions = (
-    <>
+    // Starts over if the number of owners changes, since the options change with it
+    <DecisionProvider
+      key={owners}
+        stale={Boolean(stale)}
+        recordedAt={lastDecision?.createdAt.toISOString() ?? null}
+        current={{
+          structure_choice: decided,
+          name_registration_plan: saved.get("name_registration_plan") ?? "",
+          tax_classification_plan: saved.get("tax_classification_plan") ?? "",
+        }}
+        owners={owners}
+        basis={basisLines(profile)}
+        choices={guide.main.map(choice)}
+        extra={guide.more.length ? choice(guide.more[0]) : null}
+        suggested={suggestion.option}
+        nameText={Object.fromEntries(all.map((id) => [id, nameNeed(profile, id).text]))}
+        taxText={Object.fromEntries(all.map((id) => [id, taxFor(id, owners).text]))}
+        namePicks={namePicks}
+        taxPicks={taxPicks}
+        changes={changes}
+        unsure={<AskAProfessional questions={suggestion.askAProfessional} />}
+    >
       <section aria-labelledby="know-heading" className="flex flex-col gap-5">
-        <PartHead id="know-heading" part="Part 1 of 2" title="What to know first" lead="Nothing to answer yet. Read what each choice means for you, compare, and open the examples." />
+        <PartHead
+          id="know-heading"
+          part="Start here"
+          title="What to know first"
+          lead="Four things that often get mixed up. Each part below explains one of the first three, then asks you to choose. “Not sure yet” is a fine answer."
+        />
 
         <GuideSection id="guide-areas" icon="layers" title="Four things that often get mixed up" lead="A DBA isn’t a structure, and no structure replaces a license. This page asks about the first three.">
           <Areas />
@@ -166,10 +198,14 @@ async function Structure() {
           icon="users"
           title="How it’s owned"
           lead={`Who owns the business, and whether it’s a company separate from you. With ${owners === 1 ? "one owner" : `${owners} owners`}, these are your options.`}
+          area={areaFor("ownership")}
         >
           <SuggestedPath suggestion={suggestion} />
           <Comparison owners={owners} options={guide.main} recommended={suggestion.option} state={state} stateFound={stateFound} />
-          <div className="grid items-stretch gap-4 md:grid-cols-2">{guide.main.map(card)}</div>
+          <OwnershipQuestion />
+          <Fold title="Each option in detail" summary="Why people choose it, what to watch for, what it takes to keep up, and examples" icon="book">
+            <div className="grid items-stretch gap-4 md:grid-cols-2">{guide.main.map(card)}</div>
+          </Fold>
           {guide.more.map((id) => (
             <Fold key={id} title={`Also possible: ${STRUCTURE_LABELS[id].toLowerCase()}`} summary="Less common for a first business" icon="building">
               {card(id)}
@@ -182,8 +218,10 @@ async function Structure() {
 
         <NameInfo
           folded={guide.nameFolded}
-          forYou={<NameForYou profile={profile} option={basis} pick={namePick} state={state} filings={stateRules.filter((rule) => rule.topic === "name_registration").length} />}
+          forYou={<NameFilings state={state} filings={stateRules.filter((rule) => rule.topic === "name_registration").length} />}
           examples={nameExamples(profile, basis)}
+          area={areaFor("name")}
+          question={<NameQuestion />}
         />
 
         <TaxInfo
@@ -191,47 +229,22 @@ async function Structure() {
           defaults={guide.main.map((id) => ({ option: id, ...taxFor(id, owners) }))}
           points={taxPoints(guide.main, guide.spouseNote)}
           otherOpen={guide.otherTaxOpen}
-          forYou={<ForYou label={taxLabel(taxPick.value, basis)} reasons={taxPick.reasons} />}
+          forYou={null}
           examples={taxExamples(profile, basis)}
+          area={areaFor("tax")}
+          question={<TaxQuestion />}
         />
 
         <StateRules state={state} research={research} rules={stateRules} />
       </section>
 
       <section id="questions" aria-labelledby="answers-heading" className="flex scroll-mt-6 flex-col gap-5">
-        <PartHead
-          id="answers-heading"
-          part="Part 2 of 2"
-          title="Your answers"
-          lead="Pick an answer for each. “Not sure yet” is a fine answer. You’ll review everything before it’s saved."
-        />
+        <PartHead id="answers-heading" part="Last step" title="Review and record" lead="Check your three answers and what they change in your plan. Nothing is saved until you record it." />
         <div className="rounded-[14px] border border-line bg-surface p-4 shadow-card sm:p-6">
-          {/* Starts over if the number of owners changes, since the options change with it */}
-          <DecisionForm
-            key={owners}
-            stale={Boolean(stale)}
-            recordedAt={lastDecision?.createdAt.toISOString() ?? null}
-            current={{
-              structure_choice: decided,
-              name_registration_plan: saved.get("name_registration_plan") ?? "",
-              tax_classification_plan: saved.get("tax_classification_plan") ?? "",
-            }}
-            owners={owners}
-            basis={basisLines(profile)}
-            choices={guide.main.map(choice)}
-            extra={guide.more.length ? choice(guide.more[0]) : null}
-            suggested={suggestion.option}
-            nameText={Object.fromEntries(all.map((id) => [id, nameNeed(profile, id).text]))}
-            taxText={Object.fromEntries(all.map((id) => [id, taxFor(id, owners).text]))}
-            namePicks={namePicks}
-            taxPicks={taxPicks}
-            changes={changes}
-            unsure={<AskAProfessional questions={suggestion.askAProfessional} />}
-          />
+          <DecisionReview />
         </div>
       </section>
-
-    </>
+    </DecisionProvider>
   );
 
   return (
@@ -240,11 +253,11 @@ async function Structure() {
       {chosen ? null : (
         <div className="-mt-2 flex flex-wrap items-center gap-2">
           <Chip tone="accent" icon="scale">
-            Three questions at the end
+            Three questions, one in each part
           </Chip>
           <Chip icon="clock">About {formatMinutes(stepMinutes({ topic: "structure" }))}</Chip>
-          <a href="#questions" className={`inline-flex min-h-11 items-center gap-1 px-1 text-[15px] ${TEXT_LINK}`}>
-            Skip to the questions
+          <a href="#question-structure_choice" className={`inline-flex min-h-11 items-center gap-1 px-1 text-[15px] ${TEXT_LINK}`}>
+            Go to the first question
           </a>
         </div>
       )}
@@ -298,44 +311,15 @@ function PartHead({ id, part, title, lead }: { id: string; part: string; title: 
   );
 }
 
-function NameForYou({
-  profile,
-  option,
-  pick,
-  state,
-  filings,
-}: {
-  profile: BusinessProfile;
-  option: BusinessStructure;
-  pick: ReturnType<typeof recommendedNamePlan>;
-  state: string;
-  // Name filings the owner's research found
-  filings: number;
-}) {
-  const need = nameNeed(profile, option);
-  const label = !pick
-    ? need.text
-    : pick.value === "register_dba"
-      ? profile.name
-        ? `Register “${profile.name}” as a DBA`
-        : "Register the name you sell under as a DBA"
-      : "Sell under your legal name. There’s no name to register.";
+// The name filings the owner's check found; the recommended answer is marked in question 2, following their choice
+function NameFilings({ state, filings }: { state: string; filings: number }) {
+  if (!filings) return null;
   return (
-    <ForYou label={label} reasons={pick ? pick.reasons : null}>
-      {filings && pick?.value !== "legal_name" ? (
-        <a href="#state-rules" className={`relative z-10 inline-flex min-h-11 w-fit items-center gap-1.5 text-[15px] ${TEXT_LINK}`}>
-          <Icon name="office" size="sm" />
-          See the {filings === 1 ? "name filing" : `${filings} name filings`} your check of what applies found in {state}
-        </a>
-      ) : null}
-    </ForYou>
+    <a href="#state-rules" className={`inline-flex min-h-11 w-fit items-center gap-1.5 text-[15px] ${TEXT_LINK}`}>
+      <Icon name="office" size="sm" />
+      See the {filings === 1 ? "name filing" : `${filings} name filings`} your check of what applies found in {state}
+    </a>
   );
-}
-
-function taxLabel(value: string, option: BusinessStructure): string {
-  return value === "default"
-    ? `Keep the default for a ${STRUCTURE_LABELS[option].replace(/ \(LLC\)$/, "").toLowerCase()}`
-    : "Ask a tax professional about another tax status before you file";
 }
 
 function StateRules({ state, research, rules }: { state: string; research: Research | null; rules: Research["requirements"] }) {

@@ -5,17 +5,36 @@ import type { StructureExample } from "@/data/structure-examples";
 import { STRUCTURE_LABELS } from "@/lib/details";
 import type { BusinessStructure } from "@/lib/domain";
 import { type Line, NAME_POINTS, otherTaxPoints } from "@/lib/structure/options";
-import type { Reason } from "@/lib/structure/suggest";
-import { ExplainWhy, ReasonList, RecommendedTag, ShowExamples } from "./explain";
+import { ShowExamples } from "./explain";
 import { SourceLink } from "./source-link";
 
-// One part of the guide: a white card with a serif heading
-export function GuideSection({ id, icon, title, lead, children }: { id: string; icon: IconName; title: string; lead: string; children: ReactNode }) {
+// One part of the guide: a white card with a serif heading.
+// `area` names the matching card in "Four things that often get mixed up", with the same icon, so the two read as one
+export function GuideSection({
+  id,
+  icon,
+  title,
+  lead,
+  area,
+  children,
+}: {
+  id: string;
+  icon: IconName;
+  title: string;
+  lead: string;
+  area?: { title: string; question: number };
+  children: ReactNode;
+}) {
   return (
     <section aria-labelledby={id} className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-4 shadow-card sm:p-6">
       <div className="flex items-start gap-3">
-        <IconTile icon={icon} />
+        <IconTile icon={icon} big={Boolean(area)} />
         <div className="flex min-w-0 flex-col gap-0.5">
+          {area ? (
+            <p className="text-[13.5px] font-bold uppercase tracking-[0.08em] text-accent">
+              {area.title} · Question {area.question}
+            </p>
+          ) : null}
           <h3 id={id} className="scroll-mt-6 font-display text-[22px] leading-snug">
             {title}
           </h3>
@@ -43,27 +62,6 @@ export function Points({ lines }: { lines: readonly Line[] }) {
   );
 }
 
-// What the rules recommend for this owner, with the reasons folded underneath
-export function ForYou({ label, reasons, children }: { label: ReactNode; reasons: Reason[] | null; children?: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1.5 rounded-xl border border-accent-ring bg-accent-tint/50 px-4 pt-3 pb-1.5">
-      <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-accent">For you</p>
-      <p className="font-semibold leading-snug">{label}</p>
-      {reasons ? (
-        <div className="flex flex-col gap-0.5">
-          <RecommendedTag />
-          <ExplainWhy>
-            <ReasonList reasons={reasons} />
-            {children}
-          </ExplainWhy>
-        </div>
-      ) : (
-        <div className="pb-1.5">{children}</div>
-      )}
-    </div>
-  );
-}
-
 function Folded({ title, summary, open, children }: { title: string; summary: string; open: boolean; children: ReactNode }) {
   return (
     <details open={open} className="group/fold rounded-xl border border-line bg-soft">
@@ -83,14 +81,18 @@ export function NameInfo({
   folded,
   forYou,
   examples,
+  area,
+  question,
 }: {
   // Why the details fold away when they likely don't apply; null keeps them open
   folded: string | null;
   forYou: ReactNode;
   examples: StructureExample[];
+  area?: { title: string; question: number };
+  question?: ReactNode;
 }) {
   return (
-    <GuideSection id="guide-name" icon="tag" title="The name you sell under" lead="Registering a name is separate from your structure. A DBA doesn’t create a company.">
+    <GuideSection id="guide-name" icon="tag" title="The name you sell under" lead="Registering a name is separate from your structure. A DBA doesn’t create a company." area={area}>
       {folded ? (
         <Folded title="How business names work" summary={folded} open={false}>
           <Points lines={NAME_POINTS} />
@@ -100,6 +102,7 @@ export function NameInfo({
       )}
       {forYou}
       <ShowExamples examples={examples} />
+      {question}
     </GuideSection>
   );
 }
@@ -111,6 +114,8 @@ export function TaxInfo({
   otherOpen,
   forYou,
   examples,
+  area,
+  question,
 }: {
   owners: number;
   defaults: { option: BusinessStructure; text: string; fact: Line["fact"] }[];
@@ -119,9 +124,11 @@ export function TaxInfo({
   otherOpen: boolean;
   forYou: ReactNode;
   examples: StructureExample[];
+  area?: { title: string; question: number };
+  question?: ReactNode;
 }) {
   return (
-    <GuideSection id="guide-tax" icon="receipt" title="How you’re taxed" lead="Each structure has a default way the IRS taxes it. Some can choose another.">
+    <GuideSection id="guide-tax" icon="receipt" title="How you’re taxed" lead="Each structure has a default way the IRS taxes it. Some can choose another." area={area}>
       <ul className="flex flex-col gap-2 text-[15px]">
         {defaults.map((item) => (
           <li key={item.option} className="flex flex-col gap-0.5 rounded-lg border border-line px-3.5 py-2.5 sm:flex-row sm:gap-3">
@@ -139,6 +146,7 @@ export function TaxInfo({
       </Folded>
       {forYou}
       <ShowExamples examples={examples} />
+      {question}
     </GuideSection>
   );
 }
