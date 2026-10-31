@@ -123,7 +123,7 @@ export const STRUCTURE_OPTIONS: readonly StructureOption[] = [
     ],
     setup: [
       { text: "Whether a general partnership registers with the state depends on the state.", fact: "varies_by_state", stateRule: true },
-      { text: "Get an EIN: the IRS says a partnership generally needs one. It’s free.", fact: "ein_partnership" },
+      { text: "Get an EIN, a tax ID number for the business: the IRS says a partnership generally needs one. It’s free.", fact: "ein_partnership" },
       { text: "Selling under a name other than your own names? You may need a DBA.", fact: "dba_where" },
       { text: "Write down who does what, how money is split, and what happens if someone leaves.", tip: true },
     ],
@@ -144,10 +144,10 @@ export const STRUCTURE_OPTIONS: readonly StructureOption[] = [
       { text: "The SBA calls it a fit for medium- or higher-risk businesses and owners with savings to protect.", fact: "llc_fit" },
     ],
     setup: [
-      { text: "File articles of organization with your state and pay its fee.", fact: "llc_articles", stateRule: true },
-      { text: "Name a registered agent in your state before you file.", fact: "registered_agent" },
+      { text: "File articles of organization with your state and pay its fee. That’s the form that creates the LLC; Texas calls it a certificate of formation.", fact: "llc_articles", stateRule: true },
+      { text: "Name a registered agent in your state before you file: the person or company that accepts legal mail for your business. It can be you.", fact: "registered_agent" },
       { text: "Write an operating agreement on how decisions and money work.", fact: "operating_agreement" },
-      { text: "If you need an EIN, apply after the LLC is formed, not before. It’s free.", fact: "ein_after_forming" },
+      { text: "If you need an EIN, a tax ID number for the business, apply after the LLC is formed, not before. It’s free.", fact: "ein_after_forming" },
     ],
     ongoing: (owners) => [
       owners > 1
@@ -172,8 +172,8 @@ export const STRUCTURE_OPTIONS: readonly StructureOption[] = [
     },
     why: [{ text: "The SBA calls it a fit for businesses that need to raise money or plan to be sold.", fact: "corp_fit" }],
     setup: [
-      { text: "File articles of incorporation with your state and pay its fee.", fact: "corp_articles", stateRule: true },
-      { text: "Name a registered agent in your state before you file.", fact: "registered_agent" },
+      { text: "File articles of incorporation, the form that creates the corporation, with your state and pay its fee.", fact: "corp_articles", stateRule: true },
+      { text: "Name a registered agent in your state before you file: the person or company that accepts legal mail for your business. It can be you.", fact: "registered_agent" },
     ],
     ongoing: () => [
       { text: "More record-keeping and reporting than other structures.", fact: "corp_records" },
