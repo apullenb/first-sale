@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "bench": "tsx bench/run.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.12",
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@next/env": "^16.4.3",
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^24.19.2",
     "@types/react": "^19",

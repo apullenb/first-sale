@@ -13,6 +13,6 @@ export default defineConfig(
         driver: "pglite",
         schema: "./src/db/schema.ts",
         out: "./drizzle",
-        dbCredentials: { url: "./.pglite" },
+        dbCredentials: { url: process.env.PGLITE_DIR || "./.pglite" },
       },
 );
