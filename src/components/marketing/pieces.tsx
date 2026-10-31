@@ -1,6 +1,6 @@
 import { type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, useId } from "react";
 import { Icon, type IconName } from "@/components/icons";
-import { IconTile } from "@/components/ui";
+import { ActionItem, IconTile } from "@/components/ui";
 
 // Onramp pieces shared by marketing, branding, website and photos
 
@@ -41,19 +41,9 @@ function StepNumber({ n }: { n: number }) {
 // Onramp's "do this next" card: a ruled margin, a kicker and a serif headline
 export function NextUp({ id, icon, kicker, title, children }: { id: string; icon: IconName; kicker: string; title: ReactNode; children?: ReactNode }) {
   return (
-    <section
-      aria-labelledby={id}
-      className="relative flex flex-col gap-3.5 rounded-2xl border border-line bg-surface py-5 pr-5 pl-[34px] shadow-lift before:absolute before:inset-y-0 before:left-[18px] before:w-[1.5px] before:bg-accent-ring sm:py-6 sm:pr-6 sm:pl-[46px] sm:before:left-7"
-    >
-      <div className="flex items-center gap-3">
-        <IconTile icon={icon} big />
-        <p className="text-[13.5px] font-bold uppercase tracking-[0.08em] text-accent">{kicker}</p>
-      </div>
-      <h2 id={id} className="font-display text-[23px] leading-tight sm:text-[27px]">
-        {title}
-      </h2>
+    <ActionItem id={id} icon={icon} kicker={kicker} title={title}>
       {children}
-    </section>
+    </ActionItem>
   );
 }
 

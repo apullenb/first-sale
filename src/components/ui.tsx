@@ -139,37 +139,44 @@ export function Hand({ children }: { children: ReactNode }) {
   return <span className="font-hand text-2xl leading-none text-accent">{children}</span>;
 }
 
-// Something the owner must do: a to-do icon, what and why, then its one main button
+// The to-do mark and words over every action item
+export function ActionKicker({ as: Tag = "p", id, children }: { as?: "p" | "h2" | "h3"; id?: string; children: ReactNode }) {
+  return (
+    <Tag id={id} className="flex items-center gap-1.5 text-[13.5px] font-bold uppercase tracking-[0.08em] text-accent">
+      <Icon name="todo" size="sm" strokeWidth={2} />
+      {children}
+    </Tag>
+  );
+}
+
+// Something the owner must do: what and why, then its one main button
 export function ActionItem({
   title,
   kicker = "To do",
-  icon = "todo",
-  headingLevel = 2,
+  icon,
   id,
   action,
+  className = "",
   children,
 }: {
   title: ReactNode;
   kicker?: ReactNode;
   icon?: IconName;
-  headingLevel?: 2 | 3;
   id?: string;
   action?: ReactNode;
+  className?: string;
   children?: ReactNode;
 }) {
-  const Heading = headingLevel === 2 ? "h2" : "h3";
   return (
-    <section aria-labelledby={id} className={ACTION_ITEM}>
-      <div className="flex items-start gap-3">
-        <IconTile icon={icon} />
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-accent">{kicker}</p>
-          <Heading id={id} className="text-[17px] font-bold leading-snug">
-            {title}
-          </Heading>
-        </div>
+    <section aria-labelledby={id} className={`${ACTION_ITEM} ${className}`}>
+      <div className="flex items-center gap-3">
+        {icon ? <IconTile icon={icon} big /> : null}
+        <ActionKicker>{kicker}</ActionKicker>
       </div>
-      {children ? <div className="flex flex-col gap-2 text-rule">{children}</div> : null}
+      <h2 id={id} className="font-display text-[23px] leading-tight sm:text-[27px]">
+        {title}
+      </h2>
+      {children}
       {action ? <div className="flex flex-wrap items-center gap-x-4 gap-y-2">{action}</div> : null}
     </section>
   );

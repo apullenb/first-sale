@@ -17,8 +17,8 @@ import { PracticeBanner } from "@/components/practice-banner";
 import { StatusChip } from "@/components/requirements/sources";
 import { RequirementStatusChip } from "@/components/requirements/requirement-status";
 import { WrittenInquiry } from "@/components/requirements/written-inquiry";
-import { PAGE_TITLE, PRIMARY_LINK, SECONDARY, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
-import { Chip, Fact, Fold, Note, ResourceLink } from "@/components/ui";
+import { ACTION_ITEM, PAGE_TITLE, PRIMARY_LINK, SECONDARY, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
+import { ActionKicker, Chip, Fact, Fold, Note, ResourceLink } from "@/components/ui";
 import { OFFICIAL_FORMS } from "@/data/official-forms";
 import type { StoredDocument } from "@/lib/data/documents";
 import type { PlanStep } from "@/lib/data/plan";
@@ -320,22 +320,18 @@ async function StepDetail({ params }: { params: Params }) {
           </Link>
         </section>
       ) : step.status === "submitted" ? (
-        <section aria-labelledby="progress-heading" className={`scroll-mt-4 ${STATE_CARD} bg-surface shadow-lift`}>
-          <p className={`${KICKER} text-check`}>
-            <Icon name="hourglass" size="sm" />
-            Waiting to hear back
-          </p>
+        <section aria-labelledby="progress-heading" className={`scroll-mt-4 ${ACTION_ITEM}`}>
+          <ActionKicker>Waiting to hear back</ActionKicker>
           <h2 id="progress-heading" className={STATE_TITLE}>
             Mark it when it’s approved
           </h2>
           {progress}
         </section>
       ) : (
-        <section aria-labelledby="part-heading" className={`${STATE_CARD} bg-surface shadow-lift`}>
-          <p className={`${KICKER} text-accent`}>
-            <Icon name={checkPlace ? "pin" : TOPIC_ICONS[step.topic]} size="sm" />
+        <section aria-labelledby="part-heading" className={ACTION_ITEM}>
+          <ActionKicker>
             {checkPlace ? "Add where you are" : "Your part"} · about {minutes}
-          </p>
+          </ActionKicker>
           {checkPlace ? (
             <>
               <h2 id="part-heading" className={STATE_TITLE}>
@@ -553,7 +549,7 @@ function NextUp({ next, back }: { next: PlanStep | null; back: { href: string; l
     <div className="flex flex-col gap-3 rounded-xl border border-line bg-soft p-4">
       {next ? (
         <>
-          <p className="text-[13.5px] font-bold uppercase tracking-[0.08em] text-accent">Up next</p>
+          <ActionKicker>Up next</ActionKicker>
           <p className="font-display text-xl leading-snug">{next.title}</p>
           <p className="-mt-1 flex items-center gap-1.5 text-[15px] text-muted">
             <Icon name="clock" size="sm" />
