@@ -11,6 +11,9 @@ export interface BenchOptions {
   yes: boolean;
   budgetUsd: number | null;
   images: boolean;
+  // Every picture the app makes, saved to disk for a person to judge
+  imageQuality: boolean;
+  scenarios: string[] | null;
   help: boolean;
 }
 
@@ -26,9 +29,14 @@ export const USAGE = `Usage: npm run bench -- [flags]
                       own worst case (whole prompt, every output token allowed) fit
   --images            Live: also run the image tasks, billed per picture (practice
                       mode always runs them, free)
+  --image-quality     Instead of the tasks: make every kind of picture the app makes
+                      for each scenario and save them with an index.md to judge.
+                      Live, it needs --live, --yes and --budget like any paid run
+  --scenarios <a,b>   With --image-quality: only these scenarios (default: all)
   --help              This text
 
-Live example: npm run bench -- --provider muse --live --yes --budget 2 --tasks intake,taglines`;
+Live example: npm run bench -- --provider muse --live --yes --budget 2 --tasks intake,taglines
+Pictures:     npm run bench -- --image-quality --live --yes --budget 3`;
 
 export class ArgsError extends Error {}
 
@@ -39,7 +47,7 @@ const list = (value: string) =>
     .filter(Boolean);
 
 export function parseArgs(argv: readonly string[]): BenchOptions {
-  const options: BenchOptions = { tasks: null, cases: null, repeat: 1, provider: "mock", live: false, yes: false, budgetUsd: null, images: false, help: false };
+  const options: BenchOptions = { tasks: null, cases: null, repeat: 1, provider: "mock", live: false, yes: false, budgetUsd: null, images: false, imageQuality: false, scenarios: null, help: false };
   let providerGiven = false;
   for (let index = 0; index < argv.length; index++) {
     const flag = argv[index];
@@ -83,6 +91,12 @@ export function parseArgs(argv: readonly string[]): BenchOptions {
       case "--images":
         options.images = true;
         break;
+      case "--image-quality":
+        options.imageQuality = true;
+        break;
+      case "--scenarios":
+        options.scenarios = list(value());
+        break;
       case "--help":
       case "-h":
         options.help = true;
@@ -91,6 +105,8 @@ export function parseArgs(argv: readonly string[]): BenchOptions {
         throw new ArgsError(`Unknown flag ${flag}`);
     }
   }
+  if (options.scenarios && !options.imageQuality) throw new ArgsError("--scenarios only works with --image-quality");
+  if (options.imageQuality && (options.tasks || options.cases || options.repeat > 1)) throw new ArgsError("--tasks, --cases and --repeat don't apply to --image-quality; use --scenarios");
   // --live alone means Muse; asking for the mock and --live together is a mistake
   if (options.live && !providerGiven) options.provider = "muse";
   return options;
@@ -106,6 +122,8 @@ export function liveRefusal(options: BenchOptions, prices: Prices): string | nul
   if (!hasPrices(prices) || prices.searchPerQuery === null) {
     return `Prices for ${prices.model} aren't checked in bench/pricing.ts, so spend can't be estimated. Live runs are refused.`;
   }
-  if (options.images && prices.imagePerPicture === null) return "The per-image price isn't checked in bench/pricing.ts, so --images is refused.";
+  if ((options.images || options.imageQuality) && prices.imagePerPicture === null) {
+    return `The per-image price isn't checked in bench/pricing.ts, so ${options.imageQuality ? "--image-quality" : "--images"} is refused.`;
+  }
   return null;
 }
