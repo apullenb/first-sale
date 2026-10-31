@@ -185,7 +185,7 @@ export function filingPaths(form: OfficialForm): FilingPaths {
       source: method.timing ? fromFact(method.timing) : undefined,
     })),
     // An online method that also takes the signed form by mail
-    ...onlineMethods.filter((method) => method.address).map((method) => ({ text: "Mail the signed form to the address printed on it:", address: method.address })),
+    ...onlineMethods.filter((method) => method.address).map((method) => ({ text: "Mail the signed form to:", address: method.address })),
   ];
   if (!paper.length) paper.push({ text: `Send it to ${form.agency} the way the official page says.`, source: { title: form.pageTitle, url: form.pageUrl, checkedOn: form.checkedOn } });
   if (form.signature) paper.push({ text: form.signature.text, source: fromFact(form.signature) });
