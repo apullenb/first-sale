@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { RequirementStatusChip } from "@/components/requirements/requirement-status";
-import { EYEBROW, PRIMARY_LINK, SECONDARY_LINK } from "@/components/styles";
-import { Card, Fact, Hand, IconTile } from "@/components/ui";
+import { ACTION_ITEM, PRIMARY_LINK, SECONDARY_LINK } from "@/components/styles";
+import { ActionKicker, Card, Fact, Hand, IconTile } from "@/components/ui";
 import type { PlanStep } from "@/lib/data/plan";
 import { formatFee } from "@/lib/documents/startup-plan";
 import { TOPIC_LABELS } from "@/lib/labels";
@@ -33,19 +33,16 @@ export function StartHere({
 }) {
   const icon = step ? TOPIC_ICONS[step.topic] : "flag";
   return (
-    <section
-      aria-labelledby="start-heading"
-      className="relative flex flex-col gap-3.5 rounded-2xl border border-line bg-surface py-5 pl-[34px] pr-[18px] shadow-lift before:absolute before:inset-y-0 before:left-[18px] before:w-[1.5px] before:bg-accent-ring sm:py-6 sm:pl-[46px] sm:pr-[26px] sm:before:left-7"
-    >
+    <section aria-labelledby="start-heading" className={ACTION_ITEM}>
       <span aria-hidden="true" className="absolute right-[22px] top-4 hidden -rotate-[5deg] @3xl:block">
         <Hand>start here ↓</Hand>
       </span>
       <div className="flex items-center gap-3 @3xl:pr-28">
         <IconTile icon={icon} big />
         <div className="flex min-w-0 flex-col">
-          <h2 id="start-heading" className={EYEBROW}>
+          <ActionKicker as="h2" id="start-heading">
             Do this next
-          </h2>
+          </ActionKicker>
           {step?.agency ? <p className="text-[14.5px] leading-snug text-muted">{step.agency}</p> : null}
         </div>
       </div>

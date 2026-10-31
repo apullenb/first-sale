@@ -23,7 +23,9 @@ export const ALERT = "rounded-xl border border-check-ring bg-check-tint px-3.5 p
 export const LEAD = "max-w-2xl text-lg text-muted";
 
 // The three kinds of things a page points to: something to do here, something to do on another site, and optional reading
-export const ACTION_ITEM = "flex flex-col gap-3 rounded-[14px] border border-l-4 border-accent-ring border-l-accent bg-surface p-4 shadow-card sm:p-5";
+// Ruled margin, like a planner page; the kicker carries the to-do icon (ActionKicker)
+export const ACTION_ITEM =
+  "relative flex flex-col gap-3.5 rounded-2xl border border-line bg-surface py-5 pr-5 pl-[34px] shadow-lift before:absolute before:inset-y-0 before:left-[18px] before:w-[1.5px] before:bg-accent-ring sm:py-6 sm:pr-6 sm:pl-[46px] sm:before:left-7";
 export const OUTSIDE_LINK =
   "inline-flex min-h-12 w-fit max-w-full items-center gap-3 rounded-[10px] border-[1.5px] border-accent bg-accent-tint px-4 py-2 text-left text-accent-ink shadow-soft transition hover:bg-surface active:translate-y-px motion-reduce:transition-none";
 export const RESOURCE_LINK =

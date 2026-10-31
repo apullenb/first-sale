@@ -92,7 +92,12 @@ export function ListRow({
       >
         <StateMark state={state} icon={icon} />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          {next ? <span className="text-[12.5px] font-bold uppercase tracking-[0.08em] text-accent">Do this next</span> : null}
+          {next ? (
+            <span className="flex items-center gap-1 text-[12.5px] font-bold uppercase tracking-[0.08em] text-accent">
+              <Icon name="todo" size="xs" strokeWidth={2} />
+              Do this next
+            </span>
+          ) : null}
           <span className={`font-bold leading-snug ${state === "done" ? "text-muted line-through decoration-line-strong" : locked ? "text-rule" : "text-ink"}`}>{title}</span>
           {summary ? <span className="text-[14.5px] leading-snug text-muted">{summary}</span> : null}
           {meta ? <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-muted">{meta}</span> : null}
