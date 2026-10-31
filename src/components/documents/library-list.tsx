@@ -8,6 +8,7 @@ import type { OutdatedFact } from "@/lib/documents/autofill";
 import { type DocumentRole, families, isKept, ROLE_LABELS, roleOf } from "@/lib/documents/library";
 import { fileHref, formatBytes } from "./labels";
 import { DocIcon, docIcon, Tag } from "./parts";
+import { ResourceLink } from "@/components/ui";
 
 const VIEWABLE = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
 
@@ -114,10 +115,7 @@ function Family({ root, versions, outdated }: { root: StoredDocument; versions: 
               {root.sourceUrl && role === "original" ? (
                 <>
                   {" · From "}
-                  <a href={root.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center break-all underline underline-offset-2 hover:text-accent">
-                    {new URL(root.sourceUrl).hostname}
-                    <span className="sr-only"> (opens in a new tab)</span>
-                  </a>
+                  <ResourceLink href={root.sourceUrl}>{new URL(root.sourceUrl).hostname}</ResourceLink>
                   {root.verification ? (root.verification.ok ? ", checked as the right form" : ", didn’t pass every check") : null}
                 </>
               ) : null}

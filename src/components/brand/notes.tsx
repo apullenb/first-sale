@@ -1,8 +1,7 @@
 import { connection } from "next/server";
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icons";
-import { TEXT_LINK } from "@/components/styles";
-import { Card } from "@/components/ui";
+import { Card, OutsideLink } from "@/components/ui";
 import { getImageModel, getModel } from "@/lib/ai";
 import { CHECKED, USPTO } from "@/lib/brand/sizes";
 
@@ -37,13 +36,14 @@ export async function BrandNotes() {
           more than one state, since your customers can come from anywhere.
         </p>
         <p className="text-rule">
-          Search the{" "}
-          <a href={USPTO.url} target="_blank" rel="noreferrer" className={TEXT_LINK}>
-            U.S. trademark database
-          </a>{" "}
-          for your business name and for words and designs like your logo (link checked {CHECKED}). It’s free. A logo made with AI can look like one already in use,
-          so check it too. If your business grows, registering your own trademark protects the name nationwide, and a trademark attorney can handle the filing.
+          Search the U.S. trademark database for your business name and for words and designs like your logo. It’s free. A logo made with AI can look like one
+          already in use, so check it too. If your business grows, registering your own trademark protects the name nationwide, and a trademark attorney can handle
+          the filing.
         </p>
+        <OutsideLink href={USPTO.url} cue="recommended">
+          Search the U.S. trademark database
+        </OutsideLink>
+        <p className="text-sm text-muted">Link checked {CHECKED}.</p>
       </Note>
       <Note icon="lock" title="Who sees your brand files">
         <ul className="flex list-disc flex-col gap-1.5 pl-5 text-rule marker:text-accent">

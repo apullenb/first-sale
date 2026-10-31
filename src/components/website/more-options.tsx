@@ -1,9 +1,9 @@
 import { LocalDate } from "@/components/local-date";
 import { SOFT } from "@/components/marketing/pieces";
-import { TEXT_LINK } from "@/components/styles";
 import type { MoreOptions, OptionExplanation } from "@/lib/website/options";
 import { ExplainOption } from "./explain-option";
 import { List } from "./platform-card";
+import { ResourceLink } from "@/components/ui";
 
 // Builders Muse found on request. Labeled as search results: First Sale didn't check these prices itself.
 export function MoreOptionsList({ found, explanations }: { found: MoreOptions; explanations: Record<string, OptionExplanation> }) {
@@ -39,18 +39,12 @@ export function MoreOptionsList({ found, explanations }: { found: MoreOptions; e
                 firstYear="First Sale hasn’t checked this option’s prices. See the price above, and check their pricing page before you sign up."
               />
               <p className="text-sm text-muted">
-                <a href={option.website} target="_blank" rel="noopener noreferrer" className={TEXT_LINK}>
-                  Visit {option.name}
-                  <span className="sr-only"> (opens in a new tab)</span>
-                </a>
+                <ResourceLink href={option.website}>Visit {option.name}</ResourceLink>
                 {" · Sources: "}
                 {option.sources.map((source, index) => (
                   <span key={source.url}>
                     {index ? ", " : ""}
-                    <a href={source.url} target="_blank" rel="noopener noreferrer" className={`${TEXT_LINK} break-all`}>
-                      {source.title}
-                      <span className="sr-only"> (opens in a new tab)</span>
-                    </a>
+                    <ResourceLink href={source.url}>{source.title}</ResourceLink>
                   </span>
                 ))}
               </p>

@@ -8,7 +8,7 @@ import { BackToLibrary, ChangedFacts } from "@/components/documents/parts";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { PRIMARY_LINK, SECONDARY_LINK } from "@/components/styles";
-import { Card, Note, PageHead } from "@/components/ui";
+import { Card, Note, PageHead, Source } from "@/components/ui";
 import { getMyBusiness, getMyDetails, listMyDocuments } from "@/lib/data/my-business";
 import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
 import {
@@ -261,15 +261,7 @@ function Reasons({ structure, texas }: { structure: "llc" | "partnership"; texas
           <li key={reason.text} className="flex flex-col gap-1.5 py-3 first:pt-0 last:pb-0">
             <span className="font-semibold">{reason.text}</span>
             <blockquote className="border-l-[3px] border-accent-ring pl-3.5 text-[15px] text-rule italic">“{reason.quote}”</blockquote>
-            <span className="text-[14.5px] text-muted">
-              From{" "}
-              <a href={reason.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 font-semibold text-accent underline underline-offset-2 hover:text-accent-ink">
-                {reason.sourceTitle}
-                <Icon name="external" size="xs" />
-                <span className="sr-only"> (opens in a new tab)</span>
-              </a>
-              , checked{reason.byHand ? " by hand in a browser" : ""} on <LocalDate iso={`${reason.checkedOn}T12:00:00.000Z`} />
-            </span>
+            <Source url={reason.sourceUrl} title={reason.sourceTitle} checkedOn={reason.checkedOn} byHand={reason.byHand} />
           </li>
         ))}
       </ul>

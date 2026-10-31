@@ -2,12 +2,13 @@
 
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Icon } from "@/components/icons";
-import { PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles";
+import { PRIMARY, SECONDARY } from "@/components/styles";
 import { zipFiles } from "@/lib/brand/archive";
 import { kitColors } from "@/lib/brand/colors";
 import { KIT_FACTS, KIT_GROUPS, KIT_RECIPES, type KitGroup, type KitRecipe, kitFileName, kitReadme, kitRecipes, type KitSource, safeFileName } from "@/lib/brand/kit-files";
 import type { PaletteColor } from "@/lib/brand/types";
 import { KitFileError, makeKitFile, saveBlob } from "./kit-maker";
+import { ResourceLink } from "@/components/ui";
 
 interface Props {
   businessName: string;
@@ -202,9 +203,7 @@ export function LogoFiles({ businessName, simulated, practice, colors, sources }
                   {KIT_FACTS[group].sources.map((citation, index) => (
                     <span key={citation.url}>
                       {index ? "; " : ""}
-                      <a href={citation.url} target="_blank" rel="noreferrer" className={TEXT_LINK}>
-                        {citation.name}
-                      </a>{" "}
+                      <ResourceLink href={citation.url}>{citation.name}</ResourceLink>{" "}
                       (checked {citation.checked})
                     </span>
                   ))}

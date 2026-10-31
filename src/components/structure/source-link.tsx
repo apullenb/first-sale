@@ -1,6 +1,7 @@
 import { Icon } from "@/components/icons";
 import { CHECKED_ON, FACTS, type FactId, factSource } from "@/lib/structure/facts";
 import type { Line } from "@/lib/structure/options";
+import { ResourceLink } from "@/components/ui";
 
 export const FACTS_CHECKED = new Date(`${CHECKED_ON}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
@@ -16,9 +17,9 @@ export function SourceLink({ fact }: { fact: FactId }) {
       href={source.url}
       target="_blank"
       rel="noreferrer"
-      className="relative z-10 ml-1.5 inline-flex min-h-6 items-center gap-1 whitespace-nowrap rounded-md border border-accent-ring bg-accent-tint px-1.5 align-middle text-xs font-bold text-accent-ink underline-offset-2 hover:underline"
+      className="relative z-10 ml-1.5 inline-flex min-h-6 items-center gap-1 whitespace-nowrap rounded-md border border-line bg-soft px-1.5 align-middle text-xs font-semibold text-muted underline-offset-2 hover:text-accent hover:underline"
     >
-      <Icon name="link" size="xs" />
+      <Icon name="book" size="xs" />
       <span aria-hidden="true">{shortName(fact)}</span>
       <span className="sr-only">Official source: {source.title} (opens in a new tab)</span>
     </a>
@@ -71,9 +72,9 @@ export function SourceQuotes({ facts }: { facts: FactId[] }) {
           return (
             <li key={fact} className="flex flex-col gap-0.5">
               <q className="border-l-[3px] border-accent-ring pl-3 italic text-rule">{FACTS[fact].quote}</q>
-              <a href={source.url} target="_blank" rel="noreferrer" className="relative z-10 inline-flex min-h-11 w-fit items-center text-sm font-semibold text-accent-ink underline underline-offset-4">
+              <ResourceLink href={source.url} className="relative z-10 w-fit">
                 {source.title}
-              </a>
+              </ResourceLink>
             </li>
           );
         })}

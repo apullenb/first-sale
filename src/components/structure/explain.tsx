@@ -5,6 +5,7 @@ import type { StructureExample } from "@/data/structure-examples";
 import { factSource } from "@/lib/structure/facts";
 import type { Reason } from "@/lib/structure/suggest";
 import { SourceLink } from "./source-link";
+import { ResourceLink } from "@/components/ui";
 
 // Shared by the guide and the questions; no server-only imports, so client components can use it
 
@@ -84,11 +85,9 @@ function ExampleCard({ example }: { example: StructureExample }) {
       <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-muted">
         <span>Based on</span>
         {pages.map((page) => (
-          <a key={page.id} href={page.url} target="_blank" rel="noreferrer" className="inline-flex min-h-8 items-center gap-1 font-semibold text-accent-ink underline underline-offset-2">
-            <Icon name="link" size="xs" />
+          <ResourceLink key={page.id} href={page.url}>
             {page.title}
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
+          </ResourceLink>
         ))}
       </p>
     </article>

@@ -11,7 +11,7 @@ import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { PracticeBanner } from "@/components/practice-banner";
 import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
-import { Card, Note } from "@/components/ui";
+import { Card, Note, OutsideLink, ResourceLink } from "@/components/ui";
 import type { StoredDocument } from "@/lib/data/documents";
 import { CUT_OFF_MESSAGE, type RunState } from "@/lib/data/workflow-runs";
 import { officialForm } from "@/data/official-forms";
@@ -48,16 +48,16 @@ export function FormView(props: FormViewProps) {
       <DocumentHead documentId={doc.id} title={doc.title}>
         <p>
           {originSentence(doc.origin, doc.role)} on <LocalDate iso={doc.createdAt.toISOString()} />.
-          {doc.origin === "official_form" && doc.sourceUrl ? (
+          {doc.origin === "official_form" && doc.sourceUrl && doc.role !== "answer_guide" ? (
             <>
               {" "}
-              <a href={doc.sourceUrl} target="_blank" rel="noopener noreferrer" className={TEXT_LINK}>
-                {doc.role === "answer_guide" ? "Open the official application" : "See it on the official website"}
-                <span className="sr-only"> (opens in a new tab)</span>
-              </a>
+              <ResourceLink href={doc.sourceUrl}>See it on the official website</ResourceLink>
             </>
           ) : null}
         </p>
+        {doc.origin === "official_form" && doc.sourceUrl && doc.role === "answer_guide" ? (
+          <OutsideLink href={doc.sourceUrl}>Open the official application</OutsideLink>
+        ) : null}
       </DocumentHead>
 
       <Card title="This document" icon={docIcon(doc)} tone="gray" id="document-heading">
@@ -247,10 +247,9 @@ function Guide({ guide }: { guide: DocumentGuide }) {
             {guide.guidance.map((item, index) => (
               <li key={index} className="flex flex-col gap-0.5">
                 <span className="text-rule">{item.text}</span>
-                <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className={`${TEXT_LINK} w-fit`}>
+                <ResourceLink href={item.sourceUrl} className="w-fit">
                   {item.sourceTitle}
-                  <span className="sr-only"> (opens in a new tab)</span>
-                </a>
+                </ResourceLink>
               </li>
             ))}
           </ul>
@@ -280,10 +279,7 @@ function Ask({ doc, maxQuestion }: { doc: StoredDocument; maxQuestion: number })
                 {entry.guidance ? (
                   <p className="text-[14.5px] text-rule">
                     From your check of what applies to you, not printed on this form:{" "}
-                    <a href={entry.guidance.sourceUrl} target="_blank" rel="noopener noreferrer" className={TEXT_LINK}>
-                      {entry.guidance.sourceTitle}
-                      <span className="sr-only"> (opens in a new tab)</span>
-                    </a>
+                    <ResourceLink href={entry.guidance.sourceUrl}>{entry.guidance.sourceTitle}</ResourceLink>
                   </p>
                 ) : null}
                 <p className="text-[14.5px] text-muted">

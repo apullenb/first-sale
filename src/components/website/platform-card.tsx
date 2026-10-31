@@ -3,7 +3,7 @@ import { Icon, type IconName } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { LABEL } from "@/components/marketing/pieces";
 import { TEXT_LINK } from "@/components/styles";
-import { Chip } from "@/components/ui";
+import { Chip, ResourceLink } from "@/components/ui";
 import { RecommendedBadge } from "@/components/recommended";
 import { comparePlan, type CostLine, costSummary, firstYearText, lower, usd } from "@/lib/website/costs";
 import type { OptionExplanation } from "@/lib/website/options";
@@ -150,10 +150,7 @@ export function PlatformCard({
           {platform.sources.map((source, index) => (
             <span key={source.url}>
               {index ? ", " : ""}
-              <a href={source.url} target="_blank" rel="noopener noreferrer" className={TEXT_LINK}>
-                {source.label}
-                <span className="sr-only"> (opens in a new tab)</span>
-              </a>
+              <ResourceLink href={source.url}>{source.label}</ResourceLink>
             </span>
           ))}
           , checked <LocalDate iso={`${platform.checkedOn}T12:00:00Z`} />. Prices change, so check before you sign up.

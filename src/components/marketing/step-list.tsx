@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useLayoutEffect, useState } from "react";
 import { setMarketingStepAction } from "@/app/(app)/marketing/actions";
 import { Icon } from "@/components/icons";
-import { Note } from "@/components/ui";
+import { Note, OutsideLink, ResourceLink } from "@/components/ui";
 import { ALERT, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { PLATFORM_DATA } from "@/data/marketing-platforms";
 import { type HandHolding, type MarketingStep, type StepLink, stepAnchor } from "@/lib/marketing/types";
@@ -26,14 +26,18 @@ function Links({ links }: { links: StepLink[] }) {
         const className = link.guide ? `${TEXT_LINK} inline-flex min-h-11 items-center text-[15px]` : SECONDARY_LINK;
         const text = link.guide ? link.label : "Take me there";
         const context = link.guide ? null : <span className="sr-only">: {link.label}</span>;
-        return link.external ? (
-          <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className={className}>
-            {text}
-            {context}
-            {link.guide ? null : <Icon name="external" size="sm" />}
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
-        ) : (
+        if (link.external) {
+          return link.guide ? (
+            <ResourceLink key={link.href} href={link.href}>
+              {link.label}
+            </ResourceLink>
+          ) : (
+            <OutsideLink key={link.href} href={link.href}>
+              {link.label}
+            </OutsideLink>
+          );
+        }
+        return (
           <Link key={link.href} href={link.href} className={className}>
             {text}
             {context}

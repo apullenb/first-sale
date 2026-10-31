@@ -7,6 +7,7 @@ import { LABEL, TickBox } from "@/components/marketing/pieces";
 import { ALERT, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import type { PasteValue } from "@/lib/website/paste";
 import { CopyButton } from "./copy-button";
+import { OutsideLink, ResourceLink } from "@/components/ui";
 
 export interface ChecklistStep {
   key: string;
@@ -17,10 +18,6 @@ export interface ChecklistStep {
   help: { label: string; url: string } | null;
   inApp: { label: string; href: string } | null;
   paste: PasteValue[];
-}
-
-function NewTab() {
-  return <span className="sr-only"> (opens in a new tab)</span>;
 }
 
 function Paste({ value }: { value: PasteValue }) {
@@ -95,10 +92,7 @@ function Paste({ value }: { value: PasteValue }) {
           </div>
           <p className="text-sm text-rule">
             {value.note}{" "}
-            <a href={value.source.url} target="_blank" rel="noopener noreferrer" className={TEXT_LINK}>
-              {value.source.label}
-              <NewTab />
-            </a>
+            <ResourceLink href={value.source.url}>{value.source.label}</ResourceLink>
           </p>
         </li>
       );
@@ -179,17 +173,10 @@ export function SetupChecklist({ steps, done }: { steps: ChecklistStep[]; done: 
                   {step.goTo || step.help || step.inApp ? (
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[15px]">
                       {step.goTo ? (
-                        <a href={step.goTo.url} target="_blank" rel="noopener noreferrer" className={SECONDARY_LINK}>
-                          Take me there: {step.goTo.label}
-                          <Icon name="external" size="sm" />
-                          <NewTab />
-                        </a>
+                        <OutsideLink href={step.goTo.url}>{step.goTo.label}</OutsideLink>
                       ) : null}
                       {step.help ? (
-                        <a href={step.help.url} target="_blank" rel="noopener noreferrer" className={`${TEXT_LINK} inline-flex min-h-11 items-center`}>
-                          {step.help.label}
-                          <NewTab />
-                        </a>
+                        <ResourceLink href={step.help.url}>{step.help.label}</ResourceLink>
                       ) : null}
                       {step.inApp ? (
                         <a href={step.inApp.href} className={`${TEXT_LINK} inline-flex min-h-11 items-center`}>
