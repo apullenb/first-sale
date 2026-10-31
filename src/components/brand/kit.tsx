@@ -59,7 +59,7 @@ export function KitSection({ kit, guideId, number }: { kit: BrandKit; guideId: s
           It’s saved to your Documents{kit.simulated ? " and marked as practice" : ""}.
         </p>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <ActionButton action={saveLogoGuideAction} label={guideId ? "Update my logo guide" : "Save my logo guide"} pendingLabel="Making your guide…" variant="primary" openDocument />
+          <ActionButton action={saveLogoGuideAction} label={guideId ? "Update my logo guide" : "Save my logo guide"} pendingLabel="Making your guide…" openDocument />
           {guideId ? (
             <Link href={`/documents/${guideId}`} className={`${TEXT_LINK} inline-flex min-h-11 items-center gap-1.5`}>
               Open the saved guide

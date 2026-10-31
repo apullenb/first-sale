@@ -21,11 +21,14 @@ export function ChoosePlatformButton({
   name,
   chosen,
   payment,
+  primary = true,
 }: {
   platform: PlatformId;
   name: string;
   chosen: boolean;
   payment?: { price: string; plan: string };
+  // Only the recommended package's button is the page's main one
+  primary?: boolean;
 }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +64,7 @@ export function ChoosePlatformButton({
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <button type="button" disabled={pending} onClick={start} className={chosen ? SECONDARY : PRIMARY}>
+      <button type="button" disabled={pending} onClick={start} className={chosen || !primary ? SECONDARY : PRIMARY}>
         {chosen ? <Icon name="back" size="sm" /> : <Icon name="check" size="sm" />}
         {pending && !open ? "Saving…" : chosen ? "Undo my choice" : `Choose ${name}`}
       </button>
