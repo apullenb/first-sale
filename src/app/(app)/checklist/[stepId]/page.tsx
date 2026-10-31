@@ -149,7 +149,11 @@ async function StepDetail({ params }: { params: Params }) {
   // A step that's ready to do shows one choice of how, with each way's own steps
   const pathForm = fileable && !step.retired && step.status === "todo" && !blockers.length && usesPaths(form) ? form : null;
   const formTerms = pathForm ? termsIn(pathForm.title, explained) : [];
-  const firstLines = pathForm ? plain(filed.find((each) => each.kind === "before")?.lines.filter((line) => !line.text.startsWith("Nothing has to come first")) ?? []) : [];
+  const linesOf = (kind: FilingStep["kind"]) => filed.find((each) => each.kind === kind)?.lines ?? [];
+  // What comes first and what to have ready; missing details show on their own below
+  const firstLines = pathForm
+    ? plain([...linesOf("before").filter((line) => !line.text.startsWith("Nothing has to come first")), ...linesOf("gather").filter((line) => !line.unknown)])
+    : [];
   const missingPlain = missing.map((item) => explainTerms(item, explained));
   const rawPaths = pathForm ? filingPaths(pathForm) : null;
   const paths = rawPaths

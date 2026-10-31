@@ -143,6 +143,7 @@ export function PlatformCard({
           platform={platform.id}
           name={platform.name}
           chosen={chosen}
+          primary={Boolean(recommended)}
           payment={platform.demoPrice ? { plan: plan.name, price: `${usd(plan.monthlyUsd)} a month` } : undefined}
         />
         <p className="text-sm text-muted">

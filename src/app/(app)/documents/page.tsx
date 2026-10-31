@@ -103,9 +103,12 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
               <Icon name="upload" size="sm" />
               Add a document
             </Link>
-            <Link href="/documents?add=upload#add-form" className={`${TEXT_LINK} inline-flex min-h-11 items-center`}>
-              Add a form to fill in
-            </Link>
+            <span className="text-[15px] text-muted">
+              Or{" "}
+              <Link href="/documents?add=upload#add-form" className={`${TEXT_LINK} inline-flex min-h-11 items-center`}>
+                add a form to fill in
+              </Link>
+            </span>
           </div>
         </Card>
         <BusinessPlanCard plan={businessPlan} />
@@ -155,7 +158,7 @@ function BusinessPlanCard({ plan }: { plan: StoredDocument | null }) {
       ) : drafted ? (
         <Chip tone="gray">Drafted, not saved as a PDF yet</Chip>
       ) : null}
-      <Link href="/documents/business-plan" className={`${drafted ? SECONDARY_LINK : PRIMARY_LINK} mt-auto`}>
+      <Link href="/documents/business-plan" className={`${SECONDARY_LINK} mt-auto`}>
         <Icon name={drafted ? "pencil" : "sparkles"} size="sm" />
         {drafted ? "Open your business plan" : "Generate your business plan"}
       </Link>
