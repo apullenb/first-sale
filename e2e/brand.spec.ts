@@ -1,0 +1,122 @@
+import { expect, test } from "@playwright/test";
+import { candles, groomer } from "./scenarios";
+import { approveBrand, choose, expectPracticeBanner, newOwner, open, openFold, PRACTICE_PREVIEW, pngBuffer, sidebar } from "./support";
+
+test.describe("build your brand", () => {
+  test("groomer: questions, describe, revise, approve, and add a picture they already have", async ({ browser }) => {
+    const { page } = await newOwner(browser, groomer);
+    await open(page, "/brand");
+    await expectPracticeBanner(page);
+    await expect(page.getByText("Your brand description here is a placeholder, not written by Muse.", { exact: false })).toBeVisible();
+
+    // Step 1 comes from the intake answers
+    const what = page.getByRole("region", { name: "Step 1: What you sell" });
+    await expect(what.getByRole("definition").first()).toHaveText(groomer.businessName);
+    await expect(what.getByRole("button", { name: "Edit" })).toBeVisible();
+
+    // Step 2: words, quick questions, colors and things to avoid
+    const feel = page.getByRole("region", { name: "Step 2: How should your brand feel?" });
+    await expect(feel.getByText("Pick at least 3, up to 8. 0 picked.")).toBeVisible();
+    await feel.getByRole("button", { name: groomer.brand.words[0], exact: true }).click();
+    await feel.getByRole("button", { name: "Describe my brand" }).click();
+    await expect(feel.getByText(/at least 3/).first()).toBeVisible();
+    for (const word of groomer.brand.words.slice(1)) await feel.getByRole("button", { name: word, exact: true }).click();
+    await expect(feel.getByText(new RegExp(`${groomer.brand.words.length} picked\\.$`))).toBeVisible();
+    await choose(feel.getByRole("group", { name: "Playful or serious?" }), "Playful");
+    await choose(feel.getByRole("group", { name: "Old-fashioned or modern?" }), "Modern");
+    await feel.getByRole("button", { name: groomer.brand.colors[0], exact: true }).click();
+    await feel.getByRole("textbox", { name: "Colors you like or already use (optional)" }).fill("the teal on our van");
+    await feel.getByRole("textbox", { name: "Colors to avoid (optional)" }).fill("no neon");
+    await feel.getByRole("textbox", { name: "Things your brand shouldn’t look like (optional)" }).fill("nothing that looks like a vet clinic");
+    await feel.getByRole("button", { name: "Describe my brand" }).click();
+
+    // Step 3: the description is a labeled practice preview
+    const description = page.getByRole("region", { name: "Step 3: Your brand description" });
+    await expect(description.getByText(PRACTICE_PREVIEW)).toBeVisible({ timeout: 60_000 });
+    await expect(description.getByRole("blockquote")).toContainText(groomer.businessName);
+    await description.getByRole("button", { name: "Revise this description" }).click();
+    const edit = description.getByRole("textbox", { name: "Change it until it sounds like your business" });
+    await edit.fill(`${groomer.businessName} brings a cheerful, gentle grooming visit right to your driveway.`);
+    await description.getByRole("button", { name: "Save: this feels like my business" }).click();
+
+    const approved = page.getByRole("region", { name: "You approved your brand description" });
+    await expect(approved.getByRole("blockquote")).toContainText("right to your driveway");
+    await expect(approved.getByRole("link", { name: "Next: Create your logo" })).toHaveAttribute("href", "/logo");
+    const revisit = await openFold(page, "Revisit this decision");
+    await expect(revisit).toContainText(groomer.brand.words[0]);
+    await expect(sidebar(page).getByRole("link", { name: /^Build your brand , done/ })).toBeVisible();
+
+    // Step 4: a picture they already use goes to the Brand Library as is
+    const pictures = page.getByRole("region", { name: "Step 4: Brand pictures you already have" });
+    await expect(pictures.getByRole("button", { name: "Add to my Brand Library" })).toBeDisabled();
+    await pictures.locator("input[type=file]").setInputFiles({ name: "van-wrap.png", mimeType: "image/png", buffer: pngBuffer(400, [20, 130, 140]) });
+    await pictures.getByRole("textbox", { name: "Name (optional)" }).fill("Our van wrap");
+    await pictures.getByRole("button", { name: "Add to my Brand Library" }).click();
+    await expect(pictures.getByRole("status").last()).toContainText(/\w/, { timeout: 30_000 });
+    await open(page, "/brand-library");
+    await expect(page.getByRole("region", { name: "Brand images" }).getByText("Our van wrap").first()).toBeVisible();
+  });
+
+  test("groomer: “Try different words” starts the description over", async ({ browser }) => {
+    const { page } = await newOwner(browser, groomer, "groomer-redo");
+    await open(page, "/brand");
+    const feel = page.getByRole("region", { name: "Step 2: How should your brand feel?" });
+    for (const word of groomer.brand.words) await feel.getByRole("button", { name: word, exact: true }).click();
+    await feel.getByRole("button", { name: "Describe my brand" }).click();
+    const description = page.getByRole("region", { name: "Step 3: Your brand description" });
+    await description.getByRole("button", { name: "Try different words" }).click({ timeout: 60_000 });
+    await expect(feel.getByRole("button", { name: "Describe my brand" })).toBeVisible();
+  });
+
+  test("candles: “I already have a brand” marks the step done, and Undo brings it back", async ({ browser }) => {
+    const { page } = await newOwner(browser, candles);
+    await open(page, "/brand");
+    await page.getByRole("button", { name: "I already have a brand" }).click();
+    const form = page.getByRole("region", { name: "I already have a brand" });
+    await form.getByRole("textbox", { name: /Note for your records/ }).fill("Brand guide from our designer");
+    await form.getByRole("button", { name: "Mark as done" }).click();
+    await expect(page.getByText("You already have this.")).toBeVisible();
+    await expect(page.getByText("Brand guide from our designer")).toBeVisible();
+    await expect(sidebar(page).getByRole("link", { name: /^Build your brand , done/ })).toBeVisible();
+    await page.getByRole("button", { name: "Undo" }).click();
+    await expect(page.getByRole("button", { name: "I already have a brand" })).toBeVisible();
+  });
+
+  test("candles: Brand Library groups files, makes recommended brand images, and adds pictures", async ({ browser }) => {
+    const { page } = await newOwner(browser, candles);
+    await approveBrand(page, candles);
+
+    // Their existing logo, uploaded instead of generated
+    await open(page, "/logo");
+    await page.getByRole("button", { name: "I already have a logo" }).click();
+    const have = page.getByRole("region", { name: "I already have a logo" });
+    await have.locator("input[type=file]").setInputFiles({ name: "ember-oak-logo.png", mimeType: "image/png", buffer: pngBuffer(512, [90, 50, 30]) });
+    await have.getByRole("button", { name: "Upload and use this logo" }).click();
+    await expect(page.getByRole("region", { name: "Your logo" })).toBeVisible({ timeout: 60_000 });
+
+    await open(page, "/brand-library");
+    await expectPracticeBanner(page);
+    const groups = page.getByRole("navigation", { name: "Groups in your library" });
+    await expect(groups.getByRole("link", { name: /^Logos [1-9]/ })).toBeVisible();
+    const logos = page.getByRole("region", { name: "Logos" }).first();
+    await expect(logos.getByRole("link", { name: /^Download/ }).first()).toHaveAttribute("href", /\/brand\/files\//);
+
+    // Recommended brand images are made from the logo, labeled as practice
+    const header = page.getByRole("region", { name: "Website header picture" });
+    await expect(header.getByText("Recommended")).toBeVisible();
+    await header.getByRole("button", { name: "Make the website header picture" }).click();
+    await expect(header.getByText(/Practice preview/).first()).toBeVisible({ timeout: 60_000 });
+    const cover = page.getByRole("region", { name: "Facebook cover" });
+    await cover.getByRole("button", { name: "Make the facebook cover" }).click();
+    await expect(cover.getByText(/Practice preview/).first()).toBeVisible({ timeout: 60_000 });
+
+    // A picture of their own, filed under Other pictures
+    const add = page.getByRole("region", { name: "Add a picture" });
+    await add.locator("input[type=file]").setInputFiles({ name: "market-stall.png", mimeType: "image/png", buffer: pngBuffer(300, [200, 180, 140]) });
+    await choose(add.getByRole("group", { name: "Where it goes" }), /^Other pictures/);
+    await add.getByRole("textbox", { name: "Name (optional)" }).fill("Our market stall");
+    await add.getByRole("button", { name: "Add to my Brand Library" }).click();
+    await expect(page.getByRole("region", { name: "Other pictures" }).getByText("Our market stall").first()).toBeVisible({ timeout: 30_000 });
+    await expect(add).toContainText("You’ve added 1");
+  });
+});
