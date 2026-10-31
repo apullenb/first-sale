@@ -21,3 +21,10 @@ export const PAGE_TITLE = "font-display text-[32px] leading-[1.15] tracking-[-0.
 export const SECTION_TITLE = "font-display text-[22px] leading-snug";
 export const ALERT = "rounded-xl border border-check-ring bg-check-tint px-3.5 py-3 text-[15px] text-check";
 export const LEAD = "max-w-2xl text-lg text-muted";
+
+// The three kinds of things a page points to: something to do here, something to do on another site, and optional reading
+export const ACTION_ITEM = "flex flex-col gap-3 rounded-[14px] border border-l-4 border-accent-ring border-l-accent bg-surface p-4 shadow-card sm:p-5";
+export const OUTSIDE_LINK =
+  "inline-flex min-h-12 w-fit max-w-full items-center gap-3 rounded-[10px] border-[1.5px] border-accent bg-accent-tint px-4 py-2 text-left text-accent-ink shadow-soft transition hover:bg-surface active:translate-y-px motion-reduce:transition-none";
+export const RESOURCE_LINK =
+  "inline-flex min-h-8 items-center gap-1 text-sm text-muted underline decoration-line-strong underline-offset-[3px] hover:text-accent hover:decoration-accent";

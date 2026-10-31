@@ -6,7 +6,8 @@ import { AgreementCard } from "@/components/documents/agreement-card";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { AlreadyDone } from "@/components/plan/already-done";
-import { FilingSteps } from "@/components/plan/filing-steps";
+import { FilingPaths, MissingDetails, usesPaths } from "@/components/plan/filing-paths";
+import { FilingLines, FilingSteps } from "@/components/plan/filing-steps";
 import { type FormDoc, OfficialFormCard } from "@/components/plan/official-form-card";
 import { RecordUpload } from "@/components/plan/record-upload";
 import { PenCheck, TOPIC_ICONS } from "@/components/plan/step-row";
@@ -17,7 +18,7 @@ import { StatusChip } from "@/components/requirements/sources";
 import { RequirementStatusChip } from "@/components/requirements/requirement-status";
 import { WrittenInquiry } from "@/components/requirements/written-inquiry";
 import { PAGE_TITLE, PRIMARY_LINK, SECONDARY, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
-import { Chip, Fact, Fold, Note } from "@/components/ui";
+import { Chip, Fact, Fold, Note, ResourceLink } from "@/components/ui";
 import { OFFICIAL_FORMS } from "@/data/official-forms";
 import type { StoredDocument } from "@/lib/data/documents";
 import type { PlanStep } from "@/lib/data/plan";
@@ -32,7 +33,8 @@ import { LEVEL_LABELS, TOPIC_LABELS } from "@/lib/labels";
 import type { BusinessProfile } from "@/lib/domain";
 import { jurisdictionName, type Place, placeGap, placeOf, structureOf } from "@/lib/research/applicability";
 import { writtenInquiry } from "@/lib/research/inquiry";
-import { filingSteps } from "@/lib/rules/filing";
+import { explainTerms, termsIn } from "@/lib/plain-words";
+import { type FilingStep, filingPaths, filingSteps } from "@/lib/rules/filing";
 import { choosesStructure } from "@/lib/rules/plan";
 import { nextTaskAfter, type Standing, stepLinks } from "@/lib/rules/paperwork";
 import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
@@ -126,7 +128,7 @@ async function StepDetail({ params }: { params: Params }) {
   const feesDiffer = step.feeCents !== null && form?.fee != null && form.fee.cents !== step.feeCents;
   const feeCents = step.feeCents ?? form?.fee?.cents ?? null;
   const fileable = filing && cards.some((card) => !card.form.kept);
-  const how = filingSteps({
+  const filed = filingSteps({
     title: step.title,
     agency: step.agency,
     feeCents: step.feeCents,
@@ -141,8 +143,27 @@ async function StepDetail({ params }: { params: Params }) {
     form,
     missing,
   });
+  // Legal terms get plain words the first time they show on this page
+  const explained = new Set<string>();
+  const plain = (lines: FilingStep["lines"]) => lines.map((line) => ({ ...line, text: explainTerms(line.text, explained) }));
+  // A step that's ready to do shows one choice of how, with each way's own steps
+  const pathForm = fileable && !step.retired && step.status === "todo" && !blockers.length && usesPaths(form) ? form : null;
+  const formTerms = pathForm ? termsIn(pathForm.title, explained) : [];
+  const firstLines = pathForm ? plain(filed.find((each) => each.kind === "before")?.lines.filter((line) => !line.text.startsWith("Nothing has to come first")) ?? []) : [];
+  const missingPlain = missing.map((item) => explainTerms(item, explained));
+  const rawPaths = pathForm ? filingPaths(pathForm) : null;
+  const paths = rawPaths
+    ? {
+        paper: rawPaths.paper ? { send: plain(rawPaths.paper.send) } : null,
+        online: rawPaths.online ? { ...rawPaths.online, send: plain(rawPaths.online.send) } : null,
+      }
+    : null;
+  // With the ways shown above, the read-ahead keeps only what they share
+  const how = filed.filter((each) => !paths || !["before", "form", "submit", "gather"].includes(each.kind)).map((each) => ({ ...each, lines: plain(each.lines) }));
+  const pathCard = pathForm ? cards.find((card) => card.form.key === pathForm.key) : undefined;
+  const keptCards = cards.filter((card) => card.form.kept);
   const formsHere =
-    step.retired || (!cards.length && !missing.length) ? null : (
+    paths || step.retired || (!cards.length && !missing.length) ? null : (
       <>
         {step.retired
           ? null
@@ -168,7 +189,7 @@ async function StepDetail({ params }: { params: Params }) {
       </div>
     </details>
   );
-  const steps = <FilingSteps steps={how} extras={{ form: formsHere, receipt }} />;
+  const steps = <FilingSteps steps={how} extras={{ form: formsHere, receipt }} label={paths ? "Before and after" : undefined} />;
   const locked = blockers.length > 0;
   const checkPlace = task?.kind === "check_place";
   const findOut = task?.kind === "confirm";
@@ -334,12 +355,37 @@ async function StepDetail({ params }: { params: Params }) {
               <h2 id="part-heading" className={STATE_TITLE}>
                 {choosesStructure(step)
                   ? "Choose how your business is owned"
-                  : fileable
-                    ? "First Sale fills in the blanks your details answer. You check, sign and send it yourself."
-                    : "Here’s how to do it yourself"}
+                  : paths?.paper && paths.online
+                    ? "Choose how to do it"
+                    : fileable
+                      ? "First Sale fills in the blanks your details answer. You check, sign and send it yourself."
+                      : "Here’s how to do it yourself"}
               </h2>
               {choosesStructure(step) ? (
                 <StructureDecision key={step.id} current={details.find((detail) => detail.key === "structure_choice")?.value ?? null} />
+              ) : paths && pathForm ? (
+                <>
+                  <div className="-mt-2 flex flex-col gap-1">
+                    <p className="text-rule">{pathForm.title}</p>
+                    {formTerms.map((term) => (
+                      <p key={term.term} className="text-[15px] text-muted">
+                        {term.plain}
+                      </p>
+                    ))}
+                    <ResourceLink href={pathForm.pageUrl}>{pathForm.pageTitle}</ResourceLink>
+                  </div>
+                  {firstLines.length || keptCards.length ? (
+                    <div className="flex flex-col gap-2">
+                      <h3 className="font-bold">Before you start</h3>
+                      {firstLines.length ? <FilingLines lines={firstLines} /> : null}
+                      {keptCards.map((card) => (
+                        <OfficialFormCard key={card.form.key} quiet stepId={step.id} form={card.form} original={card.original} guide={card.guide} reviewed={card.reviewed} />
+                      ))}
+                    </div>
+                  ) : null}
+                  {missing.length ? <MissingDetails items={missingPlain} /> : null}
+                  <FilingPaths stepId={step.id} form={pathForm} paths={paths} original={pathCard?.original ?? null} guide={pathCard?.guide ?? null} reviewed={pathCard?.reviewed ?? []} />
+                </>
               ) : (
                 steps
               )}
@@ -373,10 +419,10 @@ async function StepDetail({ params }: { params: Params }) {
       ) : null}
 
       <div className="flex flex-col gap-3">
-        {ready && !choosesStructure(step) && !checkPlace ? null : (
+        {ready && !choosesStructure(step) && !checkPlace && !paths ? null : (
           <Fold
-            title="How to do it yourself"
-            summary={`${step.status === "done" || step.retired ? "The steps" : `Read ahead: ${how.length} steps`}${howSourced ? ", with official sources" : ""}`}
+            title={paths ? "Fees, timing and what happens after" : "How to do it yourself"}
+            summary={`${paths ? "The fee, your receipt and what’s next" : step.status === "done" || step.retired ? "The steps" : `Read ahead: ${how.length} steps`}${howSourced ? ", with official sources" : ""}`}
             icon="list"
           >
             {steps}
@@ -384,7 +430,7 @@ async function StepDetail({ params }: { params: Params }) {
         )}
 
         <Fold title="Why it’s on your list" summary={step.agency || jurisdictionLabel(step, place)} icon="info" open={conditions.length > 0 && step.status === "todo"}>
-          {step.why ? <p>{step.why}</p> : null}
+          {step.why ? <p>{explainTerms(step.why, explained)}</p> : null}
           {conditions.length ? (
             <Note icon="branch">
               <p className="font-semibold">It depends on</p>
@@ -408,26 +454,16 @@ async function StepDetail({ params }: { params: Params }) {
           icon="link"
         >
           {step.links.length ? (
-            <ul className="grid gap-2">
+            <ul className="grid gap-1.5">
               {step.links.map((link) => (
-                <li key={link.url}>
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex min-h-12 items-center gap-3 rounded-xl border border-line bg-surface px-3.5 py-2.5 shadow-soft transition hover:border-line-strong motion-reduce:transition-none"
-                  >
-                    <Icon name="globe" className="text-accent" />
-                    <span className="min-w-0 flex-1">
-                      <b className="block font-semibold leading-snug">{link.title}</b>
-                      <small className="block text-sm text-muted">
-                        {link.government}
-                        {link.confirms ? " · confirms this step" : " · a related page"}
-                      </small>
-                    </span>
-                    <Icon name="external" size="sm" className="text-faint" />
-                    <span className="sr-only"> (opens in a new tab)</span>
-                  </a>
+                <li key={link.url} className="flex flex-col">
+                  <ResourceLink href={link.url} className="w-fit text-[15px]">
+                    {link.title}
+                  </ResourceLink>
+                  <small className="pl-5 text-sm text-muted">
+                    {link.government}
+                    {link.confirms ? " · confirms this step" : " · a related page"}
+                  </small>
                 </li>
               ))}
             </ul>

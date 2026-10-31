@@ -17,7 +17,7 @@ export interface FilingLine {
   text: string;
   source?: FilingSource;
   // Words for a link to open; checkedByHand is the date it was checked in a browser
-  link?: { label: string; url: string; checkedByHand?: string };
+  link?: { label: string; url: string; checkedByHand?: string; quiet?: boolean };
   address?: string[];
   unknown?: boolean;
 }
@@ -74,14 +74,14 @@ export function filingSteps(input: FilingInput): FilingStep[] {
   const formLines: FilingLine[] = [];
   if (form?.pdfUrl) {
     formLines.push({
-      text: `Get the official ${form.formNumber ? `Form ${form.formNumber}` : "form"}${form.revision ? ` (${form.revision})` : ""}. First Sale downloads it from ${form.domain}, checks it’s the right one, keeps the original unchanged, and fills in what it can for you to check.`,
+      text: `${form.onlineUrl ? "Way 1: fill" : "Fill"} in the official ${form.formNumber ? `Form ${form.formNumber}` : "form"}${form.revision ? ` (${form.revision})` : ""} with First Sale. It downloads the form from ${form.domain}, checks it’s the right one, keeps the original unchanged, and fills in what it can for you to check.`,
       source: { title: form.pageTitle, url: form.pageUrl, checkedOn: form.checkedOn },
     });
   }
   if (form?.onlineUrl) {
     formLines.push({
-      text: `${form.pdfUrl ? "Or apply online" : "Apply online"}. First Sale prepares your answers first, so you can copy them in.`,
-      link: { label: "Open the official online application", url: form.onlineUrl },
+      text: `${form.pdfUrl ? "Way 2: apply" : "Apply"} online on the agency’s own site. First Sale prepares your answers first, so you can copy them in.`,
+      link: { label: "The official online application", url: form.onlineUrl },
     });
   }
   if (form?.selfDownload) {
@@ -98,7 +98,7 @@ export function filingSteps(input: FilingInput): FilingStep[] {
   }
   if (!form) {
     if (input.links.length) {
-      for (const link of input.links) formLines.push({ text: link.confirms ? "The official page for this step:" : "A related official page:", link: { label: link.title, url: link.url } });
+      for (const link of input.links) formLines.push({ text: link.confirms ? "The official page for this step:" : "A related official page:", link: { label: link.title, url: link.url, quiet: !link.confirms } });
     } else {
       formLines.push({ text: "We didn’t find the official form or page yet. Send the written question on this step to find out.", unknown: true });
     }
@@ -129,7 +129,7 @@ export function filingSteps(input: FilingInput): FilingStep[] {
 
   const submit: FilingLine[] = (form?.submit ?? []).map((method) => ({
     text: `${method.how}${method.timing ? ` How long it takes: ${method.timing.text}` : ""}`,
-    link: method.url ? { label: method.kind === "online" ? "Open the official site" : "Official page", url: method.url } : undefined,
+    link: method.url ? { label: method.kind === "online" ? "Open the official site" : "Official page", url: method.url, quiet: method.kind !== "online" } : undefined,
     address: method.address,
     source: method.timing ? fromFact(method.timing) : undefined,
   }));
@@ -162,4 +162,44 @@ export function filingSteps(input: FilingInput): FilingStep[] {
   ];
   if (after.length) steps.push({ kind: "after", title: "What happens next", lines: after });
   return steps;
+}
+
+export interface FilingPaths {
+  // Fill in the official paper form here, then sign and send it
+  paper: { send: FilingLine[] } | null;
+  // Apply on the agency's own site with the answers First Sale prepared
+  online: { url: string; checkedByHand?: string; send: FilingLine[] } | null;
+}
+
+// The two ways to file one form, each with only its own ways to send
+export function filingPaths(form: OfficialForm): FilingPaths {
+  const byHand = (url: string | undefined) => (url && form.handChecked?.includes(url) ? form.checkedOn : undefined);
+  const offline = form.submit.filter((method) => method.kind !== "online");
+  const onlineMethods = form.submit.filter((method) => method.kind === "online");
+
+  const paper: FilingLine[] = [
+    ...offline.map((method) => ({
+      text: `${method.how}${method.timing ? ` How long it takes: ${method.timing.text}` : ""}`,
+      address: method.address,
+      link: method.url ? { label: "Official page", url: method.url, checkedByHand: byHand(method.url), quiet: true } : undefined,
+      source: method.timing ? fromFact(method.timing) : undefined,
+    })),
+    // An online method that also takes the signed form by mail
+    ...onlineMethods.filter((method) => method.address).map((method) => ({ text: "Mail the signed form to the address printed on it:", address: method.address })),
+  ];
+  if (!paper.length) paper.push({ text: `Send it to ${form.agency} the way the official page says.`, source: { title: form.pageTitle, url: form.pageUrl, checkedOn: form.checkedOn } });
+  if (form.signature) paper.push({ text: form.signature.text, source: fromFact(form.signature) });
+  paper.push({ text: "Not filed: you sign and send it yourself. First Sale never files anything for you." });
+
+  const url = onlineMethods.find((method) => method.url)?.url ?? form.onlineUrl;
+  const online: FilingLine[] = [
+    { text: "Type in the answers First Sale prepared, then pay and submit it on the official site." },
+    ...onlineMethods.flatMap((method) => (method.timing ? [{ text: `How long it takes: ${method.timing.text}`, source: fromFact(method.timing) }] : [])),
+    { text: "Anything the site asks you to sign or swear to, you do yourself. First Sale never files anything for you." },
+  ];
+
+  return {
+    paper: form.pdfUrl ? { send: paper } : null,
+    online: url ? { url, checkedByHand: byHand(url), send: online } : null,
+  };
 }
