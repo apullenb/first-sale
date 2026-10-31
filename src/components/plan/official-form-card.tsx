@@ -4,7 +4,7 @@ import { ActionButton } from "@/components/action-button";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
-import { IconTile } from "@/components/ui";
+import { IconTile, OutsideLink, Source } from "@/components/ui";
 import type { StoredDocument } from "@/lib/data/documents";
 import type { OutdatedFact } from "@/lib/documents/autofill";
 import { mustFillYourself } from "@/lib/documents/companion";
@@ -20,7 +20,22 @@ export interface FormDoc {
 const PREVIEW_ROWS = 8;
 
 // The official form or application for a step: get it, see the drafted answers in place, and spot outdated ones
-export function OfficialFormCard({ stepId, form, original, guide, reviewed }: { stepId: string; form: OfficialForm; original: FormDoc | null; guide: FormDoc | null; reviewed: StoredDocument[] }) {
+export function OfficialFormCard({
+  stepId,
+  form,
+  original,
+  guide,
+  reviewed,
+  quiet = false,
+}: {
+  stepId: string;
+  form: OfficialForm;
+  original: FormDoc | null;
+  guide: FormDoc | null;
+  reviewed: StoredDocument[];
+  // Beside the step's main choice, so its buttons aren't the page's main one
+  quiet?: boolean;
+}) {
   return (
     <section aria-labelledby={`form-${form.key}`} className="flex flex-col gap-3 rounded-xl border border-line bg-soft p-4">
       <div className="flex items-start gap-3">
@@ -32,14 +47,8 @@ export function OfficialFormCard({ stepId, form, original, guide, reviewed }: { 
             </h4>
           </div>
           <p className="font-semibold text-rule">{form.title}</p>
-          <p className="text-sm text-muted">
-            {form.agency} ·{" "}
-            <a href={form.pageUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center underline underline-offset-2 hover:text-accent">
-              {form.pageTitle}
-              <span className="sr-only"> (opens in a new tab)</span>
-            </a>{" "}
-            · checked <LocalDate iso={`${form.checkedOn}T12:00:00.000Z`} />
-          </p>
+          <p className="text-sm text-muted">{form.agency}</p>
+          <Source url={form.pageUrl} title={form.pageTitle} checkedOn={form.checkedOn} lead="" />
         </div>
       </div>
       {form.whoFor ? <p className="text-[15px] text-rule">{form.whoFor}.</p> : null}
@@ -69,7 +78,7 @@ export function OfficialFormCard({ stepId, form, original, guide, reviewed }: { 
               label="Get the official form"
               pendingLabel="Getting the form…"
               pendingStatus="Downloading the form from the official site and checking it. This takes a few seconds."
-              primary
+              primary={!quiet}
             />
           </>
         )
@@ -83,7 +92,7 @@ export function OfficialFormCard({ stepId, form, original, guide, reviewed }: { 
             <p className="text-[15px] text-rule">
               {form.pdfUrl ? "Applying online instead? " : ""}First Sale prepares your answers from your details, so you can copy them in. You review each one first.
             </p>
-            <FormButton action={prepareAnswerGuideAction} stepId={stepId} formKey={form.key} label="Prepare my answers" pendingLabel="Preparing…" primary={!form.pdfUrl} />
+            <FormButton action={prepareAnswerGuideAction} stepId={stepId} formKey={form.key} label="Prepare my answers" pendingLabel="Preparing…" primary={!form.pdfUrl && !quiet} />
           </>
         )
       ) : null}
@@ -91,11 +100,7 @@ export function OfficialFormCard({ stepId, form, original, guide, reviewed }: { 
       {form.selfDownload ? (
         <div className="flex flex-col items-start gap-1.5 text-[15px] text-rule">
           <p>Prefer the paper form? The agency’s site doesn’t let First Sale download it. Download it yourself, then upload it here for help filling it in.</p>
-          <a href={form.selfDownload.url} target="_blank" rel="noopener noreferrer" className={`flex min-h-11 w-fit items-center gap-1.5 ${TEXT_LINK}`}>
-            {form.selfDownload.label}
-            <Icon name="external" size="xs" />
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
+          <OutsideLink href={form.selfDownload.url}>{form.selfDownload.label}</OutsideLink>
           <p className="text-sm text-muted">
             Link checked by hand on <LocalDate iso={`${form.checkedOn}T12:00:00.000Z`} /> on the agency’s forms page.
           </p>
@@ -130,7 +135,7 @@ export function OfficialFormCard({ stepId, form, original, guide, reviewed }: { 
 }
 
 // The drafted answers on a sheet of paper, so the owner sees the filled form in place; it's never filed
-function FormPreview({ label, item }: { label: string; item: FormDoc }) {
+export function FormPreview({ label, item, reviewLink = true }: { label: string; item: FormDoc; reviewLink?: boolean }) {
   const { doc } = item;
   const answers = Object.values(doc.answers);
   const confirmed = answers.filter((answer) => answer.state === "confirmed").length;
@@ -200,10 +205,12 @@ function FormPreview({ label, item }: { label: string; item: FormDoc }) {
           <ActionButton action={refreshDraftAction.bind(null, doc.id)} label="Update the answers" pendingLabel="Updating…" />
         </div>
       ) : null}
-      <Link href={`/documents/${encodeURIComponent(doc.id)}`} className={SECONDARY_LINK}>
-        <Icon name="pencil" size="sm" />
-        Review the answers
-      </Link>
+      {reviewLink ? (
+        <Link href={`/documents/${encodeURIComponent(doc.id)}`} className={SECONDARY_LINK}>
+          <Icon name="pencil" size="sm" />
+          Review the answers
+        </Link>
+      ) : null}
     </div>
   );
 }

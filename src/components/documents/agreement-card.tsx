@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
-import { PRIMARY_LINK, SECONDARY_LINK } from "@/components/styles";
-import { Card, Chip, Note } from "@/components/ui";
+import { SECONDARY_LINK } from "@/components/styles";
+import { ActionItem, Chip, Note } from "@/components/ui";
 import type { StoredDocument } from "@/lib/data/documents";
 import type { OutdatedFact } from "@/lib/documents/autofill";
 
@@ -10,7 +10,18 @@ import type { OutdatedFact } from "@/lib/documents/autofill";
 export function AgreementCard({ name, owners, doc, outdated }: { name: string; owners: number; doc: StoredDocument | null; outdated: OutdatedFact[] }) {
   const approvedAt = doc?.draft?.approvedAt ?? null;
   return (
-    <Card title={`Your ${name.toLowerCase()}`} icon="users" id="agreement-card-heading">
+    <ActionItem
+      title={`Your ${name.toLowerCase()}`}
+      kicker={approvedAt ? "Done" : "Also to do"}
+      icon="users"
+      id="agreement-card-heading"
+      action={
+        <Link href="/documents/agreement" className={SECONDARY_LINK}>
+          {doc ? `Open your ${name.toLowerCase()}` : `Prepare your ${name.toLowerCase()}`}
+          <Icon name="arrow" size="sm" />
+        </Link>
+      }
+    >
       <p className="text-rule">
         The owners’ own rules for the business: who owns what, who runs it, and how decisions and money are handled. It isn’t filed with the state.{" "}
         {owners > 1 ? "Every owner signs it, and you keep it with your records." : "You sign it and keep it with your records."} Banks often ask for it when you open a
@@ -32,10 +43,6 @@ export function AgreementCard({ name, owners, doc, outdated }: { name: string; o
           <span className="font-semibold">Outdated:</span> your {outdated.map((each) => each.label.toLowerCase()).join(", ")} changed since it was prepared.
         </Note>
       ) : null}
-      <Link href="/documents/agreement" className={doc ? SECONDARY_LINK : PRIMARY_LINK}>
-        {doc ? `Open your ${name.toLowerCase()}` : `Prepare your ${name.toLowerCase()}`}
-        <Icon name="arrow" size="sm" />
-      </Link>
-    </Card>
+    </ActionItem>
   );
 }

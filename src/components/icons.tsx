@@ -67,6 +67,7 @@ const PATHS = {
   server: "M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01M12 7h4M12 17h4",
   cart: "M3 4h2.5l2.2 11h10.6L21 7.5H6.4M9.5 20h.01M17 20h.01",
   card: "M3 6h18v12H3zM3 10h18M7 15h4",
+  todo: "M4 4h16v16H4zM8.5 12l2.5 2.5 4.5-5",
 } as const;
 
 export type IconName = keyof typeof PATHS;
