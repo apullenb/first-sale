@@ -356,9 +356,6 @@ async function StepDetail({ params }: { params: Params }) {
                     {progress}
                   </div>
                   <p className="text-sm text-muted">Opening a link or a form never changes this. You record what you did. First Sale never files anything for you.</p>
-                  {!findOut && step.contacts && (step.contacts.emails.length || step.contacts.phones.length) ? (
-                    <OfficeContacts office={step.agency || step.whoToCall} contacts={step.contacts} />
-                  ) : null}
                 </>
               )}
             </>
@@ -646,28 +643,6 @@ function PrerequisiteState({ done, office }: { done: boolean; office: boolean })
       <Icon name="lock" size="xs" />
       Not done yet
     </span>
-  );
-}
-
-// Where to reach the office if something comes up while applying, read from its official pages
-function OfficeContacts({ office, contacts }: { office: string; contacts: NonNullable<PlanStep["contacts"]> }) {
-  const email = contacts.emails[0] ?? null;
-  const phone = contacts.phones[0] ?? null;
-  return (
-    <p className="text-sm text-muted">
-      Questions while you apply? {office ? `${office}: ` : ""}
-      {email ? (
-        <a href={`mailto:${email.value}`} className={`${TEXT_LINK} break-all`}>
-          {email.value}
-        </a>
-      ) : null}
-      {email && phone ? " · " : null}
-      {phone ? (
-        <a href={`tel:${phone.value.replace(/\D/g, "")}`} className={TEXT_LINK}>
-          {phone.value}
-        </a>
-      ) : null}
-    </p>
   );
 }
 
