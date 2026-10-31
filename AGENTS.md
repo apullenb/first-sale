@@ -37,7 +37,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - The structure, name and tax recommendation comes from the AI weighing all of the owner's answers (`advise.ts`), checked in code: only options that fit the owners, only `facts.ts` citations, no amounts. The rules (`suggest.ts`) stand in until it's ready and when a check fails.
 - Structure explanations cite `src/lib/structure/facts.ts` (verbatim official quotes) or say they need confirming for the owner's state; never state a state fee from memory.
 - Whether a requirement applies is decided in code (`classify` in `src/lib/research/applicability.ts`), from the model's read plus the owner's answers and decisions. Steps for one structure stay conditional until the owner decides.
-- Plan changes from a re-check or a decision apply on their own; started steps are kept, as a record if dropped. An office's email and phone may show on a step for help applying, never as the step.
+- Plan changes from a re-check or a decision apply on their own; started steps are kept, as a record if dropped.
 - Official forms come from `src/data/official-forms`. Every fee, time and step there quotes an official page with the date checked. Mark anything read only in a browser as `byHand` or `handChecked`. Only download forms the app's server can fetch, and never get around a site's bot check.
 - A form that is signed and kept rather than filed, like Texas Form 401-A, sets `kept`. It never counts as a step's filed form (`filedForm`).
 - The owners' agreement (`src/lib/documents/owners-agreement.ts`) is fixed wording filled by rules, never model output. Change its terms only on the user's say-so, and quote any law it relies on from the official page.
