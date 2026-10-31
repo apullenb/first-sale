@@ -12,7 +12,7 @@ import { CoverageList } from "@/components/requirements/coverage-list";
 import { SourceLinks } from "@/components/requirements/sources";
 import { ResearchRunStatus } from "@/components/requirements/research-run";
 import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
-import { Card, Chip, Fold, IconTile, Note, PageHead } from "@/components/ui";
+import { Card, Chip, Fold, IconTile, Note, PageHead, ResourceLink } from "@/components/ui";
 import { getMyBusiness, getMyPaperwork, getMyResearch, lastMyRun, type MyPaperwork } from "@/lib/data/my-business";
 import type { PlanStep } from "@/lib/data/plan";
 import type { ResearchSnapshot } from "@/lib/data/research";
@@ -413,10 +413,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
               <ul className="flex flex-col gap-1">
                 {research.unreadSources.map((source) => (
                   <li key={source.key}>
-                    <a href={source.url} target="_blank" rel="noopener noreferrer" className={TEXT_LINK}>
-                      {source.title}
-                      <span className="sr-only"> (opens in a new tab)</span>
-                    </a>
+                    <ResourceLink href={source.url}>{source.title}</ResourceLink>
                     : <span className="text-muted">{source.reason}</span>
                   </li>
                 ))}

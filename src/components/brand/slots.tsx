@@ -4,8 +4,8 @@ import { pickFileAction, unpickFileAction } from "@/app/(app)/brand/actions";
 import { ActionButton } from "@/components/action-button";
 import { Icon, type IconName } from "@/components/icons";
 import { Done } from "@/components/marketing/pieces";
-import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
-import { Card, Chip } from "@/components/ui";
+import { SECONDARY_LINK } from "@/components/styles";
+import { Card, Chip, ResourceLink } from "@/components/ui";
 import { RecommendedBadge } from "@/components/recommended";
 import { dollars } from "@/lib/brand/cost";
 import { brandFileName, brandFileUrl } from "@/lib/brand/files";
@@ -306,9 +306,7 @@ function SizeFacts({ kind }: { kind: BrandImageKind }) {
       {spec.source ? (
         <p className="mt-1 text-muted">
           Source:{" "}
-          <a href={spec.source.url} target="_blank" rel="noreferrer" className={TEXT_LINK}>
-            {spec.source.name}
-          </a>
+          <ResourceLink href={spec.source.url}>{spec.source.name}</ResourceLink>
           , checked {CHECKED}. Sites change their sizes, so check before you upload.
         </p>
       ) : null}

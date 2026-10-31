@@ -9,7 +9,7 @@ export function SourceButton({ url, title }: { url: string; title: string }) {
       rel="noopener noreferrer"
       className="group/src relative inline-grid size-9 shrink-0 place-items-center rounded-lg border border-line bg-surface text-muted transition after:absolute after:-inset-1 hover:border-accent-ring hover:bg-accent-tint hover:text-accent motion-reduce:transition-none"
     >
-      <Icon name="link" size="sm" />
+      <Icon name="book" size="sm" />
       <span className="sr-only">Source: {title} (opens in a new tab)</span>
       <span
         aria-hidden="true"

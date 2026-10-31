@@ -10,7 +10,7 @@ import { Kicker, SectionHead } from "@/components/marketing/pieces";
 import { PracticeBanner } from "@/components/practice-banner";
 import { RunStatus } from "@/components/run-status";
 import { PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
-import { Card, Chip, Fold, Note, PageHead } from "@/components/ui";
+import { Card, Chip, Fold, Note, OutsideLink, PageHead } from "@/components/ui";
 import { WebsiteBasics } from "@/components/website/basics";
 import { CopyEditor } from "@/components/website/copy-editor";
 import { DomainFinder } from "@/components/website/domain-finder";
@@ -401,11 +401,7 @@ function BuildSteps({ site, platformId }: { site: LoadedSite; platformId: Platfo
       />
       <Card bodyClassName="gap-4">
         {platform.signupUrl ? (
-          <a href={platform.signupUrl} target="_blank" rel="noopener noreferrer" className={PRIMARY_LINK}>
-            Open {platform.name}
-            <Icon name="external" size="sm" />
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
+          <OutsideLink href={platform.signupUrl}>Open {platform.name}</OutsideLink>
         ) : null}
         {left ? (
           <Note>

@@ -13,7 +13,7 @@ import { AccountMark } from "@/components/social/account-mark";
 import { PickAccounts } from "@/components/social/pick-accounts";
 import { ProfileEditor } from "@/components/social/profile-editor";
 import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
-import { Card, Chip, IconTile, Note, PageHead } from "@/components/ui";
+import { Card, Chip, IconTile, Note, OutsideLink, PageHead, ResourceLink } from "@/components/ui";
 import { type MarketingPlatformId, PLATFORM_DATA } from "@/data/marketing-platforms";
 import { PROFILE_FACTS, profileSources, type SocialProfileFacts } from "@/data/social-profiles";
 import { BRAND_IMAGES_HREF } from "@/lib/brand/library";
@@ -458,17 +458,8 @@ function StepsPart({ account }: { account: SocialAccount }) {
         <Note tone="quiet">These steps are general, because First Sale couldn’t check them against {data.name}’s own guide. If your screen looks different, follow its guide.</Note>
       ) : null}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        {go ? (
-          <a href={go.url} target="_blank" rel="noopener noreferrer" className={SECONDARY_LINK}>
-            {go.label}
-            <Icon name="external" size="sm" />
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
-        ) : null}
-        <a href={data.help.url} target="_blank" rel="noopener noreferrer" className={`${TEXT_LINK} inline-flex min-h-11 items-center text-[15px]`}>
-          {data.help.label}
-          <span className="sr-only"> (opens in a new tab)</span>
-        </a>
+        {go ? <OutsideLink href={go.url}>{go.label}</OutsideLink> : null}
+        <ResourceLink href={data.help.url}>{data.help.label}</ResourceLink>
       </div>
     </div>
   );
@@ -495,10 +486,7 @@ function Sources({ facts, account }: { facts: SocialProfileFacts | null; account
         {sources.map((source, index) => (
           <span key={source.url}>
             {index ? "; " : "Limits from "}
-            <a href={source.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-ink">
-              {source.label}
-              <span className="sr-only"> (opens in a new tab)</span>
-            </a>
+            <ResourceLink href={source.url}>{source.label}</ResourceLink>
             , checked{source.byHand ? " by hand in a browser" : ""} on <LocalDate iso={day(source.checked)} />
           </span>
         ))}
