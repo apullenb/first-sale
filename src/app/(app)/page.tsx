@@ -181,7 +181,7 @@ async function Overview() {
           <div className="flex flex-col gap-5">
             <Card title="Already have some paperwork?" icon="upload" id="have-heading">
               <p className="text-rule">
-                Not starting from scratch? Upload what you already have, like your LLC certificate or EIN letter. Got a letter in the mail you’re not
+                Not starting from scratch? Upload what you already have, like your LLC certificate or the IRS letter with your EIN (tax ID number). Got a letter in the mail you’re not
                 sure about? Upload it and First Sale explains what it is and what to do.
               </p>
               <Link href="/documents?add=have#add-form" className={SECONDARY_LINK}>

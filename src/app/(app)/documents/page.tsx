@@ -95,7 +95,7 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
       <div className="grid gap-5 lg:grid-cols-2">
         <Card title="Got a letter or form you’re not sure about?" icon="file" id="add-card-heading" className="flex flex-col" bodyClassName="flex-1">
           <p className="text-rule">
-            Add it and First Sale explains what it is and what to do. Add papers you already have, like your LLC certificate or EIN letter, and forms you
+            Add it and First Sale explains what it is and what to do. Add papers you already have, like your LLC certificate or the IRS letter with your EIN (tax ID number), and forms you
             need to fill in.
           </p>
           <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">

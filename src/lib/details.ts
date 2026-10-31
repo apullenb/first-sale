@@ -77,7 +77,7 @@ export const DETAILS = {
   business_phone: { label: "Business phone", help: "A phone number forms and customers can reach you at.", kind: "text", maxLength: 40 },
   registered_agent: {
     label: "Registered agent (name and address)",
-    help: "A person or company named to receive official legal papers for an LLC or corporation. Many states let an owner be their own agent if they have a street address in the state. Your state’s rules say who can serve.",
+    help: "The person or company that accepts legal mail for your LLC or corporation, like lawsuits and state notices. It can be you: many states let an owner be their own agent if they have a street address in the state. Your state’s rules say who can serve.",
     kind: "multiline",
     maxLength: 400,
   },

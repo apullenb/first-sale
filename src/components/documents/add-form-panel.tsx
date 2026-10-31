@@ -151,7 +151,7 @@ export function AddFormPanel({ steps, initialStep, initialKind, initialMode, acc
         <div className="flex flex-col gap-2.5">
           {kind === "have" ? (
             <p className="text-rule">
-              Upload papers you already have, like your LLC certificate or EIN letter, or a letter you got in the mail and aren’t sure about. First Sale can
+              Upload papers you already have, like your LLC certificate or the IRS letter with your EIN (tax ID number), or a letter you got in the mail and aren’t sure about. First Sale can
               explain what it is, what it means, and anything you need to do.
             </p>
           ) : (

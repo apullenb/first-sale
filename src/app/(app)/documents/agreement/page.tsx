@@ -148,7 +148,7 @@ async function Agreement() {
 
       <Card title="From your details" icon="building" id="basis-heading">
         <Basis basis={basis} />
-        {llcName ? <Note>Your business name doesn’t end in “LLC” or similar. Use the LLC’s exact name, as it is on your certificate of formation.</Note> : null}
+        {llcName ? <Note>Your business name doesn’t end in “LLC” or similar. Use the LLC’s exact name, as it is on your certificate of formation, the form that created your LLC with the state.</Note> : null}
         <Link href="/business" className={SECONDARY_LINK}>
           <Icon name="pencil" size="sm" className="text-muted" />
           Change your business details
