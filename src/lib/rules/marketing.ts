@@ -2,7 +2,7 @@ import { type MarketingPlatformId, PLATFORM_DATA, type SkillArea } from "@/data/
 import { BRAND_IMAGES_HREF } from "@/lib/brand/library";
 import type { BrandKit } from "@/lib/brand/types";
 import type { MarketingIntake, SkillLevel, StoredIntake } from "@/lib/marketing/intake";
-import type { FirstAction, HandHolding, MarketingPlan, MarketingPlanReply, MarketingStep, PlanPlatform, PlatformRole, StepLink } from "@/lib/marketing/types";
+import type { FirstAction, HandHolding, MarketingPlan, MarketingPlanReply, MarketingStep, PlanPlatform, PlatformRole, StepKind, StepLink } from "@/lib/marketing/types";
 
 // Plain code: which platforms a plan may use, how much help each step gets, the steps and their order, and what to do next.
 
@@ -396,7 +396,45 @@ export function buildMarketingSteps(
   const practice = Boolean(plan.simulated);
   // A practice plan's actions came from a template, not AI
   const marked = steps.map((step) => ({ ...step, by: practice ? ("rule" as const) : step.by, practice }));
-  return visibleSteps(marked, intake.exclude);
+  return visibleSteps(mergeDuplicateSteps(marked), intake.exclude);
+}
+
+// Plan actions on the same job as a built-in step, matched on the title. Profile pictures come before photos.
+const STEP_TOPICS: { kind: StepKind; pattern: RegExp }[] = [
+  { kind: "look", pattern: /\bprofile (picture|photo)s?\b|\b(make|design|create|choose|pick|get) (a |your )?logo\b/i },
+  {
+    kind: "photos",
+    pattern: /\b(take|shoot|snap|prepare|get|make|edit|pick|choose|test|practice|gather)\b.*\b(photos?|pictures?|pics)\b|\b(photo|picture) (shoot|session)s?\b|\btest (photos?|shots?)\b/i,
+  },
+  { kind: "posts", pattern: /\b(content calendar|post(ing)? (plan|schedule|calendar)|plan\b.*\bposts?|schedule\b.*\bposts?|post ideas)\b/i },
+];
+const MAX_HOW = 8;
+const lineKey = (line: string) => line.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+// Folds plan actions that repeat a built-in step into it: their new how-to lines join it, and their keys stay so ticks carry over
+export function mergeDuplicateSteps(steps: readonly MarketingStep[]): MarketingStep[] {
+  const out = steps.map((step) => ({ ...step, how: [...step.how], merged: step.merged ? [...step.merged] : undefined }));
+  const dropped = new Set<string>();
+  for (const step of out) {
+    if (step.kind !== "action") continue;
+    const topic = STEP_TOPICS.find((each) => each.pattern.test(step.title));
+    const target = topic && out.find((each) => each.kind === topic.kind);
+    if (!target) continue;
+    const seen = new Set(target.how.map(lineKey));
+    for (const line of step.how) {
+      if (target.how.length >= MAX_HOW || seen.has(lineKey(line))) continue;
+      seen.add(lineKey(line));
+      target.how.push(line);
+    }
+    target.merged = [...new Set([...(target.merged ?? []), step.key, ...(step.merged ?? [])])];
+    dropped.add(step.key);
+  }
+  return out.filter((step) => !dropped.has(step.key)).map(({ merged, ...step }) => (merged?.length ? { ...step, merged } : step));
+}
+
+// Every key whose tick counts for this step
+export function stepKeys(step: Pick<MarketingStep, "key" | "merged">): string[] {
+  return [step.key, ...(step.merged ?? [])];
 }
 
 // Saved steps get today's profile-picture and brand-image steps, so plans approved earlier never point to old pages.
@@ -405,11 +443,11 @@ export function withCurrentBrandSteps(steps: readonly MarketingStep[], context: 
   const practice = steps.some((step) => step.practice);
   const fresh = (draft: StepDraft): MarketingStep => ({ ...draft, practice });
   const current = steps.map((step) => (step.kind === "look" ? fresh(lookStep(context.hasLogo)) : step.kind === "brand_images" ? fresh(brandImagesStep(context.hasLogo)) : step));
-  if (current.some((step) => step.kind === "brand_images")) return current;
   const look = current.findIndex((step) => step.kind === "look");
-  if (look === -1 && !context.hasWebsite) return current;
-  current.splice(look + 1, 0, fresh(brandImagesStep(context.hasLogo)));
-  return current;
+  if (!current.some((step) => step.kind === "brand_images") && (look !== -1 || context.hasWebsite)) {
+    current.splice(look + 1, 0, fresh(brandImagesStep(context.hasLogo)));
+  }
+  return mergeDuplicateSteps(current);
 }
 
 // No step, or line of a step, names a ruled-out platform, whether it came from AI or the catalog.
@@ -439,9 +477,9 @@ export function autoDoneSteps(steps: readonly MarketingStep[], facts: DoneFacts)
   return steps.filter((step) => step.kind === "brand_images" && facts.brandImagesPicked).map((step) => step.key);
 }
 
-// Ticks for steps that are still in the list, plus steps done by facts
+// Ticks for steps that are still in the list, including actions folded into them, plus steps done by facts
 export function doneSteps(steps: readonly MarketingStep[], done: readonly string[], auto: readonly string[] = []): string[] {
-  return steps.filter((step) => done.includes(step.key) || auto.includes(step.key)).map((step) => step.key);
+  return steps.filter((step) => stepKeys(step).some((key) => done.includes(key)) || auto.includes(step.key)).map((step) => step.key);
 }
 
 export type MarketingMove =

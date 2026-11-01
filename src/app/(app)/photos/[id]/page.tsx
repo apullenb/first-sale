@@ -75,7 +75,7 @@ async function PhotoView({ params, searchParams }: { params: Promise<{ id: strin
     <>
       <PageHead kicker={<Kicker icon="camera">Build your brand · Product photos</Kicker>} title={photo.title} />
       {editing.state === "practice" ? (
-        <PracticeBanner what="Photos made here are practice previews, not made by Muse: each one is your original photo, unchanged." />
+        <PracticeBanner what="Photos made here are practice previews, not made by AI: each one is your original photo, unchanged." />
       ) : null}
 
       <Card title="Your photo" icon="image" id="original-heading" bodyClassName="gap-4">
@@ -167,9 +167,9 @@ function VersionView({ photo, version, checking, canRefine }: ViewProps) {
       <div className="flex flex-col gap-1">
         <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
           {version.simulated ? (
-            <Chip tone="warn">Practice preview, not made by Muse</Chip>
+            <Chip tone="warn">Practice preview, not made by AI</Chip>
           ) : (
-            "Edited by Meta’s Muse Image"
+            "Edited by AI"
           )}
           <span>
             · <LocalDate iso={version.createdAt.toISOString()} />
@@ -181,7 +181,7 @@ function VersionView({ photo, version, checking, canRefine }: ViewProps) {
       {version.simulated ? (
         <p className="rounded-xl border border-check-ring bg-check-tint px-4 py-3 text-[15px] text-check">
           <strong>Practice preview.</strong> No image service is connected, so this is your original photo, unchanged. It
-          isn’t an edited photo and wasn’t made by Muse.
+          isn’t an edited photo and wasn’t made by AI.
         </p>
       ) : null}
 

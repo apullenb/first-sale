@@ -5,6 +5,8 @@ import { saveWebsiteCopyAction } from "@/app/(app)/website/actions";
 import { Icon } from "@/components/icons";
 import { SOFT } from "@/components/marketing/pieces";
 import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
+import { type ClaimRecords, claimConflicts, siteClaimRecords } from "@/lib/website/claims";
+import type { SiteDesign, SiteProduct } from "@/lib/website/site/design";
 import type { WebsiteCopy } from "@/lib/website/types";
 import { placeholderCount } from "@/lib/website/words";
 
@@ -14,10 +16,12 @@ interface Props {
   approved: boolean;
   // Changes whenever the saved copy does
   signature: string;
+  // Saved prices and handoff answers the words are checked against
+  records: { products: SiteProduct[]; design: SiteDesign; handoff: ClaimRecords["handoff"] };
 }
 
 // The owner's edits to the drafted words; approving saves a printable copy to Documents
-export function CopyEditor({ copy: saved, flags, approved, signature }: Props) {
+export function CopyEditor({ copy: saved, flags, approved, signature, records }: Props) {
   const uid = useId();
   const [copy, setCopy] = useState(saved);
   const [seen, setSeen] = useState(signature);
@@ -38,6 +42,7 @@ export function CopyEditor({ copy: saved, flags, approved, signature }: Props) {
     const quoted = flag.match(/“([^”]+)”/)?.[1];
     return !quoted || text.includes(quoted);
   });
+  const conflicts = claimConflicts(copy, siteClaimRecords(copy, records.products, records.design, records.handoff));
   const pending = status === "saving" || status === "approving";
 
   function change(patch: Partial<WebsiteCopy>) {
@@ -85,6 +90,16 @@ export function CopyEditor({ copy: saved, flags, approved, signature }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
+      {conflicts.length ? (
+        <div role="status" className="flex flex-col gap-1.5 rounded-xl border border-check-ring bg-check-tint px-3.5 py-3 text-[15px] text-check">
+          <p className="font-semibold">These words disagree with your saved prices or answers. Settle each one before approving:</p>
+          <ul className="flex list-disc flex-col gap-1 pl-5">
+            {conflicts.map((conflict) => (
+              <li key={conflict}>{conflict}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       {openFlags.length ? (
         <ul className="flex list-disc flex-col gap-1 rounded-xl border border-check-ring bg-check-tint py-3 pr-3.5 pl-8 text-[15px] text-check">
           {openFlags.map((flag) => (
@@ -175,7 +190,7 @@ export function CopyEditor({ copy: saved, flags, approved, signature }: Props) {
         <button type="button" disabled={pending || !dirty} onClick={() => save(false)} className={SECONDARY}>
           {status === "saving" ? "Saving…" : "Save changes"}
         </button>
-        <button type="button" disabled={pending} onClick={() => save(true)} className={PRIMARY}>
+        <button type="button" disabled={pending || conflicts.length > 0} onClick={() => save(true)} className={PRIMARY}>
           <Icon name="check" size="sm" />
           {status === "approving" ? "Approving…" : "Approve these words"}
         </button>

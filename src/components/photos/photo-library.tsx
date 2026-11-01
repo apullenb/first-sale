@@ -45,7 +45,7 @@ export function PhotoLibrary({ photos }: { photos: LibraryPhoto[] }) {
                       Approved <LocalDate iso={photo.approvedAt.toISOString()} />
                     </p>
                   ) : null}
-                  {photo.simulated ? <span className={`${TAG} mt-1.5 border-check-ring bg-check-tint text-check`}>Practice preview, not made by Muse</span> : null}
+                  {photo.simulated ? <span className={`${TAG} mt-1.5 border-check-ring bg-check-tint text-check`}>Practice preview, not made by AI</span> : null}
                 </div>
                 <div className="mt-auto flex flex-wrap gap-2">
                   <a href={versionSrc(photo.photoId, photo.id, false)} download className={SECONDARY_LINK}>

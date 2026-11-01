@@ -6,11 +6,12 @@ import { ActionButton } from "@/components/action-button";
 import { Completed, Revisit } from "@/components/completed";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
-import { Kicker, SectionHead } from "@/components/marketing/pieces";
+import { ActionFacts, Kicker, NextUp, SectionHead } from "@/components/marketing/pieces";
 import { PracticeBanner } from "@/components/practice-banner";
 import { RunStatus } from "@/components/run-status";
 import { PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Card, Chip, Fold, Note, OutsideLink, PageHead } from "@/components/ui";
+import { BudgetFit } from "@/components/website/budget-fit";
 import { WebsiteBasics } from "@/components/website/basics";
 import { CopyEditor } from "@/components/website/copy-editor";
 import { DomainFinder } from "@/components/website/domain-finder";
@@ -27,14 +28,17 @@ import { CUT_OFF_MESSAGE } from "@/lib/data/workflow-runs";
 import { sectionMetadata } from "@/lib/sections";
 import { copyOf, placeholderCount } from "@/lib/website/content";
 import { domainIdeas } from "@/lib/website/domains";
-import { firstYearText } from "@/lib/website/costs";
+import { packageShare } from "@/lib/website/budget";
+import { claimConflicts } from "@/lib/website/claims";
+import { handoffWords } from "@/lib/website/content";
+import { costSummary, firstYearText, usd } from "@/lib/website/costs";
 import { foundFacts, isCurrentExplanation, platformFacts } from "@/lib/website/options";
 import { type PasteContext, pasteFor } from "@/lib/website/paste";
 import { recommendPlatform } from "@/lib/website/recommend";
 import { publishReadiness } from "@/lib/website/site/ready";
 import type { PlatformId } from "@/lib/website/types";
 import { type LoadedSite, loadSite, publishCheck, siteSignature } from "./site-data";
-import { shownSite } from "@/lib/website/site/check";
+import { claimRecords, shownSite } from "@/lib/website/site/check";
 
 export const metadata = sectionMetadata("/website");
 // Drafting the site's words waits on an AI call
@@ -93,6 +97,7 @@ async function WebsitePlanView() {
   const builtHere = chosen === "first_sale";
   const mark = marks.find((each) => each.key === "website");
   const existing = plan?.existingSite ?? null;
+  const records = { products: site.products, design: site.design, handoff: profile.handoff };
   const cards = (
     <div className="@container">
       <div className="grid gap-x-5 gap-y-5 @3xl:grid-cols-2">
@@ -102,6 +107,7 @@ async function WebsitePlanView() {
             platform={PLATFORM_DATA[id]}
             recommended={id === recommendation.platform ? { reasons: recommendation.reasons } : null}
             chosen={id === chosen}
+            share={packageShare(PLATFORM_DATA[id], profile.startupBudget)}
             explanation={
               isCurrentExplanation(explanations[`platform:${id}`], profile, platformFacts(PLATFORM_DATA[id]), practice) ? explanations[`platform:${id}`] : null
             }
@@ -110,7 +116,18 @@ async function WebsitePlanView() {
       </div>
     </div>
   );
-  const next = nextStep({ chosen, content: Boolean(content), approved: Boolean(plan?.contentApprovedAt), finished: Boolean(plan?.finished), existing: Boolean(existing || mark), name: chosen ? PLATFORM_DATA[chosen].name : "" });
+  const next = nextStep({
+    chosen,
+    content: Boolean(content),
+    approved: Boolean(plan?.contentApprovedAt),
+    finished: Boolean(plan?.finished),
+    existing: Boolean(existing || mark),
+    recommended: recommendation.platform,
+    profile,
+    products: site.products.length,
+    left: content ? placeholderCount(content) : 0,
+    conflicts: content ? claimConflicts(copyOf(content), claimRecords(site)).length : 0,
+  });
 
   const existingPanel = <ExistingSitePanel connected={existing} marked={mark ? { url: mark.url, note: mark.note } : null} />;
   const steps = (
@@ -129,6 +146,7 @@ async function WebsitePlanView() {
             </Link>
           </p>
         </SectionHead>
+        <BudgetFit profile={profile} recommended={PLATFORM_DATA[recommendation.platform]} platforms={PLATFORM_ORDER.map((id) => PLATFORM_DATA[id])} />
         {chosen ? (
           <>
             <ChosenSummary platformId={chosen} />
@@ -198,10 +216,10 @@ async function WebsitePlanView() {
               />
               {content && plan?.contentApprovedAt ? (
                 <Fold icon="pencil" title="Your words are approved" summary="Open to read or change them">
-                  <CopyEditor copy={copyOf(content)} flags={content.flags} approved signature={content.generatedAt} />
+                  <CopyEditor copy={copyOf(content)} flags={content.flags} approved signature={content.generatedAt} records={records} />
                 </Fold>
               ) : content ? (
-                <CopyEditor copy={copyOf(content)} flags={content.flags} approved={false} signature={content.generatedAt} />
+                <CopyEditor copy={copyOf(content)} flags={content.flags} approved={false} signature={content.generatedAt} records={records} />
               ) : null}
             </Card>
           </section>
@@ -279,19 +297,15 @@ async function WebsitePlanView() {
 
   return (
     <>
-      <p className="-mt-3 flex items-start gap-2.5 rounded-xl border border-accent-ring bg-accent-tint px-4 py-3 text-accent-ink">
-        <Icon name={next.done ? "check" : "arrow"} size="sm" className="mt-1" strokeWidth={2.2} />
-        <span>
-          <strong>{next.done ? "Done: " : "Next: "}</strong>
-          {next.href ? (
-            <a href={next.href} className={TEXT_LINK}>
-              {next.text}
-            </a>
-          ) : (
-            next.text
-          )}
-        </span>
-      </p>
+      <NextUp id="next-heading" icon="arrow" kicker="Up next" title={next.title}>
+        <ActionFacts why={next.why} cost={next.cost} needs={next.needs} />
+        {next.href ? (
+          <a href={next.href} className={`${PRIMARY_LINK} w-fit`}>
+            {next.button}
+            <Icon name="arrow" size="sm" />
+          </a>
+        ) : null}
+      </NextUp>
 
       <ExistingSitePanel connected={existing} marked={mark ? { url: mark.url, note: mark.note } : null} />
 
@@ -301,19 +315,99 @@ async function WebsitePlanView() {
   );
 }
 
-// The one thing to do next on this page, by plain rules that match the step's done rule
-function nextStep(state: { chosen: PlatformId | null; content: boolean; approved: boolean; finished: boolean; existing: boolean; name: string }): {
-  text: string;
+interface NextState {
+  chosen: PlatformId | null;
+  content: boolean;
+  approved: boolean;
+  finished: boolean;
+  existing: boolean;
+  recommended: PlatformId;
+  profile: LoadedSite["profile"];
+  products: number;
+  // [bracketed] notes and price or ordering conflicts left in the words
+  left: number;
+  conflicts: number;
+}
+
+interface NextAction {
+  title: string;
+  why: string;
+  cost: string;
+  needs: string;
+  button: string;
   href: string | null;
   done: boolean;
-} {
-  if (state.chosen === "first_sale" && state.finished) return { text: "your site is ready (demo, not published online).", href: null, done: true };
-  if (state.existing) return { text: "you already have a website. You can still compare and build below.", href: null, done: true };
-  if (!state.chosen) return { text: "Compare the packages and choose one", href: "#step-choose", done: false };
-  if (!state.content) return { text: "Draft the words for your pages", href: "#step-words", done: false };
-  if (!state.approved) return { text: "Check and approve your words", href: "#step-words", done: false };
-  if (state.chosen === "first_sale") return { text: "Design your site, then finish it", href: "#step-design", done: false };
-  return { text: `Build your site on ${state.name}, with your words ready to paste`, href: "#step-build", done: false };
+}
+
+const INCLUDED = "Nothing extra: it’s part of SnapStart.";
+
+// The one thing to do next on this page, by plain rules that match the step's done rule
+function nextStep(state: NextState): NextAction {
+  const plain = { why: "", cost: "", needs: "", button: "", href: null };
+  if (state.chosen === "first_sale" && state.finished) return { ...plain, title: "Your site is ready (demo, not published online)", done: true };
+  if (state.existing) return { ...plain, title: "You already have a website", done: true };
+  if (!state.chosen) {
+    const platform = PLATFORM_DATA[state.recommended];
+    const costs = costSummary(platform);
+    const share = packageShare(platform, state.profile.startupBudget);
+    return {
+      title: "Choose where to build your site",
+      why: "Where you build decides your monthly bill and how customers order and pay.",
+      cost: `We recommend ${platform.name}: ${costs.from ? "from " : ""}${usd(costs.firstYearUsd)}${platform.demoPrice ? " (demo price)" : ""} for the first year.${share ? ` ${share.text}` : ""} A $0 way to test demand is under Your budget.`,
+      needs: "Nothing new: your answers already shape the recommendation.",
+      button: "Compare the packages",
+      href: "#step-choose",
+      done: false,
+    };
+  }
+  const name = PLATFORM_DATA[state.chosen].name;
+  if (!state.content) {
+    const ways = handoffWords(state.profile.handoff);
+    return {
+      title: "Draft the words for your pages",
+      why: "Customers need to see what you sell, your prices, and how to get their order.",
+      cost: INCLUDED,
+      needs: `${state.products ? `Your ${state.products} saved ${state.products === 1 ? "product" : "products"} and prices` : "Your products and prices (add them on Products so the words use them)"}${ways.length ? `, and how customers get orders: ${ways.join(", ").toLowerCase()}` : ""}.`,
+      button: "Go to your pages",
+      href: "#step-words",
+      done: false,
+    };
+  }
+  if (!state.approved) {
+    const todo = [
+      state.conflicts ? `settle ${state.conflicts} price or ordering ${state.conflicts === 1 ? "claim" : "claims"} that ${state.conflicts === 1 ? "disagrees" : "disagree"} with your saved facts` : "",
+      state.left ? `fill in ${state.left} [bracketed] ${state.left === 1 ? "note" : "notes"}` : "",
+    ].filter(Boolean);
+    return {
+      title: "Check and approve your words",
+      why: "Approved words go on your site, and a printable copy is saved to Documents.",
+      cost: INCLUDED,
+      needs: todo.length ? `A few minutes to ${todo.join(" and ")}.` : "A few minutes to read them through.",
+      button: "Review your words",
+      href: "#step-words",
+      done: false,
+    };
+  }
+  if (state.chosen === "first_sale") {
+    return {
+      title: "Design your site, then finish it",
+      why: "You see your site live and choose its look, photos, prices and buy links.",
+      cost: firstYearText(PLATFORM_DATA.first_sale),
+      needs: "Your approved words. Your logo and photos are optional.",
+      button: "Open the design step",
+      href: "#step-design",
+      done: false,
+    };
+  }
+  return {
+    title: `Build your site on ${name}`,
+    why: "Your words, colors, logo and items are ready to paste, so setup goes quickly.",
+    cost: firstYearText(PLATFORM_DATA[state.chosen]),
+    needs: `A ${name} account you create yourself. SnapStart can’t sign in or pay for you.`,
+    button: "Open the build steps",
+    href: "#step-build",
+    done: false,
+  };
 }
 
 // The package the owner picked, in one line, so the comparison can fold away

@@ -1,5 +1,6 @@
 import type { BusinessProfile } from "@/lib/domain";
 import { OFFERING_KIND_LABELS } from "@/lib/intake/options";
+import { businessSpecifics, itemsPhrase } from "@/lib/specifics";
 import { BRIEF_LIMITS, type BrandBrief, NO_LEANINGS } from "./types";
 
 // The brief starts from what the owner already told us, so they only confirm it
@@ -19,7 +20,7 @@ export function fromProfile(profile: BusinessProfile | null): Pick<BrandBrief, "
   const kinds = (profile?.offeringKinds ?? []).map((kind) => OFFERING_KIND_LABELS[kind]).join(", ");
   return {
     name: (profile?.name ?? "").slice(0, BRIEF_LIMITS.name),
-    sells: (profile?.firstItems.trim() || profile?.description.trim() || kinds).slice(0, BRIEF_LIMITS.sells),
+    sells: (profile?.firstItems.trim() || (profile ? itemsPhrase(businessSpecifics(profile), 6) : "") || profile?.description.trim() || kinds).slice(0, BRIEF_LIMITS.sells),
     customers: customers.length ? capitalize(joinAnd(customers)).slice(0, BRIEF_LIMITS.customers) : "",
   };
 }

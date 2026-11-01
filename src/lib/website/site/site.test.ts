@@ -169,6 +169,7 @@ describe("publishReadiness", () => {
     contact: { email: "hello@risebakery.com", phone: null },
     practiceBrand: false,
     practicePhotos: 0,
+    conflicts: [],
     ...patch,
   });
 

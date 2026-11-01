@@ -7,7 +7,7 @@ test.describe("build your brand", () => {
     const { page } = await newOwner(browser, groomer);
     await open(page, "/brand");
     await expectPracticeBanner(page);
-    await expect(page.getByText("Your brand description here is a practice sample, not written by Muse.", { exact: false })).toBeVisible();
+    await expect(page.getByText("Your brand description here is a practice sample, not written by AI.", { exact: false })).toBeVisible();
 
     // Step 1 comes from the intake answers
     const what = page.getByRole("region", { name: "Step 1: What you sell" });

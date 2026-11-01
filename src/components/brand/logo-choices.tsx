@@ -8,7 +8,7 @@ import { useRequestKey, Working } from "@/components/working";
 import { AI_BUTTON, ALERT, INPUT, SECONDARY } from "@/components/styles";
 import { Card, Chip } from "@/components/ui";
 import type { LogoChoices as Choices } from "@/lib/brand/brief";
-import { dollars, IDEAS } from "@/lib/brand/cost";
+import { IDEAS } from "@/lib/brand/cost";
 import { PRACTICE_LABEL } from "@/lib/brand/practice";
 import { BRIEF_LIMITS } from "@/lib/brand/types";
 import { LogoKindPicker } from "./feel-pickers";
@@ -226,11 +226,10 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
 
         <div className={`${SOFT} flex flex-col gap-3 px-4 py-4`}>
           <p className="flex items-start gap-2.5 text-[15px] text-rule">
-            <Icon name="dollar" size="sm" className="mt-[3px] text-accent" />
             <span>
               {practice
-                ? `Practice mode: no logos are drawn and nothing is charged. You’ll see ${IDEAS.first} labeled samples.`
-                : `Muse writes ${IDEAS.first} different logo ideas from your brand description and these choices, and draws each one. Meta charges ${dollars(1)} per picture, so the drawings cost ${dollars(IDEAS.first)}, plus a small amount for writing the ideas and checking the spelling.`}
+                ? `Practice mode: no logos are drawn. You’ll see ${IDEAS.first} labeled samples.`
+                : `We’ll write ${IDEAS.first} different logo ideas from your brand description and these choices, and draw each one.`}
             </span>
           </p>
           {blocked ? <p className={ALERT}>{blocked}</p> : null}

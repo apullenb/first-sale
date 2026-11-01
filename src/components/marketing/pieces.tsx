@@ -38,6 +38,25 @@ function StepNumber({ n }: { n: number }) {
   );
 }
 
+// Why it matters, what it costs and what's needed, under a next-action headline
+export function ActionFacts({ why, cost, needs }: { why: ReactNode; cost: ReactNode; needs: ReactNode }) {
+  const rows = [
+    { label: "Why it matters", value: why },
+    { label: "What it costs", value: cost },
+    { label: "What you need", value: needs },
+  ];
+  return (
+    <dl className="flex flex-col gap-2 text-[15.5px]">
+      {rows.map((row) => (
+        <div key={row.label} className="flex flex-wrap gap-x-3 gap-y-0.5">
+          <dt className="w-full font-semibold text-ink sm:w-36 sm:shrink-0">{row.label}</dt>
+          <dd className="min-w-0 flex-1 text-rule">{row.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 // Onramp's "do this next" card: a ruled margin, a kicker and a serif headline
 export function NextUp({ id, icon, kicker, title, children }: { id: string; icon: IconName; kicker: string; title: ReactNode; children?: ReactNode }) {
   return (
