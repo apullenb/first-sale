@@ -101,8 +101,8 @@ function Panel({ pathname, status, business, account }: PanelProps) {
     // Sized to fit a laptop screen; scrolls only on very short ones
     <div className={`flex h-full flex-col gap-0.5 overflow-y-auto rounded-[18px] bg-sidebar px-3.5 pb-2.5 pt-3 text-white shadow-lift [scrollbar-width:thin] ${SIDEBAR_FOCUS}`}>
       <div className="border-b border-white/10 px-1.5 pb-2.5 short:pb-1">
-        <Link href="/" className="flex min-h-11 w-fit items-center short:min-h-10" title="Step by step from your idea to your first sale">
-          <Logo light className="w-40" />
+        <Link href="/" className="mx-auto flex min-h-11 w-fit items-center short:min-h-10" title="Step by step from your idea to your first sale">
+          <Logo light className="w-32" />
         </Link>
       </div>
       {business ? (
