@@ -35,15 +35,19 @@ test.describe("business intake", () => {
     await signUp(page, tacos.ownerName, uniqueEmail("tacos-unsure"));
 
     await completeIntake(page, tacos, { confirm: false });
-    const open = page.getByRole("region", { name: "Still open" });
+    const open = page.getByRole("region", { name: "Not decided yet" });
     await expect(open).toBeVisible();
-    for (const term of ["Inside city limits", "Might add a co-owner", "Starting budget", "First-year sales"]) {
+    for (const term of ["Inside city limits", "Might add a co-owner", "Starting budget", "First-year sales", "Goal launch date"]) {
       await expect(open.getByRole("term").filter({ hasText: term })).toBeVisible();
     }
     await expect(open.getByRole("definition").filter({ hasText: "Not sure" }).first()).toBeVisible();
+    // “I don’t have a date yet” is a decision, not a skipped question
+    await expect(open.getByRole("definition").filter({ hasText: "No date yet" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Not answered" }).getByRole("term").filter({ hasText: "Goal launch date" })).toHaveCount(0);
     await page.getByRole("button", { name: "This is right. Continue" }).click();
     await page.waitForURL("**/business?welcome=1");
-    await expect(page.getByRole("region", { name: "Still open" })).toBeVisible();
+    const saved = page.getByRole("region", { name: "Not decided yet" });
+    await expect(saved.getByRole("definition").filter({ hasText: "No date yet" })).toBeVisible();
     await context.close();
   });
 

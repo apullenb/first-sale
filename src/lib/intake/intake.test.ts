@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createMockProvider } from "@/lib/ai/providers/mock";
 import { type BusinessProfile, businessProfileSchema } from "@/lib/domain";
 import {
+  answerText,
   answersToProfile,
   applySuggestion,
   displayName,
@@ -269,6 +270,27 @@ describe("summarize", () => {
     const { open, confirmed } = groupRows(rows);
     expect(open.map((row) => row.label)).toContain("Customers at your home");
     expect(confirmed.map((row) => row.label)).not.toContain("Customers at your home");
+  });
+
+  it("keeps “no date yet” as an undecided answer, apart from skipped questions", () => {
+    const undecided = { ...COMPLETE, launchDate: "", launchTiming: "unsure" as const };
+    expect(answersToProfile(undecided).launchTiming).toBe("unsure");
+    const row = summarize(profileToAnswers(businessProfileSchema.parse(answersToProfile(undecided)))).find((each) => each.label === "Goal launch date");
+    expect(row).toMatchObject({ value: "No date yet", state: "undecided" });
+    const groups = groupRows(summarize(undecided));
+    expect(groups.undecided.map((each) => each.label)).toContain("Goal launch date");
+    expect(groups.unanswered.map((each) => each.label)).not.toContain("Goal launch date");
+
+    const skipped = summarize({ ...COMPLETE, launchDate: "", launchTiming: "" }).find((each) => each.label === "Goal launch date")!;
+    expect(skipped.state).toBe("unanswered");
+    expect(answerText(skipped)).toBe("Not answered");
+    const dated = summarize({ ...COMPLETE, launchDate: "2027-03-01" }).find((each) => each.label === "Goal launch date")!;
+    expect(dated).toMatchObject({ value: "Mar 1, 2027", state: "answered" });
+  });
+
+  it("treats a name not picked yet as undecided, not skipped", () => {
+    const row = summarize({ ...COMPLETE, noName: true }).find((each) => each.label === "Business name")!;
+    expect(row).toMatchObject({ value: "Not picked yet", state: "undecided" });
   });
 
   it("keeps answers filled in for the owner apart until confirmed", () => {

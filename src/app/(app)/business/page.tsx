@@ -11,7 +11,7 @@ import { Card, Chip, IconTile, Note, PageHead } from "@/components/ui";
 import { getMyBusiness, getMyDetails, getMyIntakeDraft, listMyHistory } from "@/lib/data/my-business";
 import { DECISION_KEYS, DETAIL_KEYS, DETAILS, type DetailSpec, displayDetail } from "@/lib/details";
 import type { BusinessProfile, BusinessStructure } from "@/lib/domain";
-import { displayName, groupRows, profileToAnswers, sameAnswers, summarize, type SummaryRow } from "@/lib/intake/answers";
+import { answerText, displayName, groupRows, profileToAnswers, sameAnswers, summarize, type SummaryRow, UNANSWERED_NOTE, UNDECIDED_NOTE } from "@/lib/intake/answers";
 import { structureOf } from "@/lib/research/applicability";
 import { sectionMetadata } from "@/lib/sections";
 
@@ -120,12 +120,16 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
               <Rows rows={rows} />
             </Card>
           ))}
-          {groups.open.length ? (
-            <Card title="Still open" icon="question" tone="warn" headingLevel={3} id="answers-open">
-              <p className="text-[15px] text-muted">
-                You said “not sure” or skipped these. We don’t assume an answer: your requirements show what depends on them.
-              </p>
-              <Rows rows={groups.open} />
+          {groups.undecided.length ? (
+            <Card title="Not decided yet" icon="question" tone="warn" headingLevel={3} id="answers-undecided">
+              <p className="text-[15px] text-muted">{UNDECIDED_NOTE}</p>
+              <Rows rows={groups.undecided} />
+            </Card>
+          ) : null}
+          {groups.unanswered.length ? (
+            <Card title="Not answered" icon="question" tone="warn" headingLevel={3} id="answers-unanswered">
+              <p className="text-[15px] text-muted">{UNANSWERED_NOTE}</p>
+              <Rows rows={groups.unanswered} />
             </Card>
           ) : null}
         </section>
@@ -216,8 +220,8 @@ function Rows({ rows }: { rows: SummaryRow[] }) {
         <div key={row.label} className={ROW}>
           <dt className={ROW_LABEL}>{row.label}</dt>
           <dd className={`flex min-w-0 flex-1 basis-56 flex-wrap items-center gap-2 ${row.value ? "font-semibold" : "text-muted"}`}>
-            {row.value || "Not answered"}
-            {row.unsure ? <Chip tone="warn">Not sure yet</Chip> : null}
+            {answerText(row)}
+            {row.state === "undecided" ? <Chip tone="warn">Not decided yet</Chip> : null}
           </dd>
         </div>
       ))}

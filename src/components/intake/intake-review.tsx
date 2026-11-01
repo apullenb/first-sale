@@ -5,7 +5,7 @@ import { type ReactNode, type RefObject, useId } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { EYEBROW, LEAD, PAGE_TITLE, TEXT_LINK } from "@/components/styles";
 import { Chip, IconTile } from "@/components/ui";
-import { groupRows, type Marks, type StepId, type SummaryRow } from "@/lib/intake/answers";
+import { answerText, groupRows, UNANSWERED_NOTE, UNDECIDED_NOTE, type Marks, type StepId, type SummaryRow } from "@/lib/intake/answers";
 import type { ProfileImpact } from "@/lib/intake/impact";
 import { rowsByChapter } from "./chapters";
 import { MarkBadge } from "./question-block";
@@ -33,7 +33,7 @@ export function IntakeReview({
   // Save buttons and messages, at the foot of the card
   children?: ReactNode;
 }) {
-  const { check, open, confirmed } = groupRows(rows, marks);
+  const { check, undecided, unanswered, confirmed } = groupRows(rows, marks);
   const shared = { marks, onEdit, disabled };
   const titleId = useId();
 
@@ -59,14 +59,14 @@ export function IntakeReview({
           <Rows rows={check} {...shared} />
         </RowGroup>
       ) : null}
-      {open.length ? (
-        <RowGroup
-          title="Still open"
-          note="We won’t guess these. They stay open questions, so your requirements show what depends on them."
-          icon="question"
-          tone="warn"
-        >
-          <Rows rows={open} {...shared} />
+      {undecided.length ? (
+        <RowGroup title="Not decided yet" note={UNDECIDED_NOTE} icon="question" tone="warn">
+          <Rows rows={undecided} {...shared} />
+        </RowGroup>
+      ) : null}
+      {unanswered.length ? (
+        <RowGroup title="Not answered" note={UNANSWERED_NOTE} icon="question" tone="warn">
+          <Rows rows={unanswered} {...shared} />
         </RowGroup>
       ) : null}
       {confirmed.length ? (
@@ -117,8 +117,8 @@ function Rows({ rows, marks, onEdit, disabled }: { rows: SummaryRow[]; marks: Ma
         <div key={row.label} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-line py-2.5 last:border-b-0">
           <dt className="w-full text-[15px] text-muted sm:w-48">{row.label}</dt>
           <dd className={`flex min-w-0 flex-1 basis-48 flex-wrap items-center gap-2 ${row.value ? "font-semibold" : "text-muted"}`}>
-            {row.value || "Not answered"}
-            {row.unsure ? <Chip tone="warn">Not sure yet</Chip> : null}
+            {answerText(row)}
+            {row.state === "undecided" ? <Chip tone="warn">Not decided yet</Chip> : null}
             <MarkBadge mark={row.fields.map((field) => marks[field]).find(Boolean)} />
           </dd>
           <button

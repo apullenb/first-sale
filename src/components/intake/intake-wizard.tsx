@@ -594,6 +594,8 @@ export function IntakeWizard(props: Props) {
                   checked={noDate}
                   onChange={(checked) => {
                     setNoDate(checked);
+                    // Stored as "unsure": no date yet is an answer, not a skipped question
+                    update("launchTiming", checked ? "unsure" : "");
                     if (checked) update("launchDate", "");
                   }}
                 >
