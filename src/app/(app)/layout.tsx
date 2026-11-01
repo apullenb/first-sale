@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { AccountMenu } from "@/components/account-menu";
 import { Logo } from "@/components/logo";
+import { RefreshOnFocus } from "@/components/refresh-on-focus";
 import { SidebarFallback, SidebarNav, type SidebarBusiness } from "@/components/sidebar-nav";
 import { displayName, formatLaunchDate } from "@/lib/intake/answers";
 import { getMySidebarStatus } from "@/lib/sidebar-status";
@@ -10,6 +11,7 @@ import { getMySidebarStatus } from "@/lib/sidebar-status";
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="mx-auto w-full max-w-[1360px] flex-1 px-4 pb-24 sm:px-6 md:grid md:grid-cols-[288px_minmax(0,1fr)] md:items-start md:gap-7 md:pt-3">
+      <RefreshOnFocus />
       {/* The fallback reads no route, so pages with unknown params still prerender */}
       <Suspense fallback={<SidebarFallback />}>
         <SidebarWithData />
