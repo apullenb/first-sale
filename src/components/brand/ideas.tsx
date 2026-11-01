@@ -47,7 +47,7 @@ export function IdeasSection({ number, rounds, drawing, ...shared }: Props) {
         title="Pick your logo"
         lead={
           practice
-            ? "In practice mode these ideas are placeholders and each logo is a plain labeled preview. Connect Muse to get ideas written and drawn for your business."
+            ? "In practice mode these ideas are samples and each logo is a plain labeled preview, not drawn for your business."
             : "Each idea was written from your brand description and choices, and drawn by Muse. Choose the one you like, edit it in your own words, or ask for more like it."
         }
       />
@@ -181,7 +181,7 @@ function Draft({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
-          alt={draft.simulated ? "Practice preview: a plain placeholder with your business name, not a logo" : `Logo draft ${number}`}
+          alt={draft.simulated ? "Practice preview: a plain sample with your business name, not a logo" : `Logo draft ${number}`}
           width={draft.width}
           height={draft.height}
           loading="lazy"

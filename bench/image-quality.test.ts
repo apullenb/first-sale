@@ -72,7 +72,7 @@ describe("image-quality run (practice mode)", () => {
     recorder.close();
 
     expect(result.notes).toEqual([]);
-    expect(result.story).toMatch(/practice placeholder/);
+    expect(result.story).toMatch(/practice sample/);
     expect(result.taglines.length).toBeGreaterThan(0);
     const steps = result.pictures.map((picture) => picture.step);
     expect(steps).toEqual([

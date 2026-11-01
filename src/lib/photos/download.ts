@@ -6,7 +6,7 @@ const EXTENSIONS: Record<string, string> = { "image/png": ".png", "image/jpeg": 
 
 export function photoFileName(title: string, version: { number: number; simulated: boolean } | null): string {
   if (!version) return `${title} - original`;
-  return `${title} - version ${version.number}${version.simulated ? " - development preview" : ""}`;
+  return `${title} - version ${version.number}${version.simulated ? " - practice preview" : ""}`;
 }
 
 // Private, never cached or sniffed, and unable to run anything on this site

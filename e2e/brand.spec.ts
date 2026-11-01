@@ -7,7 +7,7 @@ test.describe("build your brand", () => {
     const { page } = await newOwner(browser, groomer);
     await open(page, "/brand");
     await expectPracticeBanner(page);
-    await expect(page.getByText("Your brand description here is a placeholder, not written by Muse.", { exact: false })).toBeVisible();
+    await expect(page.getByText("Your brand description here is a practice sample, not written by Muse.", { exact: false })).toBeVisible();
 
     // Step 1 comes from the intake answers
     const what = page.getByRole("region", { name: "Step 1: What you sell" });
@@ -47,7 +47,7 @@ test.describe("build your brand", () => {
     await expect(sidebar(page).getByRole("link", { name: /^Build your brand , done/ })).toBeVisible();
 
     // Step 4: a picture they already use goes to the Brand Library as is
-    const pictures = page.getByRole("region", { name: "Step 4: Brand pictures you already have" });
+    const pictures = page.getByRole("region", { name: /Brand pictures you already have$/ });
     await expect(pictures.getByRole("button", { name: "Add to my Brand Library" })).toBeDisabled();
     await pictures.locator("input[type=file]").setInputFiles({ name: "van-wrap.png", mimeType: "image/png", buffer: pngBuffer(400, [20, 130, 140]) });
     await pictures.getByRole("textbox", { name: "Name (optional)" }).fill("Our van wrap");

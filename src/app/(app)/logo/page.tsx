@@ -79,7 +79,7 @@ async function Logo({ searchParams }: { searchParams: SearchParams }) {
   const practice = image?.simulated ?? false;
   const chosen = state.assets.find((asset) => asset.id === state.chosenLogoId && asset.kind === "logo") ?? null;
   const brief = briefDefaults(business.profile, state.brief);
-  const banner = practice ? <PracticeBanner what="Logo ideas here are placeholders and every logo is a plain text preview, not made by Muse." /> : null;
+  const banner = practice ? <PracticeBanner what="Logo ideas here are samples and every logo is a plain text preview, not made by Muse." /> : null;
 
   if (chosen && params.ideas !== "new") {
     return (

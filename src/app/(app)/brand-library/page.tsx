@@ -191,7 +191,7 @@ async function Library() {
         <p className="text-[15px] text-rule">Add your own pictures, such as your storefront, your team or work in progress, or logo and brand files you already have.</p>
         <LibraryUpload groups={LIBRARY_GROUPS} initialGroup="other" maxBytes={MAX_UPLOAD_BYTES} />
         <p className="text-sm text-muted">
-          You can add up to {LIBRARY_LIMITS.files} pictures and {formatBytes(LIBRARY_LIMITS.totalBytes)} in all. You’ve added {usage.count} ({formatBytes(usage.bytes)}). Files made or uploaded
+          You can add up to {LIBRARY_LIMITS.files} pictures and {formatBytes(LIBRARY_LIMITS.totalBytes)} in all. You’ve added {usage.count} {usage.count === 1 ? "picture" : "pictures"}{usage.count ? <> ({formatBytes(usage.bytes)})</> : null}. Files made or uploaded
           elsewhere in SnapStart don’t count toward this.
         </p>
       </Card>

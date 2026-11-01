@@ -61,7 +61,7 @@ export function StepStatus({ stepId, title, status, note, submittedAt, submissio
         Note for your records <span className="font-normal text-muted">(optional)</span>
       </label>
       <input id={`${uid}-note`} type="text" maxLength={500} value={text} onChange={(event) => setText(event.target.value)} placeholder={placeholder} className={INPUT} />
-      <p className="text-sm text-muted">Leave out Social Security and tax id numbers.</p>
+      <p className="text-sm text-muted">Leave out Social Security and tax ID numbers.</p>
     </div>
   );
 

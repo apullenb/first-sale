@@ -24,7 +24,7 @@ export default function InsightsPage() {
         kicker={
           <span className="flex items-center gap-2">
             <Icon name="lightbulb" size="sm" />
-            Start your business
+            Your idea
           </span>
         }
         title="Business insights"
