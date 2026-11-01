@@ -195,3 +195,23 @@ function alreadyHave(requirement: Pick<Checked, "key" | "title" | "topic">, prof
   const match = ALREADY.find((rule) => profile.alreadyHave.includes(rule.have) && rule.topics.includes(requirement.topic) && rule.pattern.test(text));
   return match ? `You told us you already have ${match.label}. If this is it, mark the step done once you’ve checked it’s current.` : null;
 }
+
+const ABOUT_EMPLOYEES = /\b(employ(ee|ees|ing)?|hir(e|es|ed|ing)|staff|workers?|payroll)\b/i;
+const ABOUT_CONTRACTORS = /\b(contractors?|freelanc\w*|1099)\b/i;
+const LATER_ON = /\b(ever|future|later|eventually|someday|next few years|after (you|your) (open|launch|first sale))\b/i;
+
+export interface IntakeAnswer {
+  // Null when the intake answer doesn't settle it
+  answer: ConditionAnswer | null;
+  // Said before the question when it asks about a different time than the intake did
+  note: string | null;
+}
+
+// A question the owner's answers about their business already settle, so it isn't asked twice
+export function intakeAnswer(question: string, profile: Pick<BusinessProfile, "hiringPlans" | "helpKinds">): IntakeAnswer | null {
+  if (!ABOUT_EMPLOYEES.test(question) || ABOUT_CONTRACTORS.test(question) || !profile.hiringPlans || profile.helpKinds.includes("unsure")) return null;
+  if (profile.hiringPlans !== "not_now" || profile.helpKinds.includes("employees")) return { answer: "yes", note: null };
+  // "Not for now" covers now and the first year, which has its own answer; later on is still asked
+  if (LATER_ON.test(question)) return { answer: null, note: "You said you’re not hiring for now. This asks about later on." };
+  return { answer: "no", note: null };
+}

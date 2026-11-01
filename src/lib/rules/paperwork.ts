@@ -3,6 +3,7 @@ import {
   asksAboutRules,
   classify,
   type ConditionAnswer,
+  intakeAnswer,
   type Place,
   placeConditions,
   placeGap,
@@ -91,6 +92,10 @@ export interface Standing<T extends PaperStep> {
   conditions: string[];
   question: string | null;
   answer: ConditionAnswer | null;
+  // "intake": taken from the answers about the business, not given here
+  answeredBy?: "owner" | "intake" | null;
+  // Said before the question, such as when it asks about another time than the intake did
+  askNote?: string | null;
   // What the owner's place leaves open
   place: string[];
 }
@@ -110,7 +115,9 @@ export function standingOf<T extends PaperStep>(step: T, context: PaperworkConte
   const question = questionFor(step);
   const applicability =
     step.requirementStatus === "optional" || step.requirementStatus === "outside_coverage" ? step.requirementStatus : question ? "conditional" : "applies";
-  const saved = question ? answerFor(context.answers, step.key, question) : null;
+  const own = question ? answerFor(context.answers, step.key, question) : null;
+  const fromIntake = question && !own ? intakeAnswer(question, context.profile) : null;
+  const saved = own ?? fromIntake?.answer ?? null;
   const classified = classify(
     { key: step.key, title: step.title, topic: step.topic, level: step.level, applicability, condition: question, forStructures: [...step.forStructures], verification: step.verification },
     context.profile,
@@ -150,7 +157,8 @@ export function standingOf<T extends PaperStep>(step: T, context: PaperworkConte
           ? "conditional"
           : classified.status;
   const conditions = inclusion === "task" ? (classified.answer === "unsure" ? [question] : []) : inclusion === "check_place" ? place : classified.conditions;
-  return { step, inclusion, requirementStatus, conditions, question: classified.question, answer: classified.answer, place };
+  const answeredBy = classified.answer ? (own ? "owner" : "intake") : null;
+  return { step, inclusion, requirementStatus, conditions, question: classified.question, answer: classified.answer, answeredBy, askNote: fromIntake?.note ?? null, place };
 }
 
 // The owner said they're outside city limits: a city rule isn't asked about, though their township may have its own

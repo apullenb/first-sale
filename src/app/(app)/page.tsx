@@ -5,7 +5,7 @@ import { Icon } from "@/components/icons";
 import { DashboardWidgets, LaunchCard } from "@/components/plan/dashboard-widgets";
 import { JourneyStages, StartHere } from "@/components/plan/journey";
 import { LaunchSchedule, TodayHead } from "@/components/plan/launch-countdown";
-import { actionStep, priceTasks } from "@/components/plan/paperwork";
+import { actionStep, needsConfirming, priceTasks } from "@/components/plan/paperwork";
 import { StepBoard } from "@/components/plan/step-board";
 import { PracticeBanner } from "@/components/practice-banner";
 import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
@@ -19,7 +19,7 @@ import { answerChanges } from "@/lib/research/changes";
 import { type JourneyInput, journeyStages, nextMove, readyForFirstSale } from "@/lib/rules/journey";
 import { planCosts } from "@/lib/rules/next-action";
 import { nextTaskAfter } from "@/lib/rules/paperwork";
-import { budgetCapCents, remainingWork, spentCents } from "@/lib/rules/progress";
+import { budgetCapCents, finishedFeesCents, remainingWork } from "@/lib/rules/progress";
 
 export const metadata: Metadata = { title: "Today" };
 
@@ -129,6 +129,7 @@ async function Overview() {
           group={moveGroup ? { name: moveGroup.name, href: moveGroup.href } : null}
           parallel={moveStep && moveStep.timing !== "later" ? Math.max(0, tasks.filter((task) => task.state === "ready" && task.step.timing !== "later").length - 1) : 0}
           after={after}
+          unconfirmed={tasks.some((task) => task.step.id === moveStep?.id && needsConfirming(task))}
         />
         {profile ? <LaunchCard date={profile.launchDate} /> : null}
       </div>
@@ -161,9 +162,9 @@ async function Overview() {
             minutes={work.minutes}
             waiting={work.waiting.length}
             parts={(view?.groups ?? []).filter((group) => !group.later && group.minutesLeft).map((group) => ({ name: group.name, href: group.href, minutes: group.minutesLeft }))}
-            spentCents={spentCents(priced)}
+            finishedCents={finishedFeesCents(priced)}
             toGoCents={costs.startupCents}
-            unknownFees={costs.unknown.length}
+            unknownFees={costs.unknown}
             budgetCapCents={budgetCapCents(profile.startupBudget)}
             budgetLabel={profile.startupBudget ? BUDGET_LABELS[profile.startupBudget] : null}
             done={beforeSelling.done}

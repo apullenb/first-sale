@@ -12,25 +12,39 @@ import type { Place } from "@/lib/research/applicability";
 import type { ActionStep } from "@/lib/rules/next-action";
 import type { PaperworkGroup, PaperworkTask, TaskKind, TaskState } from "@/lib/rules/paperwork";
 import { formatMinutes } from "@/lib/rules/progress";
+import { filingReadiness, NEEDS_CONFIRMATION, type Readiness } from "@/lib/rules/readiness";
+import { KIND_TAGS, type StepKind, stepKindOf } from "@/lib/rules/step-kind";
 import { PenCheck } from "./step-row";
 import { TOPIC_ICONS } from "./topic-icon";
 
 const LIST = new Intl.ListFormat("en-US", { type: "conjunction" });
 
-export type PricedTask = PaperworkTask<PlanStep> & { feeCents: number | null; formKey: string | null };
+export type PricedTask = PaperworkTask<PlanStep> & {
+  feeCents: number | null;
+  formKey: string | null;
+  action: StepKind;
+  // Filings only: whether the application and how to submit it are confirmed
+  readiness: Readiness | null;
+};
 
 // A fee confirmed by research wins; otherwise the hand-checked forms catalog's
 export function priceTasks(tasks: readonly PaperworkTask<PlanStep>[], place: Place | null, structure: BusinessStructure | null): PricedTask[] {
   return tasks.map((task) => {
     const form = place ? (formsFor(OFFICIAL_FORMS, task.step, place, structure).find((each) => !each.kept) ?? null) : null;
-    return { ...task, feeCents: task.step.feeCents ?? form?.fee?.cents ?? null, formKey: form?.key ?? null };
+    const feeCents = task.step.feeCents ?? form?.fee?.cents ?? null;
+    const action = stepKindOf({ ...task.step, requirementStatus: task.requirementStatus }, { confirm: task.kind === "confirm", hasForm: Boolean(form) });
+    const readiness = action === "filing" ? filingReadiness({ form, links: task.step.links, feeCents }) : null;
+    return { ...task, feeCents, formKey: form?.key ?? null, action, readiness };
   });
 }
 
 // For the plan rules: the stored step with what applies now
 export function actionStep(task: PricedTask): PlanStep & ActionStep {
-  return { ...task.step, requirementStatus: task.requirementStatus, conditions: task.conditions, feeCents: task.feeCents, formKey: task.formKey };
+  return { ...task.step, requirementStatus: task.requirementStatus, conditions: task.conditions, feeCents: task.feeCents, formKey: task.formKey, kind: task.action };
 }
+
+// Nothing has to come first, but no official page confirmed how to file it
+export const needsConfirming = (task: Pick<PricedTask, "state" | "readiness">) => task.state === "ready" && task.readiness !== null && !task.readiness.verified;
 
 export const KIND_LABELS: Record<TaskKind, string | null> = {
   task: null,
@@ -47,11 +61,11 @@ const MARKS: Record<TaskState, string> = {
 
 const STATE_WORDS: Record<TaskState, string> = { done: "Done", waiting: "Waiting to hear back", locked: "Locked", ready: "Ready" };
 
-export function StateMark({ state, icon }: { state: TaskState; icon: IconName }) {
+export function StateMark({ state, icon, word }: { state: TaskState; icon: IconName; word?: string }) {
   return (
     <span className={`grid size-[30px] shrink-0 place-items-center rounded-[9px] border-[1.5px] ${MARKS[state]}`}>
       {state === "done" ? <PenCheck size={16} /> : <Icon name={state === "waiting" ? "hourglass" : state === "locked" ? "lock" : icon} size="sm" />}
-      <span className="sr-only">{STATE_WORDS[state]}: </span>
+      <span className="sr-only">{word ?? STATE_WORDS[state]}: </span>
     </span>
   );
 }
@@ -66,6 +80,7 @@ export function ListRow({
   meta,
   note,
   next = false,
+  word,
 }: {
   href: string;
   title: string;
@@ -76,6 +91,8 @@ export function ListRow({
   note?: ReactNode;
   // The one to do next here
   next?: boolean;
+  // Read out in place of the state, such as "Needs confirmation"
+  word?: string;
 }) {
   const locked = state === "locked";
   return (
@@ -90,7 +107,7 @@ export function ListRow({
               : "border-line bg-surface shadow-soft hover:-translate-y-px hover:border-line-strong hover:shadow-card motion-reduce:hover:translate-y-0"
         }`}
       >
-        <StateMark state={state} icon={icon} />
+        <StateMark state={state} icon={icon} word={word} />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           {next ? (
             <span className="flex items-center gap-1 text-[12.5px] font-bold uppercase tracking-[0.08em] text-accent">
@@ -142,7 +159,8 @@ export function LockNote({ blockers }: { blockers: PaperworkTask<PlanStep>["bloc
 
 export function TaskListRow({ task, next = false }: { task: PricedTask; next?: boolean }) {
   const step = task.step;
-  const kind = KIND_LABELS[task.kind];
+  const kind = KIND_LABELS[task.kind] ?? (needsConfirming(task) ? NEEDS_CONFIRMATION : null);
+  const tag = task.kind === "task" ? KIND_TAGS[task.action] : null;
   const meta =
     task.state === "done" ? (
       <span className={FACT}>
@@ -168,12 +186,18 @@ export function TaskListRow({ task, next = false }: { task: PricedTask; next?: b
             <Icon name="coins" size="xs" className="text-faint" />
             {task.feeCents === 0 ? "Free" : `Fee ${formatFee(task.feeCents)}`}
           </span>
+        ) : task.action === "filing" || task.action === "training" ? (
+          <span className={FACT}>
+            <Icon name="coins" size="xs" className="text-faint" />
+            Fee not confirmed
+          </span>
         ) : null}
         {kind ? (
-          <Chip tone="warn" icon={task.kind === "confirm" ? "question" : "pin"}>
+          <Chip tone="warn" icon={task.kind === "check_place" ? "pin" : "question"}>
             {kind}
           </Chip>
         ) : null}
+        {tag ? <Chip tone="gray">{tag}</Chip> : null}
       </>
     );
   return (
@@ -186,6 +210,7 @@ export function TaskListRow({ task, next = false }: { task: PricedTask; next?: b
       meta={meta}
       note={task.state === "locked" ? <LockNote blockers={task.blockers} /> : null}
       next={next}
+      word={needsConfirming(task) ? NEEDS_CONFIRMATION : undefined}
     />
   );
 }

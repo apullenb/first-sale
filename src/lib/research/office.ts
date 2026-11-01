@@ -1,6 +1,7 @@
-import type { JurisdictionLevel, RequirementDraft } from "@/lib/domain";
+import type { BusinessProfile, JurisdictionLevel, RequirementDraft } from "@/lib/domain";
 import { jurisdictionName, type Place } from "./applicability";
 import type { Contacts } from "./contacts";
+import { governmentFor, governsPlace } from "./official-sites";
 
 // Who an owner writes to about a rule: one city hall for a city's rules; otherwise the office the rule names,
 // since a county's health department and its clerk are different places to write to
@@ -29,4 +30,27 @@ export function officeOf(requirement: Pick<RequirementDraft, "level" | "agency">
 
 export function officeSlug(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+}
+
+type Link = { title: string; url: string };
+
+// A page of the office's own government, as the .gov registry decides; null when none is verified
+export function officeLink(
+  step: { level: JurisdictionLevel; links: readonly Link[]; contacts?: Contacts | null },
+  location: BusinessProfile["location"],
+): Link | null {
+  const ours = (url: string) => {
+    const government = governmentFor(url);
+    return government !== null && government.level === step.level && governsPlace(government, location) ? government : null;
+  };
+  const link = step.links.find((each) => ours(each.url));
+  if (link) return { title: link.title, url: link.url };
+  const listed = [...(step.contacts?.emails ?? []), ...(step.contacts?.phones ?? [])].find((each) => ours(each.url));
+  return listed ? { title: `${ours(listed.url)!.name}: official site`, url: listed.url } : null;
+}
+
+// Pages of the step's own level of government first, then the rest in their order
+export function orderLinks<T extends { url: string; confirms?: boolean }>(links: readonly T[], level: JurisdictionLevel): T[] {
+  const rank = (link: T) => (link.confirms ? 0 : 2) + (governmentFor(link.url)?.level === level ? 0 : 1);
+  return links.map((link, index) => ({ link, index })).sort((a, b) => rank(a.link) - rank(b.link) || a.index - b.index).map((each) => each.link);
 }

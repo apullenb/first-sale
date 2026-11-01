@@ -6,7 +6,7 @@ import { LocalDate } from "@/components/local-date";
 import { PracticeBanner } from "@/components/practice-banner";
 import { StatusChip } from "@/components/requirements/sources";
 import { SourceButton } from "@/components/requirements/source-button";
-import { PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
+import { ACTION_ITEM, PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Areas, areaFor } from "@/components/structure/areas";
 import { Comparison } from "@/components/structure/compare";
 import {
@@ -25,8 +25,8 @@ import { OptionCard } from "@/components/structure/option-card";
 import { AdviceRunner } from "@/components/structure/advice-runner";
 import { AskAProfessional, StructureWhy, SuggestedPath } from "@/components/structure/suggested-path";
 import { WhatIfPanel } from "@/components/structure/what-if";
-import { Card, Chip, Fold, Note, PageHead } from "@/components/ui";
-import { getMyBusiness, getMyDetails, getMyResearch, getMyStructureAdvice, listMyHistory } from "@/lib/data/my-business";
+import { ActionKicker, Card, Fact, Fold, Note, PageHead } from "@/components/ui";
+import { getMyBusiness, getMyDetails, getMyPaperwork, getMyResearch, getMyStructureAdvice, listMyHistory, type MyPaperwork } from "@/lib/data/my-business";
 import { displayDetail, STRUCTURE_LABELS } from "@/lib/details";
 import { formatFee } from "@/lib/documents/startup-plan";
 import type { BusinessStructure } from "@/lib/domain";
@@ -61,12 +61,13 @@ export default function StructurePage() {
 }
 
 async function Structure() {
-  const [business, details, research, history, advice] = await Promise.all([
+  const [business, details, research, history, advice, paper] = await Promise.all([
     getMyBusiness(),
     getMyDetails(),
     getMyResearch(),
     listMyHistory({ kind: "decision" }),
     getMyStructureAdvice(),
+    getMyPaperwork(),
   ]);
   const header = (lead = "Three choices that shape your paperwork: how your business is owned, the name you sell under, and how it’s taxed. Each part explains one choice, then asks you to make it.") => (
     <PageHead
@@ -169,18 +170,21 @@ async function Structure() {
   const settled = Boolean(chosen) && !stale && !suggestion.mismatch && recorded.status !== "no_longer_fits";
   const nameAnswer = saved.get("name_registration_plan");
   const taxAnswer = saved.get("tax_classification_plan");
+  const after = afterStructure(paper, profile);
   const next = (
     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-done/20 pt-4">
       <div className="flex min-w-0 flex-col">
-        <p className="text-sm font-semibold text-muted">Next, step 3</p>
-        <p className="font-semibold">Find what applies to you{research ? ", and answer a few quick questions" : ""}</p>
+        <p className="text-sm font-semibold text-muted">{after.kicker}</p>
+        <p className="font-semibold">{after.title}</p>
       </div>
-      <Link href="/requirements" className={PRIMARY_LINK}>
-        Go to What applies to you
+      <Link href={after.href} className={PRIMARY_LINK}>
+        {after.action}
         <Icon name="arrow" size="sm" />
       </Link>
     </div>
   );
+  // A company's state filing fee only when an official page confirmed it
+  const formationFee = stateRules.find((rule) => rule.topic === "structure" && rule.verification === "sourced" && rule.feeCents && rule.forStructures.length);
   const guideAndQuestions = (
     // Starts over if the number of owners changes, since the options change with it
     <DecisionProvider
@@ -275,15 +279,28 @@ async function Structure() {
       {chosen ? header("How your business is owned, the name you sell under, and how it’s taxed. Your choices are below.") : header()}
       {current ? null : <AdviceRunner />}
       {chosen ? null : (
-        <div className="-mt-2 flex flex-wrap items-center gap-2">
-          <Chip tone="accent" icon="scale">
-            Three questions, one in each part
-          </Chip>
-          <Chip icon="clock">About {formatMinutes(stepMinutes({ topic: "structure" }))}</Chip>
-          <a href="#question-structure_choice" className={`inline-flex min-h-11 items-center gap-1 px-1 text-[15px] ${TEXT_LINK}`}>
+        <section aria-labelledby="structure-next" className={ACTION_ITEM}>
+          <ActionKicker as="h2" id="structure-next">
+            Your next step
+          </ActionKicker>
+          <p className="font-display text-[23px] leading-tight sm:text-[27px]">Choose how your business is owned</p>
+          <p className="text-[16.5px] text-rule">Your structure decides your taxes, your paperwork, and whether your personal savings are kept apart from the business.</p>
+          <div className="flex flex-wrap gap-2">
+            <Fact icon="clock">About {formatMinutes(stepMinutes({ topic: "structure" }))} of your time (an estimate)</Fact>
+            <Fact icon="list">Three questions, one in each part</Fact>
+          </div>
+          <p className="text-[15px] text-muted">
+            Choosing costs nothing and files nothing.{" "}
+            {formationFee
+              ? `Forming ${formationFee.title.match(/\bcorporation\b/i) ? "a corporation" : "an LLC"} in ${state} costs ${formatFee(formationFee.feeCents!)}, from the official page.`
+              : `Forming an LLC or corporation has a ${state} filing fee, shown in your plan once an official page confirms it.`}{" "}
+            “Not sure yet” is a fine answer for now.
+          </p>
+          <a href="#question-structure_choice" className={`${PRIMARY_LINK} w-fit`}>
             Go to the first question
+            <Icon name="arrow" size="sm" />
           </a>
-        </div>
+        </section>
       )}
 
       {suggestion.mismatch ? (
@@ -317,6 +334,22 @@ async function Structure() {
       <History title="Decision history" events={history} empty="No decisions recorded yet." />
     </div>
   );
+}
+
+// Where to go once the structure is settled: What applies to you until it's done, then the next ready step
+function afterStructure(paper: MyPaperwork | null, profile: Parameters<typeof profileKey>[0]): { kicker: string; title: string; href: string; action: string } {
+  const checked = paper?.basis && profileKey(profile) === paper.basis.profileKey;
+  if (!checked || paper.view.open.length) {
+    return {
+      kicker: "Next, step 3",
+      title: `Find what applies to you${paper?.basis ? ", and answer a few quick questions" : ""}`,
+      href: paper?.basis && paper.view.open.length ? "/requirements#questions" : "/requirements",
+      action: "Go to What applies to you",
+    };
+  }
+  const first = paper.view.first;
+  if (first) return { kicker: "Up next", title: first.step.title, href: `/checklist/${first.step.id}`, action: "Open this step" };
+  return { kicker: "Up next", title: "See every step to start your business", href: "/start", action: "See every step" };
 }
 
 function planPick(recommendation: Recommendation<string> | null): PlanPick | null {

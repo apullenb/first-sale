@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ActionStep } from "./next-action";
-import { budgetCapCents, daysUntil, formatMinutes, remainingWork, spentCents } from "./progress";
+import { budgetCapCents, daysUntil, formatMinutes, remainingWork, finishedFeesCents } from "./progress";
 
 const step = (key: string, overrides: Partial<ActionStep> = {}): ActionStep => ({
   key,
@@ -40,10 +40,10 @@ describe("formatMinutes", () => {
   });
 });
 
-describe("spentCents", () => {
+describe("finishedFeesCents", () => {
   it("adds fees on finished steps once per form, optional ones included", () => {
     expect(
-      spentCents([
+      finishedFeesCents([
         step("dba", { status: "done", feeCents: 2_300, formKey: "dba-form" }),
         step("dba-again", { status: "done", feeCents: 2_300, formKey: "dba-form" }),
         step("permit", { status: "done", feeCents: 5_000, requirementStatus: "optional" }),

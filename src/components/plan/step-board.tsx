@@ -5,11 +5,13 @@ import { LocalDate } from "@/components/local-date";
 import { TEXT_LINK } from "@/components/styles";
 import { Fold, Note } from "@/components/ui";
 import { formatFee } from "@/lib/documents/startup-plan";
-import type { Costs } from "@/lib/rules/next-action";
+import { type Costs, costWords } from "@/lib/rules/next-action";
 import type { TaskState } from "@/lib/rules/paperwork";
 import { formatMinutes } from "@/lib/rules/progress";
 import { alreadyDoneHref } from "./journey";
-import { KIND_LABELS, LockNote, type PricedTask } from "./paperwork";
+import { NEEDS_CONFIRMATION } from "@/lib/rules/readiness";
+import { KIND_TAGS } from "@/lib/rules/step-kind";
+import { KIND_LABELS, LockNote, needsConfirming, type PricedTask } from "./paperwork";
 import { TOPIC_ICONS } from "./topic-icon";
 
 interface Props {
@@ -31,13 +33,14 @@ export function StepBoard({ tasks, costs, skip = null }: Props) {
   const locked = soon.filter((task) => task.state === "locked");
   const done = soon.filter((task) => task.state === "done");
   const later = tasks.filter((task) => task.step.timing === "later");
+  const words = costWords(costs);
 
   return (
     <div className="flex flex-col gap-6">
       {toDo.length || submitted.length || locked.length ? (
         <div className="grid items-start gap-6 @3xl:grid-cols-2">
           {toDo.length ? (
-            <Group id="now-heading" title={toDo.length < ready.length ? "You can also do now" : "Ready to do now"} count={toDo.length}>
+            <Group id="now-heading" title={toDo.length < ready.length ? "You can also start now" : "Nothing holding these up"} count={toDo.length}>
               {toDo.map((task) => (
                 <Row key={task.step.id} task={task} mark="ready">
                   <Meta task={task} />
@@ -104,9 +107,9 @@ export function StepBoard({ tasks, costs, skip = null }: Props) {
 
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[15px] text-muted">
         <p>
-          Fees confirmed so far: {costs.startupCents || !costs.unknown.length ? formatFee(costs.startupCents) : "$0"}
+          {words.known}
           {costs.yearlyCents ? `, then ${formatFee(costs.yearlyCents)} a year` : ""}
-          {costs.unknown.length ? `, plus ${costs.unknown.length} ${costs.unknown.length === 1 ? "fee" : "fees"} set by the office` : ""}
+          {words.unconfirmed ? ` · ${words.unconfirmed} · ${words.total}` : ""}
         </p>
         <Link href="/start" className={`flex min-h-11 items-center ${TEXT_LINK}`}>
           See every step to start your business
@@ -169,7 +172,7 @@ function Row({ task, mark, children }: { task: PricedTask; mark: Mark; children?
 const FACT = "inline-flex items-center gap-1.5";
 
 function Meta({ task }: { task: PricedTask }) {
-  const kind = KIND_LABELS[task.kind];
+  const kind = KIND_LABELS[task.kind] ?? (needsConfirming(task) ? NEEDS_CONFIRMATION : task.kind === "task" ? KIND_TAGS[task.action] : null);
   return (
     <>
       <span className={FACT}>
@@ -182,6 +185,11 @@ function Meta({ task }: { task: PricedTask }) {
           <Icon name="dollar" size="xs" className="text-faint" />
           {formatFee(task.feeCents)}
           <span className="sr-only"> fee</span>
+        </span>
+      ) : task.action === "filing" || task.action === "training" ? (
+        <span className={FACT}>
+          <Icon name="dollar" size="xs" className="text-faint" />
+          Fee not confirmed
         </span>
       ) : null}
       {kind ? <span className="font-semibold text-check">{kind}</span> : null}

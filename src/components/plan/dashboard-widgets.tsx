@@ -4,6 +4,7 @@ import { Icon, type IconName } from "@/components/icons";
 import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Card } from "@/components/ui";
 import type { Stage, StageState } from "@/lib/rules/journey";
+import { costWords } from "@/lib/rules/next-action";
 import { formatMinutes, MAX_SITTING_MINUTES } from "@/lib/rules/progress";
 import { formatDay } from "./dates";
 import { LaunchCountdown, LaunchMonth } from "./launch-countdown";
@@ -23,10 +24,11 @@ interface Props {
   waiting: number;
   // Paperwork parts with time left, each 90 minutes or less
   parts: { name: string; href: string; minutes: number }[];
-  spentCents: number;
-  // Confirmed fees still to pay, and how many fees no official page stated
+  // Official fees on finished steps; SnapStart doesn't record payments
+  finishedCents: number;
+  // Confirmed fees still to pay, and the steps whose fee no official page stated
   toGoCents: number;
-  unknownFees: number;
+  unknownFees: string[];
   budgetCapCents: number | null;
   budgetLabel: string | null;
   // Steps needed before the first sale
@@ -36,9 +38,10 @@ interface Props {
 }
 
 // Index cards under "Do this next": what's left, what it's cost, and how far along the owner is
-export function DashboardWidgets({ left, minutes, waiting, parts, spentCents, toGoCents, unknownFees, budgetCapCents, budgetLabel, done, total, stages }: Props) {
-  const spentShare = budgetCapCents ? Math.min(100, (spentCents / budgetCapCents) * 100) : 0;
-  const toGoShare = budgetCapCents ? Math.min(100 - spentShare, (toGoCents / budgetCapCents) * 100) : 0;
+export function DashboardWidgets({ left, minutes, waiting, parts, finishedCents, toGoCents, unknownFees, budgetCapCents, budgetLabel, done, total, stages }: Props) {
+  const knownCents = finishedCents + toGoCents;
+  const knownShare = budgetCapCents ? Math.min(100, (knownCents / budgetCapCents) * 100) : 0;
+  const words = costWords({ startupCents: knownCents, unknown: unknownFees });
   // The biggest two parts by name, then the rest together
   const shares = [
     ...parts.slice(0, 2).map((part) => ({ label: part.name, minutes: part.minutes })),
@@ -83,25 +86,21 @@ export function DashboardWidgets({ left, minutes, waiting, parts, spentCents, to
         </Link>
       </Stat>
 
-      <Stat id="stat-money" title="Money so far" icon="dollar">
+      <Stat id="stat-money" title="Startup fees" icon="dollar">
         <p className={BIG}>
-          {dollars(spentCents)}
-          {budgetCapCents ? <small className={UNIT}>of {dollars(budgetCapCents)}</small> : null}
+          {dollars(knownCents)}
+          <small className={UNIT}>known{budgetCapCents ? ` of ${dollars(budgetCapCents)}` : ""}</small>
         </p>
         {budgetCapCents ? (
-          <div role="img" aria-label={`${Math.round(spentShare)} percent of your budget spent`} className="my-1.5 flex h-2 overflow-hidden rounded-full bg-wash">
-            <i className="block h-full bg-accent" style={{ width: `${spentShare}%` }} />
-            <i className="block h-full bg-accent/35" style={{ width: `${toGoShare}%` }} />
+          <div role="img" aria-label={`Known fees are ${Math.round(knownShare)} percent of your budget`} className="my-1.5 flex h-2 overflow-hidden rounded-full bg-wash">
+            <i className="block h-full bg-accent" style={{ width: `${knownShare}%` }} />
           </div>
         ) : (
           <p className={SUB}>{budgetLabel ? `Budget: ${budgetLabel.toLowerCase()}` : "No budget set"}</p>
         )}
         <p className={SUB}>
-          {toGoCents
-            ? `${dollars(toGoCents)} more to go${unknownFees ? `, plus ${unknownFees} set by the office` : ""}`
-            : unknownFees
-              ? `${unknownFees} ${unknownFees === 1 ? "fee" : "fees"} set by the office`
-              : "No more fees found"}
+          {words.unconfirmed ? `${words.unconfirmed}. ${words.total}.` : `${words.total}.`}
+          {finishedCents ? ` ${dollars(finishedCents)} of it is on steps you finished.` : ""}
         </p>
         <Link href="/start#costs-heading" className={LINK}>
           See costs

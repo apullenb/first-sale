@@ -1,7 +1,7 @@
 import type { BusinessStructure, JurisdictionLevel, PlanTopic, RequirementDraft, TaskStatus, VerificationState } from "@/lib/domain";
 import { type Place, questionOf, type RequirementStatus } from "@/lib/research/applicability";
 import type { Contacts } from "@/lib/research/contacts";
-import { type OfficeContact, officeOf } from "@/lib/research/office";
+import { type OfficeContact, officeOf, orderLinks } from "@/lib/research/office";
 import { orderTasks } from "./checklist";
 
 // Plain code: AI drafts each requirement, these rules turn checked requirements into ordered steps.
@@ -137,13 +137,17 @@ export function buildPlan(
       level: requirement.level,
       why: requirement.whyItApplies,
       agency: requirement.agency,
-      links: cited.map((source) => ({
-        title: source.title,
-        url: source.url,
-        government: source.government,
-        // Only the page the quote was actually found on
-        confirms: sourced && (requirement.confirmedBy ? requirement.confirmedBy.includes(source.id) : true),
-      })),
+      // Confirming pages first, then the rule's own government's
+      links: orderLinks(
+        cited.map((source) => ({
+          title: source.title,
+          url: source.url,
+          government: source.government,
+          // Only the page the quote was actually found on
+          confirms: sourced && (requirement.confirmedBy ? requirement.confirmedBy.includes(source.id) : true),
+        })),
+        requirement.level,
+      ),
       prepare: requirement.gather,
       feeCents: requirement.feeUsd === null ? null : Math.round(requirement.feeUsd * 100),
       feeCheckedAt: requirement.feeUsd === null ? null : latest(cited.map((source) => source.retrievedAt)),

@@ -1,5 +1,6 @@
 import type { PlanTopic, TaskStatus } from "@/lib/domain";
 import type { RequirementStatus } from "@/lib/research/applicability";
+import { type StepKind, stepKindOf } from "./step-kind";
 
 // Plain code: what the steps cost.
 // Optional steps and rules outside SnapStart's coverage never count toward what's needed before selling.
@@ -16,6 +17,8 @@ export interface ActionStep {
   renewal: { text: string; feeCents: number | null } | null;
   // The catalog form it's filed with, so two steps on one form are paid once
   formKey?: string | null;
+  forStructures?: readonly string[];
+  kind?: StepKind;
 }
 
 const SIDE: readonly RequirementStatus[] = ["optional", "outside_coverage"];
@@ -34,7 +37,7 @@ export interface Costs {
   // Renewals, from the second year on; the first year is in the startup fee
   yearly: CostLine[];
   yearlyCents: number;
-  // Required steps whose fee no official page stated
+  // Required steps that may cost something and whose fee no official page stated
   unknown: string[];
 }
 
@@ -53,8 +56,9 @@ export function planCosts(steps: readonly ActionStep[]): Costs {
   }
   for (const step of best.values()) {
     if (step.feeCents === null) {
-      // Deciding on a structure isn't a filing, so it has no fee to find
-      if (step.requirementStatus !== "conditional" && step.topic !== "structure") costs.unknown.push(step.title);
+      // A decision or a rule to follow has no fee to find
+      const kind = step.kind ?? stepKindOf(step);
+      if (step.requirementStatus !== "conditional" && kind !== "decision" && kind !== "compliance") costs.unknown.push(step.title);
     } else if (step.feeCents > 0) {
       (step.requirementStatus === "conditional" ? costs.maybe : costs.startup).push({ title: step.title, cents: step.feeCents });
     }
@@ -63,4 +67,31 @@ export function planCosts(steps: readonly ActionStep[]): Costs {
   costs.startupCents = costs.startup.reduce((sum, line) => sum + line.cents, 0);
   costs.yearlyCents = costs.yearly.reduce((sum, line) => sum + line.cents, 0);
   return costs;
+}
+
+// Never "Free": a $0 total can still have costs no one has confirmed
+export function dollars(cents: number): string {
+  return `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: cents % 100 ? 2 : 0 })}`;
+}
+
+export interface CostWords {
+  // "Known fees: $25"
+  known: string;
+  // "4 costs still unconfirmed", or null when every fee is known
+  unconfirmed: string | null;
+  total: string;
+}
+
+// Confirmed fees only, and no total while any fee is unknown
+export function costWords(costs: Pick<Costs, "startupCents" | "unknown">): CostWords {
+  const open = costs.unknown.length;
+  return {
+    known: `Known fees: ${dollars(costs.startupCents)}`,
+    unconfirmed: open ? `${open} ${open === 1 ? "cost" : "costs"} still unconfirmed` : null,
+    total: open
+      ? "Your total startup cost isn’t known yet"
+      : costs.startupCents
+        ? `Total known startup fees: ${dollars(costs.startupCents)}`
+        : "No startup fees found on official pages",
+  };
 }

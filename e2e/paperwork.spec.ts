@@ -26,7 +26,7 @@ test.describe("what applies to you and the paperwork", () => {
     // Every step, with costs and a printable copy
     await open(page, "/start");
     await expectPracticeBanner(page);
-    await expect(page.getByRole("region", { name: "What it costs" })).toContainText("To get started");
+    await expect(page.getByRole("region", { name: "What it costs" })).toContainText("Known fees to get started");
     await page.getByRole("button", { name: "Save as PDF" }).click();
     await expect(page.getByRole("region", { name: "Keep a copy" }).getByRole("status")).toContainText(/\w/, { timeout: 60_000 });
 
@@ -57,7 +57,7 @@ test.describe("what applies to you and the paperwork", () => {
 
     // “I already have this” on another step
     await open(page, "/start");
-    const nextStep = page.getByRole("link", { name: /^Ready: / }).first();
+    const nextStep = page.getByRole("link", { name: /^(Ready|Needs confirmation): / }).first();
     await nextStep.click();
     await page.waitForURL("**/checklist/**");
     const stepTitle = (await page.getByRole("heading", { level: 1 }).textContent()) ?? "";

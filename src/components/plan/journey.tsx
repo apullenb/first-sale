@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { RequirementStatusChip } from "@/components/requirements/requirement-status";
 import { ACTION_ITEM, PRIMARY_LINK, SECONDARY_LINK } from "@/components/styles";
-import { ActionKicker, Card, Fact, Hand, IconTile } from "@/components/ui";
+import { ActionKicker, Card, Chip, Fact, Hand, IconTile } from "@/components/ui";
 import type { PlanStep } from "@/lib/data/plan";
 import { formatFee } from "@/lib/documents/startup-plan";
 import { TOPIC_LABELS } from "@/lib/labels";
@@ -10,6 +10,7 @@ import type { NextMove, Stage, StageState } from "@/lib/rules/journey";
 import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
 import { TOPIC_ICONS } from "./topic-icon";
 import { choosesStructure } from "@/lib/rules/plan";
+import { NEEDS_CONFIRMATION } from "@/lib/rules/readiness";
 
 // Where "already done" lands on a step's page; a structure is chosen on Business structure
 export function alreadyDoneHref(step: Pick<PlanStep, "id" | "topic" | "forStructures">): string {
@@ -23,9 +24,12 @@ export function StartHere({
   group = null,
   parallel = 0,
   after = null,
+  unconfirmed = false,
 }: {
   move: NextMove;
   step?: PlanStep;
+  // A filing whose form or way to submit no official page confirmed
+  unconfirmed?: boolean;
   // The paperwork group the step is in
   group?: { name: string; href: string } | null;
   parallel?: number;
@@ -50,8 +54,8 @@ export function StartHere({
       {step ? (
         <div className="flex flex-wrap items-center gap-2">
           <Fact icon="clock">
-            <b className="font-bold text-ink">{formatMinutes(stepMinutes(step))}</b>
-            <span className="sr-only"> of your time</span>
+            <b className="font-bold text-ink">~{formatMinutes(stepMinutes(step))}</b>
+            <span className="sr-only"> of your time</span> (estimate)
           </Fact>
           {step.feeCents !== null ? (
             <Fact icon="dollar">
@@ -61,6 +65,11 @@ export function StartHere({
           ) : null}
           <Fact icon={icon}>{TOPIC_LABELS[step.topic]}</Fact>
           {step.requirementStatus === "verified" ? null : <RequirementStatusChip status={step.requirementStatus} />}
+          {unconfirmed ? (
+            <Chip tone="warn" icon="question">
+              {NEEDS_CONFIRMATION}
+            </Chip>
+          ) : null}
         </div>
       ) : null}
       <p className="text-[16.5px] text-muted">{move.why}</p>

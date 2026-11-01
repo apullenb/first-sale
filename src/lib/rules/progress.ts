@@ -1,7 +1,7 @@
 import type { BUDGET_RANGES, PlanTopic } from "@/lib/domain";
 import type { ActionStep } from "./next-action";
 
-// Plain code: what's left, about how long the owner's own part takes, what's been spent, and where to go next.
+// Plain code: what's left, about how long the owner's own part takes, the fees on finished steps, and where to go next.
 // Times are rough hands-on estimates by kind of step; an office's wait is never counted.
 
 const MINUTES: Record<PlanTopic, number> = {
@@ -54,8 +54,8 @@ export function formatMinutes(minutes: number): string {
   return `${whole}${halves % 2 ? "½" : ""} hr`;
 }
 
-// Fees on finished steps, each form once; an optional step the owner paid for still counts
-export function spentCents(steps: readonly ActionStep[]): number {
+// Official fees on finished steps, each form once; not a record of what the owner paid
+export function finishedFeesCents(steps: readonly ActionStep[]): number {
   const paid = new Map<string, number>();
   for (const step of steps) {
     if (step.status !== "done" || !step.feeCents) continue;

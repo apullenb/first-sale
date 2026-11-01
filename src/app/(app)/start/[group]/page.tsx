@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Icon } from "@/components/icons";
-import { GroupFacts, LockNote, priceTasks, TaskListRow, WaitingOnStructure } from "@/components/plan/paperwork";
+import { GroupFacts, LockNote, needsConfirming, priceTasks, TaskListRow, WaitingOnStructure } from "@/components/plan/paperwork";
 import { NextStep } from "@/components/plan/plan-summary";
 import { PracticeBanner } from "@/components/practice-banner";
 import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
@@ -51,6 +51,7 @@ async function Group({ params }: { params: Params }) {
   const after = groups.slice(index + 1).find((each) => each.state !== "done") ?? null;
   // What applies now, not what was stored before the owner's answers
   const next = group.next ? { ...group.next.step, requirementStatus: group.next.requirementStatus, conditions: group.next.conditions } : undefined;
+  const nextPriced = priced.find((task) => task.step.id === group.next?.step.id);
   // The owner's own work first: a lock that's only an office's wait says so on its row
   const locked = group.tasks.filter((task) => task.state === "locked");
   const lockedTask = group.state === "locked" ? (locked.find((task) => task.blockers.some((each) => !each.office)) ?? locked[0]) : undefined;
@@ -71,7 +72,13 @@ async function Group({ params }: { params: Params }) {
       {group.tasks.some((task) => task.step.simulated) ? <PracticeBanner what="These steps came from practice results." /> : null}
 
       {next ? (
-        <NextStep step={next} parallel={Math.max(0, group.tasks.filter((task) => task.state === "ready").length - 1)} />
+        <NextStep
+          step={next}
+          parallel={Math.max(0, group.tasks.filter((task) => task.state === "ready").length - 1)}
+          kind={nextPriced?.action ?? "filing"}
+          feeCents={nextPriced?.feeCents ?? next.feeCents}
+          unconfirmed={nextPriced ? needsConfirming(nextPriced) : false}
+        />
       ) : group.state === "locked" ? (
         <Note icon="lock">
           <p className="font-semibold">Nothing here can start yet.</p>

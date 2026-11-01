@@ -301,9 +301,18 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
                 <li key={standing.step.id} className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1 py-2.5">
                   <span className="flex min-w-0 flex-1 basis-64 flex-col">
                     <span className="font-semibold">{standing.step.title}</span>
-                    <span className="text-sm text-muted">You said no: {standing.question}</span>
+                    <span className="text-sm text-muted">
+                      {standing.answeredBy === "intake" ? "From your answers about your business, you’re not hiring for now: " : "You said no: "}
+                      {standing.question}
+                    </span>
                   </span>
-                  <UndoAnswer stepKey={standing.step.key} condition={standing.question ?? ""} title={standing.step.title} />
+                  {standing.answeredBy === "intake" ? (
+                    <Link href="/business/edit" className={`flex min-h-11 items-center text-[15px] ${TEXT_LINK}`}>
+                      Change your hiring answer
+                    </Link>
+                  ) : (
+                    <UndoAnswer stepKey={standing.step.key} condition={standing.question ?? ""} title={standing.step.title} />
+                  )}
                 </li>
               ))}
             </ul>
@@ -439,6 +448,7 @@ function QuestionCard({ standing }: { standing: Standing<PlanStep> }) {
   return (
     <li className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-4 shadow-card sm:p-5">
       <p className="text-[13.5px] font-bold uppercase tracking-[0.08em] text-accent">About your plans</p>
+      {standing.askNote ? <p className="-mb-2 text-[15px] font-semibold text-rule">{standing.askNote}</p> : null}
       <p id={id} className="font-display text-[20px] leading-snug">
         {standing.question}
       </p>
@@ -462,7 +472,7 @@ function AnsweredRow({ standing, group }: { standing: Standing<PlanStep>; group:
           <span className="text-sm text-muted">{standing.question}</span>
         </span>
         <Chip tone={standing.answer === "yes" ? "accent" : "warn"} icon={standing.answer === "yes" ? "check" : "question"}>
-          {standing.answer === "yes" ? "You said yes" : "Not decided yet"}
+          {standing.answer === "yes" ? (standing.answeredBy === "intake" ? "Yes, from your answers" : "You said yes") : "Not decided yet"}
         </Chip>
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[15px]">
@@ -471,7 +481,13 @@ function AnsweredRow({ standing, group }: { standing: Standing<PlanStep>; group:
             Open this step, in {group.name}
           </Link>
         ) : null}
-        <ChangeAnswer stepKey={standing.step.key} condition={standing.question ?? ""} current={standing.answer!} labelledBy={id} />
+        {standing.answeredBy === "intake" ? (
+          <Link href="/business/edit" className={TEXT_LINK}>
+            From your answers about your business: change your hiring answer
+          </Link>
+        ) : (
+          <ChangeAnswer stepKey={standing.step.key} condition={standing.question ?? ""} current={standing.answer!} labelledBy={id} />
+        )}
       </div>
     </li>
   );

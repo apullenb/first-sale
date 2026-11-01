@@ -232,10 +232,10 @@ describe("replanForOwner keeps the confirming page", () => {
       "key-1",
     );
     const linksBefore = (await getPlanForOwner(db, "owner-a"))!.steps[0].links;
-    expect(linksBefore.map((link) => [link.title, link.confirms])).toEqual([["SBA", false], ["Travis County Clerk", true]]);
+    expect(linksBefore.map((link) => [link.title, link.confirms])).toEqual([["Travis County Clerk", true], ["SBA", false]]);
 
     await replanForOwner(db, "owner-a", testProfile(), [{ key: "structure_choice", value: "llc" }], SECOND);
     const [snapshot] = await db.select().from(researchSnapshots);
-    expect(snapshot.planProposal?.[0].links.map((link) => [link.title, link.confirms])).toEqual([["SBA", false], ["Travis County Clerk", true]]);
+    expect(snapshot.planProposal?.[0].links.map((link) => [link.title, link.confirms])).toEqual([["Travis County Clerk", true], ["SBA", false]]);
   });
 });

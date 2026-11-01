@@ -7,6 +7,7 @@ import { LocalDate } from "@/components/local-date";
 import { Icon } from "@/components/icons";
 import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import type { TaskStatus } from "@/lib/domain";
+import type { StepKind } from "@/lib/rules/step-kind";
 
 interface Props {
   stepId: string;
@@ -15,14 +16,24 @@ interface Props {
   note: string | null;
   submittedAt: string | null;
   submissionNote: string | null;
-  // Something is sent to an office, so submitting and approval are recorded separately
-  filing: boolean;
+  // A filing or a question sent to an office records sending and the answer separately; the rest are just done
+  kind: StepKind;
 }
+
+const WORDS: Record<StepKind, { confirm: string; placeholder: string; button: string }> = {
+  filing: { confirm: "I submitted this myself.", placeholder: "For example: filed online on May 3, confirmation emailed", button: "I submitted it" },
+  contact: { confirm: "I sent the question to the office myself.", placeholder: "For example: emailed the planning office on May 3", button: "I sent it" },
+  training: { confirm: "I completed it.", placeholder: "For example: finished the course on May 3", button: "I’ve done this" },
+  compliance: { confirm: "I’ve checked this and my business follows it.", placeholder: "For example: checked the rules on May 3", button: "I’ve done this" },
+  decision: { confirm: "I’ve made this decision.", placeholder: "", button: "Got it" },
+};
 
 const UNDO = "inline-flex min-h-11 items-center px-1 font-semibold text-accent underline decoration-[1.5px] underline-offset-[3px] hover:text-accent-ink disabled:opacity-60";
 
 // The owner records what they actually did; opening a link or a form never changes this
-export function StepStatus({ stepId, title, status, note, submittedAt, submissionNote, filing }: Props) {
+export function StepStatus({ stepId, title, status, note, submittedAt, submissionNote, kind }: Props) {
+  const sends = kind === "filing" || kind === "contact";
+  const words = WORDS[kind];
   const uid = useId();
   const [confirmed, setConfirmed] = useState(false);
   const [text, setText] = useState("");
@@ -77,7 +88,7 @@ export function StepStatus({ stepId, title, status, note, submittedAt, submissio
       <div className="flex flex-col items-start gap-1.5">
         {submittedAt ? (
           <p className="text-rule">
-            Submitted on <LocalDate iso={submittedAt} />
+            {kind === "contact" ? "Sent" : "Submitted"} on <LocalDate iso={submittedAt} />
             {submissionNote ? `: ${submissionNote}` : "."}
           </p>
         ) : null}
@@ -94,18 +105,19 @@ export function StepStatus({ stepId, title, status, note, submittedAt, submissio
     return (
       <div className="flex flex-col items-start gap-3">
         <p className="text-rule">
-          You submitted this{submittedAt ? <> on <LocalDate iso={submittedAt} /></> : null}. Waiting to hear back.
+          You {kind === "contact" ? "sent your question" : "submitted this"}
+          {submittedAt ? <> on <LocalDate iso={submittedAt} /></> : null}. Waiting to hear back.
         </p>
         {submissionNote ? <p className="text-rule">Your note: {submissionNote}</p> : null}
-        {confirm("The office approved it, or sent what I applied for.")}
-        {noteField("For example: license number arrived by email on May 10")}
+        {confirm(kind === "contact" ? "The office answered in writing." : "The office approved it, or sent what I applied for.")}
+        {noteField(kind === "contact" ? "For example: the planning office replied on May 10" : "For example: license number arrived by email on May 10")}
         <div className="flex flex-wrap gap-2.5">
           <button type="button" disabled={pending || !confirmed} onClick={() => save("done")} className={PRIMARY}>
             <Icon name="check" size="sm" />
-            {pending ? "Saving…" : "Mark as approved"}
+            {pending ? "Saving…" : kind === "contact" ? "Mark as answered" : "Mark as approved"}
           </button>
           <button type="button" disabled={pending} onClick={() => save("todo")} className={SECONDARY}>
-            I haven’t submitted it
+            {kind === "contact" ? "I haven’t sent it" : "I haven’t submitted it"}
           </button>
         </div>
         {alert}
@@ -115,20 +127,52 @@ export function StepStatus({ stepId, title, status, note, submittedAt, submissio
 
   return (
     <div className="flex flex-col items-start gap-3">
-      {confirm(filing ? "I submitted this myself." : "I finished this step myself.")}
-      {noteField(filing ? "For example: filed online on May 3, confirmation emailed" : "For example: checked the rules on May 3")}
+      {confirm(words.confirm)}
+      {noteField(words.placeholder)}
       <div className="flex flex-wrap gap-2.5">
-        <button type="button" disabled={pending || !confirmed} onClick={() => save(filing ? "submitted" : "done")} className={PRIMARY}>
+        <button type="button" disabled={pending || !confirmed} onClick={() => save(sends ? "submitted" : "done")} className={PRIMARY}>
           <Icon name="check" size="sm" />
-          {pending ? "Saving…" : filing ? "I submitted it" : "Mark as done"}
+          {pending ? "Saving…" : words.button}
         </button>
-        {filing ? (
+        {sends ? (
           <button type="button" disabled={pending || !confirmed} onClick={() => save("done")} className={SECONDARY}>
-            Done, nothing to wait for
+            {kind === "contact" ? "Done, they already answered" : "Done, nothing to wait for"}
           </button>
         ) : null}
       </div>
       {alert}
+    </div>
+  );
+}
+
+// A decision already recorded elsewhere: one click says so, with nothing sent and no receipt
+export function AcknowledgeDecision({ stepId, title, ready }: { stepId: string; title: string; ready: boolean }) {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  async function acknowledge() {
+    setPending(true);
+    setError(null);
+    try {
+      const result = await setStepStatusAction({ stepId, status: "done", note: null, confirmed: true });
+      if (!result.ok) setError(result.message);
+      else celebrate(title);
+    } catch {
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+    } finally {
+      setPending(false);
+    }
+  }
+  return (
+    <div className="flex flex-col items-start gap-3">
+      <button type="button" disabled={pending || !ready} onClick={acknowledge} className={PRIMARY}>
+        <Icon name="check" size="sm" />
+        {pending ? "Saving…" : "Got it, mark this done"}
+      </button>
+      {error ? (
+        <p role="alert" className={ALERT}>
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
