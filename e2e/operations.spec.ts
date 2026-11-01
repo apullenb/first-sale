@@ -24,6 +24,7 @@ test("daily workflows: configure, review, persist and try demos", async ({ brows
   await expect(page.getByRole("region", { name: "DEMO · Customer email" })).toContainText("No reply was drafted or sent");
   await page.getByRole("button", { name: "Pause demo" }).click();
   await expect(page.getByRole("button", { name: "Try a demo" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Resume demo" })).toBeVisible();
   await page.reload();
   await expect(page.getByText("Demo paused", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Resume demo" }).click();
