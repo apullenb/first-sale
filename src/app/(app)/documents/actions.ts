@@ -19,7 +19,7 @@ import {
 } from "@/lib/data/my-business";
 import type { CreateOutcome, StoredDocument } from "@/lib/data/documents";
 import { DETAILS, detailProblem, isDecisionKey, isDetailKey, looksLikeIdNumber } from "@/lib/details";
-import { businessPlanPdf, draftBusinessPlan, planVersion } from "@/lib/documents/business-plan";
+import { businessPlanPdf, draftBusinessPlan, planVersion, withEstimates } from "@/lib/documents/business-plan";
 import { answerItems, answerText, cleanAnswer, knownFacts, MAX_FACT, MAX_OTHER, type PlanAnswers, planQuestions, sellsOf, withOverrides } from "@/lib/documents/plan-facts";
 import { askAboutForm, draftAnswers, explainForm, factsFor, MAX_QUESTION, mustFillYourself } from "@/lib/documents/companion";
 import { answerSheet, fillPdfCopy } from "@/lib/documents/fill";
@@ -35,6 +35,7 @@ import { readAndSave } from "@/lib/documents/read-and-save";
 import { isKept } from "@/lib/documents/library";
 import { readDocument } from "@/lib/documents/read";
 import { explainReceived } from "@/lib/documents/received";
+import { cleanMoney, ESTIMATES_KEY, type MoneyInputs, moneyInputsSchema } from "@/lib/rules/plan-money";
 import { runWorkflow } from "@/lib/workflow-runner";
 import { myPlanSources } from "./business-plan/sources";
 
@@ -470,6 +471,7 @@ const PLAN_CHANGED = "Your plan changed in another window. Reload the page to se
 const planInputSchema = z.object({
   picks: z.record(z.string().max(40), z.object({ picks: z.array(z.string().max(40)).max(20), other: z.string().max(MAX_OTHER * 2).nullable() })),
   overrides: z.record(z.string().max(40), z.string().max(MAX_FACT)),
+  money: moneyInputsSchema,
 });
 
 async function currentBusinessPlan(): Promise<StoredDocument | null> {
@@ -501,7 +503,8 @@ export async function draftBusinessPlanAction(input: unknown): Promise<ActionRes
     const answer = cleanAnswer(question, parsed.data.picks[question.key]);
     if (answer) picks[question.key] = answer;
   }
-  if ([...Object.values(overrides), ...Object.values(picks).map((answer) => answer.other ?? "")].some(looksLikeIdNumber)) return { ok: false, message: ID_NUMBERS };
+  const money = cleanMoney(parsed.data.money);
+  if ([...Object.values(overrides), ...Object.values(picks).map((answer) => answer.other ?? ""), ...moneyLabels(money)].some(looksLikeIdNumber)) return { ok: false, message: ID_NUMBERS };
 
   const answered = questions.filter((question) => picks[question.key]);
   const existing = await currentBusinessPlan();
@@ -511,6 +514,7 @@ export async function draftBusinessPlanAction(input: unknown): Promise<ActionRes
       answers: answered.map((question) => ({ key: question.key, question: question.title, answer: answerItems(question, picks[question.key]) })),
       steps: sources.steps,
       sells: sellsOf(sources.profile, picks),
+      money,
       userKey: await myAiKey(),
     });
     const draft = {
@@ -518,6 +522,7 @@ export async function draftBusinessPlanAction(input: unknown): Promise<ActionRes
       // Answers as text, for marketing and the website to read back
       inputs: Object.fromEntries(answered.map((question) => [question.key, answerText(question, picks[question.key])])),
       answers: { picks, overrides, was: Object.fromEntries(known.filter((fact) => overrides[fact.key]).map((fact) => [fact.key, fact.value])) },
+      money,
       approvedAt: null,
       simulated: getModel().simulated,
       draftedAt: new Date().toISOString(),
@@ -543,6 +548,24 @@ export async function draftBusinessPlanAction(input: unknown): Promise<ActionRes
   return result;
 }
 
+const moneyLabels = (money: MoneyInputs) => [...money.items.map((item) => item.name), ...money.monthlyExpenses.map((each) => each.label), ...money.startupCosts.map((each) => each.label)];
+
+// Rewrites the plan's Financial Estimates section from new estimates, in code; the rest of the plan stays as edited
+export async function updatePlanEstimatesAction(input: unknown): Promise<ActionResult> {
+  const parsed = z.object({ money: moneyInputsSchema }).safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Check the amounts: whole numbers of units and months, and dollar amounts like 12.50." };
+  const money = cleanMoney(parsed.data.money);
+  if (moneyLabels(money).some(looksLikeIdNumber)) return { ok: false, message: ID_NUMBERS };
+  const doc = await currentBusinessPlan();
+  if (!doc?.draft?.sections.length) return { ok: false, message: NOT_FOUND };
+  const before = doc.draft;
+  const version = planVersion(before.sections);
+  const draft = { ...before, sections: withEstimates(before.sections, money), money, approvedAt: null };
+  if (!(await updateMyDocument(doc.id, { draft }, (current) => Boolean(current.draft) && planVersion(current.draft!.sections) === version))) return { ok: false, message: PLAN_CHANGED };
+  refresh();
+  return { ok: true, value: null };
+}
+
 const saveSchema = z.object({
   documentId: id,
   // The version the edits were made to, so a newer draft isn't overwritten
@@ -563,7 +586,9 @@ export async function saveBusinessPlanAction(input: unknown): Promise<ActionResu
   if (parsed.data.sections.map((section) => section.key).join() !== before.sections.map((section) => section.key).join()) return { ok: false, message: PLAN_CHANGED };
 
   const flaggedBefore = new Map(before.sections.map((section) => [section.key, section.flags]));
-  const sections: PlanSection[] = parsed.data.sections.map((section) => {
+  const sections: PlanSection[] = parsed.data.sections.map((section, index) => {
+    // Estimates are worked out in code, never edited as text
+    if (section.key === ESTIMATES_KEY) return before.sections[index];
     const body = section.body.trim();
     return {
       key: section.key,
@@ -580,7 +605,7 @@ export async function saveBusinessPlanAction(input: unknown): Promise<ActionResu
   const savedAt = parsed.data.pdf ? now.toISOString() : unchanged ? before.approvedAt : null;
   const patch: Parameters<typeof updateMyDocument>[1] = { draft: { ...before, sections, approvedAt: savedAt } };
   if (parsed.data.pdf) {
-    patch.data = await writePdf(businessPlanPdf(doc.title, sections, now, before.simulated));
+    patch.data = await writePdf(businessPlanPdf(doc.title, sections, now, before.simulated, before.money));
     patch.mimeType = "application/pdf";
   }
   const version = parsed.data.version;

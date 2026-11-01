@@ -73,12 +73,31 @@ test.describe("documents", () => {
     await expect(known.getByText("Limited liability company (LLC)")).toBeVisible();
 
     await answerPlanQuestions(page);
+    // Money estimates: the owner's figures, summed by rules
+    const money = page.getByRole("region", { name: "Money estimates (optional)" });
+    await money.getByRole("button", { name: "Add an item" }).click();
+    await money.getByRole("textbox", { name: "Item", exact: true }).last().fill("Soy candle");
+    await money.getByRole("textbox", { name: "Price ($)" }).last().fill("24");
+    await money.getByRole("textbox", { name: "Cost each ($)" }).last().fill("8");
+    await money.getByRole("textbox", { name: "Sold a month" }).last().fill("30");
+    await money.getByRole("button", { name: "Add an expense" }).click();
+    await money.getByRole("textbox", { name: "Expense", exact: true }).fill("Market booth");
+    await money.getByRole("textbox", { name: "A month ($)" }).fill("120");
+    await expect(money).toContainText("Break-even: about 8 sold a month");
+    await expect(page.getByText("Nothing is published or submitted to government offices.", { exact: false })).toBeVisible();
     await page.getByRole("button", { name: "Draft my plan" }).click();
     await expect(page.getByText("This business plan was drafted in practice mode.", { exact: false })).toBeVisible({ timeout: 120_000 });
+    const review = page.getByRole("region", { name: "Review your plan" });
+    await expect(review).toContainText("Introductory draft");
+    await expect(review).toContainText("Break-even: about 8 units a month ($192 in sales) covers the operating expenses, at the expected mix of sales.");
+    // New estimates rewrite only that section, without drafting again
+    await money.getByRole("textbox", { name: "A month ($)" }).fill("160");
+    await money.getByRole("button", { name: "Update the estimates in my plan" }).click();
+    await expect(review).toContainText("Break-even: about 10 units a month ($240 in sales)");
 
     // Edit one section, then save the plan as a PDF
-    await page.getByRole("button", { name: /Edit section/ }).first().click();
-    const editor = page.getByRole("textbox").first();
+    await review.getByRole("button", { name: /Edit section/ }).first().click();
+    const editor = review.getByRole("textbox").first();
     await editor.fill(`${await editor.inputValue()}\nWe pour every candle by hand in small batches.`);
     await page.getByRole("button", { name: /^(Save|Done|Save section|Save changes)$/ }).first().click();
     await expect(page.getByText("We pour every candle by hand in small batches.").first()).toBeVisible();
@@ -130,5 +149,7 @@ test.describe("documents", () => {
     await expect(page.getByText("This business plan was drafted in practice mode.", { exact: false })).toBeVisible({ timeout: 120_000 });
     await expectPracticeBanner(page).catch(() => {});
     await expect(page.getByText(/\[[^\]]+\]/).first()).toBeVisible();
+    // Skipped money estimates are said to be missing, never made up
+    await expect(page.getByRole("region", { name: "Review your plan" })).toContainText("Not yet estimated: unit costs and margins");
   });
 });

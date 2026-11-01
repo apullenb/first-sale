@@ -1,5 +1,7 @@
 // Stored shapes for the document workspace. Plain types, so the schema can import them.
 
+import type { MoneyInputs } from "@/lib/rules/plan-money";
+
 export const FIELD_KINDS = ["text", "checkbox", "choice", "signature", "date"] as const;
 export type FieldKind = (typeof FIELD_KINDS)[number];
 
@@ -149,4 +151,6 @@ export interface GeneratedContent {
     // The saved value each edit replaced, so a later change at the source wins
     was?: Record<string, string>;
   };
+  // Business plan: the owner's money estimates, summed by `src/lib/rules/plan-money.ts`
+  money?: MoneyInputs;
 }
