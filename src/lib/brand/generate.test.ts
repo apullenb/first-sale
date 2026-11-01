@@ -294,6 +294,15 @@ describe("changes, versions and brand images start from the logo itself", () => 
     expect(edit.mock.calls[1][0].instruction).toContain("Image 2 is the business’s approved website header picture. Match its look exactly");
     expect(edit.mock.calls[0][0].instruction).not.toContain("Image 2");
   });
+
+  it("follows the owner's Photo / Illustration switch, and labels practice previews with it", async () => {
+    const { model, edit } = imageModel();
+    await makeBrandImages({ image: model, vision }, memoryStore().store, { logo, kinds: ["website_hero"], change: null, medium: "illustration", requestKey: "m1", now });
+    expect(edit.mock.calls[0][0].instruction).toContain("flat illustrated scene");
+    const { store, saved } = memoryStore();
+    await makeBrandImages({ image: getImageModel({})!, vision: getModel({}) }, store, { logo, kinds: ["website_hero"], change: null, requestKey: "m2", now });
+    expect(new TextDecoder().decode(saved[0].data)).toContain(`${PRACTICE_LABEL} · Photo style`.toUpperCase());
+  });
 });
 
 describe("editing a version or brand image", () => {

@@ -1,8 +1,8 @@
 import { ownerText } from "@/lib/photos/instructions";
-import { imageStyle } from "./image-style";
+import { type ImageStyle, imageStyle } from "./image-style";
 import { IMAGE_SPECS, LOGO_SPECS } from "./sizes";
 import { MAX_LOGO_WORDS } from "./library";
-import { type AssetCheck, BRIEF_LIMITS, type BrandBrief, type BrandImageKind, type ConceptKind, type ConceptReply, type PaletteColor, type VersionKind } from "./types";
+import { type AssetCheck, BRIEF_LIMITS, type BrandBrief, type BrandImageKind, type ConceptKind, type ConceptReply, type ImageMedium, type PaletteColor, type VersionKind } from "./types";
 import { LEANINGS, type LeaningKey } from "./vibes";
 
 // Muse Image instructions, built by code from the brief and a concept. The owner never writes one.
@@ -259,20 +259,23 @@ const IMAGE_PLACEMENT: Record<BrandImageKind, string> = {
   link_preview: "Put the logo in the center, about half the width of the picture, on a calm part of the scene with plenty of space around it.",
 };
 
-// Photo or illustration, from the owner's brand answers (image-style.ts)
-function styleLines(brief: BrandBrief, palette: string): string[] {
-  const style = imageStyle(brief);
-  return style.medium === "photo"
-    ? [
-        `Style: a photorealistic, professionally styled lifestyle and product photograph, as if from the brand’s own photo shoot: ${style.light}, shallow depth of field, real textures and materials, with props and a setting that fit the business.`,
-        "Real-looking people only where they suit the business, such as hands holding what they sell or someone using the service: natural and tasteful, never the main focus.",
-        `Carry the brand’s colors${palette} through the props, fabrics, surfaces and background.`,
-        "Not an illustration, cartoon, flat vector art or 3D render. No collage, frames or borders.",
-      ]
-    : [
-        `Style: a polished, flat illustrated scene in the logo’s colors${palette} and drawing style, with simple shapes and motifs.`,
-        "No 3D, gradients or drop shadows, and no photos.",
-      ];
+// Photo or illustration, from the owner's switch or brand answers (image-style.ts)
+function styleLines(style: ImageStyle, palette: string): string[] {
+  if (style.medium === "illustration") {
+    return [
+      `Style: a polished, flat illustrated scene in the logo’s colors${palette} and drawing style, with simple shapes and motifs.`,
+      "No 3D, gradients or drop shadows, and no photos.",
+    ];
+  }
+  return [
+    `Style: a photorealistic, professionally styled lifestyle and product photograph, as if from the brand’s own photo shoot: ${style.light}, shallow depth of field, real textures and materials, with props and a setting that fit the business.`,
+    style.lively
+      ? "Make it bright, punchy and colorful: saturated colors, high energy and fun, playful props, like a bold lifestyle campaign. Still a real photograph."
+      : null,
+    "Real-looking people only where they suit the business, such as hands holding what they sell or someone using the service: natural and tasteful, never the main focus.",
+    `Carry the brand’s colors${palette} through the props, fabrics, surfaces and background.`,
+    "Not an illustration, cartoon, flat vector art or 3D render. No collage, frames or borders.",
+  ].filter((line): line is string => line !== null);
 }
 
 // Pasted-on logos looked fake in photos: there the logo is a real object in the scene; an illustration may overlay it
@@ -289,8 +292,10 @@ export function logoPlacement(medium: "photo" | "illustration"): string[] {
 }
 
 // Image 1 is the chosen logo; image 2, when given, the approved example the others match. An uploaded logo may have no colors listed.
-export function brandImagePrompt(brief: BrandBrief, colors: PaletteColor[], kind: BrandImageKind, change: string | null, example?: BrandImageKind): string {
+// chosen: the owner's Photo / Illustration switch; null leaves it to the rule
+export function brandImagePrompt(brief: BrandBrief, colors: PaletteColor[], kind: BrandImageKind, change: string | null, example?: BrandImageKind, chosen: ImageMedium | null = null): string {
   const spec = IMAGE_SPECS[kind];
+  const style = imageStyle(brief, chosen);
   const name = clean(brief.name, BRIEF_LIMITS.name);
   const sells = clean(brief.sells, BRIEF_LIMITS.sells);
   const palette = colors.length ? ` (${colors.map((color) => color.hex).join(", ")})` : "";
@@ -301,10 +306,10 @@ export function brandImagePrompt(brief: BrandBrief, colors: PaletteColor[], kind
       : null,
     "",
     `The picture must make it obvious at a glance what “${name}” sells (${sells}) and feel unmistakably like this brand. Show only the kinds of things they actually sell, plain and unbranded apart from the logo; never invent other products, prices or offers.`,
-    ...logoPlacement(imageStyle(brief).medium),
+    ...logoPlacement(style.medium),
     IMAGE_PLACEMENT[kind],
-    ...styleLines(brief, palette),
-    ...feel(brief, imageStyle(brief).medium === "photo"),
+    ...styleLines(style, palette),
+    ...feel(brief, style.medium === "photo"),
     "The only words anywhere are the ones in the logo. No other text, and no other signs or labels with words, numbers or slogans.",
     change ? `The owner’s change: “${clean(change, MAX_CHANGE)}”` : null,
   ]

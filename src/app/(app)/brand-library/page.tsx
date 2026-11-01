@@ -16,6 +16,7 @@ import { brandFileUrl, kindTitle } from "@/lib/brand/files";
 import { LIBRARY_GROUP_TEXT, LIBRARY_GROUPS, type LibraryGroup, libraryFileUrl } from "@/lib/brand/library";
 import { imageSlots, recommendedImages, versionSlots } from "@/lib/brand/slots";
 import { IMAGE_KINDS } from "@/lib/brand/types";
+import { brandImageMedium } from "@/lib/data/brand";
 import { LIBRARY_LIMITS } from "@/lib/data/brand-library";
 import { getMyBrandState, getMyBusiness, getMyMarketing, lastMyRun, listMyLibraryFiles, listMyPhotoLibrary, listMyPhotos, myLibraryUsage } from "@/lib/data/my-business";
 import { MAX_UPLOAD_BYTES } from "@/lib/documents/upload";
@@ -199,7 +200,7 @@ async function Library() {
         group === "brand_images" ? (
           <Group key={group} group={group} items={groups[group]} count={counts[group]} uploadsTitle="Brand images you added">
             {chosen ? null : <NoLogoYet />}
-            <ImageSlots key={chosen?.id ?? "none"} chosenId={chosen?.id ?? null} name={state?.brief?.name || business.profile?.name || ""} assets={state?.assets ?? []} picks={state?.picks ?? {}} practice={practice} running={running} recommended={recommended} />
+            <ImageSlots key={chosen?.id ?? "none"} chosenId={chosen?.id ?? null} name={state?.brief?.name || business.profile?.name || ""} assets={state?.assets ?? []} picks={state?.picks ?? {}} practice={practice} running={running} recommended={recommended} style={state ? brandImageMedium(state) : { medium: "photo", by: "rules" }} />
           </Group>
         ) : (
           <Group key={group} group={group} items={groups[group]} count={counts[group]} />

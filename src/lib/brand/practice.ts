@@ -1,11 +1,13 @@
 import { darkestFirst } from "./colors";
 import { IMAGE_SPECS, sizeFor } from "./sizes";
-import type { AssetKind, ConceptKind, PaletteColor } from "./types";
+import type { AssetKind, ConceptKind, ImageMedium, PaletteColor } from "./types";
 
 // Practice mode has no image service. Instead of a picture, a plain labeled placeholder that still shows
 // the idea's kind, colors, lettering feel and tagline, so one-click changes visibly work.
 
 export const PRACTICE_LABEL = "Practice preview, not made by Muse";
+// On a practice brand image, the style a real one would have
+export const MEDIUM_WORDS: Record<ImageMedium, string> = { photo: "Photo style", illustration: "Illustration style" };
 export const PRACTICE_LABEL_COLORS = { pill: "#fdf1d6", text: "#7a4b00" } as const;
 
 // Where the label sits; kit files take it out and stamp their own at a size that reads
@@ -30,6 +32,8 @@ export interface PracticeInput {
   tagline: string;
   palette: PaletteColor[];
   typography: string;
+  // Brand images: the style a real one would have
+  medium?: ImageMedium;
 }
 
 // A system font close to the lettering direction
@@ -49,7 +53,7 @@ function initials(name: string): string {
     .join("") || "?";
 }
 
-export function practiceSvg({ kind, conceptKind, name, tagline, palette, typography }: PracticeInput): { svg: string; width: number; height: number } {
+export function practiceSvg({ kind, conceptKind, name, tagline, palette, typography, medium }: PracticeInput): { svg: string; width: number; height: number } {
   const { width, height } = practiceSize(kind);
   const ordered = darkestFirst(palette);
   const dark = ordered[0]?.hex ?? "#1c2321";
@@ -109,7 +113,7 @@ export function practiceSvg({ kind, conceptKind, name, tagline, palette, typogra
     }
   }
 
-  const label = escape(PRACTICE_LABEL.toUpperCase());
+  const label = escape((medium ? `${PRACTICE_LABEL} · ${MEDIUM_WORDS[medium]}` : PRACTICE_LABEL).toUpperCase());
   const box = practiceLabelBox(kind, width, height);
   const pill = box.height;
   const top = box.y;

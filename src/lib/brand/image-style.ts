@@ -1,35 +1,57 @@
-import type { BrandBrief } from "./types";
+import type { BrandBrief, ImageMedium } from "./types";
 import type { Vibe } from "./vibes";
 
-// Whether brand images are styled photos or illustrations, decided in code from the owner's brand answers.
-// Illustration only when the answers say playful, drawn or cartoony; every other brand gets photography.
+// Whether brand images are styled photos or illustrations, decided in code: photos unless the owner asked for drawings.
+// The owner's Photo / Illustration switch, once used, overrides the rule.
 
-export type ImageStyle = { medium: "photo" | "illustration"; light: string; mood: string };
+export type ImageStyle = {
+  medium: ImageMedium;
+  // "owner": their switch decided; "rules": the brand answers did
+  by: "owner" | "rules";
+  light: string;
+  // Playful or bright brands: photos that are punchy, saturated and fun
+  lively: boolean;
+  mood: string;
+};
 
-const ILLUSTRATED_VIBES: readonly Vibe[] = [
+export type StyleAnswers = Pick<BrandBrief, "vibes" | "leanings" | "story" | "logoLikes">;
+
+const DRAWN_VIBES: readonly Vibe[] = ["hand-drawn", "whimsical"];
+// The owner's own words asking for drawings
+const DRAWN_WORDS = /\b(cartoon\w*|illustrat\w*|doodle\w*|comics?|hand[- ]drawn|drawings?|sketch\w*|mascot\w*)\b/i;
+const LIVELY_VIBES: readonly Vibe[] = [
   "playful",
-  "whimsical",
   "quirky",
-  "hand-drawn",
+  "bold",
+  "cheerful",
   "bright and colorful",
   "neon vibes",
   "groovy ’70s",
   "retro ’80s",
   "’90s throwback",
   "retro ’50s diner",
+  "sporty",
+  "tropical",
 ];
-// The owner's own words asking for drawings
-const DRAWN_WORDS = /\b(cartoon\w*|illustrat\w*|doodle\w*|comic\w*|animated|hand[- ]drawn|drawn|sketch\w*|mascot)\b/i;
 const MOODY_VIBES: readonly Vibe[] = ["dark and moody", "edgy", "grunge"];
 const BRIGHT_VIBES: readonly Vibe[] = ["cheerful", "bright and colorful", "coastal", "beach shack", "tropical", "sporty", "soft pastels"];
 
-export function imageStyle(brief: Pick<BrandBrief, "vibes" | "leanings" | "story" | "logoLikes">): ImageStyle {
-  const drawnVibes = brief.vibes.filter((vibe) => ILLUSTRATED_VIBES.includes(vibe)).length;
+// The rule alone, before the owner's switch
+export function ruleMedium(brief: StyleAnswers): ImageMedium {
   const asked = DRAWN_WORDS.test(`${brief.story} ${brief.logoLikes}`);
-  const playful = brief.leanings.tone === "playful";
-  const illustrated = asked || drawnVibes >= 2 || (playful && drawnVibes >= 1);
+  return asked || brief.vibes.some((vibe) => DRAWN_VIBES.includes(vibe)) ? "illustration" : "photo";
+}
+
+export function imageStyle(brief: StyleAnswers, chosen: ImageMedium | null = null): ImageStyle {
   const moody = brief.vibes.some((vibe) => MOODY_VIBES.includes(vibe));
+  const lively = !moody && (brief.vibes.some((vibe) => LIVELY_VIBES.includes(vibe)) || brief.leanings.tone === "playful" || brief.leanings.energy === "loud");
   const bright = brief.vibes.some((vibe) => BRIGHT_VIBES.includes(vibe));
-  const light = moody ? "low, directional light with deep shadows" : bright ? "bright, clean daylight" : "warm, soft natural light";
-  return { medium: illustrated ? "illustration" : "photo", light, mood: brief.vibes.join(", ") };
+  const light = moody
+    ? "low, directional light with deep shadows"
+    : lively
+      ? "bright, punchy daylight with crisp shadows"
+      : bright
+        ? "bright, clean daylight"
+        : "warm, soft natural light";
+  return { medium: chosen ?? ruleMedium(brief), by: chosen ? "owner" : "rules", light, lively, mood: brief.vibes.join(", ") };
 }

@@ -148,6 +148,13 @@
       "when": 1793404463236,
       "tag": "0020_structure_advice",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793556631055,
+      "tag": "0021_image_medium",
+      "breakpoints": true
     }
   ]
 }
