@@ -617,6 +617,7 @@ const claim = (
   forStructures: [],
   renewal: null,
   renewalFeeUsd: null,
+  ownerAction: null,
   verification: "sourced",
   problems: [],
   ...extra,

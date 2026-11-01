@@ -76,6 +76,7 @@ export function requirementDraft(overrides: Partial<RequirementDraft> = {}): Req
     forStructures: [],
     renewal: null,
     renewalFeeUsd: null,
+    ownerAction: null,
     ...overrides,
   };
 }

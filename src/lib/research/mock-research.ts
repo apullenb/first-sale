@@ -52,6 +52,7 @@ export function mockResearch(
 
   sourced(["sba-business-structure", "irs-business-structures"], /before you register/i, {
     key: "structure",
+    ownerAction: "decision",
     title: "Choose a business structure",
     topic: "structure",
     level: "federal",
@@ -70,6 +71,7 @@ export function mockResearch(
   if (texas("tx-sos-205")) {
     sourced(["tx-sos-205"], /^Filing Fee:/, {
       key: "llc-formation",
+      ownerAction: "filing",
       title: "File a certificate of formation to form your LLC",
       topic: "structure",
       level: "state",
@@ -98,6 +100,7 @@ export function mockResearch(
     const kind = company === "llc" ? "LLC" : "corporation";
     gap({
       key: formationKey,
+      ownerAction: "filing",
       title: `Form your ${kind} with the state of ${stateName}`,
       topic: "structure",
       level: "state",
@@ -123,6 +126,7 @@ export function mockResearch(
     const county = {
       ...nameRule,
       key: "assumed-name-county",
+      ownerAction: "filing",
       level: "county",
       forStructures: ["sole_proprietorship", "partnership"],
       gather: [`The name “${sellsAs}”`, "Your business address", "Each owner’s name and address", "ID for every owner if you file in person, or the form signed before a notary if you mail it"],
@@ -151,6 +155,7 @@ export function mockResearch(
     sourced(["tx-sos-503"], /^Filing Fee:/, {
       ...nameRule,
       key: "assumed-name-state",
+      ownerAction: "filing",
       title: "File an assumed name certificate with the Texas Secretary of State",
       level: "state",
       agency: "Texas Secretary of State",
@@ -166,6 +171,7 @@ export function mockResearch(
   } else if (sellsAs) {
     sourced(["sba-business-name"], /register/i, {
       key: "business-name",
+      ownerAction: "filing",
       title: "Register your business name",
       topic: "name_registration",
       level: "state",
@@ -183,6 +189,7 @@ export function mockResearch(
   const needsEin = hiring || profile.owners.count > 1 || structure === "partnership" || structure === "llc" || structure === "corporation";
   sourced(["irs-ein", "sba-tax-ids"], /\bfree\b/i, {
     key: "ein",
+    ownerAction: "filing",
     title: "Employer Identification Number (EIN)",
     topic: "tax_registration",
     level: "federal",
@@ -205,6 +212,7 @@ export function mockResearch(
   if (goods && texas("tx-cpa-permit-faq")) {
     sourced(["tx-cpa-permit-faq", "tx-cpa-permit", ...(onlyFood && baked ? ["tx-cpa-bakery"] : [])], /no fee for the permit/i, {
       key: "sales-tax-permit",
+      ownerAction: "filing",
       title: "Get a Texas sales and use tax permit",
       topic: "tax_registration",
       level: "state",
@@ -229,6 +237,7 @@ export function mockResearch(
   } else if (goods) {
     gap({
       key: "sales-tax",
+      ownerAction: "filing",
       title: "Sales tax permit",
       topic: "tax_registration",
       level: "state",
@@ -248,6 +257,7 @@ export function mockResearch(
     sourced(["tx-dshs-cottage"], /exempt from the requirements of a food service establishment/i, {
       ...cottage,
       key: "cottage-food",
+      ownerAction: "compliance",
       title: "Check that your foods fit Texas cottage food rules",
       whyItApplies: "You make food at home to sell. In Texas that’s a cottage food operation: no health department permit, inspection or fee, but limits on what you sell and how you label it.",
       whatToAsk: ["Are all the foods I plan to sell allowed as cottage foods?", "Does my yearly income stay under the cottage food limit?"],
@@ -257,6 +267,7 @@ export function mockResearch(
     sourced(["tx-dshs-cottage"], /THIS PRODUCT WAS PRODUCED IN A PRIVATE RESIDENCE/, {
       ...cottage,
       key: "cottage-labels",
+      ownerAction: "compliance",
       title: "Label your cottage foods the way Texas requires",
       whyItApplies: "Each Texas cottage food label must carry this statement, along with your address or a DSHS registration number.",
       whatToAsk: ["What else must my labels show?", "What must I post online before I take payment?"],
@@ -267,6 +278,7 @@ export function mockResearch(
     sourced(["tx-dshs-cottage"], /must successfully complete a basic food safety education or training program/i, {
       ...cottage,
       key: "food-handler",
+      ownerAction: "training",
       title: "Complete an accredited food handler course",
       agency: "A food handler program accredited in Texas",
       whyItApplies: "Texas requires anyone running a cottage food operation to complete an accredited food handler course.",
@@ -276,6 +288,7 @@ export function mockResearch(
     sourced(["tx-dshs-cottage"], cold === "no" ? /^Registration will allow CFPOs/ : /that sell time and temperature control for safety \(TCS\) foods must register/i, {
       ...cottage,
       key: "cottage-registration",
+      ownerAction: "filing",
       title: "Register your cottage food operation with DSHS",
       applicability: cold === "yes" ? "applies" : cold === "no" ? "optional" : "conditional",
       condition: unknown(cold) ? "Only if any food you sell needs time and temperature control for safety (TCS), like refrigeration. You haven’t told us yet." : "",
@@ -289,6 +302,7 @@ export function mockResearch(
   } else if (food) {
     gap({
       key: "cottage-food",
+      ownerAction: "compliance",
       title: "Home food business (“cottage food”) rules",
       topic: "license_permit",
       level: "county",
@@ -302,6 +316,7 @@ export function mockResearch(
   if (texas("tx-cpa-franchise")) {
     sourced(["tx-cpa-franchise"], /annual franchise tax report is due/i, {
       key: "franchise-tax",
+      ownerAction: "filing",
       title: "File a Texas franchise tax report each year",
       topic: "tax_registration",
       level: "state",
@@ -320,6 +335,7 @@ export function mockResearch(
 
   sourced(["sba-licenses-permits"], /federal license or permit/i, {
     key: "federal-license",
+    ownerAction: "compliance",
     title: "Check whether anything you do needs a federal license",
     topic: "license_permit",
     level: "federal",
@@ -335,6 +351,7 @@ export function mockResearch(
       applicability: hiring ? "applies" : "conditional",
       condition: hiring ? "" : "Only if you hire employees. You haven’t told us yet.",
       key: "payroll",
+      ownerAction: "filing",
       title: "Set up payroll before your first hire",
       topic: "employer",
       level: "federal",
@@ -352,6 +369,7 @@ export function mockResearch(
   if (profile.makesForKids === "yes" || profile.makesForKids === "unsure") {
     gap({
       key: "childrens-products",
+      ownerAction: "compliance",
       title: "Safety rules for children’s products",
       topic: "other",
       level: "federal",
@@ -365,6 +383,7 @@ export function mockResearch(
   if (profile.foodContact === "yes" || profile.foodContact === "unsure") {
     gap({
       key: "food-contact",
+      ownerAction: "compliance",
       title: "Rules for items that touch food",
       topic: "other",
       level: "federal",
@@ -378,6 +397,7 @@ export function mockResearch(
   if (profile.handoff.includes("ship_out_of_state")) {
     gap({
       key: "other-states-tax",
+      ownerAction: "filing",
       title: "Sales tax in other states you ship to",
       topic: "tax_registration",
       level: "state",
@@ -393,6 +413,7 @@ export function mockResearch(
   const austinHome = atHome && texas("tx-austin-home");
   gap({
     key: "business-license",
+    ownerAction: "filing",
     title: "General business license",
     topic: "license_permit",
     level: "city",
@@ -408,6 +429,7 @@ export function mockResearch(
   if (austinHome) {
     sourced(["tx-austin-home"], /City of Austin cannot prohibit or require permits for home-based businesses/i, {
       key: "home-business",
+      ownerAction: "compliance",
       title: "Keep your home business within Austin’s limits",
       topic: "location_zoning",
       level: "city",
@@ -424,6 +446,7 @@ export function mockResearch(
   } else if (atHome) {
     gap({
       key: "home-business",
+      ownerAction: "filing",
       title: "Approval for a home business",
       topic: "location_zoning",
       level: "city",
@@ -438,6 +461,7 @@ export function mockResearch(
   if (sells("markets")) {
     gap({
       key: "vendor-permit",
+      ownerAction: "filing",
       title: "Market or event vendor permit",
       topic: "license_permit",
       level: "county",
@@ -452,6 +476,7 @@ export function mockResearch(
   if (sells("storefront") || profile.premises === "rented_space") {
     gap({
       key: "occupancy",
+      ownerAction: "filing",
       title: "Certificate of occupancy for your space",
       topic: "location_zoning",
       level: "city",

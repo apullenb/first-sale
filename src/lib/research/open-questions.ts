@@ -34,6 +34,7 @@ For each question a source clearly answers, give one requirement that states the
 - Facts come only from the sources listed for that question. Put the source's id in sourceIds and copy one or two whole sentences from it, word for word, into evidence. Never reword or shorten the evidence, and don't use "...".
 - level: the government of the source you quote. feeUsd, deadline, renewal and renewalFeeUsd only when the quoted sentence states them; otherwise null.
 - key: a short lowercase id. Title, whyItApplies, doneWhen, whoToCall and whatToAsk in plain words for someone with no business background.
+- ownerAction: what the owner does for it: "decision" (choose something, send nothing), "training" (a course or exam), "compliance" (a rule they follow on their own), "filing" (send, register, apply for or pay for something with an office) or "contact" (only ask an office a question).
 - Leave out any question the sources don't clearly answer. Don't guess, and don't answer from what you know.`;
 
 // Questions in order, up to the cap; searches run at once under one time limit
@@ -183,6 +184,7 @@ registerMockFixture(OPEN_QUESTIONS_SCHEMA_NAME, (request) => {
       forStructures: [],
       renewal: null,
       renewalFeeUsd: null,
+      ownerAction: null,
     };
     return [{ question: Number(match[1]), requirement }];
   });

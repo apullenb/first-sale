@@ -60,6 +60,7 @@ export function toStep(row: TaskRow): PlanStep {
     question: row.question,
     notes: row.notes,
     contacts: row.contacts,
+    ownerAction: row.ownerAction,
     position: row.position,
     evidenceNote: row.evidenceNote,
     completedAt: row.completedAt,
@@ -160,6 +161,7 @@ async function writePlan(
       question: task.question ?? "",
       notes: task.notes ?? [],
       contacts: task.contacts ?? null,
+      ownerAction: task.ownerAction ?? null,
       updatedAt: now,
     };
     if (id) {
@@ -271,6 +273,7 @@ export async function rebuildPlan(
       problems: row.problems,
       confirmedBy: row.verification === "sourced" ? (confirmedFor.get(slugKey(row.key)) ?? []) : [],
       background: row.background,
+      ownerAction: row.ownerAction,
       verdict: row.verdict,
     };
     return { ...requirement, ...classify(requirement, profile, place, decision) };

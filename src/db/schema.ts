@@ -23,6 +23,7 @@ import {
   GENERATED_KINDS,
   JURISDICTION_LEVELS,
   ORDER_STATUSES,
+  OWNER_ACTIONS,
   PLAN_TOPICS,
   TASK_STATUSES,
   VERIFICATION_STATES,
@@ -200,6 +201,8 @@ export const requirements = pgTable(
     // The deeper look's decision on a rule no official page settled, and why (background)
     verdict: text("verdict", { enum: VERDICTS }),
     background: text("background").notNull().default(""),
+    // The model's read of what the owner does; stepKindOf decides
+    ownerAction: text("owner_action", { enum: OWNER_ACTIONS }),
   },
   (table) => [index("requirements_business_id_idx").on(table.businessId)],
 );
@@ -254,6 +257,8 @@ export const checklistTasks = pgTable(
     // Why SnapStart decided a rule no official page spells out, and the office's contact details
     notes: jsonb("notes").$type<{ title: string; background: string }[]>().notNull().default([]),
     contacts: jsonb("contacts").$type<Contacts>(),
+    // The model's read of what the owner does; null on steps saved before it was asked
+    ownerAction: text("owner_action", { enum: OWNER_ACTIONS }),
     // Filing progress: submitted, then done once the office approves; never set by opening a link
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
     submissionNote: text("submission_note"),
