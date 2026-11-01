@@ -42,7 +42,7 @@ test.describe("sidebar and Today", () => {
     const { page } = await newOwner(browser, tacos);
     await open(page, "/");
     await expect(page.getByRole("region", { name: "Launch day" }).getByText(/days to go/)).toHaveCount(0);
-    await expect(page.getByRole("region", { name: "Starting your business" }).getByText("1 of 4 stages done")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Starting your business" }).getByText("Business setup: 1 of 4 stages done")).toBeVisible();
 
     const nav = sidebar(page);
     const startToggle = nav.getByRole("button", { name: /the steps in Start your business/ });

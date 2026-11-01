@@ -19,6 +19,7 @@ import { planCosts } from "@/lib/rules/next-action";
 import type { TaskState } from "@/lib/rules/paperwork";
 import { CHECK_MINUTES, formatMinutes, INTAKE_MINUTES, MAX_SITTING_MINUTES, remainingWork, stepMinutes } from "@/lib/rules/progress";
 import { PAPERWORK_PLACEHOLDER } from "@/lib/rules/section-status";
+import { progressLabel } from "@/lib/progress-labels";
 import { sectionMetadata } from "@/lib/sections";
 import { savePlanPdfAction } from "../checklist/actions";
 
@@ -108,7 +109,7 @@ function Progress({ paper }: { paper: MyPaperwork }) {
     <div className="-mt-2 flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
         <Chip tone="done" icon="check">
-          {done} of {needed.length} done before your first sale
+          {progressLabel("launch", done, needed.length)} done before your first sale
         </Chip>
         {work.left.length ? (
           <Chip icon="clock">

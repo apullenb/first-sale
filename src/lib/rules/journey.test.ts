@@ -116,7 +116,7 @@ describe("journeyStages", () => {
     const stages = journeyStages(base);
     expect(stages.map((stage) => stage.state)).toEqual(["done", "done", "done", "now", "anytime"]);
     expect(stages[1].detail).toBe("You chose an LLC.");
-    expect(stages[3].detail).toBe("1 of 4 steps done before your first sale.");
+    expect(stages[3].detail).toBe("Launch requirements: 1 of 4 tasks done before your first sale.");
     expect(stages[4].detail).toMatch(/^2 documents/);
   });
 
@@ -144,7 +144,7 @@ describe("journeyStages", () => {
   it("finishes the paperwork stage when every step before selling is done, or none has to be", () => {
     expect(journeyStages({ ...base, plan: { ...base.plan, beforeSelling: { total: 4, done: 4 }, first: null } })[3]).toMatchObject({
       state: "done",
-      detail: "All 4 steps before your first sale are done.",
+      detail: "Launch requirements: all 4 tasks before your first sale are done.",
     });
     expect(journeyStages({ ...base, plan: { ...base.plan, beforeSelling: { total: 0, done: 0 }, first: null } })[3].state).toBe("done");
   });
