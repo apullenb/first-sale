@@ -86,7 +86,7 @@ export function NavLinks({ activeHref, status }: { activeHref: string | null; st
   const total = stepsLeft(parts, JOURNEY.flatMap((group) => stepsOf(group, status).map((step) => step.href)));
   const standalone = SECTIONS.filter((section) => section.group === null);
   return (
-    <nav aria-label="Sections" className="flex flex-col gap-0.5">
+    <nav aria-label="Sections" className="mt-1 flex flex-col gap-0.5 short:mt-0">
       <NavItem
         href={HOME.href}
         title={HOME.title}
