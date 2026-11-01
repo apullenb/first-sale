@@ -55,8 +55,8 @@ test.describe("create your logo", () => {
     const pick = page.getByRole("region", { name: "Step 3: Pick your logo" });
     const idea = pick.getByRole("region", { name: "Practice idea 1" });
     await expect(idea).toBeVisible({ timeout: 60_000 });
-    await expect(pick.getByText("In practice mode these ideas are placeholders", { exact: false })).toBeVisible();
-    await expect(idea.getByRole("img", { name: /Practice preview: a plain placeholder/ }).first()).toBeVisible();
+    await expect(pick.getByText("In practice mode these ideas are samples", { exact: false })).toBeVisible();
+    await expect(idea.getByRole("img", { name: /Practice preview: a plain sample/ }).first()).toBeVisible();
     await expect(idea.getByRole("list", { name: "Colors" }).getByRole("listitem").first()).toContainText("#");
     await expect(idea.getByText(/^Why it fits:/)).toBeVisible();
 

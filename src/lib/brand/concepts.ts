@@ -133,7 +133,7 @@ registerMockFixture(CONCEPTS_SCHEMA_NAME, (request) => {
     return {
       kind,
       title: `Practice idea ${index + 1}`,
-      idea: "A practice placeholder. Connect Muse to get real ideas written for your business.",
+      idea: "A practice sample, not an idea written for your business.",
       symbol: kind === "wordmark" ? null : "a simple circle with the first letter",
       typography: index % 2 === 0 ? "clean sans-serif lettering" : "classic serif lettering",
       palette,

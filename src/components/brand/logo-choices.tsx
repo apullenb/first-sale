@@ -229,7 +229,7 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
             <Icon name="dollar" size="sm" className="mt-[3px] text-accent" />
             <span>
               {practice
-                ? `Practice mode: no logos are drawn and nothing is charged. You’ll see ${IDEAS.first} labeled placeholders.`
+                ? `Practice mode: no logos are drawn and nothing is charged. You’ll see ${IDEAS.first} labeled samples.`
                 : `Muse writes ${IDEAS.first} different logo ideas from your brand description and these choices, and draws each one. Meta charges ${dollars(1)} per picture, so the drawings cost ${dollars(IDEAS.first)}, plus a small amount for writing the ideas and checking the spelling.`}
             </span>
           </p>
