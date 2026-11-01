@@ -50,7 +50,8 @@ export type Intent =
   | { kind: "more"; conceptId: string }
   | { kind: "draw"; roundId: string }
   // logoId: the chosen logo the page showed, so a stale page can't make files from another logo
-  | { kind: "versions"; logoId: string; kinds: VersionKind[] }
+  // redraw: have the image model draw it instead of building it from the logo
+  | { kind: "versions"; logoId: string; kinds: VersionKind[]; redraw?: boolean }
   | { kind: "images"; logoId: string; kinds: BrandImageKind[] };
 
 // Runs one paid job. One key per intended request, kept across retries, so a retry never pays twice.
@@ -80,7 +81,7 @@ function useBrandRun(intent: Intent, blocked?: string | null) {
       } else if (intent.kind === "draw") {
         result = await drawRoundAction(intent.roundId);
       } else if (intent.kind === "versions") {
-        result = await makeVersionsAction({ requestKey: requestKey.get(), logoId: intent.logoId, kinds: intent.kinds });
+        result = await makeVersionsAction({ requestKey: requestKey.get(), logoId: intent.logoId, kinds: intent.kinds, redraw: intent.redraw });
       } else {
         result = await makeImagesAction({ requestKey: requestKey.get(), logoId: intent.logoId, kinds: intent.kinds, change: change?.trim() || null });
       }

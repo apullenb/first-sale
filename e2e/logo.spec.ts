@@ -1,6 +1,8 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { expect, type Locator, test } from "@playwright/test";
 import { candles, groomer, tacos } from "./scenarios";
-import { approveBrand, choose, expectPracticeBanner, newOwner, open, openFold, PRACTICE_PREVIEW, pngBuffer, sidebar } from "./support";
+import { approveBrand, choose, expectPracticeBanner, newOwner, open, openFold, PRACTICE_PREVIEW, sidebar } from "./support";
 
 const NOTHING_CHECKED = "Practice preview: no picture was drawn, so there’s nothing to check.";
 
@@ -161,7 +163,9 @@ test.describe("create your logo", () => {
     // SVG isn't accepted
     await have.locator("input[type=file]").setInputFiles({ name: "logo.svg", mimeType: "image/svg+xml", buffer: Buffer.from("<svg xmlns='http://www.w3.org/2000/svg'/>") });
     await expect(have.getByText("SVG files can’t be uploaded.", { exact: false })).toBeVisible();
-    await have.locator("input[type=file]").setInputFiles({ name: "ember-oak-logo.png", mimeType: "image/png", buffer: pngBuffer(512, [90, 50, 30]) });
+    // A real drawn logo, so its versions are built from its own pixels even in practice mode
+    const logo = readFileSync(path.join(__dirname, "..", "src", "lib", "brand", "test-logos", "soy-candles.png"));
+    await have.locator("input[type=file]").setInputFiles({ name: "two-pines-logo.png", mimeType: "image/png", buffer: logo });
     await expect(have.getByRole("img", { name: "Preview of your logo" })).toBeVisible();
     await have.getByRole("button", { name: "Upload and use this logo" }).click();
 
@@ -169,7 +173,10 @@ test.describe("create your logo", () => {
     await expect(yours).toBeVisible({ timeout: 60_000 });
     await expect(sidebar(page).getByRole("link", { name: /^Create your logo , done/ })).toBeVisible();
     const icon = page.getByRole("region", { name: "Icon (profile picture)" });
-    await makeVersion(icon, "Make the icon (profile picture)");
+    await icon.getByRole("button", { name: "Make the icon (profile picture)" }).click();
+    await expect(icon.getByText("Made by First Sale from your logo’s own pixels", { exact: false })).toBeVisible({ timeout: 60_000 });
+    await expect(icon.getByText(PRACTICE_PREVIEW)).toHaveCount(0);
+    await expect(icon.getByRole("button", { name: "Have AI draw one instead" })).toBeVisible();
 
     // Replacing the logo asks first, since versions were made from it
     await expect(yours.getByRole("button", { name: "Upload a new logo" })).toBeVisible();

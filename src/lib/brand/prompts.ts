@@ -275,6 +275,19 @@ function styleLines(brief: BrandBrief, palette: string): string[] {
       ];
 }
 
+// Pasted-on logos looked fake in photos: there the logo is a real object in the scene; an illustration may overlay it
+export function logoPlacement(medium: "photo" | "illustration"): string[] {
+  const exact = "Keep the logo exactly as in image 1: the same shapes, lettering, letter case, spelling and colors. Don’t redraw it.";
+  return medium === "photo"
+    ? [
+        "Show the logo from image 1 as a real object in the scene, printed, painted or stitched on something that belongs there: a shop sign, a hang tag, a product label, an apron, a box, a window decal or fabric.",
+        "It takes on that surface’s perspective, curve, lighting, shadows and texture, like everything else in the photo. Never a floating sticker or badge laid over the photo, and never on a plain white card or rectangle.",
+        "Where the placement below says where the logo goes, put the object that carries it in that part of the picture.",
+        exact,
+      ]
+    : ["Place the logo from image 1 as a clean, flat overlay in the position described below, with no box or card behind it.", exact];
+}
+
 // Image 1 is the chosen logo; image 2, when given, the approved example the others match. An uploaded logo may have no colors listed.
 export function brandImagePrompt(brief: BrandBrief, colors: PaletteColor[], kind: BrandImageKind, change: string | null, example?: BrandImageKind): string {
   const spec = IMAGE_SPECS[kind];
@@ -288,11 +301,11 @@ export function brandImagePrompt(brief: BrandBrief, colors: PaletteColor[], kind
       : null,
     "",
     `The picture must make it obvious at a glance what “${name}” sells (${sells}) and feel unmistakably like this brand. Show only the kinds of things they actually sell, plain and unbranded apart from the logo; never invent other products, prices or offers.`,
-    "Place the logo from image 1 exactly as it is, as a crisp flat overlay or printed on a real surface in the scene: the same shapes, lettering, letter case, spelling and colors. Don’t redraw it.",
+    ...logoPlacement(imageStyle(brief).medium),
     IMAGE_PLACEMENT[kind],
     ...styleLines(brief, palette),
     ...feel(brief, imageStyle(brief).medium === "photo"),
-    "The only words anywhere are the ones in the logo. No other text, signs or labels with words, numbers or slogans.",
+    "The only words anywhere are the ones in the logo. No other text, and no other signs or labels with words, numbers or slogans.",
     change ? `The owner’s change: “${clean(change, MAX_CHANGE)}”` : null,
   ]
     .filter((line): line is string => line !== null)

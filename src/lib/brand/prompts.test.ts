@@ -77,11 +77,11 @@ describe("refinements, versions and brand images", () => {
 
   it("put the logo, unchanged, in every brand image, big enough to recognize, and no other words", () => {
     const banner = brandImagePrompt(testBrief(), testConcept().palette, "youtube_banner", null);
-    expect(banner).toContain("Place the logo from image 1 exactly as it is");
+    expect(banner).toContain("Keep the logo exactly as in image 1");
     expect(banner).toContain("middle 60% of the width");
     expect(banner).toContain("Make it big there");
     const hero = brandImagePrompt(testBrief(), testConcept().palette, "website_hero", "more bread");
-    expect(hero).toContain("Place the logo from image 1 exactly as it is");
+    expect(hero).toContain("Keep the logo exactly as in image 1");
     expect(hero).toContain("top-left corner");
     expect(hero).toContain("where the owner’s headline will go");
     expect(hero).toContain("The owner’s change: “more bread”");
@@ -100,6 +100,19 @@ describe("refinements, versions and brand images", () => {
     const playful = brandImagePrompt(testBrief({ vibes: ["playful", "bright and colorful", "cheerful"] }), testConcept().palette, "website_hero", null);
     expect(playful).toContain("flat illustrated scene");
     expect(playful).not.toContain("photorealistic");
+  });
+
+  it("put the logo on a real object in photos, and overlay it only in illustrations", () => {
+    const photo = brandImagePrompt(testBrief({ vibes: ["rustic", "warm", "earthy"], leanings: { era: null, tone: null, energy: null, finish: null } }), [], "website_hero", null);
+    expect(photo).toContain("as a real object in the scene");
+    expect(photo).toContain("a hang tag, a product label, an apron, a box, a window decal or fabric");
+    expect(photo).toContain("perspective, curve, lighting, shadows and texture");
+    expect(photo).toContain("Never a floating sticker or badge");
+    expect(photo).toContain("never on a plain white card or rectangle");
+    expect(photo).not.toContain("overlay in the position");
+    const drawn = brandImagePrompt(testBrief({ vibes: ["playful", "bright and colorful", "cheerful"] }), testConcept().palette, "website_hero", null);
+    expect(drawn).toContain("clean, flat overlay in the position described below");
+    expect(drawn).not.toContain("real object in the scene");
   });
 
   it("match the approved example in the other slots", () => {

@@ -269,16 +269,38 @@ export function placement(content: Box, target: { width: number; height: number 
 const FULL_INK = 48;
 const NOISE = 8;
 
+// Large pale fills apart from the background, such as a badge's cream inside: paper in a one-color version, not ink
+function paperFills(image: Pixels, background: Rgb): Rgb[] {
+  const { data, width, height } = image;
+  const step = Math.max(1, Math.floor((width * height) / 250_000));
+  const buckets = new Map<number, { count: number; sum: Rgb }>();
+  let total = 0;
+  for (let pixel = 0; pixel < width * height; pixel += step) {
+    const index = pixel * 4;
+    total++;
+    if (data[index + 3] < 200 || Math.min(data[index], data[index + 1], data[index + 2]) < 190) continue;
+    if (distance(data, index, background) <= NOISE) continue;
+    const key = ((data[index] >> 4) << 8) | ((data[index + 1] >> 4) << 4) | (data[index + 2] >> 4);
+    const bucket = buckets.get(key) ?? { count: 0, sum: [0, 0, 0] };
+    bucket.count++;
+    bucket.sum = [bucket.sum[0] + data[index], bucket.sum[1] + data[index + 1], bucket.sum[2] + data[index + 2]];
+    buckets.set(key, bucket);
+  }
+  return [...buckets.values()].filter((bucket) => bucket.count / total >= 0.03).map((bucket) => bucket.sum.map((value) => Math.round(value / bucket.count)) as Rgb);
+}
+
 // The whole logo in one color on its own plain background, edges kept soft: each pixel keeps how far it was
 // from the background, as a blend toward the one color. Null when the background isn't one plain color.
 export function oneColor(image: Pixels, hex: string): Pixels | null {
   const background = plainBackground(image);
   if (!background) return null;
   const ink = rgbOfHex(hex);
+  const papers = [background, ...paperFills(image, background)];
   const data = new Uint8ClampedArray(image.data.length);
   for (let index = 0; index < data.length; index += 4) {
     const alpha = image.data[index + 3] / 255;
-    const amount = Math.min(1, Math.max(0, distance(image.data, index, background) - NOISE) / (FULL_INK - NOISE)) * alpha;
+    const away = Math.min(...papers.map((paper) => distance(image.data, index, paper)));
+    const amount = Math.min(1, Math.max(0, away - NOISE) / (FULL_INK - NOISE)) * alpha;
     for (let channel = 0; channel < 3; channel++) data[index + channel] = Math.round(background[channel] + (ink[channel] - background[channel]) * amount);
     data[index + 3] = 255;
   }

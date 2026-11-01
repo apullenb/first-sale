@@ -189,7 +189,7 @@ function Draft({
         />
         <figcaption className="flex flex-wrap items-center gap-2 text-sm">
           <span className="font-semibold break-words">{draft.change ? (draft.design?.preset ? `Changed: ${draft.change}` : `You asked: “${draft.change}”`) : `Draft ${number}`}</span>
-          <MadeBy simulated={draft.simulated} />
+          <MadeBy simulated={draft.simulated} model={draft.model} />
         </figcaption>
       </figure>
       <div className="flex flex-wrap items-end gap-3 text-sm text-muted">
