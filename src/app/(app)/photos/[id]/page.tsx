@@ -167,7 +167,7 @@ function VersionView({ photo, version, checking, canRefine }: ViewProps) {
       <div className="flex flex-col gap-1">
         <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
           {version.simulated ? (
-            <Chip tone="warn">Development preview, not made by Muse</Chip>
+            <Chip tone="warn">Practice preview, not made by Muse</Chip>
           ) : (
             "Edited by Meta’s Muse Image"
           )}
@@ -180,7 +180,7 @@ function VersionView({ photo, version, checking, canRefine }: ViewProps) {
 
       {version.simulated ? (
         <p className="rounded-xl border border-check-ring bg-check-tint px-4 py-3 text-[15px] text-check">
-          <strong>Development preview.</strong> No image service is connected, so this is your original photo, unchanged. It
+          <strong>Practice preview.</strong> No image service is connected, so this is your original photo, unchanged. It
           isn’t an edited photo and wasn’t made by Muse.
         </p>
       ) : null}
@@ -195,7 +195,7 @@ function VersionView({ photo, version, checking, canRefine }: ViewProps) {
         }}
         edited={{
           src: versionSrc(photo.id, version.id),
-          alt: version.simulated ? `Development preview of ${photo.title}: your original, unchanged` : `Version ${version.number}, the AI edit of ${photo.title}`,
+          alt: version.simulated ? `Practice preview of ${photo.title}: your original, unchanged` : `Version ${version.number}, the AI edit of ${photo.title}`,
           caption: version.simulated ? `Version ${version.number} (preview)` : `Version ${version.number}`,
           width: version.width,
           height: version.height,
@@ -258,7 +258,7 @@ function VersionHistory({ photoId, versions, selectedId }: { photoId: string; ve
                 <span className="text-sm text-muted">
                   {[
                     version.refinement ? `“${version.refinement}”` : "From your original",
-                    version.simulated ? "development preview" : null,
+                    version.simulated ? "practice preview" : null,
                     version.approvedAt ? "in your library" : null,
                   ]
                     .filter(Boolean)
