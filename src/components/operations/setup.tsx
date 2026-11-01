@@ -51,7 +51,11 @@ export function OperationSetupPanel({ kind, initial }: { kind: OperationKind; in
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="rounded-xl border border-check-ring bg-check-tint p-4 text-check"><strong>Demo setup.</strong> Save your preferences and try a sample. Live connections and background automation are not available yet. Never enter passwords, access keys or customer messages here.</p>
+      <dl aria-label="What this does today" className="grid gap-2 text-[15px] text-rule">
+        <div><dt className="inline font-semibold">Works now: </dt><dd className="inline">{definition.worksNow}</dd></div>
+        <div><dt className="inline font-semibold">Needs a connection (not available yet): </dt><dd className="inline">{definition.needsConnection}</dd></div>
+        <div><dt className="inline font-semibold">After setup: </dt><dd className="inline">{definition.afterSetup}</dd></div>
+      </dl>
       {stage !== "saved" ? <ol aria-label="Setup progress" className="flex flex-wrap gap-3 text-sm text-muted">{(["choose", "configure", "review"] as const).map((step, index) => <li key={step} aria-current={stage === step ? "step" : undefined} className={stage === step ? "font-bold text-accent" : ""}>{index + 1}. {step === "choose" ? "Choose your help" : step === "configure" ? "Set preferences" : "Review setup"}</li>)}</ol> : null}
       {stage === "choose" ? <Card title="What would you like help with?" id="choose-help">
         <p className="text-muted">Choose one or both. You can change these later.</p>
@@ -61,7 +65,7 @@ export function OperationSetupPanel({ kind, initial }: { kind: OperationKind; in
       {stage === "configure" ? <Card title="Make it fit your business" id="configure-help">
         <form className="flex flex-col gap-5" onSubmit={(event) => { event.preventDefault(); review(); }}>
           <label className="flex flex-col gap-2 font-semibold">{definition.sourceLabel}<select className={INPUT} value={config.source} onChange={(event) => setConfig({ ...config, source: event.target.value, email: "" })}>{definition.choices.map((choice) => <option key={choice}>{choice}</option>)}</select></label>
-          {needsEmail ? <label className="flex flex-col gap-2 font-semibold">Business email to connect later<input className={INPUT} type="email" required maxLength={254} autoComplete="email" value={config.email} onChange={(event) => setConfig({ ...config, email: event.target.value })} /><span className="text-sm font-normal text-muted">Saved as a preference only. This does not grant access to your inbox.</span></label> : null}
+          {needsEmail ? <label className="flex flex-col gap-2 font-semibold">Business email to connect later<input className={INPUT} type="email" required maxLength={254} autoComplete="email" value={config.email} onChange={(event) => setConfig({ ...config, email: event.target.value })} /><span className="text-sm font-normal text-muted">Saved as a preference only. It doesn’t give access to your inbox, so never enter a password here.</span></label> : null}
           {kind === "requests" && config.source === "Website" ? <p className="text-muted">A live website connection will need a supported form or store integration. This demo does not read your website.</p> : null}
           <label className="flex flex-col gap-2 font-semibold">Follow up if still waiting after<select className={INPUT} value={config.reminder} onChange={(event) => setConfig({ ...config, reminder: event.target.value as OperationSetup["reminder"] })}>{["1", "2", "3", "7"].map((days) => <option key={days} value={days}>{days} day{days === "1" ? "" : "s"}</option>)}</select></label>
           <div className="flex flex-wrap gap-3"><button type="button" className={SECONDARY} onClick={() => setStage("choose")}>Back</button><button className={PRIMARY}>Review setup</button></div>
