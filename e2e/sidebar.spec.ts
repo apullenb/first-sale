@@ -53,7 +53,7 @@ test.describe("sidebar and Today", () => {
     await nav.getByRole("button", { name: "Run your business" }).click();
     await nav.getByRole("link", { name: "Orders" }).click();
     await page.waitForURL("**/orders");
-    await expect(page.getByRole("region", { name: "Not built yet" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Track orders & customer requests" })).toBeVisible();
     await open(page, "/planning-for-help");
     await expect(page.getByRole("region", { name: "Not built yet" })).toBeVisible();
     await page.getByRole("link", { name: "Back to Today" }).click();
