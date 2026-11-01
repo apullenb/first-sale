@@ -9,7 +9,7 @@ import { History } from "@/components/structure/history";
 import { EYEBROW, LEAD, PRIMARY_LINK, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
 import { Card, Chip, IconTile, Note, PageHead } from "@/components/ui";
 import { getMyBusiness, getMyDetails, getMyIntakeDraft, listMyHistory } from "@/lib/data/my-business";
-import { DECISION_KEYS, DETAIL_KEYS, DETAILS, type DetailSpec, displayDetail } from "@/lib/details";
+import { DECISION_KEYS, DETAIL_KEYS, DETAILS, detailAnchor, type DetailSpec, displayDetail } from "@/lib/details";
 import type { BusinessProfile, BusinessStructure } from "@/lib/domain";
 import { answerText, displayName, groupRows, profileToAnswers, sameAnswers, summarize, type SummaryRow, UNANSWERED_NOTE, UNDECIDED_NOTE } from "@/lib/intake/answers";
 import { structureOf } from "@/lib/research/applicability";
@@ -184,7 +184,7 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
           {DETAIL_KEYS.filter((key) => !(DETAILS[key] as DetailSpec).decision && (saved.has(key) || !notForStructure(key, structure))).map((key) => {
             const detail = saved.get(key);
             return (
-              <li key={key} className="border-b border-line py-4 last:border-b-0 last:pb-0">
+              <li key={key} id={detailAnchor(key)} className="scroll-mt-4 border-b border-line py-4 last:border-b-0 last:pb-0">
                 <DetailField detailKey={key} value={detail?.value ?? null} origin={detail ? <Origin detail={detail} /> : null} />
               </li>
             );

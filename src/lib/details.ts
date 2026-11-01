@@ -91,6 +91,12 @@ export const DETAILS = {
     ],
     maxLength: 40,
   },
+  pickup_details: {
+    label: "Pickup hours and place",
+    help: "When and where customers collect orders, like “Saturdays 9 to noon, at my front porch”. Kept here for your plans; share it with customers only where you choose.",
+    kind: "multiline",
+    maxLength: 300,
+  },
   business_purpose: {
     label: "What the business does, in one sentence",
     help: "Some forms ask for a short description of the business’s purpose.",
@@ -106,6 +112,9 @@ export const DETAILS = {
 } as const satisfies Record<string, DetailSpec>;
 
 export type DetailKey = keyof typeof DETAILS;
+
+// Where a detail's field sits on Your business, for links straight to it
+export const detailAnchor = (key: DetailKey) => `detail-${key}`;
 export const DETAIL_KEYS = Object.keys(DETAILS) as DetailKey[];
 
 export const DECISION_KEYS = DETAIL_KEYS.filter((key) => (DETAILS[key] as DetailSpec).decision);
