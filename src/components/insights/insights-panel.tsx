@@ -5,6 +5,7 @@ import { type ReactNode, useLayoutEffect, useOptimistic, useRef, useState, useTr
 import { markInsightAction, writeInsightsAction } from "@/app/(app)/insights/actions";
 import { Icon, type IconName } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
+import { useJobWatch } from "@/components/job-watch";
 import { PracticeBanner } from "@/components/practice-banner";
 import { StepProgress, stepStatus, useStepTicker } from "@/components/step-progress";
 import { AI_BUTTON, ALERT, EYEBROW, PRIMARY_LINK, SECONDARY, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
@@ -58,6 +59,10 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
   // Where focus goes once the progress screen closes
   const focusNext = useRef<"opening" | "button" | null>(null);
   const [, startTransition] = useTransition();
+  const job = useJobWatch(() => {
+    focusNext.current = "opening";
+    void ticker.finish().then(() => setAnnouncement("Your insights are ready."));
+  });
   const [marks, setOptimistic] = useOptimistic(savedMarks, (state, change: { key: string; mark: InsightMark | null }) => {
     const next = { ...state };
     if (change.mark) next[change.key] = change.mark;
@@ -80,6 +85,8 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
     ticker.start();
     try {
       const result = await writeInsightsAction();
+      // Already being written, maybe in another tab: keep showing progress until it's done
+      if (!result.ok && result.busy) return job.watch([result.busy]);
       if (!result.ok) {
         focusNext.current = "button";
         ticker.stop();

@@ -4,6 +4,7 @@ import type { NavStatus } from "@/components/nav-links";
 import { getMyBusiness, getMyPaperwork, getMySidebarFacts, type MyBusiness } from "@/lib/data/my-business";
 import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
 import { profileKey } from "@/lib/research/requirements";
+import { contactStatus } from "@/lib/rules/contact-setup";
 import { choosesStructure } from "@/lib/rules/plan";
 import { remainingWork } from "@/lib/rules/progress";
 import { menuGroups, sidebarStatus, startSteps } from "@/lib/rules/section-status";
@@ -55,6 +56,7 @@ async function statusFor(business: MyBusiness): Promise<NavStatus> {
   );
   const structureWork = remainingWork((paper?.plan.steps ?? []).filter(choosesStructure));
   const facts = menuGroups(groups);
+  const contact = contactStatus((paper?.details ?? []).map((detail) => detail.key), saved?.marks ?? []).step;
   const parts = sidebarStatus({
     business: Boolean(profile),
     research: !paper?.basis ? "none" : profile && profileKey(profile) === paper.basis.profileKey ? "current" : "stale",
@@ -72,11 +74,12 @@ async function statusFor(business: MyBusiness): Promise<NavStatus> {
     socialPlatforms: saved?.socialPlatforms ?? [],
     socialHave: saved?.socialHave ?? [],
     marks: new Set(saved?.marks ?? []),
+    contact,
   });
   return {
     parts,
     scope: business.id,
-    start: startSteps(facts),
+    start: startSteps(facts, contact !== "none"),
     // A part's page, or a task's, highlights its group's menu step
     groupOf: Object.fromEntries([
       ...facts.flatMap((group) => group.hrefs.map((href) => [href, group.href])),

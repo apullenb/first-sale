@@ -242,3 +242,9 @@ export type WorkflowId = keyof typeof WORKFLOWS;
 export function workflowsFor(topic: PlanTopic): WorkflowId[] {
   return (Object.keys(WORKFLOWS) as WorkflowId[]).filter((id) => (WORKFLOWS[id].offeredFor as readonly PlanTopic[]).includes(topic));
 }
+
+// One job, for watching it from a page
+export interface JobRef {
+  workflow: WorkflowId;
+  subjectId: string | null;
+}

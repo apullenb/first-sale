@@ -6,6 +6,7 @@ import { Card } from "@/components/ui";
 import type { Stage, StageState } from "@/lib/rules/journey";
 import { costWords } from "@/lib/rules/next-action";
 import { formatMinutes, MAX_SITTING_MINUTES } from "@/lib/rules/progress";
+import { progressLabel } from "@/lib/progress-labels";
 import { formatDay } from "./dates";
 import { LaunchCountdown, LaunchMonth } from "./launch-countdown";
 
@@ -49,10 +50,10 @@ export function DashboardWidgets({ left, minutes, waiting, parts, finishedCents,
   ];
   return (
     <section aria-label="At a glance" className="grid grid-cols-2 gap-3 @2xl:grid-cols-3 @2xl:gap-5">
-      <Stat id="stat-left" title="Left to do" icon="checklist">
+      <Stat id="stat-left" title="Launch tasks left" icon="checklist">
         <p className={BIG}>
           {left}
-          <small className={UNIT}>{left === 1 ? "step" : "steps"}</small>
+          <small className={UNIT}>{left === 1 ? "task" : "tasks"}</small>
         </p>
         {minutes ? (
           <div aria-hidden="true" className="my-1.5 flex h-2 overflow-hidden rounded-full bg-wash">
@@ -109,11 +110,9 @@ export function DashboardWidgets({ left, minutes, waiting, parts, finishedCents,
 
       <Stat id="stat-progress" title="Your progress" icon="ramp" className="col-span-2 @2xl:col-span-1">
         <p className={SUB}>
-          <b className="font-bold text-ink">
-            {done} of {total}
-          </b>{" "}
-          {total === 1 ? "step" : "steps"} done before your first sale
+          <b className="font-bold text-ink">{progressLabel("launch", done, total)}</b> done before your first sale
         </p>
+        <p className={SUB}>{progressLabel("setup", stages.filter((stage) => stage.state === "done").length, stages.filter((stage) => stage.state !== "anytime").length)} done</p>
         <Ramp done={done} total={total} stages={stages.filter((stage) => stage.state !== "anytime")} />
       </Stat>
     </section>
@@ -150,7 +149,7 @@ function Ramp({ done, total, stages }: { done: number; total: number; stages: St
   const at = (fraction: number) => [x0 + (x1 - x0) * fraction, y0 + (y1 - y0) * fraction] as const;
   const [px, py] = at(Math.max(share, 0.04));
   return (
-    <svg viewBox="0 0 240 112" role="img" aria-label={`${done} of ${total} steps done`} className="mx-auto mt-auto h-auto w-full max-w-[300px]">
+    <svg viewBox="0 0 240 112" role="img" aria-label={`${progressLabel("launch", done, total)} done`} className="mx-auto mt-auto h-auto w-full max-w-[300px]">
       <path d={`M${x0} ${y0 + 8}L${x1} ${y1 + 8}L${x1} ${y0 + 8}Z`} className="fill-wash" />
       <line x1={x0} y1={y0} x2={x1} y2={y1} strokeWidth="7" strokeLinecap="round" className="stroke-line" />
       <line x1={x0} y1={y0} x2={px} y2={py} strokeWidth="7" strokeLinecap="round" className="stroke-accent" />

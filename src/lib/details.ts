@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { BUSINESS_STRUCTURES } from "./domain";
+import { isEmailAddress, isUsPhone } from "./rules/contact-setup";
 
 // Business details that forms ask for, beyond the intake answers, and decisions the owner records.
 // Never Social Security numbers, tax ids or other identity numbers: forms leave those for the owner to fill in.
@@ -91,6 +92,12 @@ export const DETAILS = {
     ],
     maxLength: 40,
   },
+  pickup_details: {
+    label: "Pickup hours and place",
+    help: "When and where customers collect orders, like “Saturdays 9 to noon, at my front porch”. Kept here for your plans; share it with customers only where you choose.",
+    kind: "multiline",
+    maxLength: 300,
+  },
   business_purpose: {
     label: "What the business does, in one sentence",
     help: "Some forms ask for a short description of the business’s purpose.",
@@ -106,6 +113,9 @@ export const DETAILS = {
 } as const satisfies Record<string, DetailSpec>;
 
 export type DetailKey = keyof typeof DETAILS;
+
+// Where a detail's field sits on Your business, for links straight to it
+export const detailAnchor = (key: DetailKey) => `detail-${key}`;
 export const DETAIL_KEYS = Object.keys(DETAILS) as DetailKey[];
 
 export const DECISION_KEYS = DETAIL_KEYS.filter((key) => (DETAILS[key] as DetailSpec).decision);
@@ -126,6 +136,8 @@ export function detailProblem(key: DetailKey, value: string): string | null {
   if (!trimmed) return `Enter ${spec.label.toLowerCase()}.`;
   if (trimmed.length > spec.maxLength) return `Keep it under ${spec.maxLength} characters.`;
   if (spec.options && !spec.options.some(([option]) => option === trimmed)) return "Pick one of the options.";
+  if (key === "business_email" && !isEmailAddress(trimmed)) return "Enter an email address like hello@example.com.";
+  if (key === "business_phone" && !isUsPhone(trimmed)) return "Enter a US phone number with its area code, like (512) 555-0123.";
   if (looksLikeIdNumber(trimmed)) return "SnapStart doesn’t store Social Security or tax ID numbers. Fill those in on the form yourself.";
   return null;
 }

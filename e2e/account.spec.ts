@@ -46,6 +46,10 @@ test.describe("accounts", () => {
     await open(page, "/login");
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("Password", { exact: true }).fill("not the right password");
+    await page.getByRole("button", { name: "Show password" }).click();
+    await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute("type", "text");
+    await page.getByRole("button", { name: "Hide password" }).click();
+    await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute("type", "password");
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page.getByRole("alert").filter({ hasText: /./ })).toBeVisible();
     await expect(page).toHaveURL(/\/login$/);

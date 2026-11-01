@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { flushSync } from "react-dom";
-import { ALERT, EYEBROW, PRIMARY, TEXT_LINK } from "@/components/styles";
+import { ALERT, EYEBROW, PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles";
 import { authClient } from "@/lib/auth/client";
 import { authErrorMessage, isValidEmail, NETWORK_ERROR_MESSAGE } from "@/lib/auth/rules";
 import { TextField } from "./text-field";
 
 export function LogInForm() {
   const [values, setValues] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const [tried, setTried] = useState(false);
   const [pending, setPending] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -76,11 +77,22 @@ export function LogInForm() {
       <TextField
         id="login-password"
         label="Password"
-        type="password"
+        type={showPassword ? "text" : "password"}
         autoComplete="current-password"
         value={values.password}
         onChange={(e) => setValues((v) => ({ ...v, password: e.target.value }))}
         error={tried ? problems.password : null}
+        addon={
+          <button
+            type="button"
+            onClick={() => setShowPassword((shown) => !shown)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-controls="login-password"
+            className={`${SECONDARY} min-w-18`}
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        }
       />
       {formError ? (
         <p ref={errorRef} role="alert" tabIndex={-1} className={ALERT}>
