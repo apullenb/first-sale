@@ -45,11 +45,11 @@ export default function StartPage() {
 }
 
 async function Overview() {
-  const [business, paper, run] = await Promise.all([getMyBusiness(), getMyPaperwork(), lastMyRun("research", null)]);
+  const [business, paper, research, followUp] = await Promise.all([getMyBusiness(), getMyPaperwork(), lastMyRun("research", null), lastMyRun("follow_up", null)]);
   const answered = Boolean(business?.profile);
   return (
     <>
-      <ResearchRunStatus run={run} retryHref="/requirements" />
+      <ResearchRunStatus runs={{ research, followUp }} retryHref="/requirements" />
       {paper?.view.tasks.some((task) => task.step.simulated) ? <PracticeBanner what="Steps here came from practice results." /> : null}
       {paper ? <Progress paper={paper} /> : null}
 

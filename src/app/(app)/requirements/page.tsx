@@ -10,7 +10,7 @@ import { CheckRequirementsButton } from "@/components/requirements/check-button"
 import { AnswerButtons, ChangeAnswer, UndoAnswer } from "@/components/requirements/condition-answer";
 import { CoverageList } from "@/components/requirements/coverage-list";
 import { SourceLinks } from "@/components/requirements/sources";
-import { ResearchRunStatus } from "@/components/requirements/research-run";
+import { ResearchRunStatus, runningResearch } from "@/components/requirements/research-run";
 import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Card, Chip, Fold, IconTile, Note, PageHead, ResourceLink } from "@/components/ui";
 import { getMyBusiness, getMyPaperwork, getMyResearch, lastMyRun, type MyPaperwork } from "@/lib/data/my-business";
@@ -50,7 +50,16 @@ export default function RequirementsPage() {
 }
 
 async function Requirements() {
-  const [business, research, run, paper] = await Promise.all([getMyBusiness(), getMyResearch(), lastMyRun("research", null), getMyPaperwork()]);
+  const [business, research, researchRun, followUpRun, paper] = await Promise.all([
+    getMyBusiness(),
+    getMyResearch(),
+    lastMyRun("research", null),
+    lastMyRun("follow_up", null),
+    getMyPaperwork(),
+  ]);
+  const runs = { research: researchRun, followUp: followUpRun };
+  // A check running elsewhere, such as in another tab, is followed rather than started again
+  const running = runningResearch(runs).length > 0;
 
   if (!business?.profile || !paper) {
     return (
@@ -70,9 +79,9 @@ async function Requirements() {
   const place = placeOf(business.profile);
   return (
     <>
-      <ResearchRunStatus run={run} />
+      <ResearchRunStatus runs={runs} />
       <PlaceSummary place={place} />
-      {research ? <Results profile={business.profile} research={research} paper={paper} /> : <FirstCheck place={place} paper={paper} />}
+      {research ? <Results profile={business.profile} research={research} paper={paper} running={running} /> : <FirstCheck place={place} paper={paper} running={running} />}
     </>
   );
 }
@@ -113,7 +122,7 @@ function PlaceSummary({ place }: { place: Place }) {
   );
 }
 
-function FirstCheck({ place, paper }: { place: Place; paper: MyPaperwork }) {
+function FirstCheck({ place, paper, running }: { place: Place; paper: MyPaperwork; running: boolean }) {
   const structure = paper.context.decision.structure;
   return (
     <Card title={`Find what applies to you in ${place.stateName}`} icon="search" id="first-check" bodyClassName="gap-4">
@@ -129,13 +138,13 @@ function FirstCheck({ place, paper }: { place: Place; paper: MyPaperwork }) {
           </>
         )}
       </p>
-      <CheckRequirementsButton label="Find what applies to me" variant="primary" auto />
+      {running ? null : <CheckRequirementsButton label="Find what applies to me" variant="primary" auto />}
     </Card>
   );
 }
 
 
-function Results({ profile, research, paper }: { profile: BusinessProfile; research: ResearchSnapshot; paper: MyPaperwork }) {
+function Results({ profile, research, paper, running }: { profile: BusinessProfile; research: ResearchSnapshot; paper: MyPaperwork; running: boolean }) {
   const { view, context } = paper;
   const decision = context.decision;
   // Any change to the answers needs a new search; until then, what applies follows the answers that were checked
@@ -200,11 +209,11 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
             <p>Some of your answers changed.</p>
           )}
           <p className="text-rule">SnapStart is updating what applies for these answers. Steps you’ve finished stay finished.</p>
-          <CheckRequirementsButton label="Update my steps" variant="primary" auto from={recheck ? "check" : "replan"} />
+          {running ? null : <CheckRequirementsButton label="Update my steps" variant="primary" auto from={recheck ? "check" : "replan"} />}
         </section>
       ) : null}
 
-      {deeper && !recheck ? <CheckRequirementsButton label="Finish the check" variant="primary" auto from="follow" /> : null}
+      {deeper && !recheck && !running ? <CheckRequirementsButton label="Finish the check" variant="primary" auto from="follow" /> : null}
 
       <div className="flex flex-wrap items-center gap-2">
         <Chip tone="accent" icon="check">
@@ -423,7 +432,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
         </Fold>
       </div>
 
-      {changes.length || unknownChange ? null : (
+      {changes.length || unknownChange || running ? null : (
         <div className="flex flex-col gap-2">
           <p className="text-sm text-muted">Rules change. Checking again keeps your answers about your plans.</p>
           <CheckRequirementsButton label="Check again" variant="secondary" />
