@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type ActionStep, planCosts } from "./next-action";
+import { type ActionStep, costWords, planCosts } from "./next-action";
 
 const step = (key: string, overrides: Partial<ActionStep> = {}): ActionStep => ({
   key,
@@ -52,3 +52,28 @@ describe("planCosts: one form, several steps", () => {
   });
 });
 
+
+describe("planCosts: what has a fee to find", () => {
+  it("counts a company filing's unknown fee, but not a decision or a rule to follow", () => {
+    const costs = planCosts([
+      step("Operate as a sole proprietorship", { topic: "structure" }),
+      step("Form your LLC with the state of Ohio", { topic: "structure", forStructures: ["llc"] }),
+      step("Label your cottage foods the way Texas requires", { topic: "license_permit" }),
+    ]);
+    expect(costs.unknown).toEqual(["Form your LLC with the state of Ohio"]);
+  });
+});
+
+describe("costWords", () => {
+  it("never calls a total free while a fee is unknown", () => {
+    const words = costWords({ startupCents: 0, unknown: ["a", "b", "c", "d"] });
+    expect(words).toEqual({ known: "Known fees: $0", unconfirmed: "4 costs still unconfirmed", total: "Your total startup cost isn’t known yet" });
+    expect(Object.values(words).join(" ")).not.toMatch(/free/i);
+  });
+
+  it("gives a total only once every fee is known", () => {
+    expect(costWords({ startupCents: 2550, unknown: ["a"] })).toMatchObject({ known: "Known fees: $25.50", unconfirmed: "1 cost still unconfirmed" });
+    expect(costWords({ startupCents: 2500, unknown: [] })).toEqual({ known: "Known fees: $25", unconfirmed: null, total: "Total known startup fees: $25" });
+    expect(costWords({ startupCents: 0, unknown: [] }).total).toBe("No startup fees found on official pages");
+  });
+});

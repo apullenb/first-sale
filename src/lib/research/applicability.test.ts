@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { requirementDraft, testProfile } from "@/test/fixtures";
-import { classify, placeConditions, placeGap, placeOf, structureOf } from "./applicability";
+import { classify, intakeAnswer, placeConditions, placeGap, placeOf, structureOf } from "./applicability";
 
 const profile = testProfile({ location: { state: "OH", county: "Franklin County", city: " Columbus ", insideCityLimits: "yes" } });
 const place = placeOf(profile);
@@ -110,5 +110,25 @@ describe("placeGap", () => {
     expect(placeGap("county", placeOf(testProfile({ location: { county: "" } })))?.action).toBe("Add your county to your answers");
     expect(placeGap("state", unsure)).toBeNull();
     expect(placeGap("city", place)).toBeNull();
+  });
+});
+
+describe("intakeAnswer", () => {
+  const notNow = { hiringPlans: "not_now" as const, helpKinds: [] };
+  it("answers a hiring question from the intake instead of asking again", () => {
+    expect(intakeAnswer("Will you hire employees?", notNow)).toEqual({ answer: "no", note: null });
+    expect(intakeAnswer("Will you have employees in your first year?", notNow)).toEqual({ answer: "no", note: null });
+    expect(intakeAnswer("Will you hire employees?", { hiringPlans: "first_year", helpKinds: [] })).toEqual({ answer: "yes", note: null });
+  });
+
+  it("asks about a later time, saying so", () => {
+    expect(intakeAnswer("Do you plan to hire staff in the future?", notNow)).toEqual({ answer: null, note: "You said you’re not hiring for now. This asks about later on." });
+  });
+
+  it("leaves other questions, contractors and unsure answers to the owner", () => {
+    expect(intakeAnswer("Will you sell at farmers markets?", notNow)).toBeNull();
+    expect(intakeAnswer("Will you hire independent contractors?", notNow)).toBeNull();
+    expect(intakeAnswer("Will you hire employees?", { hiringPlans: null, helpKinds: [] })).toBeNull();
+    expect(intakeAnswer("Will you hire employees?", { hiringPlans: "not_now", helpKinds: ["unsure"] })).toBeNull();
   });
 });

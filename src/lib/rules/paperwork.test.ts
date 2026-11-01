@@ -317,3 +317,26 @@ describe("nextTaskAfter", () => {
     expect(key(nextTaskAfter(done.tasks, "c"))).toBe("d");
   });
 });
+
+describe("standingOf: questions the intake already answered", () => {
+  const payroll = step("payroll", { topic: "employer", requirementStatus: "conditional", question: "Only if you hire employees." });
+  const notHiring = { ...profile, hiringPlans: "not_now" as const, helpKinds: [] };
+
+  it("isn't asked again when the owner said they're not hiring for now", () => {
+    expect(standingOf(payroll, context({ profile: notHiring }))).toMatchObject({ inclusion: "no", answer: "no", answeredBy: "intake" });
+  });
+
+  it("is asked when it's about a later time, saying so", () => {
+    const later = { ...payroll, question: "Do you plan to hire employees in the future?" };
+    expect(standingOf(later, context({ profile: notHiring }))).toMatchObject({
+      inclusion: "question",
+      answeredBy: null,
+      askNote: "You said you’re not hiring for now. This asks about later on.",
+    });
+  });
+
+  it("lets the owner's own answer win", () => {
+    const answers = [{ stepKey: "payroll", condition: "Only if you hire employees.", answer: "yes" as const }];
+    expect(standingOf(payroll, context({ profile: notHiring, answers }))).toMatchObject({ inclusion: "task", answeredBy: "owner" });
+  });
+});

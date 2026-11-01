@@ -2,7 +2,7 @@ import type { JurisdictionLevel } from "@/lib/domain";
 import { pdfText } from "@/lib/documents/pdf";
 import { type Contacts, pageContacts } from "./contacts";
 import type { ResearchCategory } from "./coverage";
-import { MAX_SOURCE_CHARS, pageText } from "./page-text";
+import { MAX_SOURCE_CHARS, pageText, sourceTitle } from "./page-text";
 import { isAllowedHost } from "./source-pack";
 import type { RetrievedSource } from "./verify";
 
@@ -73,7 +73,8 @@ export async function retrieveSources(
       unread.push({ id: source.id, title: source.title, url: source.url, reason: fetched.reason, level: source.level, categories: source.categories });
       continue;
     }
-    const text = fetched.pdf ? await readPdfSource(fetched.pdf) : pageText(fetched.html, fragment).text;
+    const read = fetched.pdf ? null : pageText(fetched.html, fragment);
+    const text = read ? read.text : await readPdfSource(fetched.pdf!);
     if (!text) {
       const reason = text === null ? "The linked section isn’t on the page anymore" : "The page had no readable text";
       unread.push({ id: source.id, title: source.title, url: source.url, reason, level: source.level, categories: source.categories });
@@ -81,7 +82,8 @@ export async function retrieveSources(
     }
     pages.push({
       id: source.id,
-      title: source.title,
+      // A search result's title can name another page on the site
+      title: read ? sourceTitle({ title: source.title, heading: read.heading, text }) : source.title,
       url: fragment && !fetched.pdf ? `${fetched.finalUrl}#${fragment}` : fetched.finalUrl,
       level: source.level,
       government: source.government,

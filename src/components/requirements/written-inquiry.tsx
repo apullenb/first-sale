@@ -52,7 +52,7 @@ export function WrittenInquiry({
               if you’d rather call.{" "}
             </>
           ) : null}
-          {link ? "Look for a contact form or email address on their official site, starting here:" : "We didn’t find their official site yet. Many offices list an email address on their county or city website."}
+          {link ? "Look for a contact form or email address on their official site, starting here:" : "SnapStart hasn’t verified an official page for this office yet, so there’s no link here. Many offices list an email address on their county or city website."}
         </p>
       )}
       {listed ? (

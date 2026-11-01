@@ -86,8 +86,8 @@ describe("retrieveSources", () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(unread).toEqual([]);
     expect(pages).toEqual([
-      { id: "a", title: "a", url: "https://www.sba.gov/launch/#a", level: "federal", ...read, text: "Section A\nAbout A.", retrievedAt: now.toISOString(), contacts: { emails: [], phones: [] } },
-      { id: "b", title: "b", url: "https://www.sba.gov/launch/#b", level: "federal", ...read, text: "Section B\nAbout B.", retrievedAt: now.toISOString(), contacts: { emails: [], phones: [] } },
+      { id: "a", title: "Section A", url: "https://www.sba.gov/launch/#a", level: "federal", ...read, text: "Section A\nAbout A.", retrievedAt: now.toISOString(), contacts: { emails: [], phones: [] } },
+      { id: "b", title: "Section B", url: "https://www.sba.gov/launch/#b", level: "federal", ...read, text: "Section B\nAbout B.", retrievedAt: now.toISOString(), contacts: { emails: [], phones: [] } },
     ]);
   });
 

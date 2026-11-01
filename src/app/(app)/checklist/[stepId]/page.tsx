@@ -11,7 +11,7 @@ import { FilingLines, FilingSteps } from "@/components/plan/filing-steps";
 import { type FormDoc, OfficialFormCard } from "@/components/plan/official-form-card";
 import { RecordUpload } from "@/components/plan/record-upload";
 import { PenCheck, TOPIC_ICONS } from "@/components/plan/step-row";
-import { StepStatus } from "@/components/plan/step-status";
+import { AcknowledgeDecision, StepStatus } from "@/components/plan/step-status";
 import { StructureDecision } from "@/components/plan/structure-decision";
 import { PracticeBanner } from "@/components/practice-banner";
 import { StatusChip } from "@/components/requirements/sources";
@@ -31,13 +31,17 @@ import { formatFee } from "@/lib/documents/startup-plan";
 import { ACCEPTED_TYPES } from "@/lib/documents/upload";
 import { LEVEL_LABELS, TOPIC_LABELS } from "@/lib/labels";
 import type { BusinessProfile } from "@/lib/domain";
-import { jurisdictionName, type Place, placeGap, placeOf, structureOf } from "@/lib/research/applicability";
+import { jurisdictionName, type Place, placeGap, placeOf, STRUCTURE_NAMES, structureOf } from "@/lib/research/applicability";
+import type { Contacts } from "@/lib/research/contacts";
 import { writtenInquiry } from "@/lib/research/inquiry";
+import { officeLink, orderLinks } from "@/lib/research/office";
 import { explainTerms, termsIn } from "@/lib/plain-words";
 import { type FilingStep, filingPaths, filingSteps } from "@/lib/rules/filing";
 import { choosesStructure } from "@/lib/rules/plan";
 import { nextTaskAfter, type Standing, stepLinks } from "@/lib/rules/paperwork";
 import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
+import { filingReadiness, GAP_WORDS, NEEDS_CONFIRMATION, type Readiness } from "@/lib/rules/readiness";
+import { KIND_TAGS, stepKindOf } from "@/lib/rules/step-kind";
 
 export const metadata: Metadata = { title: "Paperwork step" };
 
@@ -112,7 +116,10 @@ async function StepDetail({ params }: { params: Params }) {
           ),
         ]
       : [];
-  const filing = !choosesStructure(step);
+  const findOut = task?.kind === "confirm";
+  // What the step asks of the owner decides its wording and how it's marked done
+  const kind = stepKindOf(step, { confirm: findOut, hasForm: Boolean(form) });
+  const filing = kind === "filing";
   // Locks come from the same rules as the lists and the menu
   const blockers = task && step.status === "todo" ? task.blockers : [];
   const lockedBy = blockers.filter((each) => !each.office);
@@ -128,6 +135,10 @@ async function StepDetail({ params }: { params: Params }) {
   const feesDiffer = step.feeCents !== null && form?.fee != null && form.fee.cents !== step.feeCents;
   const feeCents = step.feeCents ?? form?.fee?.cents ?? null;
   const fileable = filing && cards.some((card) => !card.form.kept);
+  const readiness = filing ? filingReadiness({ form, links: step.links, feeCents }) : null;
+  const sourceLinks = orderLinks(step.links, step.level);
+  const ownLink = profile ? officeLink(step, profile.location) : null;
+  const office = step.whoToCall || step.agency;
   const filed = filingSteps({
     title: step.title,
     agency: step.agency,
@@ -164,7 +175,10 @@ async function StepDetail({ params }: { params: Params }) {
       }
     : null;
   // With the ways shown above, the read-ahead keeps only what they share
-  const how = filed.filter((each) => !paths || !["before", "form", "submit", "gather"].includes(each.kind)).map((each) => ({ ...each, lines: plain(each.lines) }));
+  // Only a filing has a form, a way to submit and a receipt
+  const how = filed
+    .filter((each) => (filing ? !paths || !["before", "form", "submit", "gather"].includes(each.kind) : ["before", "gather", "form", "after"].includes(each.kind)))
+    .map((each) => ({ ...each, title: !filing && each.kind === "form" ? "The official page" : each.title, lines: plain(each.lines) }));
   const pathCard = pathForm ? cards.find((card) => card.form.key === pathForm.key) : undefined;
   const keptCards = cards.filter((card) => card.form.kept);
   const formsHere =
@@ -197,10 +211,12 @@ async function StepDetail({ params }: { params: Params }) {
   const steps = <FilingSteps steps={how} extras={{ form: formsHere, receipt }} label={paths ? "Before and after" : undefined} />;
   const locked = blockers.length > 0;
   const checkPlace = task?.kind === "check_place";
-  const findOut = task?.kind === "confirm";
   const gap = checkPlace && paper ? placeGap(step.level, paper.context.place) : null;
   const ready = !step.retired && step.status === "todo" && !locked;
-  const confirming = step.links.find((link) => link.confirms) ?? null;
+  const unconfirmed = ready && readiness !== null && !readiness.verified;
+  const decided = decision?.structure ?? null;
+  const decisionFits = decided !== null && (!step.forStructures.length || step.forStructures.includes(decided));
+  const confirming = orderLinks(step.links, step.level).find((link) => link.confirms) ?? null;
   const howSourced = how.some((each) => each.lines.some((line) => line.source));
   const progress = (
     <StepStatus
@@ -211,7 +227,7 @@ async function StepDetail({ params }: { params: Params }) {
       note={step.evidenceNote}
       submittedAt={step.submittedAt?.toISOString() ?? null}
       submissionNote={step.submissionNote}
-      filing={filing}
+      kind={kind}
     />
   );
 
@@ -238,6 +254,12 @@ async function StepDetail({ params }: { params: Params }) {
             ) : (
               <RequirementStatusChip status={step.requirementStatus} />
             )}
+            {unconfirmed ? (
+              <Chip tone="warn" icon="question">
+                {NEEDS_CONFIRMATION}
+              </Chip>
+            ) : null}
+            {KIND_TAGS[kind] && !findOut ? <Chip tone="gray">{KIND_TAGS[kind]}</Chip> : null}
             {step.status === "done" ? (
               <Chip tone="done" icon="check">
                 Done
@@ -258,19 +280,19 @@ async function StepDetail({ params }: { params: Params }) {
           <h1 className={PAGE_TITLE}>{step.title}</h1>
           {step.timing === "later" ? <p className="text-[15px] text-muted">This comes later: you don’t need it before your first sale.</p> : null}
         </div>
-        {step.retired ? null : <AlreadyDone key={step.status} stepId={step.id} title={step.title} accept={accept} markDone={step.status === "todo" && !choosesStructure(step)} />}
+        {step.retired ? null : <AlreadyDone key={step.status} stepId={step.id} title={step.title} accept={accept} markDone={step.status === "todo" && kind !== "decision"} />}
       </div>
 
       <div className="-mt-1 flex flex-wrap gap-2">
         <Fact icon="clock">
-          <b className="font-bold text-ink">{minutes}</b> of your time
+          About <b className="font-bold text-ink">{minutes}</b> of your time (an estimate)
         </Fact>
         {feesDiffer ? (
           <Fact icon="coins">Official pages differ on the fee</Fact>
         ) : feeCents !== null ? (
           <Fact icon="coins">{feeCents === 0 ? "Free" : formatFee(feeCents)}</Fact>
-        ) : fileable ? (
-          <Fact icon="coins">Fee set by the office</Fact>
+        ) : filing || kind === "training" ? (
+          <Fact icon="coins">Fee not confirmed</Fact>
         ) : null}
         {step.agency ? <Fact icon="office">{step.agency}</Fact> : null}
         <Fact icon="pin">
@@ -298,7 +320,17 @@ async function StepDetail({ params }: { params: Params }) {
               <h2 id="progress-heading" className={STATE_TITLE}>
                 Done{step.completedAt ? <> on <LocalDate iso={step.completedAt.toISOString()} /></> : null}
               </h2>
-              <p className="text-muted">{choosesStructure(step) ? "You recorded your choice on Business structure." : filing ? "Approved or finished." : "You marked this done."}</p>
+              <p className="text-muted">
+                {choosesStructure(step)
+                  ? "You recorded your choice on Business structure."
+                  : kind === "decision"
+                    ? "You confirmed this decision. Nothing was filed for it."
+                    : kind === "contact"
+                      ? "The office answered."
+                      : filing
+                        ? "Approved or finished."
+                        : "You marked this done."}
+              </p>
             </div>
           </div>
           {choosesStructure(step) ? <StructureDecision key={step.id} current={details.find((detail) => detail.key === "structure_choice")?.value ?? null} /> : progress}
@@ -317,7 +349,7 @@ async function StepDetail({ params }: { params: Params }) {
           </h2>
           <p className="text-muted">
             You can read ahead. This step opens once that’s done.
-            {choosesStructure(step) ? "" : " Already did it on your own? Use “I’ve already done this” at the top."}
+            {kind === "decision" ? "" : " Already did it on your own? Use “I’ve already done this” at the top."}
           </p>
           <Link href={(lockedBy[0] ?? blockers[0]).href} className={PRIMARY_LINK}>
             Take me there
@@ -335,7 +367,7 @@ async function StepDetail({ params }: { params: Params }) {
       ) : (
         <section aria-labelledby="part-heading" className={ACTION_ITEM}>
           <ActionKicker>
-            {checkPlace ? "Add where you are" : "Your part"} · about {minutes}
+            {checkPlace ? "Add where you are" : kind === "decision" ? "A decision" : "Your part"} · about {minutes}
           </ActionKicker>
           {checkPlace ? (
             <>
@@ -344,23 +376,51 @@ async function StepDetail({ params }: { params: Params }) {
               </h2>
               {gap ? <PlaceGap gap={gap} condition={step.conditions[0] ?? ""} /> : null}
             </>
+          ) : kind === "decision" && !choosesStructure(step) ? (
+            <>
+              <h2 id="part-heading" className={STATE_TITLE}>
+                Confirm your decision
+              </h2>
+              <p className="text-rule">This is a choice, not a filing. Nothing is sent to an office, and there’s no receipt to keep.</p>
+              {decisionFits && decided ? (
+                <Note icon="check" tone="quiet">
+                  You chose {STRUCTURE_NAMES[decided]} on Business structure.
+                </Note>
+              ) : (
+                <Link href="/structure" className={`${SECONDARY_LINK} w-fit`}>
+                  Record your choice on Business structure first
+                </Link>
+              )}
+              <div id="progress-heading" className="flex flex-col gap-2 border-t border-line pt-4">
+                <AcknowledgeDecision stepId={step.id} title={step.title} ready={decisionFits} />
+              </div>
+            </>
           ) : (
             <>
-              {findOut && profile && place ? <AskOffice step={step} profile={profile} place={place} /> : null}
+              {kind === "contact" && profile && place ? <AskOffice step={step} profile={profile} place={place} link={ownLink} /> : null}
               {reason ? (
                 <Note icon="lightbulb">
                   <p className="font-semibold">Why you need this</p>
                   <p>{reason}</p>
                 </Note>
               ) : null}
+              {unconfirmed && readiness && profile && place ? (
+                <ConfirmFirst readiness={readiness} step={step} office={office} link={ownLink} contacts={step.contacts ?? null} profile={profile} place={place} />
+              ) : null}
               <h2 id="part-heading" className={STATE_TITLE}>
                 {choosesStructure(step)
                   ? "Choose how your business is owned"
-                  : paths?.paper && paths.online
-                    ? "Choose how to do it"
-                    : fileable
-                      ? "SnapStart fills in the blanks your details answer. You check, sign and send it yourself."
-                      : "Here’s how to do it yourself"}
+                  : kind === "contact"
+                    ? "Send your question, then record it here"
+                    : kind === "training"
+                      ? "Complete it, then record it here"
+                      : kind === "compliance"
+                        ? "Check that your business follows this"
+                        : paths?.paper && paths.online
+                          ? "Choose how to do it"
+                          : fileable
+                            ? "SnapStart fills in the blanks your details answer. You check, sign and send it yourself."
+                            : "Here’s how to do it yourself"}
               </h2>
               {choosesStructure(step) ? (
                 <StructureDecision key={step.id} current={details.find((detail) => detail.key === "structure_choice")?.value ?? null} />
@@ -387,7 +447,7 @@ async function StepDetail({ params }: { params: Params }) {
                   {missing.length ? <MissingDetails items={missingPlain} /> : null}
                   <FilingPaths stepId={step.id} form={pathForm} paths={paths} original={pathCard?.original ?? null} guide={pathCard?.guide ?? null} reviewed={pathCard?.reviewed ?? []} />
                 </>
-              ) : (
+              ) : kind === "contact" ? null : (
                 steps
               )}
               {choosesStructure(step) ? (
@@ -402,7 +462,9 @@ async function StepDetail({ params }: { params: Params }) {
                     </h3>
                     {progress}
                   </div>
-                  <p className="text-sm text-muted">Opening a link or a form never changes this. You record what you did. SnapStart never files anything for you.</p>
+                  <p className="text-sm text-muted">
+                    Opening a link or a form never changes this. You record what you did. SnapStart never {kind === "contact" ? "sends anything" : "files anything"} for you.
+                  </p>
                 </>
               )}
             </>
@@ -420,7 +482,7 @@ async function StepDetail({ params }: { params: Params }) {
       ) : null}
 
       <div className="flex flex-col gap-3">
-        {ready && !choosesStructure(step) && !checkPlace && !paths ? null : (
+        {kind === "decision" || (ready && !choosesStructure(step) && !checkPlace && !paths) ? null : (
           <Fold
             title={paths ? "Fees, timing and what happens after" : "How to do it yourself"}
             summary={`${paths ? "The fee, your receipt and what’s next" : step.status === "done" || step.retired ? "The steps" : `Read ahead: ${how.length} steps`}${howSourced ? ", with official sources" : ""}`}
@@ -451,12 +513,12 @@ async function StepDetail({ params }: { params: Params }) {
 
         <Fold
           title="Official source"
-          summary={confirming ? confirming.title : step.links[0] ? `A related page: ${step.links[0].title}` : "Decided by SnapStart from how this works for businesses like yours"}
+          summary={confirming ? confirming.title : sourceLinks[0] ? `A related page: ${sourceLinks[0].title}` : "Decided by SnapStart from how this works for businesses like yours"}
           icon="link"
         >
-          {step.links.length ? (
+          {sourceLinks.length ? (
             <ul className="grid gap-1.5">
-              {step.links.map((link) => (
+              {sourceLinks.map((link) => (
                 <li key={link.url} className="flex flex-col">
                   <ResourceLink href={link.url} className="w-fit text-[15px]">
                     {link.title}
@@ -684,7 +746,7 @@ function PrerequisiteState({ done, office }: { done: boolean; office: boolean })
 }
 
 // A rule even the deeper look couldn't settle: what SnapStart found, then one message to the office that can say for sure
-function AskOffice({ step, profile, place }: { step: PlanStep; profile: BusinessProfile; place: Place }) {
+function AskOffice({ step, profile, place, link }: { step: PlanStep; profile: BusinessProfile; place: Place; link: { title: string; url: string } | null }) {
   const office = step.whoToCall || step.agency;
   const notes = step.notes ?? [];
   return (
@@ -708,9 +770,58 @@ function AskOffice({ step, profile, place }: { step: PlanStep; profile: Business
       <WrittenInquiry
         inquiry={writtenInquiry({ title: step.title, questions: step.whatToAsk, profile, place })}
         office={office}
-        link={step.links[0] ? { title: step.links[0].title, url: step.links[0].url } : null}
+        link={link}
         contacts={step.contacts}
       />
+    </section>
+  );
+}
+
+// A filing with nothing to finish first, whose form or way to submit no official page confirmed
+function ConfirmFirst({
+  readiness,
+  step,
+  office,
+  link,
+  contacts,
+  profile,
+  place,
+}: {
+  readiness: Readiness;
+  step: PlanStep;
+  office: string;
+  link: { title: string; url: string } | null;
+  contacts: Contacts | null;
+  profile: BusinessProfile;
+  place: Place;
+}) {
+  const unknown = [...readiness.missing.map((gap) => GAP_WORDS[gap]), ...(readiness.feeKnown ? [] : ["the fee"])];
+  const questions = [
+    ...(readiness.missing.includes("application") ? ["Which form or application do I use, and where do I get it?"] : []),
+    ...(readiness.missing.includes("route") ? ["How do I submit it: online, by mail or in person?"] : []),
+    ...(readiness.feeKnown ? [] : ["What is the fee, and how can I pay it?"]),
+    ...step.whatToAsk,
+  ];
+  const name = office || "the office";
+  return (
+    <section aria-labelledby="confirm-heading" className="flex flex-col gap-3 rounded-xl border border-check-ring bg-check-tint p-4 text-check">
+      <h3 id="confirm-heading" className="flex items-center gap-2 font-bold">
+        <Icon name="question" size="sm" />
+        {NEEDS_CONFIRMATION}
+      </h3>
+      <p>
+        Nothing has to come first, but no official page SnapStart read confirms {LIST.format(unknown)}. Check with {name} before you file.
+      </p>
+      {link ? (
+        <ResourceLink href={link.url} className="w-fit">
+          {link.title}
+        </ResourceLink>
+      ) : (
+        <p>SnapStart hasn’t verified an official page for {name} yet, so there’s no link here.</p>
+      )}
+      <Fold title={`Ask ${name} in writing`} summary="A message ready to send" icon="mail">
+        <WrittenInquiry inquiry={writtenInquiry({ title: step.title, questions, profile, place })} office={office} link={link} contacts={contacts} />
+      </Fold>
     </section>
   );
 }

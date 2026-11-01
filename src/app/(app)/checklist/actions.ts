@@ -3,7 +3,11 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
-import { createMyDocument, getMyPaperwork, setMyStepStatus } from "@/lib/data/my-business";
+import { OFFICIAL_FORMS } from "@/data/official-forms";
+import { createMyDocument, getMyBusiness, getMyDetails, getMyPaperwork, getMyStep, setMyStepStatus } from "@/lib/data/my-business";
+import { filedForm, formsFor } from "@/lib/documents/form-catalog";
+import { placeOf, structureOf } from "@/lib/research/applicability";
+import { stepKindOf, waitsOnOffice } from "@/lib/rules/step-kind";
 import { looksLikeIdNumber } from "@/lib/details";
 import { EMPTY_CONTENT } from "@/lib/documents/types";
 import { startupPlanPdf } from "@/lib/documents/startup-plan";
@@ -29,10 +33,30 @@ export async function setStepStatusAction(input: unknown): Promise<ActionResult>
   if (note && looksLikeIdNumber(note)) {
     return { ok: false, message: "Leave Social Security and tax ID numbers out of notes. Keep them somewhere safe instead." };
   }
+  if (status !== "todo") {
+    const refused = await kindRefuses(stepId, status);
+    if (refused) return { ok: false, message: refused };
+  }
   const saved = await setMyStepStatus({ stepId, status, note });
   if (!saved) return { ok: false, message: "That step wasn’t found. Reload the page and try again." };
   refresh();
   return { ok: true, value: null };
+}
+
+// Only a filing or a question to an office is sent; a structure decision is done once that structure is recorded
+async function kindRefuses(stepId: string, status: "submitted" | "done"): Promise<string | null> {
+  const [found, business, details] = await Promise.all([getMyStep(stepId), getMyBusiness(), getMyDetails()]);
+  if (!found) return null;
+  const profile = business?.profile ?? null;
+  const decision = profile ? structureOf(profile, details) : null;
+  const forms = profile ? formsFor(OFFICIAL_FORMS, found.step, placeOf(profile), decision?.structure ?? null) : [];
+  const kind = stepKindOf(found.step, { hasForm: Boolean(filedForm(forms)) });
+  if (status === "submitted" && !waitsOnOffice(kind)) return "Nothing is sent to an office for this step. Mark it done instead.";
+  const forStructures = found.step.forStructures;
+  if (status === "done" && kind === "decision" && forStructures.length && !(decision?.structure && forStructures.includes(decision.structure))) {
+    return "Record your choice on Business structure first.";
+  }
+  return null;
 }
 
 // A printable copy of the steps that apply, as they stand, saved to the document library

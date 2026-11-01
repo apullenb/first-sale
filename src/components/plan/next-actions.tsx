@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { Card, IconTile } from "@/components/ui";
 import { formatFee } from "@/lib/documents/startup-plan";
-import type { Costs } from "@/lib/rules/next-action";
+import { type Costs, costWords, dollars } from "@/lib/rules/next-action";
 
 const LIST = new Intl.ListFormat("en-US", { type: "conjunction" });
 
@@ -51,13 +51,14 @@ export function StepGroup({
 
 // Fees confirmed on official pages; unknown fees are listed, never guessed
 export function PlanCosts({ costs }: { costs: Costs }) {
+  const words = costWords(costs);
   return (
     <Card title="What it costs" icon="coins" id="costs-heading">
       <dl className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-0.5 rounded-xl border border-line bg-soft px-4 py-3">
-          <dt className="text-sm font-semibold text-muted">To get started</dt>
-          <dd className="font-display text-[32px] leading-tight tabular-nums">{costs.startupCents ? formatFee(costs.startupCents) : "$0"}</dd>
-          <dd className="text-sm text-muted">Fees confirmed on official pages</dd>
+          <dt className="text-sm font-semibold text-muted">Known fees to get started</dt>
+          <dd className="font-display text-[32px] leading-tight tabular-nums">{dollars(costs.startupCents)}</dd>
+          <dd className="text-sm text-muted">{words.unconfirmed ? `Confirmed on official pages. ${words.unconfirmed}.` : "Confirmed on official pages"}</dd>
         </div>
         <div className="flex flex-col gap-0.5 rounded-xl border border-line bg-soft px-4 py-3">
           <dt className="text-sm font-semibold text-muted">Each year after that</dt>
@@ -96,7 +97,7 @@ export function PlanCosts({ costs }: { costs: Costs }) {
         <p className="flex items-start gap-2 text-[15px] text-check">
           <Icon name="info" size="sm" className="mt-0.5" />
           <span>
-            <span className="font-semibold">{costs.unknown.length === 1 ? "Fee" : "Fees"} set by the office:</span> {LIST.format(costs.unknown)}. The total leaves these out.
+            <span className="font-semibold">{words.total}.</span> No official page we read states the fee for {LIST.format(costs.unknown)}. The amount above leaves {costs.unknown.length === 1 ? "it" : "them"} out.
           </span>
         </p>
       ) : null}
