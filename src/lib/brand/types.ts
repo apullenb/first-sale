@@ -98,6 +98,9 @@ export interface BrandDesign {
   preset?: RefineKind;
 }
 
+// The `model` recorded on versions and edits built in code from the logo's own pixels
+export const CODE_MODEL = "first-sale-code";
+
 export const LOGO_KINDS = ["logo", "stacked", "profile", "solid"] as const;
 export const VERSION_KINDS = ["stacked", "profile", "solid"] as const;
 export type VersionKind = (typeof VERSION_KINDS)[number];
@@ -125,11 +128,14 @@ export type DriftKind = (typeof DRIFT_KINDS)[number];
 
 export interface AssetCheck {
   checkedAt: string;
-  // "skipped": practice mode or a model that can't see; "failed": the check itself didn't work
-  method: "ai" | "skipped" | "failed";
+  // "skipped": practice mode or a model that can't see; "failed": the check itself didn't work;
+  // "code": built from the logo's own pixels, so nothing was redrawn to check
+  method: "ai" | "skipped" | "failed" | "code";
   lettering: LetteringCheck | null;
   // Versions: how it differs from the chosen logo
   drift: { kind: DriftKind; detail: string }[];
+  // Versions and edits code may build: how this one was made, and why
+  layout?: { built: "code" | "model"; note: string; confidence: number };
 }
 
 export interface BrandFile {

@@ -111,7 +111,7 @@ export function ChosenLogo({ chosen, edits, before, hasPicks, practice, business
                   </p>
                 ) : (
                   <>
-                    <MadeBy simulated={logo.simulated} what={own ? "Edited by Meta’s Muse Image from your logo" : undefined} />
+                    <MadeBy simulated={logo.simulated} model={logo.model} what={own ? "Edited by Meta’s Muse Image from your logo" : undefined} />
                     <CheckNotes check={logo.check} simulated={logo.simulated} />
                   </>
                 )}

@@ -99,6 +99,8 @@ describe("image-quality run (practice mode)", () => {
     expect(readFileSync(path.join(ctx.dir, result.pictures[0].file!), "utf8")).toMatch(/Practice preview/i);
     expect(imageInfo(readFileSync(path.join(ctx.dir, result.pictures.at(-1)!.file!)))?.type).toBe("image/png");
     expect(result.pictures.find((picture) => picture.step === "07-photo-edit")?.prompt).toMatch(/product photo/);
+    // Practice logos are placeholders, not PNGs to take apart, so versions are recorded as the model's, with why
+    for (const kind of ["stacked", "profile", "solid"]) expect(result.pictures.find((picture) => picture.step === `02-version-${kind}`)?.built).toBe("model");
 
     const totals = totalsOf([result], recorder.current().calls, 1000);
     expect(totals).toMatchObject({ pictures: result.pictures.length, made: result.pictures.length, failed: 0, skipped: 0 });
@@ -150,6 +152,10 @@ describe("image-quality helpers", () => {
       drift: [{ kind: "color" as const, detail: "Green turned blue" }],
     };
     expect(assetCheckSummary(check)).toBe("Lettering: misspelled (read “TWO PINS”). “Pines” is spelled “Pins”. Differs from logo: color: Green turned blue");
+    const built = { checkedAt: "x", method: "code" as const, lettering: null, drift: [], layout: { built: "code" as const, note: "Built in code: the symbol alone.", confidence: 1 } };
+    expect(assetCheckSummary(built)).toBe("Built in code, nothing redrawn: Built in code: the symbol alone.");
+    const drawn = { ...check, drift: [], layout: { built: "model" as const, note: "Drawn by the image model: no lettering found.", confidence: 0 } };
+    expect(assetCheckSummary(drawn)).toMatch(/^Drawn by the image model: no lettering found\. Lettering: misspelled/);
     expect(reviewSummary({ checkedAt: "x", method: "failed", flags: [] })).toMatch(/failed/);
     expect(promptSummary("a  b\n c", 280)).toBe("a b c");
     expect(promptSummary("x".repeat(400), 10)).toHaveLength(10);

@@ -11,7 +11,7 @@ import { dollars } from "@/lib/brand/cost";
 import { brandFileName, brandFileUrl } from "@/lib/brand/files";
 import { CHECKED, type Export, type Guide, IMAGE_SPECS, LOGO_SPECS, PROFILE_FACTS } from "@/lib/brand/sizes";
 import { approvedExample, EXAMPLE_IMAGE, imageSlots, type Slot, versionSlots } from "@/lib/brand/slots";
-import type { AssetCheck, BrandImageKind, BrandPicks, VersionKind } from "@/lib/brand/types";
+import { type AssetCheck, type BrandImageKind, type BrandPicks, CODE_MODEL, type VersionKind } from "@/lib/brand/types";
 import type { AssetSummary } from "@/lib/data/brand";
 import { CheckNotes, MadeBy } from "./asset-view";
 import { BrandRunButton, EditPrompt, type Intent, PlusTile } from "./controls";
@@ -126,7 +126,7 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
             guides={guides}
             circle={circle}
           />
-          <MadeBy simulated={newest.simulated} what={newest.change ? `Made by Meta’s Muse Image · you asked: “${newest.change}”` : "Made by Meta’s Muse Image from your logo"} />
+          <MadeBy simulated={newest.simulated} model={newest.model} what={newest.change ? `Made by Meta’s Muse Image · you asked: “${newest.change}”` : "Made by Meta’s Muse Image from your logo"} />
           {newest.change && newest.simulated ? <p className="text-sm text-muted">You asked: “{newest.change}”</p> : null}
           <CheckNotes check={newest.check} simulated={newest.simulated} checking={running} />
 
@@ -154,7 +154,15 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
 
           {!running ? (
             <div className="flex flex-wrap items-start gap-2 border-t border-line pt-3">
-              <BrandRunButton intent={intent} label="Regenerate" pendingLabel="Making a new one…" working={`Making a new ${lower}… this can take a minute or two`} variant="secondary" cost={one} />
+              {/* A new version is always drawn by the image model; the code-built one is already here */}
+              <BrandRunButton
+                intent={intent.kind === "versions" ? { ...intent, redraw: true } : intent}
+                label={newest.model === CODE_MODEL ? "Have AI draw one instead" : "Regenerate"}
+                pendingLabel="Making a new one…"
+                working={`Making a new ${lower}… this can take a minute or two`}
+                variant="secondary"
+                cost={one}
+              />
               <EditPrompt
                 latestId={newest.id}
                 target={{ kind: "picture", assetId: newest.id }}

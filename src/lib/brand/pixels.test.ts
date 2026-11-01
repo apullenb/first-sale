@@ -157,6 +157,18 @@ describe("one-color logos", () => {
     expect(colors.size).toBeGreaterThan(2);
   });
 
+  it("treat a large pale fill, like a badge's cream inside, as paper", () => {
+    const badge = canvas(40, 40, [255, 255, 255], [
+      { x: 5, y: 5, w: 30, h: 30, color: [110, 70, 50] },
+      { x: 7, y: 7, w: 26, h: 26, color: [249, 240, 225] },
+      { x: 15, y: 15, w: 10, h: 10, color: [80, 160, 160] },
+    ]);
+    const solid = oneColor(badge, "#112233")!;
+    expect(at(solid, 10, 10)).toEqual([255, 255, 255, 255]);
+    expect(at(solid, 5, 5)).toEqual([17, 34, 51, 255]);
+    expect(at(solid, 20, 20)).toEqual([17, 34, 51, 255]);
+  });
+
   it("refuse a busy background", () => {
     expect(oneColor(canvas(20, 20, [255, 255, 255], [{ x: 0, y: 0, w: 20, h: 6, color: [200, 30, 30] }]), "#000000")).toBeNull();
   });

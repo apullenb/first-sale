@@ -328,7 +328,8 @@ const slotSubject = (logoId: string, kinds: readonly string[]) => (kinds.length 
 
 // --- Versions
 
-const versionsSchema = z.object({ requestKey: z.uuid(), logoId: id, kinds: z.array(z.enum(VERSION_KINDS)).min(1).max(3) });
+// redraw: the image model draws it, even when it can be built from the logo in code
+const versionsSchema = z.object({ requestKey: z.uuid(), logoId: id, kinds: z.array(z.enum(VERSION_KINDS)).min(1).max(3), redraw: z.boolean().optional() });
 
 export async function makeVersionsAction(input: unknown): Promise<ActionResult<string | null>> {
   const parsed = versionsSchema.safeParse(input);
@@ -340,7 +341,7 @@ export async function makeVersionsAction(input: unknown): Promise<ActionResult<s
   const kinds = [...new Set(parsed.data.kinds)];
 
   const result = await runWorkflow("brand_versions", slotSubject(logo.logoId, kinds), async () =>
-    makeVersions({ image, vision: getModel() }, store, { logo, kinds, requestKey: parsed.data.requestKey, userKey: await myAiKey(), now: new Date() }),
+    makeVersions({ image, vision: getModel() }, store, { logo, kinds, redraw: parsed.data.redraw, requestKey: parsed.data.requestKey, userKey: await myAiKey(), now: new Date() }),
   );
   refresh();
   return batchResult(result);

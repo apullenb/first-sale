@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { getImageModel, getModel, ImageEditError, type ImageEditRequest, type ImageGenerateRequest, type ImageModel, type ModelProvider } from "@/lib/ai";
 import { OwnerFacingError } from "@/lib/errors";
@@ -8,7 +10,7 @@ import { PRACTICE_LABEL } from "./practice";
 import { logoPrompt } from "./prompts";
 import { applyDesign, planRefinement } from "./refine";
 import { testBrief, testConcept } from "./test-fixtures";
-import type { AssetCheck, BrandDesign } from "./types";
+import { type AssetCheck, type BrandDesign, CODE_MODEL } from "./types";
 
 const now = new Date("2026-10-27T12:00:00Z");
 
@@ -327,6 +329,74 @@ describe("editing a version or brand image", () => {
     const first = await editPicture({ image: model, vision }, store, input);
     expect(await editPicture({ image: model, vision }, store, input)).toBe(first);
     expect(edit).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("versions and edits built from the logo's own pixels", () => {
+  // A logo the image model drew in a live run, downscaled
+  const dogBytes = new Uint8Array(readFileSync(path.join(__dirname, "test-logos", "dog-grooming.png")));
+  const dog: LogoRef = { ...logo, brief: testBrief({ name: "Wagging Wheels Grooming" }), logo: { mimeType: "image/png", data: dogBytes } };
+
+  it("builds every version in code when the logo splits, with no image call and no AI check", async () => {
+    const { model, edit } = imageModel();
+    const checking = vi.fn(vision.complete);
+    const { store, saved } = memoryStore();
+    const result = await makeVersions({ image: model, vision: { ...vision, complete: checking } }, store, { logo: dog, kinds: ["stacked", "profile", "solid"], requestKey: "c1", now });
+    expect(edit).not.toHaveBeenCalled();
+    expect(checking).not.toHaveBeenCalled();
+    expect(result.ids).toHaveLength(3);
+    for (const asset of saved) {
+      expect(asset).toMatchObject({ model: CODE_MODEL, simulated: false, mimeType: "image/png", sourceId: "logo-1", conceptId: "concept-1" });
+      expect(asset.prompt).toMatch(/^Built in code/);
+      expect(asset.check).toMatchObject({ method: "code", drift: [], layout: { built: "code" } });
+      expect(decodePng(asset.data)).not.toBeNull();
+    }
+    expect(saved.map((asset) => asset.requestKey)).toEqual(["logo-1:c1:stacked", "logo-1:c1:profile", "logo-1:c1:solid"]);
+  });
+
+  it("draws with the image model when asked to redraw, and says so on the file", async () => {
+    const { model, edit } = imageModel();
+    const { store, saved } = memoryStore();
+    await makeVersions({ image: model, vision: visionFor({ flags: [] }) }, store, { logo: dog, kinds: ["stacked"], redraw: true, requestKey: "c2", now });
+    expect(edit).toHaveBeenCalledTimes(1);
+    expect(saved[0]).toMatchObject({ model: "test-image" });
+    expect(saved[0].check?.layout).toMatchObject({ built: "model", note: "Drawn by the image model, because you asked for a new drawing." });
+  });
+
+  it("falls back to the image model when the logo doesn't split, keeping why", async () => {
+    const { model, edit } = imageModel();
+    const { store, saved } = memoryStore();
+    await makeVersions({ image: model, vision: visionFor({ flags: [] }) }, store, { logo, kinds: ["profile"], requestKey: "c3", now });
+    expect(edit).toHaveBeenCalledTimes(1);
+    expect(saved[0].check?.layout).toMatchObject({ built: "model", note: "Drawn by the image model: Nothing was found in the logo to work with. (0% sure)" });
+  });
+
+  it("makes bolder lettering in code, and leaves other changes to the image model", async () => {
+    const { model, edit } = imageModel();
+    const { store, saved } = memoryStore();
+    await refineLogo({ image: model, vision }, store, { logo: dog, change: "Make the lettering bolder", requestKey: "b1", now });
+    expect(edit).not.toHaveBeenCalled();
+    expect(saved[0]).toMatchObject({ kind: "logo", model: CODE_MODEL, change: "Make the lettering bolder", sourceId: "logo-1" });
+    expect(saved[0].check).toMatchObject({ method: "code" });
+    await refineLogo({ image: model, vision }, store, { logo: dog, change: "Add a little bone", requestKey: "b2", now });
+    expect(edit).toHaveBeenCalledTimes(1);
+    expect(saved[1].check?.layout).toBeUndefined();
+  });
+
+  it("keeps a lettering recolor's color on the file, so the kit follows it", async () => {
+    const { model } = imageModel();
+    const { store, saved } = memoryStore();
+    await refineLogo({ image: model, vision }, store, { logo: dog, change: "Make the lettering navy", requestKey: "b3", now });
+    expect(saved[0].design?.palette?.[0]).toEqual({ hex: "#1B2A4A", name: "Navy" });
+  });
+
+  it("builds an uploaded logo's versions the same way", async () => {
+    const { model, edit } = imageModel();
+    const { store, saved } = memoryStore();
+    const uploaded: LogoRef = { id: null, concept: null, brief: testBrief(), logoId: "upload-1", logo: { mimeType: "image/png", data: dogBytes }, design: null, words: "Wagging Wheels Grooming" };
+    await makeVersions({ image: model, vision }, store, { logo: uploaded, kinds: ["profile"], requestKey: "u1", now });
+    expect(edit).not.toHaveBeenCalled();
+    expect(saved[0]).toMatchObject({ model: CODE_MODEL, conceptId: null, sourceId: "upload-1" });
   });
 });
 

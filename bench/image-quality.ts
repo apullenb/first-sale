@@ -20,7 +20,7 @@ import { applyDesign } from "@/lib/brand/refine";
 import { sizeFor } from "@/lib/brand/sizes";
 import { writeStory } from "@/lib/brand/story";
 import { suggestTaglines } from "@/lib/brand/tagline";
-import { type AssetCheck, type AssetKind, type BrandBrief, type BrandImageKind, IMAGE_KINDS, VERSION_KINDS } from "@/lib/brand/types";
+import { type AssetCheck, type AssetKind, type BrandBrief, type BrandImageKind, CODE_MODEL, IMAGE_KINDS, VERSION_KINDS } from "@/lib/brand/types";
 import { checkPhoto } from "@/lib/photos/check";
 import { makePhotoVersion, type NewPhotoVersion, type VersionStore } from "@/lib/photos/edit";
 import { imageInfo } from "@/lib/photos/image-info";
@@ -51,6 +51,8 @@ export interface PictureEntry {
   prompt: string | null;
   model: string;
   simulated: boolean;
+  // Logo versions and edits: built in code from the logo's pixels, or drawn by the image model
+  built: "code" | "model" | null;
   // Shape asked for, "WxH"
   requested: string | null;
   width: number | null;
@@ -168,8 +170,9 @@ function keepingVersions() {
 export function assetCheckSummary(check: AssetCheck | null): string {
   if (!check) return "Not checked";
   if (check.method === "skipped") return "Skipped (practice mode, or the model can't see)";
+  if (check.method === "code") return `Built in code, nothing redrawn: ${check.layout?.note ?? ""}`.trim();
   if (check.method === "failed") return "The check itself failed";
-  const parts: string[] = [];
+  const parts: string[] = check.layout?.built === "model" ? [check.layout.note] : [];
   if (check.lettering) {
     const read = check.lettering.read.length ? ` (read “${check.lettering.read.join(" / ")}”)` : "";
     parts.push(`Lettering: ${check.lettering.status}${read}`);
@@ -212,6 +215,7 @@ export async function runScenario(ctx: ImageRunContext, scenario: ImageScenario)
     kind,
     model: ctx.image.model,
     simulated: ctx.image.simulated,
+    built: null as PictureEntry["built"],
     requested: kind === "photo" ? null : sizeFor(kind as AssetKind),
   });
   const missing = (step: string, title: string, via: string, kind: string, status: "failed" | "skipped", reason: string, prompt: string | null = null) => {
@@ -260,7 +264,11 @@ export async function runScenario(ctx: ImageRunContext, scenario: ImageScenario)
     result.pictures.push(entry);
   };
   const saveAsset = (step: string, title: string, via: string, asset: KeptAsset) =>
-    save(step, title, via, asset.kind, asset, { summary: assetCheckSummary(asset.check), detail: asset.check });
+    save(step, title, via, asset.kind, asset, { summary: assetCheckSummary(asset.check), detail: asset.check }, {
+      model: asset.model,
+      simulated: asset.simulated,
+      built: asset.check?.layout?.built ?? (asset.model === CODE_MODEL ? "code" : null),
+    });
   const text = async <T>(name: string, fallback: T, call: () => Promise<T>): Promise<T> => {
     if (stopped()) {
       result.notes.push(`${name}: skipped, ${BUDGET.toLowerCase()}`);
@@ -570,7 +578,8 @@ export function indexMarkdown(info: ImageRunInfo, results: readonly ScenarioResu
     for (const picture of result.pictures) {
       const name = picture.file ? `[${cell(picture.title)}](${picture.file})` : `${cell(picture.title)} (${picture.status}: ${cell(picture.reason ?? "")})`;
       const size = [picture.requested && `asked ${picture.requested}`, picture.width && `got ${picture.width}×${picture.height}`].filter(Boolean).join(", ");
-      lines.push(`| ${name} | ${picture.via} | ${picture.model} | ${size} | ${seconds(picture.ms)} | ${money(picture.costUsd)} | ${cell(picture.check)} |`);
+      const via = picture.built === "code" ? `${picture.via} (built in code)` : picture.via;
+      lines.push(`| ${name} | ${via} | ${picture.model} | ${size} | ${seconds(picture.ms)} | ${money(picture.costUsd)} | ${cell(picture.check)} |`);
     }
     lines.push("");
     for (const picture of result.pictures.filter((each) => each.file)) {
