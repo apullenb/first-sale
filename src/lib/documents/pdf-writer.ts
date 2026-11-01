@@ -1,4 +1,7 @@
-import { PDFDocument, type PDFFont, rgb, StandardFonts } from "pdf-lib";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import fontkit from "@pdf-lib/fontkit";
+import { PDFDocument, type PDFFont, rgb } from "pdf-lib";
 
 // Plain, printable PDFs for generated documents: business plans, answer sheets, the startup plan.
 
@@ -44,12 +47,26 @@ export function unprintable(text: string): string[] {
   return [...new Set([...text.normalize("NFC")].filter((char) => char !== "?" && toWinAnsi(char) === "?"))];
 }
 
+// Embedded so every viewer draws the letters at the widths used for layout. Arimo has Helvetica's widths,
+// trimmed to the characters toWinAnsi keeps (OFL.txt); fontkit's own subsetting drops glyphs.
+const FONT_DIR = path.join(process.cwd(), "src/lib/documents/fonts");
+let fontFiles: Promise<Uint8Array[]> | null = null;
+
+export async function embedFonts(doc: PDFDocument): Promise<{ regular: PDFFont; bold: PDFFont }> {
+  fontFiles ??= Promise.all(["Arimo-Regular.ttf", "Arimo-Bold.ttf"].map((name) => readFile(path.join(FONT_DIR, name)))).catch((error) => {
+    fontFiles = null;
+    throw error;
+  });
+  const [regular, bold] = await fontFiles;
+  doc.registerFontkit(fontkit);
+  return { regular: await doc.embedFont(regular, { subset: false }), bold: await doc.embedFont(bold, { subset: false }) };
+}
+
 export async function writePdf(spec: PdfSpec): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(toWinAnsi(spec.title));
   doc.setProducer("SnapStart Business Assembly Kit");
-  const regular = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const { regular, bold } = await embedFonts(doc);
   const width = PAGE.width - PAGE.margin * 2;
 
   let page = doc.addPage([PAGE.width, PAGE.height]);

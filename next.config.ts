@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   // PGlite loads its WebAssembly files from disk, which breaks when bundled
   serverExternalPackages: ["@electric-sql/pglite"],
+  // PDF fonts are read from disk at run time
+  outputFileTracingIncludes: { "/**": ["src/lib/documents/fonts/*.ttf"] },
   experimental: {
     // Room for a 4 MB document upload plus the form's own overhead
     serverActions: { bodySizeLimit: "4.5mb" },
