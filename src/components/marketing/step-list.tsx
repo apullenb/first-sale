@@ -8,6 +8,7 @@ import { Note, OutsideLink, ResourceLink } from "@/components/ui";
 import { ALERT, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { PLATFORM_DATA } from "@/data/marketing-platforms";
 import { type HandHolding, type MarketingStep, type StepLink, stepAnchor } from "@/lib/marketing/types";
+import { progressLabel } from "@/lib/progress-labels";
 import { TickBox } from "./pieces";
 
 export type ShownStep = MarketingStep & { help: HandHolding; helpNote: string };
@@ -125,10 +126,7 @@ export function MarketingStepList({ steps, done, auto = [], next }: { steps: Sho
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
         <p className="text-[15px] text-muted" aria-live="polite">
-          <b className="font-bold text-ink">
-            {done.length} of {steps.length}
-          </b>{" "}
-          done
+          <b className="font-bold text-ink">{progressLabel("marketing", done.length, steps.length)}</b> done
         </p>
         <div aria-hidden="true" className="h-2 overflow-hidden rounded-full bg-wash">
           <div className="h-full rounded-full bg-accent transition-[width]" style={{ width: `${share}%` }} />

@@ -8,6 +8,7 @@ import { formatFee } from "@/lib/documents/startup-plan";
 import { TOPIC_LABELS } from "@/lib/labels";
 import type { NextMove, Stage, StageState } from "@/lib/rules/journey";
 import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
+import { progressLabel } from "@/lib/progress-labels";
 import { TOPIC_ICONS } from "./topic-icon";
 import { choosesStructure } from "@/lib/rules/plan";
 
@@ -142,7 +143,7 @@ export function JourneyStages({ stages }: { stages: Stage[] }) {
       id="journey-heading"
       action={
         <span className="text-sm text-muted">
-          {done} of {counted} stages done
+          {progressLabel("setup", done, counted)} done
         </span>
       }
     >

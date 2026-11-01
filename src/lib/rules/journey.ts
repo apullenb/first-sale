@@ -1,6 +1,7 @@
 import type { BusinessStructure } from "@/lib/domain";
 import { STRUCTURE_NAMES } from "@/lib/research/applicability";
 import { getSection } from "@/lib/sections";
+import { progressLabel } from "@/lib/progress-labels";
 import { PAPERWORK_PLACEHOLDER } from "./section-status";
 
 // Plain code: how far the owner is through starting the business, and the one thing to do next.
@@ -95,8 +96,8 @@ export function journeyStages(input: JourneyInput): Stage[] {
       : plan.waitsOnStructure && plan.beforeSelling.done === plan.beforeSelling.total
         ? paperwork("todo", "Some filings wait on your business structure.")
         : ready
-        ? paperwork("done", plan.beforeSelling.total ? `All ${plan.beforeSelling.total} steps before your first sale are done.` : "Nothing has to come before your first sale.")
-        : paperwork("todo", `${plan.beforeSelling.done} of ${plan.beforeSelling.total} steps done before your first sale.`),
+        ? paperwork("done", plan.beforeSelling.total ? `Launch requirements: all ${plan.beforeSelling.total} tasks before your first sale are done.` : "Nothing has to come before your first sale.")
+        : paperwork("todo", `${progressLabel("launch", plan.beforeSelling.done, plan.beforeSelling.total)} done before your first sale.`),
     documents.waiting
       ? stage("/documents", "check", `${documents.waiting === 1 ? "A form needs" : `${documents.waiting} forms need`} your review.`)
       : stage(
