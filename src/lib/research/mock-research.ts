@@ -1,4 +1,5 @@
 import type { BusinessProfile, BusinessStructure, RequirementDraft } from "@/lib/domain";
+import { STATE_NAMES } from "@/lib/intake/options";
 
 // Offline stand-in for the research model: fixed rules over the profile, quoting the pages it was given.
 // Real research comes from the configured model; results from this are labeled as practice.
@@ -85,6 +86,28 @@ export function mockResearch(
         "The name and address of each member or manager",
       ],
       doneWhen: "The Secretary of State has filed your certificate of formation.",
+      dependsOn: ["structure"],
+    });
+  }
+
+  // Other states: a practice step with no page behind it, so no fee, form name or timing
+  const company = structure === "llc" || structure === "corporation" ? structure : null;
+  const formationKey = company === "corporation" ? "corporation-formation" : "llc-formation";
+  if (company && !texas("tx-sos-205")) {
+    const stateName = STATE_NAMES[profile.location.state];
+    const kind = company === "llc" ? "LLC" : "corporation";
+    gap({
+      key: formationKey,
+      title: `Form your ${kind} with the state of ${stateName}`,
+      topic: "structure",
+      level: "state",
+      agency: `${stateName}’s business filing office`,
+      forStructures: [company],
+      whyItApplies: `Practice step: you chose ${company === "llc" ? "an LLC" : "a corporation"}, and ${kind === "LLC" ? "an LLC" : "a corporation"} is usually formed by filing with the state. Practice mode doesn’t read ${stateName}’s pages, so the form, fee and timing are unknown until real research runs.`,
+      whoToCall: `${stateName}’s business filing office (often the Secretary of State)`,
+      whatToAsk: [`Which form creates ${kind === "LLC" ? "an LLC" : "a corporation"} in ${stateName}?`, "What’s the fee, and how long does filing take?"],
+      gather: [`Your ${kind}’s name`, "A registered agent in the state", "Each owner’s name and address"],
+      doneWhen: `${stateName} has filed the paperwork that forms your ${kind}.`,
       dependsOn: ["structure"],
     });
   }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { clearBox, contentBox, knockOut, logoColors, type Pixels, placement, plainBackground, recolor, seeThrough } from "./pixels";
+import { clearBox, clearFrame, contentBox, knockOut, logoColors, type Pixels, oneColor, placement, plainBackground, recolor, seeThrough } from "./pixels";
+import { decodePng, encodePng } from "./png";
 
 type Rgb = [number, number, number];
 
@@ -123,5 +124,67 @@ describe("uploaded logos", () => {
     expect(logoColors(logo)).toEqual(["#1F3A2E", "#C87828"]);
     expect(logoColors(transparent())).toEqual(["#1E643C"]);
     expect(logoColors(canvas(20, 20))).toEqual([]);
+  });
+});
+
+describe("one-color logos", () => {
+  // Two blues, white details inside, and a soft edge pixel
+  const logo = canvas(40, 40, [255, 255, 255], [
+    { x: 8, y: 8, w: 12, h: 12, color: [40, 90, 200] },
+    { x: 20, y: 8, w: 12, h: 12, color: [10, 30, 90] },
+    { x: 12, y: 12, w: 3, h: 3, color: [255, 255, 255] },
+    { x: 7, y: 10, w: 1, h: 1, color: [235, 240, 250] },
+  ]);
+
+  it("turn every color into the one color and keep white details and soft edges", () => {
+    const solid = oneColor(logo, "#112233")!;
+    expect(at(solid, 9, 9)).toEqual([17, 34, 51, 255]);
+    expect(at(solid, 25, 9)).toEqual([17, 34, 51, 255]);
+    expect(at(solid, 13, 13)).toEqual([255, 255, 255, 255]);
+    expect(at(solid, 0, 0)).toEqual([255, 255, 255, 255]);
+    const edge = at(solid, 7, 10);
+    expect(edge[0]).toBeGreaterThan(17);
+    expect(edge[0]).toBeLessThan(255);
+    const colors = new Set<string>();
+    for (let index = 0; index < solid.data.length; index += 4) {
+      const [r, g, b] = solid.data.slice(index, index + 3);
+      // Every pixel lies on the line from white to the one color
+      const t = (255 - r) / (255 - 17);
+      expect(Math.abs(255 - t * (255 - 34) - g)).toBeLessThanOrEqual(1);
+      expect(Math.abs(255 - t * (255 - 51) - b)).toBeLessThanOrEqual(1);
+      colors.add(`${r},${g},${b}`);
+    }
+    expect(colors.size).toBeGreaterThan(2);
+  });
+
+  it("refuse a busy background", () => {
+    expect(oneColor(canvas(20, 20, [255, 255, 255], [{ x: 0, y: 0, w: 20, h: 6, color: [200, 30, 30] }]), "#000000")).toBeNull();
+  });
+});
+
+describe("frames around a logo", () => {
+  it("paint over a thin gray square at the edge, and leave framed-less files alone", () => {
+    const framed = canvas(50, 50, [255, 255, 255], [{ x: 20, y: 20, w: 10, h: 10, color: [30, 60, 40] }]);
+    for (let i = 0; i < 50; i++) {
+      for (const [x, y] of [[i, 0], [i, 49], [0, i], [49, i]]) framed.data.set([144, 144, 144, 255], (y * 50 + x) * 4);
+    }
+    const cleared = clearFrame(framed);
+    expect(at(cleared, 0, 0)).toEqual([255, 255, 255, 255]);
+    expect(at(cleared, 49, 25)).toEqual([255, 255, 255, 255]);
+    expect(at(cleared, 25, 25)).toEqual([30, 60, 40, 255]);
+    const plain = canvas(50, 50, [255, 255, 255], [{ x: 20, y: 20, w: 10, h: 10, color: [30, 60, 40] }]);
+    expect(clearFrame(plain)).toBe(plain);
+    const tinted = canvas(50, 50, [240, 220, 200], [{ x: 20, y: 20, w: 10, h: 10, color: [30, 60, 40] }]);
+    expect(clearFrame(tinted)).toBe(tinted);
+  });
+});
+
+describe("PNG files", () => {
+  it("read back what was written, with and without transparency", () => {
+    const image = canvas(17, 9, [250, 240, 230], [{ x: 3, y: 2, w: 5, h: 4, color: [10, 120, 200] }]);
+    expect(decodePng(encodePng(image))).toEqual(image);
+    image.data[3] = 0;
+    expect(decodePng(encodePng(image))).toEqual(image);
+    expect(decodePng(new Uint8Array([1, 2, 3]))).toBeNull();
   });
 });

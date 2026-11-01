@@ -10,7 +10,7 @@ import { RecommendedBadge } from "@/components/recommended";
 import { dollars } from "@/lib/brand/cost";
 import { brandFileName, brandFileUrl } from "@/lib/brand/files";
 import { CHECKED, type Export, type Guide, IMAGE_SPECS, LOGO_SPECS, PROFILE_FACTS } from "@/lib/brand/sizes";
-import { imageSlots, type Slot, versionSlots } from "@/lib/brand/slots";
+import { approvedExample, EXAMPLE_IMAGE, imageSlots, type Slot, versionSlots } from "@/lib/brand/slots";
 import type { AssetCheck, BrandImageKind, BrandPicks, VersionKind } from "@/lib/brand/types";
 import type { AssetSummary } from "@/lib/data/brand";
 import { CheckNotes, MadeBy } from "./asset-view";
@@ -76,9 +76,11 @@ interface SlotProps {
   facts?: ReactNode;
   // An empty slot is marked as recommended
   recommend?: boolean;
+  // A line under the purpose, such as how the example works
+  note?: string | null;
 }
 
-function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, running, blocked, guides = [], circle, exports, facts, recommend }: SlotProps) {
+function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, running, blocked, guides = [], circle, exports, facts, recommend, note }: SlotProps) {
   const { newest, picked, earlier } = slot;
   const one = practice ? "Practice mode: nothing is charged." : `One picture: ${dollars(1)}.`;
   const lower = title.toLowerCase();
@@ -94,6 +96,7 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
   return (
     <Card title={title} icon={ICONS[kind]} id={`slot-${kind}`} headingLevel={3} action={status} className="flex h-full flex-col" bodyClassName="flex-1">
       <p className="text-sm text-muted">{purpose}</p>
+      {note ? <p className="text-sm text-rule">{note}</p> : null}
       {!newest ? (
         running ? (
           <div className="grid place-items-center rounded-xl border border-line bg-wash text-muted" style={{ aspectRatio: ratio(size) }}>
@@ -245,7 +248,7 @@ export function VersionSlots({ chosenId, name, assets, picks, practice, running 
   );
 }
 
-// The four brand images: each missing one is a recommended "+" tile
+// The four brand images: the header first, as the example; the others wait until the owner uses it, then match it
 export function ImageSlots({
   chosenId,
   name,
@@ -253,6 +256,7 @@ export function ImageSlots({
   picks,
   practice,
   running,
+  recommended,
 }: {
   chosenId: string | null;
   name: string;
@@ -260,11 +264,28 @@ export function ImageSlots({
   picks: BrandPicks;
   practice: boolean;
   running: ReadonlySet<string>;
+  // Kinds worth making, from the owner's marketing answers
+  recommended: readonly BrandImageKind[];
 }) {
+  const example = approvedExample(assets, chosenId, picks);
+  const exampleTitle = IMAGE_SPECS[EXAMPLE_IMAGE].title.toLowerCase();
   return (
     <ul className="grid gap-4 @2xl:grid-cols-2">
       {imageSlots(assets, chosenId, picks).map((slot) => {
         const spec = IMAGE_SPECS[slot.kind];
+        const isExample = slot.kind === EXAMPLE_IMAGE;
+        const blocked = !chosenId
+          ? "Choose or upload your logo first: brand images are made from it."
+          : !isExample && !example
+            ? `First make your ${exampleTitle} and choose “Use this” on it. This one is then made to match its look, so you only pay for pictures in a style you like.`
+            : null;
+        const note = isExample
+          ? example
+            ? null
+            : "Made first, as an example of the look. Change it with a prompt until you like it, then choose “Use this”: your other brand images are made to match it."
+          : example
+            ? `Made to match your ${exampleTitle}.`
+            : null;
         return (
           <li key={slot.kind}>
             <SlotCard
@@ -277,8 +298,9 @@ export function ImageSlots({
               name={name}
               practice={practice}
               running={running.has(slot.kind)}
-              blocked={chosenId ? null : "Choose or upload your logo first: brand images are made from it."}
-              recommend
+              blocked={blocked}
+              recommend={recommended.includes(slot.kind)}
+              note={note}
               guides={spec.guides}
               exports={spec.exports}
               facts={<SizeFacts kind={slot.kind} />}

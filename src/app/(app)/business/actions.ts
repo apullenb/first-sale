@@ -2,7 +2,7 @@
 
 import { refresh } from "next/cache";
 import { getDb } from "@/db/client";
-import { getModel } from "@/lib/ai";
+import { getModel, practiceMode } from "@/lib/ai";
 import { getCurrentUser } from "@/lib/auth/server";
 import { takeAiRequest } from "@/lib/data/ai-quota";
 import {
@@ -33,7 +33,7 @@ export async function suggestAnswersAction(description: unknown): Promise<Action
   if (typeof description !== "string" || !description.trim() || description.length > DESCRIPTION_MAX_LENGTH) {
     return { ok: false, message: `Describe your idea in up to ${DESCRIPTION_MAX_LENGTH.toLocaleString("en-US")} characters.` };
   }
-  const quota = await takeAiRequest(getDb(), user.id);
+  const quota = practiceMode() ? "ok" : await takeAiRequest(getDb(), user.id);
   if (quota !== "ok") {
     return {
       ok: false,

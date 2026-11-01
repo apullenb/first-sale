@@ -4,6 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { createMockProvider } from "@/lib/ai/providers/mock";
 import { createMockImageProvider } from "@/lib/ai/providers/mock-image";
+import { imageStyle } from "@/lib/brand/image-style";
 import { brandBriefSchema } from "@/lib/brand/types";
 import { imageInfo } from "@/lib/photos/image-info";
 import { liveRefusal, parseArgs } from "./args";
@@ -53,8 +54,9 @@ describe("image-quality flags", () => {
 });
 
 describe("image scenarios", () => {
-  it("has the three businesses, each a valid brief", () => {
-    expect(IMAGE_SCENARIOS.map((each) => each.id)).toEqual(["dog-grooming", "soy-candles", "taco-truck"]);
+  it("has the four businesses, each a valid brief, with both kinds of brand image", () => {
+    expect(IMAGE_SCENARIOS.map((each) => each.id)).toEqual(["dog-grooming", "soy-candles", "taco-truck", "western-boutique"]);
+    expect(IMAGE_SCENARIOS.map((each) => imageStyle({ ...each.brief, story: "" }).medium)).toEqual(["illustration", "photo", "illustration", "photo"]);
     for (const scenario of IMAGE_SCENARIOS) {
       expect(brandBriefSchema.safeParse({ ...scenario.brief, story: "", storyByOwner: false, storyApproved: false }).success).toBe(true);
       expect(scenario.logoChange.length).toBeGreaterThan(3);

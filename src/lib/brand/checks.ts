@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { generateObject, registerMockFixture, type ImageInput, type ModelProvider } from "@/lib/ai";
 import { dataUrl } from "@/lib/documents/upload";
-import { IMAGE_SPECS } from "./sizes";
 import { type AssetCheck, type AssetKind, type BrandImageKind, type ConceptReply, DRIFT_KINDS, type LetteringCheck, type VersionKind } from "./types";
 
 // Muse Spark reads the lettering without being told the name, so it can't "see" what it expects.
@@ -166,13 +165,6 @@ export function onlyMarks(expected: Expected, read: string[]): LetteringCheck {
   };
 }
 
-// For pictures that must have no words at all
-export function noWords(read: string[]): LetteringCheck {
-  const found = read.map((piece) => piece.trim()).filter((piece) => normalize(piece));
-  if (!found.length) return { status: "matches", read: [], problems: [], note: null };
-  return { status: "has_words", read: found, problems: [`It has words or letters in it (AI read “${found.join(" ")}”). They may get cut off or clash with your own text.`], note: null };
-}
-
 function image(file: ImageInput) {
   return { type: "image" as const, url: dataUrl(file.mimeType, file.data) };
 }
@@ -209,7 +201,7 @@ export async function checkBrandImage(
   userKey?: string,
 ): Promise<AssetCheck> {
   const reply = await readLettering(model, file, userKey);
-  const lettering = !IMAGE_SPECS[kind].withLogo ? noWords(reply.lettering) : expected.name.trim() ? compareLettering(expected, reply.lettering, reply.readable) : null;
+  const lettering = expected.name.trim() ? compareLettering(expected, reply.lettering, reply.readable) : null;
   return { checkedAt: now.toISOString(), method: "ai", lettering, drift: [] };
 }
 

@@ -2,13 +2,25 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { ImageEditResult, ImageModel, ModelProvider } from "@/lib/ai";
 import { writeConcepts } from "@/lib/brand/concepts";
-import { type AssetStore, type ConceptRef, drawConcepts, editPicture, type LogoRef, makeBrandImages, makeVersions, type NewBrandAsset, refineLogo } from "@/lib/brand/generate";
+import {
+  type AssetStore,
+  type BatchResult,
+  type ConceptRef,
+  drawConcepts,
+  editPicture,
+  type LogoRef,
+  makeBrandImages,
+  makeVersions,
+  type NewBrandAsset,
+  refineLogo,
+} from "@/lib/brand/generate";
+import { EXAMPLE_IMAGE } from "@/lib/brand/slots";
 import { logoPrompt } from "@/lib/brand/prompts";
 import { applyDesign } from "@/lib/brand/refine";
 import { sizeFor } from "@/lib/brand/sizes";
 import { writeStory } from "@/lib/brand/story";
 import { suggestTaglines } from "@/lib/brand/tagline";
-import { type AssetCheck, type AssetKind, type BrandBrief, IMAGE_KINDS, VERSION_KINDS } from "@/lib/brand/types";
+import { type AssetCheck, type AssetKind, type BrandBrief, type BrandImageKind, IMAGE_KINDS, VERSION_KINDS } from "@/lib/brand/types";
 import { checkPhoto } from "@/lib/photos/check";
 import { makePhotoVersion, type NewPhotoVersion, type VersionStore } from "@/lib/photos/edit";
 import { imageInfo } from "@/lib/photos/image-info";
@@ -297,7 +309,10 @@ export async function runScenario(ctx: ImageRunContext, scenario: ImageScenario)
   else {
     const made = stopped() ? null : await makeVersions(models, store, { logo, kinds: [...VERSION_KINDS], requestKey: "versions", now: ctx.now }).catch((error) => describe(error));
     for (const kind of VERSION_KINDS) {
-      const asset = files.find((file) => file.kind === kind);
+      // A flagged first try is kept beside the retry the app shows
+      const [first, retry] = files.filter((file) => file.kind === kind);
+      if (retry) saveAsset(`02-version-${kind}-first-try`, `${versionTitle[kind]}, first try (flagged, so the app tried once more)`, "makeVersions", first);
+      const asset = retry ?? first;
       if (asset) saveAsset(`02-version-${kind}`, versionTitle[kind], "makeVersions", asset);
       else missing(`02-version-${kind}`, versionTitle[kind], "makeVersions", kind, made === null ? "skipped" : "failed", made === null ? BUDGET : typeof made === "string" ? made : (made.failed ?? "No picture came back"));
     }
@@ -319,15 +334,29 @@ export async function runScenario(ctx: ImageRunContext, scenario: ImageScenario)
 
   result.taglines = await text("Taglines", [], () => suggestTaglines(ctx.model, brief));
 
-  // Brand images, made from the chosen logo
-  const imageTitle = (kind: string) => `Brand image: ${kind.replace(/_/g, " ")}`;
-  if (!logo) IMAGE_KINDS.forEach((kind) => missing(`04-image-${kind}`, imageTitle(kind), "makeBrandImages", kind, "skipped", noLogo));
-  else {
-    const made = stopped() ? null : await makeBrandImages(models, store, { logo, kinds: [...IMAGE_KINDS], change: null, requestKey: "images", now: ctx.now }).catch((error) => describe(error));
-    for (const kind of IMAGE_KINDS) {
+  // Brand images, as the app makes them: the example first, approved by the owner, then the rest matching it
+  const imageTitle = (kind: string) => `Brand image: ${kind.replace(/_/g, " ")}${kind === EXAMPLE_IMAGE ? " (the example, approved before the rest)" : ""}`;
+  const rest = IMAGE_KINDS.filter((kind) => kind !== EXAMPLE_IMAGE);
+  const report = (kinds: readonly BrandImageKind[], made: BatchResult | string | null, missingReason?: string) => {
+    for (const kind of kinds) {
       const asset = files.find((file) => file.kind === kind && file.change === null);
       if (asset) saveAsset(`04-image-${kind}`, imageTitle(kind), "makeBrandImages", asset);
-      else missing(`04-image-${kind}`, imageTitle(kind), "makeBrandImages", kind, made === null ? "skipped" : "failed", made === null ? BUDGET : typeof made === "string" ? made : (made.failed ?? "No picture came back"));
+      else missing(`04-image-${kind}`, imageTitle(kind), "makeBrandImages", kind, made === null ? "skipped" : "failed", missingReason ?? (made === null ? BUDGET : typeof made === "string" ? made : (made.failed ?? "No picture came back")));
+    }
+  };
+  if (!logo) report(IMAGE_KINDS, null, noLogo);
+  else {
+    const first = stopped() ? null : await makeBrandImages(models, store, { logo, kinds: [EXAMPLE_IMAGE], change: null, requestKey: "images", now: ctx.now }).catch((error) => describe(error));
+    report([EXAMPLE_IMAGE], first);
+    const example = files.find((file) => file.kind === EXAMPLE_IMAGE);
+    if (!example) report(rest, null, `No ${EXAMPLE_IMAGE} came back to approve, and the others wait for it`);
+    else {
+      const made = stopped()
+        ? null
+        : await makeBrandImages(models, store, { logo, kinds: rest, change: null, example: { mimeType: example.mimeType, data: example.data }, requestKey: "images", now: ctx.now }).catch((error) =>
+            describe(error),
+          );
+      report(rest, made);
     }
   }
 

@@ -10,6 +10,18 @@ describe("explainTerms", () => {
     expect(explainTerms("Your registered agent signs it.", explained)).toBe("Your registered agent signs it.");
   });
 
+  it("leaves a market organizer alone on a vendor permit step", () => {
+    const text = "Ask the market organizer for the vendor packet. Bring your health permit.";
+    expect(explainTerms(text, new Set(), "Farmers market vendor permit")).toBe(text);
+    expect(explainTerms("The event organizer signs off. You form an LLC later.", new Set())).toBe("The event organizer signs off. You form an LLC later.");
+  });
+
+  it("explains organizer when the step is about forming an LLC", () => {
+    expect(explainTerms("The organizer signs it.", new Set(), "File your certificate of formation")).toContain("creates the LLC");
+    expect(explainTerms("You are the organizer of your LLC.", new Set())).toContain("creates the LLC");
+    expect(explainTerms("The organizer signs it.", new Set(), "Get a food truck permit")).toBe("The organizer signs it.");
+  });
+
   it("finds terms in a title without changing it", () => {
     const explained = new Set<string>();
     expect(termsIn("Texas Form 205: Certificate of Formation", explained).map((word) => word.term)).toEqual(["certificate of formation"]);

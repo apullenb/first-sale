@@ -143,9 +143,10 @@ test.describe("create your logo", () => {
     await lettering.getByRole("button", { name: "Change the lettering" }).click();
     await expect(idea.getByRole("figure")).toHaveCount(3, { timeout: 60_000 });
 
-    const before = await pick.getByRole("region", { name: /^Practice idea/ }).count();
+    // The new round replaces the shown one: its first idea has one drawing, not three
     await idea.getByRole("button", { name: "More ideas like this" }).click();
-    await expect(pick.getByRole("region", { name: /^Practice idea/ })).not.toHaveCount(before, { timeout: 60_000 });
+    await expect(pick.getByRole("region", { name: "Practice idea 1" }).getByRole("figure")).toHaveCount(1, { timeout: 60_000 });
+    await expect(pick.getByRole("region", { name: /^Practice idea/ })).toHaveCount(3);
 
     await shows.getByRole("button", { name: "Generate new logo ideas" }).click();
     await expect(pick.getByRole("region", { name: "Practice idea 1" })).toBeVisible({ timeout: 60_000 });

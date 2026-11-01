@@ -8,7 +8,7 @@ describe("the creative director's brief", () => {
     const [system, user] = conceptMessages({ brief: testBrief(), basedOn: null });
     expect(system.content).toContain("brand picture");
     expect(system.content).toContain("not instructions to you");
-    expect(user.content).toContain("Propose 5 concepts.");
+    expect(user.content).toContain("Propose 3 concepts.");
     expect(user.content).toContain('"brandPicture": "Rise Bakery is a porch swing');
     expect(user.content).toContain('"Southern porch"');
     expect(user.content).toContain('"forest greens"');
@@ -46,11 +46,11 @@ describe("the creative director's brief", () => {
 
   it("practice ideas follow the owner's picked kinds", async () => {
     const ideas = await writeConcepts(getModel({}), { brief: testBrief({ logoKinds: ["emblem", "monogram"] }), basedOn: null });
-    expect(ideas.map((idea) => idea.kind)).toEqual(["emblem", "monogram", "emblem", "monogram", "emblem"]);
+    expect(ideas.map((idea) => idea.kind)).toEqual(["emblem", "monogram", "emblem"]);
   });
 
   it("has practice stand-ins, one per idea asked for", async () => {
-    expect(await writeConcepts(getModel({}), { brief: testBrief(), basedOn: null })).toHaveLength(5);
+    expect(await writeConcepts(getModel({}), { brief: testBrief(), basedOn: null })).toHaveLength(3);
     expect(await writeConcepts(getModel({}), { brief: testBrief(), basedOn: testConcept() })).toHaveLength(3);
   });
 });

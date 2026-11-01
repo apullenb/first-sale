@@ -246,6 +246,29 @@ describe("researchRequirements", () => {
     ]);
   });
 
+  it("adds a practice formation step for an LLC or corporation outside Texas, with nothing stated from memory", async () => {
+    for (const [choice, key, kind] of [
+      ["llc", "llc-formation", "LLC"],
+      ["corporation", "corporation-formation", "corporation"],
+    ] as const) {
+      const result = await researchRequirements(createMockProvider(), profile, {
+        fetchImpl: officialSites(),
+        now: NOW,
+        packs: FEDERAL,
+        details: [{ key: "structure_choice", value: choice }],
+      });
+      expect(result.simulated).toBe(true);
+      const step = result.requirements.find((r) => r.key === key)!;
+      expect(step).toMatchObject({ title: `Form your ${kind} with the state of Ohio`, feeUsd: null, verification: "needs_verification" });
+      expect(step.whyItApplies).toMatch(/^Practice step:/);
+      expect(step.whyItApplies).toMatch(/fee and timing are unknown/);
+      // The plan's own rule: an EIN waits for the company to exist
+      expect(result.plan.find((each) => each.key === "ein")!.prerequisites).toContain(key);
+    }
+    const none = await researchRequirements(createMockProvider(), profile, { fetchImpl: officialSites(), now: NOW, packs: FEDERAL });
+    expect(none.requirements.some((r) => r.key.endsWith("-formation"))).toBe(false);
+  });
+
   it("reads the pages search found, and lets a state page back a state requirement", async () => {
     const stateUrl = "https://www.ohiosos.gov/businesses/trade-names";
     const fetchImpl = officialSites({

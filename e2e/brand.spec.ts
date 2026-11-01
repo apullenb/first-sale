@@ -102,11 +102,17 @@ test.describe("build your brand", () => {
     await expect(logos.getByRole("link", { name: /^Download/ }).first()).toHaveAttribute("href", /\/brand\/files\//);
 
     // Recommended brand images are made from the logo, labeled as practice
+    // The header comes first, as the example; the others wait until it's approved, then match it
     const header = page.getByRole("region", { name: "Website header picture" });
+    const cover = page.getByRole("region", { name: "Facebook cover" });
     await expect(header.getByText("Recommended")).toBeVisible();
+    await expect(cover.getByRole("button", { name: "Make the facebook cover" })).toBeDisabled();
+    await expect(cover).toContainText("First make your website header picture and choose “Use this” on it.");
     await header.getByRole("button", { name: "Make the website header picture" }).click();
     await expect(header.getByText(/Practice preview/).first()).toBeVisible({ timeout: 60_000 });
-    const cover = page.getByRole("region", { name: "Facebook cover" });
+    await header.getByRole("button", { name: "Use this" }).first().click();
+    await expect(header.getByText("In use")).toBeVisible({ timeout: 30_000 });
+    await expect(cover).toContainText("Made to match your website header picture.");
     await cover.getByRole("button", { name: "Make the facebook cover" }).click();
     await expect(cover.getByText(/Practice preview/).first()).toBeVisible({ timeout: 60_000 });
 

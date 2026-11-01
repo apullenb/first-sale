@@ -14,10 +14,10 @@ import { Card, Chip, PageHead } from "@/components/ui";
 import { getImageModel } from "@/lib/ai";
 import { brandFileUrl, kindTitle } from "@/lib/brand/files";
 import { LIBRARY_GROUP_TEXT, LIBRARY_GROUPS, type LibraryGroup, libraryFileUrl } from "@/lib/brand/library";
-import { imageSlots, versionSlots } from "@/lib/brand/slots";
+import { imageSlots, recommendedImages, versionSlots } from "@/lib/brand/slots";
 import { IMAGE_KINDS } from "@/lib/brand/types";
 import { LIBRARY_LIMITS } from "@/lib/data/brand-library";
-import { getMyBrandState, getMyBusiness, lastMyRun, listMyLibraryFiles, listMyPhotoLibrary, listMyPhotos, myLibraryUsage } from "@/lib/data/my-business";
+import { getMyBrandState, getMyBusiness, getMyMarketing, lastMyRun, listMyLibraryFiles, listMyPhotoLibrary, listMyPhotos, myLibraryUsage } from "@/lib/data/my-business";
 import { MAX_UPLOAD_BYTES } from "@/lib/documents/upload";
 import { sectionMetadata } from "@/lib/sections";
 
@@ -87,7 +87,15 @@ async function Library() {
       </Card>
     );
   }
-  const [state, photos, approved, uploads, usage] = await Promise.all([getMyBrandState(), listMyPhotos(), listMyPhotoLibrary(), listMyLibraryFiles(), myLibraryUsage()]);
+  const [state, photos, approved, uploads, usage, marketing] = await Promise.all([
+    getMyBrandState(),
+    listMyPhotos(),
+    listMyPhotoLibrary(),
+    listMyLibraryFiles(),
+    myLibraryUsage(),
+    getMyMarketing(),
+  ]);
+  const recommended = [...recommendedImages(marketing?.intake ?? null)];
   const practice = practiceMode();
   const groups: Record<LibraryGroup, Item[]> = { logos: [], brand_images: [], product_photos: [], other: [] };
 
@@ -191,7 +199,7 @@ async function Library() {
         group === "brand_images" ? (
           <Group key={group} group={group} items={groups[group]} count={counts[group]} uploadsTitle="Brand images you added">
             {chosen ? null : <NoLogoYet />}
-            <ImageSlots key={chosen?.id ?? "none"} chosenId={chosen?.id ?? null} name={state?.brief?.name || business.profile?.name || ""} assets={state?.assets ?? []} picks={state?.picks ?? {}} practice={practice} running={running} />
+            <ImageSlots key={chosen?.id ?? "none"} chosenId={chosen?.id ?? null} name={state?.brief?.name || business.profile?.name || ""} assets={state?.assets ?? []} picks={state?.picks ?? {}} practice={practice} running={running} recommended={recommended} />
           </Group>
         ) : (
           <Group key={group} group={group} items={groups[group]} count={counts[group]} />
