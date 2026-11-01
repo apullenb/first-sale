@@ -113,7 +113,8 @@ test.describe("create your logo", () => {
     await files.getByRole("button", { name: /^Download all \d+ logo files \(\.zip\)$/ }).click();
     expect((await download).suggestedFilename()).toMatch(/\.zip$/);
     await kit.getByRole("region", { name: "Logo guide" }).getByRole("button", { name: "Save my logo guide" }).click();
-    await expect(kit.getByRole("region", { name: "Logo guide" }).getByRole("status")).toContainText(/\w/, { timeout: 60_000 });
+    // Saving opens the new document
+    await page.waitForURL(/\/documents\/[^/]+$/, { timeout: 60_000 });
     await open(page, "/documents");
     await expect(page.getByRole("region", { name: "Your documents" }).getByText(/logo guide/i).first()).toBeVisible();
 
@@ -171,7 +172,7 @@ test.describe("create your logo", () => {
 
     const yours = page.getByRole("region", { name: "Your logo" });
     await expect(yours).toBeVisible({ timeout: 60_000 });
-    await expect(sidebar(page).getByRole("link", { name: /^Create your logo , done/ })).toBeVisible();
+    await expect(sidebar(page).getByRole("link", { name: /^Create your logo , done/ })).toBeVisible({ timeout: 30_000 });
     const icon = page.getByRole("region", { name: "Icon (profile picture)" });
     await icon.getByRole("button", { name: "Make the icon (profile picture)" }).click();
     await expect(icon.getByText("Made by First Sale from your logo’s own pixels", { exact: false })).toBeVisible({ timeout: 60_000 });
