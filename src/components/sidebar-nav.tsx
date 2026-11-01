@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Celebration } from "./celebrate";
 import { Icon } from "./icons";
-import { Logo } from "./logo";
+import { LogoMark } from "./logo";
 import { NavLinks, type NavStatus } from "./nav-links";
 
 export interface SidebarBusiness {
@@ -86,8 +86,8 @@ export function SidebarNav({ status, business, account }: { status?: NavStatus; 
 function PhoneBar({ children }: { children: ReactNode }) {
   return (
     <div className={`sticky top-0 z-30 -mx-4 flex items-center gap-3 border-b border-white/10 bg-sidebar px-4 py-2 text-white sm:-mx-6 sm:px-6 md:hidden ${SIDEBAR_FOCUS}`}>
-      <Link href="/" className="flex min-h-11 items-center gap-2">
-        <Logo light className="w-44" />
+      <Link href="/" aria-label="SnapStart home" className="flex min-h-11 items-center">
+        <LogoMark />
       </Link>
       {children}
     </div>
@@ -101,8 +101,8 @@ function Panel({ pathname, status, business, account }: PanelProps) {
     // Sized to fit a laptop screen; scrolls only on very short ones
     <div className={`flex h-full flex-col gap-0.5 overflow-y-auto rounded-[18px] bg-sidebar px-3.5 pb-2.5 pt-3 text-white shadow-lift [scrollbar-width:thin] ${SIDEBAR_FOCUS}`}>
       <div className="border-b border-white/10 px-1.5 pb-2.5 short:pb-1">
-        <Link href="/" className="flex min-h-11 w-fit items-center gap-2.5 short:min-h-10" title="Step by step from your idea to your first sale">
-          <Logo light className="w-full max-w-60" />
+        <Link href="/" aria-label="SnapStart home" className="flex min-h-11 w-fit items-center short:min-h-10" title="Step by step from your idea to your first sale">
+          <LogoMark />
         </Link>
       </div>
       {business ? (

@@ -20,7 +20,6 @@ export const PAGE_LINKS: Record<InsightPage, InsightLink> = {
   brand: { href: "/brand", label: getSection("/brand").title },
   website: { href: "/website", label: getSection("/website").title },
   photos: { href: "/photos", label: getSection("/photos").title },
-  planning_for_help: { href: "/planning-for-help", label: getSection("/planning-for-help").title },
 };
 
 // Pages whose legal facts SnapStart checked against official sources

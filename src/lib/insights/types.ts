@@ -13,7 +13,6 @@ export const INSIGHT_PAGES = [
   "brand",
   "website",
   "photos",
-  "planning_for_help",
 ] as const;
 export type InsightPage = (typeof INSIGHT_PAGES)[number];
 

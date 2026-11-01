@@ -24,7 +24,6 @@ const ICONS: Record<string, IconName> = {
   "/brand-library": "image",
   "/orders": "receipt",
   "/email": "file",
-  "/planning-for-help": "users",
 };
 
 const GROUP_ICONS: Record<SectionGroup, IconName> = {
