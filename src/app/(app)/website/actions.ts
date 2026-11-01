@@ -136,7 +136,7 @@ export async function saveWebsiteCopyAction(input: unknown): Promise<ActionResul
   const [business, plan] = await Promise.all([getMyBusiness(), getMyWebsitePlan()]);
   if (!business?.profile || !plan?.content) return { ok: false, message: "Draft your website words first." };
   const copy = copyOf(parsed.data.copy);
-  if (looksLikeIdNumber(JSON.stringify(copy))) return { ok: false, message: "Leave Social Security and tax id numbers off your website." };
+  if (looksLikeIdNumber(JSON.stringify(copy))) return { ok: false, message: "Leave Social Security and tax ID numbers off your website." };
 
   // A flagged number stays flagged until it's changed or removed
   const known = knownNumbers(

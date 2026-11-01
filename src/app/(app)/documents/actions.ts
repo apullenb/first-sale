@@ -234,7 +234,7 @@ export async function askDocumentAction(input: unknown): Promise<ActionResult> {
   const question = parsed.data.question.trim();
   if (question.length < 3) return { ok: false, message: "Type your question." };
   if (looksLikeIdNumber(question)) {
-    return { ok: false, message: "Leave Social Security and tax id numbers out of your question. You don’t need them to ask about a form." };
+    return { ok: false, message: "Leave Social Security and tax ID numbers out of your question. You don’t need them to ask about a form." };
   }
   const doc = await load(parsed.data.documentId);
   if (!doc || doc.origin === "generated") return { ok: false, message: NOT_FOUND };
@@ -306,7 +306,7 @@ export async function saveAnswersAction(input: unknown): Promise<ActionResult> {
     if (!edit || mustFillYourself(field)) continue;
     const value = edit.value.trim();
     if (looksLikeIdNumber(value)) {
-      return { ok: false, message: `“${field.label}”: SnapStart doesn’t store Social Security or tax id numbers. Fill those in on the form yourself.` };
+      return { ok: false, message: `“${field.label}”: SnapStart doesn’t store Social Security or tax ID numbers. Fill those in on the form yourself.` };
     }
     if (value && field.kind === "choice" && field.options.length && !field.options.includes(value)) {
       return { ok: false, message: `“${field.label}”: pick one of the form’s own options.` };
@@ -463,7 +463,7 @@ export async function deleteDocumentAction(documentId: unknown): Promise<ActionR
 
 // --- Business plan
 
-const ID_NUMBERS = "Leave Social Security and tax id numbers out of your business plan.";
+const ID_NUMBERS = "Leave Social Security and tax ID numbers out of your business plan.";
 const NO_ROOM = "There’s no room left in Documents. Delete documents you don’t need, then try again.";
 const PLAN_CHANGED = "Your plan changed in another window. Reload the page to see the latest version.";
 

@@ -57,7 +57,7 @@ test.describe("business intake", () => {
     await details.getByRole("textbox", { name: "Business email" }).fill(groomer.details.email);
     await details.getByRole("button", { name: "Save" }).click();
     await expect(details.getByText(groomer.details.email)).toBeVisible();
-    await expect(details.getByText(/Social Security or tax id numbers/)).toBeVisible();
+    await expect(details.getByText(/Social Security or tax ID numbers/)).toBeVisible();
 
     // Change the business name through the edit flow
     await page.getByRole("link", { name: "Change answers" }).click();

@@ -55,7 +55,7 @@ export function AskForm({ documentId, fields, maxQuestion }: Props) {
           aria-describedby={`${uid}-question-help`}
         />
         <p id={`${uid}-question-help`} className="text-[14.5px] text-muted">
-          Ask about a word, a blank, or what the form wants. Leave out Social Security and tax id numbers.
+          Ask about a word, a blank, or what the form wants. Leave out Social Security and tax ID numbers.
         </p>
       </div>
       {fields.length ? (
