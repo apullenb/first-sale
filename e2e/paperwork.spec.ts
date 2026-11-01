@@ -149,12 +149,11 @@ test.describe("what applies to you and the paperwork", () => {
     await expect(answers.getByRole("checkbox", { name: "Confirm Line 7a: Name of the responsible party (the owner in control)" })).toBeChecked();
     await answers.getByRole("button", { name: "Save answers" }).click();
     await expect(answers.getByRole("status").last()).toContainText(/\w/);
-    // Form help: explain it, then ask about one blank
+    // Form help: explain it, then ask a question
     await page.getByRole("button", { name: "Explain this form" }).click();
     await expect(page.getByRole("region", { name: "What this form is for" }).getByText(/[Pp]ractice/).first()).toBeVisible({ timeout: 60_000 });
     const ask = page.getByRole("region", { name: "Ask about this form" });
     await ask.getByRole("textbox", { name: "Your question" }).fill("What does responsible party mean?");
-    await ask.getByRole("combobox", { name: "Is it about one blank? (optional)" }).selectOption({ label: "Line 7a: Name of the responsible party (the owner in control) (page 1)" });
     await ask.getByRole("button", { name: "Ask" }).click();
     await expect(ask.getByText(/[Pp]ractice/).first()).toBeVisible({ timeout: 60_000 });
 

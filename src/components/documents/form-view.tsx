@@ -260,10 +260,9 @@ function Guide({ guide }: { guide: DocumentGuide }) {
 }
 
 function Ask({ doc, maxQuestion }: { doc: StoredDocument; maxQuestion: number }) {
-  const fields = doc.content.fields.map((field) => ({ id: field.id, label: field.label, page: field.page }));
   return (
     <Card title="Ask about this form" icon="question" id="ask-heading">
-      <AskForm documentId={doc.id} fields={fields} maxQuestion={maxQuestion} />
+      <AskForm documentId={doc.id} maxQuestion={maxQuestion} />
       {doc.questions.length ? (
         <div className="flex flex-col gap-2.5 border-t border-line pt-4">
           <h3 className="font-bold">Your questions</h3>

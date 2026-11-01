@@ -1,4 +1,10 @@
-import { PDFDocument, type PDFFont, rgb, StandardFonts } from "pdf-lib";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import fontkit from "@pdf-lib/fontkit";
+import { PDFDocument, type PDFFont, rgb } from "pdf-lib";
+import { toWinAnsi } from "./pdf-text";
+
+export { toWinAnsi, unprintable } from "./pdf-text";
 
 // Plain, printable PDFs for generated documents: business plans, answer sheets, the startup plan.
 
@@ -23,33 +29,26 @@ const PAGE = { width: 612, height: 792, margin: 54 } as const;
 const INK = rgb(0.11, 0.14, 0.13);
 const MUTED = rgb(0.36, 0.39, 0.38);
 
-// Characters the standard PDF fonts can draw (Windows-1252); anything else becomes "?"
-const CP1252_EXTRA = new Set("€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ");
+// Embedded so every viewer draws the letters at the widths used for layout. Arimo has Helvetica's widths,
+// trimmed to the characters toWinAnsi keeps (OFL.txt); fontkit's own subsetting drops glyphs.
+const FONT_DIR = path.join(process.cwd(), "src/lib/documents/fonts");
+let fontFiles: Promise<Uint8Array[]> | null = null;
 
-export function toWinAnsi(text: string): string {
-  return [...text.normalize("NFC")]
-    .map((char) => {
-      const code = char.codePointAt(0)!;
-      if (char === "\t") return " ";
-      if (char === "\r") return "";
-      if ((code >= 0x20 && code < 0x7f) || (code >= 0xa0 && code <= 0xff) || CP1252_EXTRA.has(char) || char === "\n") return char;
-      if (code === 0x2212 || code === 0x2010 || code === 0x2011) return "-";
-      return "?";
-    })
-    .join("");
-}
-
-// Letters the standard fonts can't draw, which toWinAnsi would print as "?"
-export function unprintable(text: string): string[] {
-  return [...new Set([...text.normalize("NFC")].filter((char) => char !== "?" && toWinAnsi(char) === "?"))];
+export async function embedFonts(doc: PDFDocument): Promise<{ regular: PDFFont; bold: PDFFont }> {
+  fontFiles ??= Promise.all(["Arimo-Regular.ttf", "Arimo-Bold.ttf"].map((name) => readFile(path.join(FONT_DIR, name)))).catch((error) => {
+    fontFiles = null;
+    throw error;
+  });
+  const [regular, bold] = await fontFiles;
+  doc.registerFontkit(fontkit);
+  return { regular: await doc.embedFont(regular, { subset: false }), bold: await doc.embedFont(bold, { subset: false }) };
 }
 
 export async function writePdf(spec: PdfSpec): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(toWinAnsi(spec.title));
   doc.setProducer("SnapStart Business Assembly Kit");
-  const regular = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const { regular, bold } = await embedFonts(doc);
   const width = PAGE.width - PAGE.margin * 2;
 
   let page = doc.addPage([PAGE.width, PAGE.height]);
