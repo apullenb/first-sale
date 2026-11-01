@@ -161,14 +161,6 @@ export const SECTIONS: Section[] = [
     milestone: 6,
     summary: "Set up tracking for orders and customer requests, with follow-up reminders and your review at every step.",
   },
-  {
-    href: "/planning-for-help",
-    title: "Planning for help",
-    group: "Run your business",
-    step: null,
-    milestone: 7,
-    summary: "What hiring help would cost each month, the sales needed to cover it, and a draft role description.",
-  },
 ];
 
 export const SECTION_GROUPS: SectionGroup[] = ["Start your business", "Build your brand", "Run your business"];

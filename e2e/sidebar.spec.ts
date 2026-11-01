@@ -38,7 +38,7 @@ test.describe("sidebar and Today", () => {
     }
   });
 
-  test("tacos: Today without a launch date, section toggles, and pages not built yet", async ({ browser }) => {
+  test("tacos: Today without a launch date, and section toggles", async ({ browser }) => {
     const { page } = await newOwner(browser, tacos);
     await open(page, "/");
     await expect(page.getByRole("region", { name: "Launch day" }).getByText(/days to go/)).toHaveCount(0);
@@ -54,9 +54,5 @@ test.describe("sidebar and Today", () => {
     await nav.getByRole("link", { name: "Orders" }).click();
     await page.waitForURL("**/orders");
     await expect(page.getByRole("heading", { name: "Track orders & customer requests" })).toBeVisible();
-    await open(page, "/planning-for-help");
-    await expect(page.getByRole("region", { name: "Not built yet" })).toBeVisible();
-    await page.getByRole("link", { name: "Back to Today" }).click();
-    await page.waitForURL((url) => url.pathname === "/");
   });
 });

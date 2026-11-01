@@ -27,7 +27,7 @@ Decided 2026-10-26: a **guided workspace**, direction A in the clickable prototy
 
 - **Layout.** A left menu holds Today, then two groups:
   - "Start your business": Your business, Requirements, Structure and path, Checklist.
-  - "Run your business": Branding, Website, Product photos, Products and marketing, Orders, Planning for help. Product photos sits under Website, as the owner asked ("under website creation").
+  - "Run your business": Branding, Website, Product photos, Products and marketing, Orders. Product photos sits under Website, as the owner asked ("under website creation").
 
   On a phone, the menu becomes one scrollable row above the content. A bottom tab bar, like the prototype's phone screen, is still an option.
 - **Getting started:** sign up, then answer the intake questions one at a time, inside the workspace. Returning owners log in to Today.
@@ -169,13 +169,6 @@ Decided 2026-10-26: a **guided workspace**, direction A in the clickable prototy
   - `applyOrder` checks and updates stock all at once or not at all; it never comes from the model.
   - AI drafts the reply from the owner's pickup and shipping settings and flags missing details.
   - Each order's history labels every step: rule, AI or owner.
-- **Planning for help (`/planning-for-help`)**
-  - The owner logs which tasks take the most time.
-  - `estimateHire` shows the formula:
-    - monthly cost = hours/week × hourly cost × 52 ÷ 12
-    - sales needed = monthly cost ÷ gross margin
-  - AI drafts a role description.
-  - The wording says "estimate," never "you will."
 
 ## Architecture
 
@@ -241,7 +234,6 @@ drizzle/                migrations
 | 4 | Structure and path, checklist | Must | Startup plan built: next action and parallel steps, costs with renewals, numbered filing steps, submitted and approved status, review for re-check and decision changes, a PDF copy. Structure comparison page built: sourced explanations, rules-based suggested path, what-ifs, confirmed decisions with history. |
 | 5 | Product → marketing | Must | Product photos built (Muse Image editing from the owner's own photo, with an AI comparison and the owner's approval). Branding built (logo ideas, versions, brand pictures, brand kit). Website built (three checked options, more by search, web address check, drafted words, setup checklist). Listings and posts not built. |
 | 6 | Order → customer reply | Must | |
-| 7 | Planning for help | Must | |
 | 8 | Completion: uploads, help chat on each task | Should | Paperwork companion and official forms built: IRS SS-4 downloaded, checked and filled by rules; Texas Forms 205, 503 and AP-201 and the Travis County certificate checked and filled for review; reviewed copies as versions; outdated-draft flags; a library grouped by step with receipts and approvals. |
 | 9 | Your demo businesses polished end to end | Should | |
 | 10 | One-page shop, turning a pasted DM into an order, Spanish | Stretch | |

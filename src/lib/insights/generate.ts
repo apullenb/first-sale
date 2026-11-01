@@ -29,7 +29,7 @@ Every item has:
 - title: a short, plain headline, under ten words.
 - detail: two or three short sentences.
 - action: one small next step, as a short sentence that starts with a verb. Use "" only when there's nothing to do.
-- link: the SnapStart page where they can act on it, or null: "business" (their answers), "requirements" (official rules for their place), "structure" (sole proprietorship, LLC and the like), "checklist" (their startup plan), "documents" (forms and documents), "business_plan", "brand" (how their brand should feel and its short description), "logo" (making or uploading a logo, its versions, colors and logo files), "website", "photos" (product photos), "planning_for_help" (hiring help).
+- link: the SnapStart page where they can act on it, or null: "business" (their answers), "requirements" (official rules for their place), "structure" (sole proprietorship, LLC and the like), "checklist" (their startup plan), "documents" (forms and documents), "business_plan", "brand" (how their brand should feel and its short description), "logo" (making or uploading a logo, its versions, colors and logo files), "website", "photos" (product photos).
 - stepKey: when it's about one step in their startup plan, that step's key from <facts>; otherwise null.
 
 Facts and numbers:

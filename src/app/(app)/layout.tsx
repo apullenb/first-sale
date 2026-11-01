@@ -1,6 +1,8 @@
 import { unstable_rethrow } from "next/navigation";
 import { Suspense } from "react";
+import Link from "next/link";
 import { AccountMenu } from "@/components/account-menu";
+import { Logo } from "@/components/logo";
 import { SidebarFallback, SidebarNav, type SidebarBusiness } from "@/components/sidebar-nav";
 import { displayName, formatLaunchDate } from "@/lib/intake/answers";
 import { getMySidebarStatus } from "@/lib/sidebar-status";
@@ -12,9 +14,16 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
       <Suspense fallback={<SidebarFallback />}>
         <SidebarWithData />
       </Suspense>
-      <main id="main" className="min-w-0 pt-5 md:pt-3">
-        {children}
-      </main>
+      <div className="min-w-0">
+        <header className="flex items-center pt-4 md:pt-1">
+          <Link href="/" aria-label="SnapStart home">
+            <Logo className="w-36 sm:w-40" />
+          </Link>
+        </header>
+        <main id="main" className="pt-4 md:pt-3">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
