@@ -8,7 +8,7 @@ import { LocalDate } from "@/components/local-date";
 import { ApproveOrRewrite, WritePlanButton } from "@/components/marketing/ai-progress";
 import { MarketingAnswers, MarketingIntakeForm } from "@/components/marketing/intake-form";
 import { PlanView } from "@/components/marketing/plan-view";
-import { Kicker, NextUp } from "@/components/marketing/pieces";
+import { ActionFacts, Kicker, NextUp } from "@/components/marketing/pieces";
 import { MarketingStepList, type ShownStep } from "@/components/marketing/step-list";
 import { PracticeBanner } from "@/components/practice-banner";
 import { RunStatus } from "@/components/run-status";
@@ -19,12 +19,12 @@ import { PLATFORM_DATA as WEBSITE_PLATFORMS } from "@/data/website-platforms";
 import { getMyBrand, getMyBusiness, getMyMarketing, getMyWebsitePlan, lastMyRun, listMyDocuments, listMyJourneyMarks } from "@/lib/data/my-business";
 import { CUT_OFF_MESSAGE } from "@/lib/data/workflow-runs";
 import type { BusinessProfile } from "@/lib/domain";
-import { examplesText } from "@/lib/intake/catalog";
 import { BUDGET_LABELS, CHANNEL_LABELS, OFFERING_KIND_LABELS, STATE_NAMES } from "@/lib/intake/options";
 import { completeIntake, intakeKey } from "@/lib/marketing/intake";
-import { type HandHolding, stepAnchor } from "@/lib/marketing/types";
+import { type HandHolding, type MarketingStep, stepAnchor } from "@/lib/marketing/types";
 import { autoDoneSteps, doneFacts, doneSteps, handHolding, type MarketingMove, marketingMove, visibleSteps, withCurrentBrandSteps, withoutPlatforms } from "@/lib/rules/marketing";
 import { sectionMetadata } from "@/lib/sections";
+import { businessSpecifics, specificsSummary } from "@/lib/specifics";
 
 export const metadata = sectionMetadata("/marketing");
 // Writing the plan waits on an AI call
@@ -74,7 +74,7 @@ function launchLabel(date: string): string {
 
 // What the plan uses that the owner already told SnapStart
 function knownFacts(profile: BusinessProfile, hasLogo: boolean, website: string | null) {
-  const sells = profile.firstItems || examplesText(profile.category, profile.productTags) || profile.offeringKinds.map((kind) => OFFERING_KIND_LABELS[kind]).join(", ");
+  const sells = specificsSummary(businessSpecifics(profile)) || profile.offeringKinds.map((kind) => OFFERING_KIND_LABELS[kind]).join(", ");
   return [
     { label: "Business", value: profile.name ?? "No name yet" },
     { label: "What you sell", value: sells },
@@ -240,6 +240,29 @@ async function MarketingView() {
   );
 }
 
+// What a step asks of the owner, by kind; plan actions vary, so they stay general
+const STEP_COST: Record<MarketingStep["kind"], string> = {
+  look: "Nothing extra: it’s made in SnapStart.",
+  brand_images: "Nothing extra: they’re made in SnapStart.",
+  setup: "No SnapStart charge. The platform’s sign-up page shows any fees; ads are always your choice.",
+  tidy: "No SnapStart charge. Ads are always your choice.",
+  photos: "Free: your phone and daylight are enough.",
+  posts: "Free.",
+  search: "Nothing extra: your search words are part of your website step.",
+  action: "Free or low-cost. If it needs printing or ads, you decide what to spend.",
+};
+
+const STEP_NEEDS: Record<MarketingStep["kind"], string> = {
+  look: "Your approved brand description, then your logo.",
+  brand_images: "Your chosen logo.",
+  setup: "Your business email, your profile picture and a short bio.",
+  tidy: "Your account login, your profile picture and a short bio.",
+  photos: "Your phone and the things you sell.",
+  posts: "Your photos and your plan’s themes.",
+  search: "Your website words.",
+  action: "The how-to below.",
+};
+
 function NextCard({
   move,
   total,
@@ -260,11 +283,11 @@ function NextCard({
   if (move.kind === "write") {
     return (
       <NextUp id="next-heading" icon={move.again ? "refresh" : "sparkles"} kicker="Up next" title={move.again ? "Your answers changed" : "Write your marketing plan"}>
-        <p className="text-[16.5px] text-muted">
-          {move.again
-            ? "Write your plan again so it matches your new answers."
-            : "SnapStart looks at everything you’ve told it, from what you sell to your budget, launch date, brand and website, and drafts a plan for you to check."}
-        </p>
+        <ActionFacts
+          why={move.again ? "Your answers changed, so your plan and steps should match them." : "A plan made for your business tells you where to show up first and what to post."}
+          cost="Nothing extra: it’s part of SnapStart. The plan sticks to free and low-cost steps first."
+          needs="Nothing new: SnapStart uses what you’ve told it, from what you sell to your budget, launch date, brand and website."
+        />
         {runNotice}
         {running ? null : <WritePlanButton again={move.again} />}
       </NextUp>
@@ -273,7 +296,11 @@ function NextCard({
   if (move.kind === "approve") {
     return (
       <NextUp id="next-heading" icon="file" kicker="Up next" title="Check your plan and approve it">
-        <p className="text-[16.5px] text-muted">Read it below. Approving saves a copy to your Documents and makes your steps.</p>
+        <ActionFacts
+          why="Approving turns the plan into steps you can follow one at a time, and saves a copy to your Documents."
+          cost="Nothing extra: it’s part of SnapStart."
+          needs="A few minutes to read the plan below."
+        />
         {runNotice}
         {running ? null : <ApproveOrRewrite approve={approveMarketingPlanAction.bind(null, { draftedAt })} />}
       </NextUp>
@@ -287,6 +314,7 @@ function NextCard({
             {done} of {total} done
           </Chip>
         </div>
+        <ActionFacts why={move.step.why} cost={STEP_COST[move.step.kind]} needs={STEP_NEEDS[move.step.kind]} />
         <a href={`#${stepAnchor(move.step.key)}`} className={PRIMARY_LINK}>
           Start this step
           <Icon name="arrow" size="sm" />

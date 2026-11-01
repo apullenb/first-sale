@@ -4,7 +4,6 @@ import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { Done, SectionHead, SOFT } from "@/components/marketing/pieces";
 import { Card, Chip, Note } from "@/components/ui";
-import { dollars, IDEAS } from "@/lib/brand/cost";
 import { brandFileUrl } from "@/lib/brand/files";
 import { CONCEPT_KINDS_TEXT } from "@/lib/brand/prompts";
 import { applyDesign } from "@/lib/brand/refine";
@@ -48,7 +47,7 @@ export function IdeasSection({ number, rounds, drawing, ...shared }: Props) {
         lead={
           practice
             ? "In practice mode these ideas are samples and each logo is a plain labeled preview, not drawn for your business."
-            : "Each idea was written from your brand description and choices, and drawn by Muse. Choose the one you like, edit it in your own words, or ask for more like it."
+            : "Each idea was written from your brand description and choices, and drawn by AI. Choose the one you like, edit it in your own words, or ask for more like it."
         }
       />
       {latest ? <Round key={latest.id} round={latest} {...shared} drawing={drawing.has(latest.id)} basedOn={titles.get(latest.basedOnConceptId ?? "")} /> : null}
@@ -91,7 +90,7 @@ function Round({ round, drawing, basedOn, ...shared }: Shared & { round: RoundSu
             label="Draw the missing logos"
             pendingLabel="Drawing…"
             working="Drawing logos and checking their spelling… this can take two or three minutes"
-            cost={practice ? "Practice mode: nothing is charged." : `${undrawn.length} ${undrawn.length === 1 ? "picture" : "pictures"}: ${dollars(undrawn.length)}.`}
+            hint={practice ? "Practice mode: you’ll see a labeled sample." : ""}
           />
         </Note>
       ) : null}
@@ -156,7 +155,7 @@ function ConceptCard({ concept, brief, drafts, drawing, ...shared }: Shared & { 
             pendingLabel="Writing ideas…"
             working="Writing new ideas like this one… this can take a minute"
             variant="secondary"
-            cost={practice ? "Practice mode: nothing is charged." : `${IDEAS.more} new ideas, each drawn: ${dollars(IDEAS.more)}, plus a little for writing them.`}
+            hint={practice ? "Practice mode: you’ll see a labeled sample." : ""}
           />
         </div>
       ) : null}
@@ -219,7 +218,7 @@ function Draft({
         )}
         <EditPrompt
           target={{ kind: "logo", assetId: draft.id }}
-          cost={practice ? "Practice mode: nothing is charged." : `One picture: ${dollars(1)}.`}
+          hint={practice ? "Practice mode: you’ll see a labeled sample." : ""}
           working="Changing your logo and checking the spelling… this can take a minute or two"
           done="Done. The changed logo is shown under this one, and this one is kept."
         />
@@ -233,7 +232,7 @@ function Draft({
         <div className="border-t border-line bg-surface px-4 py-4">
           <RefineLogo
             assetId={draft.id}
-            cost={practice ? "Practice mode: nothing is charged." : `One picture: ${dollars(1)}.`}
+            hint={practice ? "Practice mode: you’ll see a labeled sample." : ""}
             current={{ palette: drawn.concept.palette, typography: drawn.concept.typography, tagline: drawn.brief.tagline.trim() }}
             ownerTagline={ownerTagline}
             pickedFamilies={pickedFamilies}

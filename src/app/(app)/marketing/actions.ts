@@ -7,14 +7,14 @@ import { PLATFORM_DATA } from "@/data/marketing-platforms";
 import { PLATFORM_DATA as WEBSITE_PLATFORMS } from "@/data/website-platforms";
 import { getModel } from "@/lib/ai";
 import type { MarketingRecord } from "@/lib/data/marketing";
-import { createMyDocument, getMyBrand, getMyBrandState, getMyBusiness, getMyMarketing, getMyPaperwork, getMyWebsitePlan, listMyDocuments, listMyPhotoLibrary, myAiKey, updateMyDocument, updateMyMarketing } from "@/lib/data/my-business";
+import { createMyDocument, getMyBrand, getMyBrandState, getMyBusiness, getMyMarketing, getMyPaperwork, getMyWebsitePlan, listMyDocuments, listMyPhotoLibrary, listMyProducts, myAiKey, updateMyDocument, updateMyMarketing } from "@/lib/data/my-business";
 import { type PdfBlock, writePdf } from "@/lib/documents/pdf-writer";
 import { EMPTY_CONTENT } from "@/lib/documents/types";
 import { OwnerFacingError } from "@/lib/errors";
 import { completeIntake, intakeKey, type MarketingIntake, marketingIntakeSchema } from "@/lib/marketing/intake";
 import { draftMarketingPlan, type MarketingFacts } from "@/lib/marketing/plan";
 import { type MarketingPlan, ROLE_LABELS } from "@/lib/marketing/types";
-import { buildMarketingSteps, type StepContext, withCurrentBrandSteps } from "@/lib/rules/marketing";
+import { buildMarketingSteps, type StepContext, stepKeys, withCurrentBrandSteps } from "@/lib/rules/marketing";
 import { runWorkflow } from "@/lib/workflow-runner";
 
 const NO_BUSINESS = "Tell us about your business first.";
@@ -63,6 +63,7 @@ async function gatherFacts(intake: MarketingIntake): Promise<Omit<MarketingFacts
       : null,
     approvedPhotos: context.approvedPhotos,
     startup: required.length ? { done: required.filter((step) => step.status === "done").length, total: required.length } : null,
+    products: (await listMyProducts()).map((product) => ({ name: product.name })),
   };
 }
 
@@ -108,7 +109,7 @@ export async function approveMarketingPlanAction(input: unknown): Promise<Action
     if (problem) return null;
     before = { steps: latest?.steps ?? [], stepsDone: latest?.stepsDone ?? [] };
     // Ticks carry over for steps that are still there
-    return { approvedAt: now, steps, stepsDone: before.stepsDone.filter((key) => steps.some((step) => step.key === key)) };
+    return { approvedAt: now, steps, stepsDone: before.stepsDone.filter((key) => steps.some((step) => stepKeys(step).includes(key))) };
   });
   if (saved === "no_business") return { ok: false, message: NO_BUSINESS };
   if (problem) return { ok: false, message: problem };
@@ -133,13 +134,15 @@ export async function setMarketingStepAction(input: unknown): Promise<ActionResu
   const { context } = await stepContext();
   let missing = false;
   const saved = await updateMyMarketing((latest) => {
-    if (!latest || !withCurrentBrandSteps(latest.steps, context).some((step) => step.key === key)) {
+    const step = latest ? withCurrentBrandSteps(latest.steps, context).find((each) => each.key === key) : undefined;
+    if (!latest || !step) {
       missing = true;
       return null;
     }
     const keys = new Set(latest.stepsDone);
     if (done) keys.add(key);
-    else keys.delete(key);
+    // Unticking clears the folded-in actions' ticks too
+    else for (const each of stepKeys(step)) keys.delete(each);
     return { stepsDone: [...keys] };
   });
   if (saved === "no_business") return { ok: false, message: NO_BUSINESS };

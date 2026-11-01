@@ -248,7 +248,7 @@ export const TASKS: Task[] = [
       const contact = c.details.filter((detail) => detail.key === "business_email" || detail.key === "business_phone");
       const content = await draftWebsite(
         ctx.model,
-        { profile: c.profile, platform: c.website.platform, details: contact.map((detail) => ({ label: DETAILS[detail.key].label, value: detail.value })), planAnswers: planInputs(c) },
+        { profile: c.profile, platform: c.website.platform, details: contact.map((detail) => ({ label: DETAILS[detail.key].label, value: detail.value })), planAnswers: planInputs(c), products: [] },
         ctx.now,
       );
       return { grade: gradeWebsite(content, contact.map((detail) => detail.value)) };

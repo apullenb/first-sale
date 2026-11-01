@@ -48,7 +48,7 @@ test.describe("create your logo", () => {
     await expect(kinds.getByRole("button", { name: /^Show me a mix/ })).toHaveAttribute("aria-pressed", "false");
     await shows.getByRole("textbox", { name: "A symbol idea (optional)" }).fill("a happy dog in a bubble bath");
     await shows.getByRole("textbox", { name: "Logos you like (optional)" }).fill("round, friendly letters");
-    await expect(shows.getByText("Practice mode: no logos are drawn and nothing is charged.", { exact: false })).toBeVisible();
+    await expect(shows.getByText("Practice mode: no logos are drawn.", { exact: false })).toBeVisible();
     await shows.getByRole("button", { name: "Generate logo ideas" }).click();
 
     // Step 3: practice ideas, each a labeled placeholder

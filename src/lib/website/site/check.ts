@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { BrandKit } from "@/lib/brand/types";
 import type { BusinessProfile } from "@/lib/domain";
+import { type ClaimRecords, claimConflicts, siteClaimRecords } from "@/lib/website/claims";
 import { brandAssetId } from "@/lib/website/look";
 import type { PlatformId, WebsiteContent } from "@/lib/website/types";
 import { copyOf } from "@/lib/website/words";
@@ -36,10 +37,16 @@ export interface SiteState {
 }
 
 // The words and design as the site shows them, with saved products added
-export function shownSite(site: SiteState): { content: WebsiteContent | null; design: SiteDesign } {
+export function shownSite(site: Pick<SiteState, "content" | "products" | "design">): { content: WebsiteContent | null; design: SiteDesign } {
   if (!site.content) return { content: null, design: site.design };
   const shown = withProducts(copyOf(site.content), site.products, site.design);
   return { content: { ...site.content, offerings: shown.copy.offerings }, design: shown.design };
+}
+
+// The prices the site shows and the owner's handoff answers, for the claim checks
+export function claimRecords(site: Pick<SiteState, "content" | "products" | "design" | "profile">): ClaimRecords {
+  if (!site.content) return { prices: [], handoff: site.profile.handoff };
+  return siteClaimRecords(copyOf(site.content), site.products, site.design, site.profile.handoff);
 }
 
 // Approved photos the site shows, in item order
@@ -70,6 +77,7 @@ export function publishCheck(site: SiteState): PublishCheck {
         (design.showHero && brand?.images.websiteHero && brandPractice.hero),
     ),
     practicePhotos: photosShown(site).filter((photo) => photo.simulated).length,
+    conflicts: content ? claimConflicts(copyOf(content), claimRecords(site)) : [],
   };
 }
 

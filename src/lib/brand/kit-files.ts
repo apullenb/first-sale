@@ -126,7 +126,7 @@ export function kitReadme(input: { businessName: string; recipes: KitRecipe[]; s
   const lines = [
     `${input.businessName} logo files`,
     "",
-    input.simulated ? "PRACTICE PREVIEW: these files are placeholders, not a logo made by Muse. Don't use them as your logo.\n" : null,
+    input.simulated ? "PRACTICE PREVIEW: these files are placeholders, not a logo made by AI. Don't use them as your logo.\n" : null,
     "Your colors: " + input.colors.map((color) => `${color.name} ${color.hex.toUpperCase()}`).join(", "),
     "",
   ];

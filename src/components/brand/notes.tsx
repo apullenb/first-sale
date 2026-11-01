@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { Card, OutsideLink } from "@/components/ui";
+import { serviceNotes, serviceRecipient } from "@/components/ai-service";
 import { getImageModel, getModel } from "@/lib/ai";
 import { CHECKED_TEXT, USPTO } from "@/lib/brand/sizes";
 
@@ -16,11 +17,10 @@ function servicePoints(): string[] {
     return ["SnapStart’s AI service isn’t set up right now, so nothing is sent anywhere."];
   }
   if (model.simulated) return ["SnapStart is in practice mode: nothing is sent to any AI service, and no pictures are drawn."];
-  if (!model.dataHandling) return [`Your brief and files are sent to ${model.name} to write ideas and check spelling.`];
   return [
-    `Your brief is sent to ${model.dataHandling.recipient} to write logo ideas, and each picture is sent back to it to check the spelling.`,
-    image ? "Pictures are drawn by Meta’s Muse Image from your brief and logo only: its own web and image search are turned off, so it doesn’t copy pictures it finds online." : "Drawing pictures isn’t turned on for this setup.",
-    ...model.dataHandling.notes,
+    `Your brief is sent to ${serviceRecipient(model)} to write logo ideas, and each picture is sent back to it to check the spelling.`,
+    image ? "Pictures are drawn by AI from your brief and logo only: its own web and image search are turned off, so it doesn’t copy pictures it finds online." : "Drawing pictures isn’t turned on for this setup.",
+    ...serviceNotes(model, image),
   ];
 }
 
@@ -48,7 +48,7 @@ export async function BrandNotes() {
       <Note icon="lock" title="Who sees your brand files">
         <ul className="flex list-disc flex-col gap-1.5 pl-5 text-rule marker:text-accent">
           <li>Your brief, ideas and pictures are stored in SnapStart’s database. Only you can see them, when you’re signed in.</li>
-          <li>Pictures are kept exactly as Muse made them. Exact-size downloads are made in your browser.</li>
+          <li>Pictures are kept exactly as they were made. Exact-size downloads are made in your browser.</li>
           {servicePoints().map((point) => (
             <li key={point}>{point}</li>
           ))}

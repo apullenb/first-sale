@@ -79,7 +79,7 @@ async function Logo({ searchParams }: { searchParams: SearchParams }) {
   const practice = image?.simulated ?? false;
   const chosen = state.assets.find((asset) => asset.id === state.chosenLogoId && asset.kind === "logo") ?? null;
   const brief = briefDefaults(business.profile, state.brief);
-  const banner = practice ? <PracticeBanner what="Logo ideas here are samples and every logo is a plain text preview, not made by Muse." /> : null;
+  const banner = practice ? <PracticeBanner what="Logo ideas here are samples and every logo is a plain text preview, not made by AI." /> : null;
 
   if (chosen && params.ideas !== "new") {
     return (
@@ -267,7 +267,7 @@ async function ChosenView({ chosen, state, brief, practice }: { chosen: AssetSum
           lead={
             practice
               ? "Choose + to make each version from your logo. In practice mode each one is a plain labeled preview. Nothing is used until you choose “Use this”."
-              : "Choose + to make each version from your logo. Muse starts from the logo itself so the design stays the same, and AI compares each one with it. Nothing is used until you choose “Use this”."
+              : "Choose + to make each version from your logo. AI starts from the logo itself so the design stays the same, and AI compares each one with it. Nothing is used until you choose “Use this”."
           }
         />
         {VERSION_KINDS.map((kind, index) => (
