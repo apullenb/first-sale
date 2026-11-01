@@ -4,7 +4,7 @@ import type { Db } from "@/db/client";
 import { aiRequests } from "@/db/schema";
 
 // Caps what one owner's AI requests can cost
-export const AI_LIMITS = { perHour: 10, perDay: 50 } as const;
+export const AI_LIMITS = { perHour: 30, perDay: 150 } as const;
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
@@ -14,7 +14,7 @@ const AI_LOCK = sql`pg_advisory_xact_lock(2, 0)`;
 // Across all owners, since anyone can sign up. Set AI_DAILY_LIMIT to change it.
 export function globalDailyLimit(env: Record<string, string | undefined> = process.env): number {
   const value = Number(env.AI_DAILY_LIMIT);
-  return Number.isInteger(value) && value > 0 ? value : 500;
+  return Number.isInteger(value) && value > 0 ? value : 2000;
 }
 
 export type AiQuotaResult = "ok" | "owner_limit" | "global_limit";

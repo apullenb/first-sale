@@ -20,7 +20,7 @@ Open http://localhost:3000, create an account and answer the intake questions. T
 
 Without an AI key the app runs in **practice mode**: built-in rules stand in for the model, nothing is searched, and photos and scans can't be read. Every result made this way carries a "Practice mode" label, so it's never mistaken for real research.
 
-AI requests (intake suggestions, research, reading and explaining forms, drafting answers, business plans and marketing plans, business insights, product photos, logos and brand pictures, and website words and explanations) are limited to 10 an hour and 50 a day per owner, and 500 a day across everyone (`AI_DAILY_LIMIT`), to cap cost.
+AI requests (intake suggestions, research, reading and explaining forms, drafting answers, business plans and marketing plans, business insights, product photos, logos and brand pictures, and website words and explanations) are limited to 30 an hour and 150 a day per owner, and 2,000 a day across everyone (`AI_DAILY_LIMIT`), to cap cost.
 
 The local database is PGlite in `.pglite/`, and only one process can use it at a time. Stop `npm run dev` before running `db:migrate`. If `db:migrate` fails with "already exists", or with "is duplicated" (an account made more than one business before the one-per-owner rule), your local `.pglite/` predates the current migrations: delete it and run `db:migrate` again.
 

@@ -55,9 +55,9 @@ describe("takeAiRequest", () => {
 });
 
 describe("globalDailyLimit", () => {
-  it("reads AI_DAILY_LIMIT, defaulting to 500", () => {
-    expect(globalDailyLimit({})).toBe(500);
+  it("reads AI_DAILY_LIMIT, defaulting to 2000", () => {
+    expect(globalDailyLimit({})).toBe(2000);
     expect(globalDailyLimit({ AI_DAILY_LIMIT: "40" })).toBe(40);
-    expect(globalDailyLimit({ AI_DAILY_LIMIT: "lots" })).toBe(500);
+    expect(globalDailyLimit({ AI_DAILY_LIMIT: "lots" })).toBe(2000);
   });
 });
