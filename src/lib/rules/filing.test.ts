@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { officialForm } from "@/data/official-forms";
-import { type FilingInput, filingPaths, filingSteps } from "./filing";
+import { type FilingInput, filingPaths, filingSteps, formNextSteps } from "./filing";
 
 const input = (overrides: Partial<FilingInput> = {}): FilingInput => ({
   title: "File your assumed name",
@@ -88,5 +88,35 @@ describe("filingPaths", () => {
   it("gives the mailing address of a form that's otherwise filed online", () => {
     const paper = filingPaths(officialForm("tx-llc-205")!).paper!.send;
     expect(paper[0]).toMatchObject({ address: ["Secretary of State", "P.O. Box 13697", "Austin, TX 78711-3697"] });
+  });
+});
+
+describe("formNextSteps", () => {
+  const base = officialForm("tx-llc-205")!;
+
+  it("ends with marking it submitted and never files", () => {
+    const steps = formNextSteps(base, { guide: false, stepId: "s1" });
+    expect(steps.at(-1)?.title).toBe("Mark it submitted");
+    expect(steps.flatMap((step) => step.lines).some((line) => line.text.includes("never files"))).toBe(true);
+  });
+
+  it("says the fee is unconfirmed when the catalog has none", () => {
+    const steps = formNextSteps({ ...base, fee: null }, { guide: false, stepId: null });
+    expect(steps.flatMap((step) => step.lines).find((line) => line.unknown)?.text).toMatch(/isn’t confirmed/);
+  });
+
+  it("keeps a signed-and-kept form instead of sending it", () => {
+    const kept = { text: "Sign and keep it.", quote: "", sourceTitle: "Page", sourceUrl: "https://www.sos.state.tx.us/", checkedOn: "2026-10-27" };
+    const steps = formNextSteps({ ...base, kept }, { guide: false, stepId: null });
+    expect(steps.map((step) => step.title)).toEqual(["Check every answer", "Sign it", "Keep it with your records"]);
+  });
+
+  it("points an answer guide at the online application", () => {
+    const steps = formNextSteps(base, { guide: true, stepId: null });
+    expect(steps.some((step) => step.lines.some((line) => line.link?.label === "Open the official application"))).toBe(true);
+  });
+
+  it("gives plain steps for a form not in the catalog", () => {
+    expect(formNextSteps(null, { guide: false, stepId: null }).map((step) => step.title)).toContain("Send it to the office");
   });
 });

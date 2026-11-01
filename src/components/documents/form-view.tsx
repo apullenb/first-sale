@@ -11,10 +11,12 @@ import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { PracticeBanner } from "@/components/practice-banner";
 import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
-import { Card, Note, OutsideLink, ResourceLink } from "@/components/ui";
+import { Card, Note, NumberedSteps, OutsideLink, ResourceLink } from "@/components/ui";
 import type { StoredDocument } from "@/lib/data/documents";
 import { CUT_OFF_MESSAGE, type RunState } from "@/lib/data/workflow-runs";
 import { officialForm } from "@/data/official-forms";
+import { FilingLines } from "@/components/plan/filing-steps";
+import { formNextSteps } from "@/lib/rules/filing";
 import type { DocumentGuide } from "@/lib/documents/types";
 import { AnchorNote } from "./anchor-note";
 import { AnswersEditor, type EditorField } from "./answers-editor";
@@ -92,6 +94,7 @@ export function FormView(props: FormViewProps) {
       ) : null}
       {isReadable(doc.content) || doc.content.fields.length ? <Answers {...props} /> : null}
       {doc.content.fields.length ? <Prepared doc={doc} /> : null}
+      {doc.content.fields.length ? <NextSteps doc={doc} /> : null}
     </div>
   );
 }
@@ -347,6 +350,21 @@ function Prepared({ doc }: { doc: StoredDocument }) {
       <p className="text-[14.5px] text-muted">
         An answer sheet lists every blank with your answer and where it came from, to copy onto the form or an online application.
       </p>
+    </Card>
+  );
+}
+
+// What to do with the form once it's prepared
+function NextSteps({ doc }: { doc: StoredDocument }) {
+  const steps = formNextSteps(doc.formKey ? (officialForm(doc.formKey) ?? null) : null, { guide: doc.role === "answer_guide", stepId: doc.taskId });
+  return (
+    <Card title="What to do with this form" icon="todo" id="next-steps-heading">
+      <NumberedSteps label="What to do with this form" steps={steps.map((step) => ({ title: step.title, body: <FilingLines lines={step.lines} /> }))} />
+      {doc.taskId ? (
+        <Link href={`/checklist/${doc.taskId}`} className={TEXT_LINK}>
+          Open its step
+        </Link>
+      ) : null}
     </Card>
   );
 }

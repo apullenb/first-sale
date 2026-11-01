@@ -203,3 +203,47 @@ export function filingPaths(form: OfficialForm): FilingPaths {
     online: url ? { url, checkedByHand: byHand(url), send: online } : null,
   };
 }
+
+export interface FormNextStep {
+  title: string;
+  lines: FilingLine[];
+}
+
+// What the owner does with a prepared form, from the catalog's checked facts; never files it
+export function formNextSteps(form: OfficialForm | null, opts: { guide: boolean; stepId: string | null }): FormNextStep[] {
+  const mark = opts.stepId ? "Then open its step and choose “I submitted it”, so your plan knows it’s on its way." : "Then mark it submitted on its step, so your plan knows it’s on its way.";
+  const check: FormNextStep = { title: "Check every answer", lines: [{ text: "Read each answer above. Blanks for signatures, ID numbers and sworn statements are left for you to fill in yourself." }] };
+  if (!form) {
+    return [
+      check,
+      { title: "Save your reviewed version", lines: [{ text: "Use “Save your reviewed version” below to keep a copy with only the answers you confirmed." }] },
+      { title: "Send it to the office", lines: [{ text: "The office’s official page says where and how to send this form. SnapStart never files anything for you." }] },
+      { title: "Mark it submitted", lines: [{ text: mark }] },
+    ];
+  }
+  if (form.kept) {
+    return [
+      check,
+      { title: "Sign it", lines: [{ text: form.kept.text, source: fromFact(form.kept) }] },
+      { title: "Keep it with your records", lines: [{ text: "Don’t send this one in. Keep the signed copy somewhere safe with your business papers." }] },
+    ];
+  }
+  const paths = filingPaths(form);
+  const send: FilingLine[] = opts.guide && paths.online
+    ? [{ text: `Type your answers into the official application on ${form.domain}, then pay and submit it there.`, link: { label: "Open the official application", url: paths.online.url, checkedByHand: paths.online.checkedByHand } }]
+    : (paths.paper?.send ?? []).filter((line) => !/^Not filed/.test(line.text));
+  if (!opts.guide && paths.online) send.push({ text: `Or apply online on ${form.domain} instead, copying in the same answers.`, link: { label: "Open the official application", url: paths.online.url, checkedByHand: paths.online.checkedByHand, quiet: true } });
+  const fee: FilingLine = form.fee
+    ? { text: `The fee is ${money(form.fee.cents)}.`, source: fromFact(form.fee) }
+    : { text: "The fee isn’t confirmed yet. Check the official page before you send it.", unknown: true };
+  return [
+    check,
+    {
+      title: opts.guide ? "Get your answers ready" : "Download your filled copy",
+      lines: [{ text: opts.guide ? "Keep this page open, or save your answers as a guide, so you can copy them in." : "Use “Save your reviewed version” below, then download the filled form and print it." }],
+    },
+    ...(form.signature && !opts.guide ? [{ title: "Sign it", lines: [{ text: form.signature.text, source: fromFact(form.signature) }] }] : []),
+    { title: `Send it to ${form.agency}`, lines: [...send, fee, { text: "SnapStart never files anything for you." }] },
+    { title: "Mark it submitted", lines: [{ text: mark }, ...form.afterward.slice(0, 1).map((fact) => ({ text: fact.text, source: fromFact(fact) }))] },
+  ];
+}
