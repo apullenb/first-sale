@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Icon } from "@/components/icons";
@@ -19,6 +20,8 @@ import { type JourneyInput, journeyStages, nextMove, readyForFirstSale } from "@
 import { planCosts } from "@/lib/rules/next-action";
 import { nextTaskAfter } from "@/lib/rules/paperwork";
 import { budgetCapCents, remainingWork, spentCents } from "@/lib/rules/progress";
+
+export const metadata: Metadata = { title: "Today" };
 
 export default function Today() {
   return (
