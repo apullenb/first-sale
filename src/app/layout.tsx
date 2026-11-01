@@ -24,7 +24,7 @@ const caveat = Caveat({
 export const metadata: Metadata = {
   title: { default: "SnapStart Business Assembly Kit", template: "%s · SnapStart" },
   applicationName: "SnapStart Business Assembly Kit",
-  description: "Step-by-step help for first-time US business owners, from registration to first sale.",
+  description: "Your complete small business startup kit to go from idea to a running business.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
