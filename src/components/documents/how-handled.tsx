@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui";
+import { serviceNotes, serviceRecipient } from "@/components/ai-service";
 import { getModel } from "@/lib/ai";
 
 // What happens to documents sent for help depends on which AI service this copy of SnapStart is set up with
@@ -13,8 +14,8 @@ function servicePoints(): string[] {
     return ["SnapStart is in practice mode: documents aren’t sent to any AI service, and built-in rules stand in for one."];
   }
   return [
-    `When SnapStart reads a document you add, or you ask for help with one, its text or images are sent to ${model.dataHandling.recipient} to be read.`,
-    ...model.dataHandling.notes,
+    `When SnapStart reads a document you add, or you ask for help with one, its text or images are sent to ${serviceRecipient(model)} to be read.`,
+    ...serviceNotes(model),
   ];
 }
 

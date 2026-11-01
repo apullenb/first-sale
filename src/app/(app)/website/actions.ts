@@ -10,6 +10,7 @@ import {
   getMyDetails,
   getMyWebsitePlan,
   listMyDocuments,
+  listMyProducts,
   myAiKey,
   saveMyWebsitePlan,
   updateMyDocument,
@@ -20,11 +21,14 @@ import { knownNumbers } from "@/lib/documents/business-plan";
 import { writePdf } from "@/lib/documents/pdf-writer";
 import { EMPTY_CONTENT } from "@/lib/documents/types";
 import { OwnerFacingError } from "@/lib/errors";
+import { claimConflicts } from "@/lib/website/claims";
 import { copyFlags, copyOf, draftWebsite, factsMessage, websiteCopySchema } from "@/lib/website/content";
 import { checkDomain, normalizeDomain } from "@/lib/website/domains";
 import { PLATFORMS, type WebsiteContent } from "@/lib/website/types";
 import { PLATFORM_DATA } from "@/data/website-platforms";
 import { finishStands } from "@/lib/website/site/finish";
+import { claimRecords } from "@/lib/website/site/check";
+import { loadSite } from "./site-data";
 import { runWorkflow } from "@/lib/workflow-runner";
 
 const NO_BUSINESS = "Tell us about your business first.";
@@ -110,6 +114,11 @@ async function planAnswers(): Promise<Record<string, string>> {
   return Object.fromEntries(Object.entries(plan?.draft?.inputs ?? {}).filter(([key]) => PUBLIC_PLAN_ANSWERS.includes(key)));
 }
 
+// Selling prices only; what each product costs the owner stays out
+async function siteProducts() {
+  return (await listMyProducts()).map((product) => ({ name: product.name, description: product.description, priceCents: product.priceCents }));
+}
+
 export async function draftWebsiteAction(): Promise<ActionResult> {
   const [business, plan] = await Promise.all([getMyBusiness(), getMyWebsitePlan()]);
   if (!business?.profile) return { ok: false, message: NO_BUSINESS };
@@ -118,7 +127,8 @@ export async function draftWebsiteAction(): Promise<ActionResult> {
   const platform = plan.platform;
 
   const result = await runWorkflow("website_copy", null, async () => {
-    const content = await draftWebsite(getModel(), { profile, platform, details: await publicDetails(), planAnswers: await planAnswers() }, new Date(), await myAiKey());
+    const facts = { profile, platform, details: await publicDetails(), planAnswers: await planAnswers(), products: await siteProducts() };
+    const content = await draftWebsite(getModel(), facts, new Date(), await myAiKey());
     // New words need approving and finishing again
     if (!(await saveMyWebsitePlan({ content, contentApprovedAt: null, finished: null }))) throw new OwnerFacingError(NO_BUSINESS);
   });
@@ -140,8 +150,14 @@ export async function saveWebsiteCopyAction(input: unknown): Promise<ActionResul
 
   // A flagged number stays flagged until it's changed or removed
   const known = knownNumbers(
-    factsMessage({ profile: business.profile, platform: plan.content.platform, details: await publicDetails(), planAnswers: await planAnswers() }),
+    factsMessage({ profile: business.profile, platform: plan.content.platform, details: await publicDetails(), planAnswers: await planAnswers(), products: await siteProducts() }),
   );
+  // Price and ordering claims that disagree with saved prices or answers wait for the owner to settle
+  if (parsed.data.approve) {
+    const site = await loadSite();
+    const conflicts = site ? claimConflicts(copy, claimRecords({ ...site, content: { ...plan.content, ...copy } })) : [];
+    if (conflicts.length) return { ok: false, message: `Before approving: ${conflicts.join(" ")}` };
+  }
   const flags = copyFlags(copy, known).filter((flag) => plan.content!.flags.includes(flag));
   const now = new Date();
   const content = { ...plan.content, ...copy, flags };

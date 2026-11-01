@@ -17,6 +17,8 @@ export interface PublishCheck {
   practiceBrand: boolean;
   // Item photos shown that are practice previews
   practicePhotos: number;
+  // Price or ordering claims that disagree with saved prices or answers
+  conflicts: string[];
 }
 
 export interface Readiness {
@@ -39,6 +41,7 @@ export function publishReadiness(check: PublishCheck): Readiness {
   const left = placeholderCount(content);
   if (left) blockers.push(`Fill in or delete ${left} [bracketed] ${left === 1 ? "note" : "notes"} in step 3.`);
   if (!check.approved) blockers.push("Approve your words in step 3.");
+  blockers.push(...check.conflicts);
   if (content.flags.length) notes.push(`${content.flags.length} ${content.flags.length === 1 ? "number in your words wasn’t" : "numbers in your words weren’t"} in your answers. Make sure ${content.flags.length === 1 ? "it’s" : "they’re"} right.`);
 
   const items = shows(design, "offerings") ? content.offerings.map((offering) => ({ offering, item: itemFor(design, offering.name) })) : [];

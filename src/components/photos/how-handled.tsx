@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui";
+import { serviceNotes, serviceRecipient } from "@/components/ai-service";
 import { getImageModel, getModel } from "@/lib/ai";
 
 // Where photos go depends on which AI service this copy of SnapStart is set up with
@@ -15,21 +16,10 @@ function servicePoints(): string[] {
     return ["SnapStart is in practice mode: photos aren’t sent to any AI service, and each “edit” is a preview of your original."];
   }
   const sent = "When you check or edit a photo, it’s sent to";
-  if (model.name !== "Meta Muse") {
-    return [`${sent} the AI service this copy of SnapStart is set up with (${model.name}) to be checked. Its own terms say how it handles them.`];
-  }
-  const points = [
-    `${sent} Meta’s AI service (Muse) to be checked and edited.${image ? " Edits use your photo only: the editor’s own web and image search are turned off." : ""}`,
+  return [
+    `${sent} ${serviceRecipient(model)} to be checked${image ? " and edited. Edits use your photo only: the editor’s own web and image search are turned off" : ""}.`,
+    ...serviceNotes(model, image),
   ];
-  if (/contributor/i.test(model.model) || (image && /contributor/i.test(image.model))) {
-    points.push("This copy of SnapStart uses Meta’s Contributor mode, which lets Meta use what’s sent to train its models.");
-  } else {
-    points.push(
-      "SnapStart uses Meta’s Standard mode, which Meta says doesn’t use your content to train its models.",
-      "Meta’s documentation doesn’t say how long it keeps requests, so we can’t promise more than that.",
-    );
-  }
-  return points;
 }
 
 export function HowPhotosAreHandled() {

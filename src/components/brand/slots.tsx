@@ -7,7 +7,6 @@ import { Done } from "@/components/marketing/pieces";
 import { SECONDARY_LINK } from "@/components/styles";
 import { Card, Chip, ResourceLink } from "@/components/ui";
 import { RecommendedBadge } from "@/components/recommended";
-import { dollars } from "@/lib/brand/cost";
 import { brandFileName, brandFileUrl } from "@/lib/brand/files";
 import { CHECKED_TEXT, type Export, type Guide, IMAGE_SPECS, LOGO_SPECS, PROFILE_FACTS } from "@/lib/brand/sizes";
 import { approvedExample, EXAMPLE_IMAGE, imageSlots, type Slot, versionSlots } from "@/lib/brand/slots";
@@ -85,7 +84,7 @@ interface SlotProps {
 
 function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, running, blocked, guides = [], circle, exports, facts, recommend, note, control }: SlotProps) {
   const { newest, picked, earlier } = slot;
-  const one = practice ? "Practice mode: nothing is charged." : `One picture: ${dollars(1)}.`;
+  const one = practice ? "Practice mode: you’ll see a labeled sample." : "";
   const lower = title.toLowerCase();
   const status = picked ? (
     <Chip tone="done" icon="check">
@@ -116,7 +115,7 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
             sketch={<SlotSketch kind={kind} />}
             ratio={ratio(size)}
             working={`Making your ${lower} and checking it… this can take a minute or two`}
-            cost={one}
+            hint={one}
             blocked={blocked}
           />
         )
@@ -130,7 +129,7 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
             guides={guides}
             circle={circle}
           />
-          <MadeBy simulated={newest.simulated} model={newest.model} what={newest.change ? `Made by Meta’s Muse Image · you asked: “${newest.change}”` : "Made by Meta’s Muse Image from your logo"} />
+          <MadeBy simulated={newest.simulated} model={newest.model} what={newest.change ? `Made by AI · you asked: “${newest.change}”` : "Made by AI from your logo"} />
           {newest.change && newest.simulated ? <p className="text-sm text-muted">You asked: “{newest.change}”</p> : null}
           <CheckNotes check={newest.check} simulated={newest.simulated} checking={running} />
 
@@ -165,12 +164,12 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
                 pendingLabel="Making a new one…"
                 working={`Making a new ${lower}… this can take a minute or two`}
                 variant="secondary"
-                cost={one}
+                hint={one}
               />
               <EditPrompt
                 latestId={newest.id}
                 target={{ kind: "picture", assetId: newest.id }}
-                cost={one}
+                hint={one}
                 working={`Changing your ${lower}… this can take a minute or two`}
                 done="Done. The changed one is shown above, and the earlier one is kept below."
               />
@@ -318,7 +317,7 @@ export function ImageSlots({
               note={note}
               control={
                 isExample && chosenId ? (
-                  <MediumSwitch logoId={chosenId} medium={style.medium} by={style.by} hasExample={!slot.empty} cost={practice ? "practice mode, nothing is charged" : `one picture, ${dollars(1)}`} />
+                  <MediumSwitch logoId={chosenId} medium={style.medium} by={style.by} hasExample={!slot.empty} hint={practice ? "Practice mode: you’ll see a labeled sample." : ""} />
                 ) : null
               }
               guides={spec.guides}

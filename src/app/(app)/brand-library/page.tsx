@@ -105,7 +105,7 @@ async function Library() {
     const brandItem = (asset: (typeof state.assets)[number], title: string, tags: string[]): Item => ({
       key: asset.id,
       title,
-      detail: asset.origin === "uploaded" ? "Uploaded by you" : asset.simulated ? "Practice preview" : "Made by Meta’s Muse Image",
+      detail: asset.origin === "uploaded" ? "Uploaded by you" : asset.simulated ? "Practice preview" : "Made by AI",
       view: brandFileUrl(asset.id),
       download: brandFileUrl(asset.id, false),
       width: asset.width,
@@ -176,7 +176,7 @@ async function Library() {
 
   return (
     <>
-      {practice && chosen ? <PracticeBanner what="Brand images made here are plain labeled previews, not made by Muse." /> : null}
+      {practice && chosen ? <PracticeBanner what="Brand images made here are plain labeled previews, not made by AI." /> : null}
       <nav aria-label="Groups in your library" className="flex flex-wrap gap-2">
         {LIBRARY_GROUPS.map((group) => (
           <a key={group} href={`#group-${group}`} className={`${SECONDARY_LINK} text-[15px]`}>

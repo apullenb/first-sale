@@ -8,6 +8,7 @@ import { readSocialProfiles } from "./types";
 
 const FACTS: BioFacts = {
   name: "Rosa’s Bakery",
+  kind: "bakery",
   sells: "sourdough, cinnamon rolls",
   place: "Austin, Texas",
   howTheySell: ["Markets and events"],
@@ -84,7 +85,7 @@ describe("drafting bios", () => {
     const drafted = await draftBios(createMockProvider(), FACTS, want, []);
     for (const id of want) {
       expect(drafted[id]?.by).toBe("practice");
-      expect(drafted[id]?.bio).toContain("Sourdough, cinnamon rolls in Austin.");
+      expect(drafted[id]?.bio).toContain("Bakery in Austin: sourdough, cinnamon rolls.");
       expect(charCount(drafted[id]!.bio)).toBeLessThanOrEqual(bioLimit(PROFILE_FACTS[id]!.bio!));
     }
   });

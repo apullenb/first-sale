@@ -386,3 +386,39 @@ describe("marketingMove", () => {
     expect(marketingMove({ ...base, done: ["a", "b"] })).toEqual({ kind: "done" });
   });
 });
+
+describe("duplicate steps", () => {
+  const testPhotos = { title: "Take test photos of your cookies", why: "Practice first.", area: "content" as const, platform: null, how: ["Shoot near a window.", "Try a plain board as a background."] };
+
+  it("folds a plan action that repeats the photo step into it, keeping new how-to lines", () => {
+    const steps = buildMarketingSteps(reply({ firstActions: [testPhotos, reply().firstActions[0]] }), intake(), CONTEXT);
+    expect(steps.filter((step) => /photo/i.test(step.title))).toHaveLength(1);
+    const photos = steps.find((step) => step.kind === "photos")!;
+    expect(photos.how).toContain("Try a plain board as a background.");
+    expect(photos.merged).toEqual(["action:take-test-photos-of-your-cookies"]);
+    expect(steps.some((step) => step.title === "Tell your neighbors")).toBe(true);
+  });
+
+  it("counts a tick on the folded action as the photo step's", () => {
+    const steps = buildMarketingSteps(reply({ firstActions: [testPhotos] }), intake(), CONTEXT);
+    expect(doneSteps(steps, ["action:take-test-photos-of-your-cookies"])).toEqual(["photos"]);
+  });
+
+  it("folds duplicates in steps saved before this check", () => {
+    const step = { why: "", area: "content" as const, platform: null, short: [], links: [], general: false, practice: false };
+    const saved: MarketingStep[] = [
+      { ...step, key: "photos", kind: "photos", title: "Get photos ready for your posts", how: ["Take photos."], by: "rule" },
+      { ...step, key: "action:test-shots", kind: "action", title: "Do a test photo shoot", how: ["Take photos."], by: "ai" },
+    ];
+    const current = withCurrentBrandSteps(saved, { hasLogo: false, hasWebsite: false });
+    expect(current.map((each) => each.key)).toEqual(["photos"]);
+    expect(current[0].how).toEqual(["Take photos."]);
+  });
+
+  it("leaves other actions alone, even ones that mention photos or the logo", () => {
+    const action = (title: string) => ({ title, why: "", area: "content" as const, platform: null, how: ["Do it."] });
+    const titles = ["Post your first photo", "Make a sign with your logo"];
+    const steps = buildMarketingSteps(reply({ firstActions: titles.map(action) }), intake(), CONTEXT);
+    for (const title of titles) expect(steps.some((each) => each.title === title)).toBe(true);
+  });
+});

@@ -5,7 +5,7 @@ import type { AssetKind, ConceptKind, ImageMedium, PaletteColor } from "./types"
 // Practice mode has no image service. Instead of a picture, a plain labeled placeholder that still shows
 // the idea's kind, colors, lettering feel and tagline, so one-click changes visibly work.
 
-export const PRACTICE_LABEL = "Practice preview, not made by Muse";
+export const PRACTICE_LABEL = "Practice preview, not made by AI";
 // On a practice brand image, the style a real one would have
 export const MEDIUM_WORDS: Record<ImageMedium, string> = { photo: "Photo style", illustration: "Illustration style" };
 export const PRACTICE_LABEL_COLORS = { pill: "#fdf1d6", text: "#7a4b00" } as const;

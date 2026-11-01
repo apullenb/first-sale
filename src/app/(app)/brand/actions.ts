@@ -14,6 +14,7 @@ import { applyDesign, planRefinement, refinementSchema } from "@/lib/brand/refin
 import { approvedExample, EXAMPLE_IMAGE } from "@/lib/brand/slots";
 import { writeStory } from "@/lib/brand/story";
 import { suggestTaglines } from "@/lib/brand/tagline";
+import { businessSpecifics, type Specifics } from "@/lib/specifics";
 import { type BrandBrief, brandBriefSchema, type BrandImageKind, IMAGE_KINDS, IMAGE_MEDIUMS, VERSION_KINDS, type VersionKind } from "@/lib/brand/types";
 import { BRAND_LIMITS, brandImageMedium } from "@/lib/data/brand";
 import {
@@ -31,6 +32,7 @@ import {
   getMyBrandRound,
   getMyBrandState,
   getMyBusiness,
+  listMyProducts,
   listMyDocuments,
   myAiKey,
   myBrandAssetRoom,
@@ -50,8 +52,8 @@ import { runWorkflow } from "@/lib/workflow-runner";
 const NOT_FOUND = "That wasn’t found. It may have been removed. Reload the page and try again.";
 const NO_BUSINESS = "Tell us about your business first.";
 const OFF = "Logo drawing isn’t turned on for SnapStart yet.";
-const PRACTICE_FILE = "This is a practice preview, not a logo Muse drew. Choose one of the logos Muse made.";
-const PRACTICE_IDEAS = "These ideas are practice samples, not written for your business. Choose “Generate logo ideas” to have Muse write real ones.";
+const PRACTICE_FILE = "This is a practice preview, not a logo drawn by AI. Choose one of the logos AI made.";
+const PRACTICE_IDEAS = "These ideas are practice samples, not written for your business. Choose “Generate logo ideas” to have AI write real ones.";
 const SAY_CHANGE = "Say what you’d like changed, such as “Make the letters thicker”.";
 const LOGO_CHANGED = "Your logo changed. Reload the page.";
 const EXAMPLE_FIRST = "First make your website header picture and choose “Use this” on it. Your other brand images are made to match it.";
@@ -78,6 +80,12 @@ const store: AssetStore = {
 async function savedBrief(): Promise<BrandBrief | null> {
   const [business, state] = await Promise.all([getMyBusiness(), getMyBrandState()]);
   return business && state ? briefDefaults(business.profile, state.brief) : null;
+}
+
+// What the business is and sells, so drafts name it instead of category words
+async function mySpecifics(): Promise<Specifics> {
+  const [business, products] = await Promise.all([getMyBusiness(), listMyProducts()]);
+  return business?.profile ? businessSpecifics(business.profile, products) : { kind: null, items: [] };
 }
 
 // --- Build your brand: the brand answers and description
@@ -118,7 +126,7 @@ export async function describeBrandAction(input: unknown): Promise<ActionResult<
   if (!checked.ok) return checked;
   const result = await runWorkflow("brand_story", null, async () => {
     const model = getModel();
-    const story = await writeStory(model, checked.brief, await myAiKey());
+    const story = await writeStory(model, checked.brief, await myAiKey(), await mySpecifics());
     if (!(await saveMyBrandBrief({ ...checked.brief, story, storyByOwner: false, storyApproved: false }))) throw new OwnerFacingError(NO_BUSINESS);
     return { story, simulated: model.simulated };
   });
@@ -145,7 +153,7 @@ export async function suggestTaglinesAction(input: unknown): Promise<ActionResul
   const name = ownerText(parsed.data.name, 60) || saved.name;
   return runWorkflow("brand_tagline", null, async () => {
     const model = getModel();
-    const taglines = await suggestTaglines(model, { ...saved, name }, await myAiKey());
+    const taglines = await suggestTaglines(model, { ...saved, name }, await myAiKey(), await mySpecifics());
     if (!taglines.length) throw new OwnerFacingError("None of the suggestions passed SnapStart’s checks this time. Try again, or type your own.");
     return { taglines, simulated: model.simulated };
   });

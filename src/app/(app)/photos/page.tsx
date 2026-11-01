@@ -52,7 +52,7 @@ async function Photos() {
   return (
     <>
       {editing.state === "practice" ? (
-        <PracticeBanner what="Photos made here are practice previews, not made by Muse: each one is your original photo, unchanged." />
+        <PracticeBanner what="Photos made here are practice previews, not made by AI: each one is your original photo, unchanged." />
       ) : null}
       {editing.state === "unavailable" ? (
         <Note>Photo editing isn’t turned on for SnapStart yet. You can still upload photos, and edit them once it is.</Note>
