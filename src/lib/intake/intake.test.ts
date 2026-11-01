@@ -217,12 +217,18 @@ describe("stepProblem", () => {
   });
 
   it("lets optional steps through", () => {
-    for (const step of ["status", "details", "premises", "money", "help", "timing"] as const) expect(stepProblem(step, EMPTY_ANSWERS)).toBeNull();
+    for (const step of ["details", "money", "help", "timing"] as const) expect(stepProblem(step, EMPTY_ANSWERS)).toBeNull();
     expect(stepProblem("sell", { ...EMPTY_ANSWERS, category: "crafts" })).toBeNull();
     expect(stepProblem("name", { ...EMPTY_ANSWERS, noName: true })).toBeNull();
   });
 
-  it("never requires a follow-up", () => {
+  it("asks where the owner is now and where they'll work", () => {
+    expect(stepProblem("status", EMPTY_ANSWERS)).toMatch(/where you are now/);
+    expect(stepProblem("premises", EMPTY_ANSWERS)).toMatch(/where you’ll work/);
+    expect(stepProblem("premises", { ...EMPTY_ANSWERS, premises: "unsure" })).toBeNull();
+  });
+
+  it("requires the follow-ups that shape recommendations, where they're asked", () => {
     const unanswered: IntakeAnswers = {
       ...WITH_FOLLOW_UPS,
       insideCityLimits: "",
@@ -233,7 +239,26 @@ describe("stepProblem", () => {
       customersVisit: "",
       helpKinds: [],
     };
-    expect(STEPS.map((step) => stepProblem(step, unanswered)).filter(Boolean)).toEqual([]);
+    const problems = Object.fromEntries(STEPS.map((step) => [step, stepProblem(step, unanswered)]));
+    expect(problems.place).toMatch(/city limits/);
+    expect(problems.status).toMatch(/registered/);
+    expect(problems.details).toMatch(/kept cold/);
+    expect(problems.channels).toMatch(/how customers get/);
+    expect(problems.premises).toMatch(/come to your home/);
+    expect(problems.help).toMatch(/kind of help/);
+    expect(problems.timing).toBeNull();
+    // "Not sure" is an answer, so it lets the owner through
+    expect(stepProblem("place", { ...unanswered, insideCityLimits: "unsure" })).toBeNull();
+    // Not asked, not required
+    expect(stepProblem("place", { ...unanswered, city: "" })).toBeNull();
+  });
+
+  it("requires the owner follow-ups before the name step", () => {
+    const base: IntakeAnswers = { ...COMPLETE, owners: "me", mayAddOwners: "" };
+    expect(stepProblem("owners", base)).toMatch(/co-owner/);
+    expect(stepProblem("owners", { ...base, mayAddOwners: "no" })).toBeNull();
+    expect(stepProblem("owners", { ...base, owners: "others", ownerCount: 2, ownerRelation: "" })).toMatch(/other owners/);
+    expect(stepProblem("name", { ...base, name: "Maple Crumb Test Bakery", nameIsLegalName: "" })).toMatch(/legal name/);
   });
 
   it("skips the details step when none of its questions apply", () => {
