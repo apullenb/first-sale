@@ -42,7 +42,7 @@ export async function myPlanSources(): Promise<PlanSources | null> {
   return {
     profile,
     structure: decision.structure && decision.from ? { name: STRUCTURE_LABELS[decision.structure], from: decision.from } : null,
-    products: products.map((product) => ({ name: product.name, priceCents: product.priceCents })),
+    products: products.map((product) => ({ name: product.name, priceCents: product.priceCents, unitCostCents: product.unitCostCents })),
     brand: brief ? { customers: brief.customers, tagline: brief.tagline, story: brief.storyApproved ? brief.story : "" } : null,
     marketing: approvedMarketing ? { summary: approvedMarketing.summary, audience: approvedMarketing.audience.who } : null,
     fees: costs ? { confirmed: costs.startup, maybe: costs.maybe, unconfirmed: costs.unknown } : null,

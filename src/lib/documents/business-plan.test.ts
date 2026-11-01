@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createMockProvider } from "@/lib/ai/providers/mock";
 import { testProfile } from "@/test/fixtures";
-import { businessPlanPdf, draftBusinessPlan, knownNumbers, numberFlags, planVersion, SECTION_KEYS } from "./business-plan";
+import { EMPTY_MONEY } from "@/lib/rules/plan-money";
+import { businessPlanPdf, draftBusinessPlan, knownNumbers, numberFlags, planVersion, SECTION_KEYS, withEstimates } from "./business-plan";
 import { knownFacts } from "./plan-facts";
 
 describe("knownNumbers and numberFlags", () => {
@@ -54,7 +55,7 @@ describe("draftBusinessPlan", () => {
       sells: "products",
     });
 
-    expect(sections.map((section) => section.key)).toEqual([...SECTION_KEYS]);
+    expect(sections.map((section) => section.key)).toEqual([...SECTION_KEYS.slice(0, 9), "estimates", "milestones"]);
     expect(sections.map((section) => section.heading)).toEqual([
       "Executive Summary",
       "Company Description",
@@ -65,6 +66,7 @@ describe("draftBusinessPlan", () => {
       "Management and Staffing",
       "Legal Structure and Permits",
       "Financial Plan",
+      "Financial Estimates",
       "Milestones",
     ]);
     const body = (key: string) => sections.find((section) => section.key === key)!.body;
@@ -75,7 +77,18 @@ describe("draftBusinessPlan", () => {
     expect(body("legal")).toContain("Completed: Get an EIN. Still to do: Register your business name (if it applies).");
     // "Not sure yet" stays an open question
     expect(body("money")).toContain("[Say where the starting money will come from]");
+    // Skipped estimates are said to be missing, never filled in
+    expect(body("estimates")).toMatch(/^Not yet estimated: unit costs and margins/);
     expect(sections.flatMap((section) => section.flags)).toEqual([]);
+  });
+
+  it("adds the owner's estimates as worked out in code, not by the model", async () => {
+    const money = { ...EMPTY_MONEY, items: [{ name: "Sourdough loaf", priceCents: 1000, unitCostCents: 350, unitsPerMonth: 60 }], monthlyExpenses: [{ label: "Market booth", cents: 16000 }] };
+    const model = createMockProvider(() => JSON.stringify({ sections: [{ key: "money", body: "Costs are modest." }] }));
+    const sections = await draftBusinessPlan(model, { facts, answers: [], steps: [], sells: "products", money });
+    expect(sections.map((section) => section.key)).toEqual(["money", "estimates"]);
+    expect(sections[1].body).toContain("Break-even: about 25 units a month ($250 in sales) covers the operating expenses, at the expected mix of sales.");
+    expect(sections[1].flags).toEqual([]);
   });
 
   it("names services in the heading for a service business", async () => {
@@ -116,10 +129,39 @@ describe("planVersion and businessPlanPdf", () => {
     const spec = businessPlanPdf("Business plan for Rise & Shine Bakery", sections, new Date("2026-10-29T12:00:00Z"), true);
     expect(spec.title).toBe("Rise & Shine Bakery: Business Plan");
     expect(spec.subtitle).toBe("Prepared October 29, 2026");
-    expect(spec.notice).toMatch(/Practice draft/);
+    expect(spec.notice).toBe("Introductory draft: describes the business and its plans. Not yet prepared for a lender.\nPractice draft: written by built-in rules, not by the AI service.");
     expect(spec.blocks).toEqual([
       { heading: "1. Executive Summary", paragraphs: ["First paragraph.", "Second paragraph."] },
       { heading: "2. Financial Plan", paragraphs: ["Budget under $1,000."] },
     ]);
+  });
+});
+
+describe("the plan's level and estimates section", () => {
+  const lender = {
+    items: [{ name: "Sourdough loaf", priceCents: 1000, unitCostCents: 350, unitsPerMonth: 60 }],
+    monthlyExpenses: [{ label: "Market booth", cents: 16000 }],
+    startupCosts: [{ label: "Mixer", cents: 45000 }],
+    cashOnHandCents: 90000,
+    reserveMonths: 2,
+    purpose: "lender" as const,
+  };
+  const sections = [
+    { key: "money", heading: "Financial Plan", body: "Budget under $1,000.", flags: [] },
+    { key: "milestones", heading: "Milestones", body: "Open in January.", flags: [] },
+  ];
+
+  it("says the plan is prepared for a lender only with every estimate in", () => {
+    expect(businessPlanPdf("Business plan for Maple Crumb Test Bakery", sections, new Date("2026-11-01T12:00:00Z"), false, lender).notice).toMatch(/^Prepared for a lender:/);
+    const short = businessPlanPdf("Business plan for Maple Crumb Test Bakery", sections, new Date("2026-11-01T12:00:00Z"), false, { ...lender, startupCosts: [] });
+    expect(short.notice).toBe("Introductory draft: describes the business and its plans. Not yet prepared for a lender. Before it goes to a lender, add: cash needs.");
+  });
+
+  it("puts the estimates after the financial plan and replaces them when they change", () => {
+    const once = withEstimates(sections, EMPTY_MONEY);
+    expect(once.map((section) => section.key)).toEqual(["money", "estimates", "milestones"]);
+    const again = withEstimates(once, lender);
+    expect(again.map((section) => section.key)).toEqual(["money", "estimates", "milestones"]);
+    expect(again[1].body).toContain("Cash on hand: $900, which covers this with $130 to spare.");
   });
 });

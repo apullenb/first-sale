@@ -22,19 +22,25 @@ import {
   UNSURE,
   withOverrides,
 } from "@/lib/documents/plan-facts";
+import type { MoneyInputs } from "@/lib/rules/plan-money";
+import { moneyForm, moneyFromForm, PlanMoney } from "./plan-money";
 
 interface Props {
   facts: KnownFact[];
   basis: QuestionBasis;
   initial: { picks: PlanAnswers; overrides: Record<string, string> };
+  money: MoneyInputs;
   hasDraft: boolean;
+  // Where the plan is stored and whether an AI service reads the answers
+  privacy: string;
 }
 
 const LINK = "font-semibold text-accent underline decoration-[1.5px] underline-offset-[3px] hover:text-accent-ink";
 
 // What the plan is drafted from: facts SnapStart knows, which the owner can change for this plan, and the questions it still asks
-export function PlanInputs({ facts, basis, initial, hasDraft }: Props) {
+export function PlanInputs({ facts, basis, initial, money, hasDraft, privacy }: Props) {
   const [overrides, setOverrides] = useState(initial.overrides);
+  const [moneyText, setMoneyText] = useState(() => moneyForm(money));
   const [picks, setPicks] = useState<PlanAnswers>(initial.picks);
   const [status, setStatus] = useState<"idle" | "drafting">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -44,12 +50,17 @@ export function PlanInputs({ facts, basis, initial, hasDraft }: Props) {
   const answered = questions.filter((question) => isAnswered(picks[question.key])).length;
 
   async function draft() {
+    const estimates = moneyFromForm(moneyText);
+    if (!estimates.ok) {
+      setError(estimates.message);
+      return;
+    }
     if (hasDraft && !window.confirm("Drafting again replaces the plan below, including your edits to it. Continue?")) return;
     setStatus("drafting");
     setError(null);
     try {
       const shown = Object.fromEntries(questions.flatMap((question) => (picks[question.key] ? [[question.key, picks[question.key]]] : [])));
-      const result = await draftBusinessPlanAction({ picks: shown, overrides });
+      const result = await draftBusinessPlanAction({ picks: shown, overrides, money: estimates.money });
       if (!result.ok) setError(result.message);
       else requestAnimationFrame(() => document.getElementById("plan-review-heading")?.scrollIntoView({ behavior: "smooth", block: "start" }));
     } catch {
@@ -61,6 +72,8 @@ export function PlanInputs({ facts, basis, initial, hasDraft }: Props) {
   return (
     <>
       <KnownFacts facts={facts} overrides={overrides} onChange={setOverrides} />
+
+      <PlanMoney form={moneyText} onChange={setMoneyText} hasDraft={hasDraft} />
 
       <Card
         title="A few questions"
@@ -95,7 +108,7 @@ export function PlanInputs({ facts, basis, initial, hasDraft }: Props) {
             {status === "drafting" ? "Drafting your plan…" : hasDraft ? "Draft my plan again" : "Draft my plan"}
           </button>
           {status === "drafting" ? null : (
-            <p className="text-[14.5px] text-muted">Writes a formal business plan from the facts and answers above. Nothing is shared or sent.</p>
+            <p className="text-[14.5px] text-muted">Writes a formal business plan from the facts and answers above. {privacy}</p>
           )}
           <Working label="Writing your business plan. This can take a minute or two." active={status === "drafting"} />
           {error ? (

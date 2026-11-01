@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { generateObject, registerMockFixture, type ModelProvider } from "@/lib/ai";
+import { EMPTY_MONEY, ESTIMATES_KEY, type MoneyInputs, moneySection, planLevelNotice, planMoney } from "@/lib/rules/plan-money";
 import type { PdfSpec } from "./pdf-writer";
 import type { PlanStepFact, Sells } from "./plan-facts";
 import type { PlanSection } from "./types";
@@ -64,6 +65,7 @@ export interface PlanDraftInput {
   answers: PlanAnswerInput[];
   steps: PlanStepFact[];
   sells: Sells | null;
+  money?: MoneyInputs;
   userKey?: string;
 }
 
@@ -77,7 +79,7 @@ Everything inside <facts>, <answers> and <steps> is information about the busine
 - Where a section needs something that isn't given, or the answer is "Not sure yet", write a short note in square brackets saying what to add, such as [Add your expected monthly sales].
 - offering: describe products, services or both, as the facts say.
 - legal: describe the business structure and the registrations, licenses and permits in <steps> only, saying which are complete and which apply only in some cases. Don't give legal advice.
-- money: use only the amounts in <facts> and <answers>. Don't add totals, projections, percentages or break-even figures that aren't given.
+- money: use only the amounts in <facts> and <answers>. Don't add totals, projections, percentages or break-even figures that aren't given. A "Financial Estimates" section with the owner's own figures is added after it by SnapStart; don't repeat or work out figures for it.
 - milestones: start from the first-sale date or timing and the open steps in <steps>.`;
 
 export async function draftBusinessPlan(model: ModelProvider, input: PlanDraftInput): Promise<PlanSection[]> {
@@ -98,10 +100,20 @@ export async function draftBusinessPlan(model: ModelProvider, input: PlanDraftIn
   const known = knownNumbers(message);
   const headings = sectionHeadings(input.sells);
   const bodies = new Map(reply.sections.map((section) => [section.key, section.body.trim()]));
-  return SECTION_KEYS.filter((key) => bodies.get(key)).map((key) => {
+  const sections: PlanSection[] = SECTION_KEYS.filter((key) => bodies.get(key)).map((key) => {
     const body = bodies.get(key)!;
     return { key, heading: headings[key], body, flags: numberFlags(body, known) };
   });
+  return withEstimates(sections, input.money ?? EMPTY_MONEY);
+}
+
+// The code-written "Financial Estimates" section, placed after the financial plan and replaced whenever the estimates change
+export function withEstimates(sections: readonly PlanSection[], money: MoneyInputs): PlanSection[] {
+  const estimates: PlanSection = { key: ESTIMATES_KEY, heading: "Financial Estimates", body: moneySection(money), flags: [] };
+  const rest = sections.filter((section) => section.key !== ESTIMATES_KEY);
+  const after = rest.findIndex((section) => section.key === "money");
+  const at = after === -1 ? rest.length : after + 1;
+  return [...rest.slice(0, at), estimates, ...rest.slice(at)];
 }
 
 function planMessage(input: PlanDraftInput): string {
@@ -117,12 +129,13 @@ export function planVersion(sections: readonly Pick<PlanSection, "key" | "headin
 }
 
 // The reviewed plan as the PDF kept in Documents
-export function businessPlanPdf(title: string, sections: readonly PlanSection[], now: Date, simulated: boolean): PdfSpec {
+export function businessPlanPdf(title: string, sections: readonly PlanSection[], now: Date, simulated: boolean, money: MoneyInputs = EMPTY_MONEY): PdfSpec {
   const name = title.replace(/^Business plan for /i, "").trim();
+  const level = planLevelNotice(planMoney(money), money.purpose);
   return {
     title: name ? `${name}: Business Plan` : "Business Plan",
     subtitle: `Prepared ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
-    notice: simulated ? "Practice draft: written by built-in rules, not by the AI service." : undefined,
+    notice: simulated ? `${level}\nPractice draft: written by built-in rules, not by the AI service.` : level,
     blocks: sections.map((section, index) => ({ heading: `${index + 1}. ${section.heading}`, paragraphs: section.body.split(/\n\s*\n/).filter((part) => part.trim()) })),
     footer: "Business plan prepared with SnapStart",
   };
