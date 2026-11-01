@@ -15,6 +15,7 @@ import { planVersion } from "@/lib/documents/business-plan";
 import { knownFacts, restoreAnswers } from "@/lib/documents/plan-facts";
 import { EMPTY_MONEY, ESTIMATES_KEY, PLAN_LEVEL_LABELS, planMoney } from "@/lib/rules/plan-money";
 import { myPlanSources } from "./sources";
+import { serviceNotes, serviceRecipient } from "@/components/ai-service";
 
 export const metadata = { title: "Business plan" };
 // Drafting waits on a long AI call
@@ -138,6 +139,6 @@ function privacyNote(): string {
     ? "SnapStart’s AI service isn’t set up right now, so nothing is sent to one."
     : model.simulated || !model.dataHandling
       ? "In practice mode nothing is sent to an AI service; built-in rules write the draft."
-      : `To write it, they are sent to ${model.dataHandling.recipient}. ${model.dataHandling.notes.join(" ")}`;
+      : `To write it, they are sent to ${serviceRecipient(model)}. ${serviceNotes(model).join(" ")}`;
   return `Your plan is stored in your SnapStart account. ${ai} Nothing is published or submitted to government offices.`;
 }
