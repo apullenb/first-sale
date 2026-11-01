@@ -8,6 +8,7 @@ export function Logo({ className = "w-56", light = false }: { className?: string
       alt="SnapStart Business Assembly Kit"
       width={720}
       height={light ? 221 : 268}
+      loading="eager"
       className={`h-auto shrink-0 ${className}`}
       unoptimized
     />

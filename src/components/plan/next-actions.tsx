@@ -96,7 +96,7 @@ export function PlanCosts({ costs }: { costs: Costs }) {
         <p className="flex items-start gap-2 text-[15px] text-check">
           <Icon name="info" size="sm" className="mt-0.5" />
           <span>
-            <span className="font-semibold">Fee set by the office:</span> {LIST.format(costs.unknown)}. The total leaves these out.
+            <span className="font-semibold">{costs.unknown.length === 1 ? "Fee" : "Fees"} set by the office:</span> {LIST.format(costs.unknown)}. The total leaves these out.
           </span>
         </p>
       ) : null}
