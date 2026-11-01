@@ -35,7 +35,7 @@ import { clearJourneyMarkForOwner, listJourneyMarksForOwner, setJourneyMarkForOw
 import { getSidebarFactsForOwner } from "./sidebar";
 import { getMarketingForOwner, type MarketingPatch, type MarketingRecord, updateMarketingForOwner } from "./marketing";
 import type { NewBrandAsset } from "@/lib/brand/generate";
-import type { AssetCheck, BrandBrief, BrandImageKind, BrandKit, PaletteColor, VersionKind } from "@/lib/brand/types";
+import type { AssetCheck, BrandBrief, BrandImageKind, BrandKit, ImageMedium, PaletteColor, VersionKind } from "@/lib/brand/types";
 import {
   addAssetForOwner,
   addUploadedLogoForOwner,
@@ -58,6 +58,7 @@ import {
   pickFileForOwner,
   saveBriefForOwner,
   setAssetCheckForOwner,
+  setImageMediumForOwner,
   unchooseLogoForOwner,
   unpickFileForOwner,
 } from "./brand";
@@ -456,6 +457,11 @@ export async function unchooseMyLogo() {
 export async function pickMyBrandFile(assetId: string) {
   const user = await getCurrentUser();
   return pickFileForOwner(getDb(), user.id, assetId);
+}
+
+export async function setMyImageMedium(medium: ImageMedium) {
+  const user = await getCurrentUser();
+  return setImageMediumForOwner(getDb(), user.id, medium);
 }
 
 export async function unpickMyBrandFile(kind: VersionKind | BrandImageKind) {

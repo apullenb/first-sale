@@ -4,7 +4,9 @@ import type { Db } from "@/db/client";
 import { brandAssets, brandConcepts, brandKits, brandRounds, businesses } from "@/db/schema";
 import { brandFileUrl } from "@/lib/brand/files";
 import type { NewBrandAsset, Room } from "@/lib/brand/generate";
+import { ruleMedium } from "@/lib/brand/image-style";
 import { applyDesign } from "@/lib/brand/refine";
+import { EXAMPLE_IMAGE } from "@/lib/brand/slots";
 import {
   type AssetCheck,
   type AssetKind,
@@ -17,6 +19,7 @@ import {
   type BrandPicks,
   type ConceptReply,
   IMAGE_KINDS,
+  type ImageMedium,
   type PaletteColor,
   readBrief,
   VERSION_KINDS,
@@ -74,6 +77,8 @@ export interface BrandState {
   brief: BrandBrief | null;
   chosenLogoId: string | null;
   picks: BrandPicks;
+  // The owner's Photo / Illustration switch; null leaves it to the rule
+  imageMedium: ImageMedium | null;
   rounds: RoundSummary[];
   assets: AssetSummary[];
 }
@@ -124,6 +129,7 @@ export async function getBrandForOwner(db: Db, ownerId: string): Promise<BrandSt
     brief: kit?.brief ? readBrief(kit.brief) : null,
     chosenLogoId: kit?.chosenLogoId ?? null,
     picks: kit?.picks ?? {},
+    imageMedium: kit?.imageMedium ?? null,
     rounds: rounds.map((round) => ({
       id: round.id,
       basedOnConceptId: round.basedOnConceptId,
@@ -411,6 +417,28 @@ export async function pickFileForOwner(db: Db, ownerId: string, assetId: string,
     const kit = asset ? await kitOf(tx, asset.businessId) : null;
     if (!asset || !kit?.chosenLogoId || asset.sourceId !== kit.chosenLogoId || !PICKABLE.includes(asset.kind)) return false;
     await upsertKit(tx, asset.businessId, { picks: { ...kit.picks, [asset.kind]: asset.id } }, now);
+    return true;
+  });
+}
+
+// Photo or illustration for the chosen logo's brand images: the owner's switch, else the rule on the brief the images use
+export function brandImageMedium(state: BrandState): { medium: ImageMedium; by: "owner" | "rules" } {
+  if (state.imageMedium) return { medium: state.imageMedium, by: "owner" };
+  const chosen = state.assets.find((asset) => asset.id === state.chosenLogoId);
+  const brief = chosen?.conceptId ? state.rounds.find((round) => round.concepts.some((concept) => concept.id === chosen.conceptId))?.brief : state.brief;
+  return { medium: brief ? ruleMedium(brief) : "photo", by: "rules" };
+}
+
+// The owner's Photo / Illustration switch. A new style needs a new example, so its approval is cleared and the other images wait.
+export async function setImageMediumForOwner(db: Db, ownerId: string, medium: ImageMedium, now = new Date()): Promise<boolean> {
+  return db.transaction(async (tx) => {
+    const businessId = await businessOf(tx, ownerId, true);
+    if (!businessId) return false;
+    const kit = await kitOf(tx, businessId);
+    if (kit?.imageMedium === medium) return true;
+    const picks = { ...kit?.picks };
+    delete picks[EXAMPLE_IMAGE];
+    await upsertKit(tx, businessId, { imageMedium: medium, picks }, now);
     return true;
   });
 }

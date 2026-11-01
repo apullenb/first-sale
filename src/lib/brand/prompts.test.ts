@@ -92,14 +92,25 @@ describe("refinements, versions and brand images", () => {
     expect(brandImagePrompt(testBrief(), [], "facebook_cover", null)).toContain("right half of that band");
   });
 
-  it("make photos for most brands and illustrations only for playful ones", () => {
+  it("make photos by default, bright and punchy for playful brands, and illustrations only when asked", () => {
     const calm = brandImagePrompt(testBrief({ vibes: ["rustic", "warm", "earthy"], leanings: { era: null, tone: null, energy: null, finish: null } }), [], "website_hero", null);
     expect(calm).toContain("photorealistic, professionally styled lifestyle and product photograph");
     expect(calm).toContain("shallow depth of field");
     expect(calm).toContain("Not an illustration, cartoon");
+    expect(calm).not.toContain("punchy");
     const playful = brandImagePrompt(testBrief({ vibes: ["playful", "bright and colorful", "cheerful"] }), testConcept().palette, "website_hero", null);
-    expect(playful).toContain("flat illustrated scene");
-    expect(playful).not.toContain("photorealistic");
+    expect(playful).toContain("photorealistic");
+    expect(playful).toContain("Make it bright, punchy and colorful: saturated colors");
+    expect(playful).not.toContain("flat illustrated scene");
+    const drawn = brandImagePrompt(testBrief({ vibes: ["hand-drawn", "warm", "cozy"] }), testConcept().palette, "website_hero", null);
+    expect(drawn).toContain("flat illustrated scene");
+    expect(drawn).not.toContain("photorealistic");
+  });
+
+  it("follow the owner's Photo / Illustration switch over the rule", () => {
+    const rustic = testBrief({ vibes: ["rustic", "warm", "earthy"] });
+    expect(brandImagePrompt(rustic, [], "website_hero", null, undefined, "illustration")).toContain("flat illustrated scene");
+    expect(brandImagePrompt(testBrief({ vibes: ["hand-drawn", "warm", "cozy"] }), [], "facebook_cover", null, "website_hero", "photo")).toContain("photorealistic");
   });
 
   it("put the logo on a real object in photos, and overlay it only in illustrations", () => {
@@ -110,7 +121,7 @@ describe("refinements, versions and brand images", () => {
     expect(photo).toContain("Never a floating sticker or badge");
     expect(photo).toContain("never on a plain white card or rectangle");
     expect(photo).not.toContain("overlay in the position");
-    const drawn = brandImagePrompt(testBrief({ vibes: ["playful", "bright and colorful", "cheerful"] }), testConcept().palette, "website_hero", null);
+    const drawn = brandImagePrompt(testBrief({ vibes: ["whimsical", "bright and colorful", "cheerful"] }), testConcept().palette, "website_hero", null);
     expect(drawn).toContain("clean, flat overlay in the position described below");
     expect(drawn).not.toContain("real object in the scene");
   });

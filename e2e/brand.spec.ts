@@ -108,10 +108,34 @@ test.describe("build your brand", () => {
     await expect(header.getByText("Recommended")).toBeVisible();
     await expect(cover.getByRole("button", { name: "Make the facebook cover" })).toBeDisabled();
     await expect(cover).toContainText("First make your website header picture and choose “Use this” on it.");
+
+    // Photos by default; the owner's switch is saved and used for the example and the rest
+    const style = header.getByRole("group", { name: "Style of your brand images" });
+    await expect(header.getByText("We picked photos for your brand. Prefer drawings?")).toBeVisible();
+    await expect(style.getByRole("button", { name: "Photo" })).toHaveAttribute("aria-pressed", "true");
+    await style.getByRole("button", { name: "Illustration" }).click();
+    await expect(header.getByText("You chose illustrations for your brand images.")).toBeVisible({ timeout: 30_000 });
+    await expect(style.getByRole("button", { name: "Illustration" })).toHaveAttribute("aria-pressed", "true");
+    const newest = header.getByRole("img", { name: "Practice preview of your website header picture", exact: true });
+    const styleOf = async () => (await page.request.get((await newest.getAttribute("src"))!)).text();
+
     await header.getByRole("button", { name: "Make the website header picture" }).click();
     await expect(header.getByText(/Practice preview/).first()).toBeVisible({ timeout: 60_000 });
+    expect(await styleOf()).toContain("ILLUSTRATION STYLE");
     await header.getByRole("button", { name: "Use this" }).first().click();
     await expect(header.getByText("In use")).toBeVisible({ timeout: 30_000 });
+    await expect(cover).toContainText("Made to match your website header picture.");
+
+    // Switching after the example exists makes a new one, keeps the old, and blocks the rest until it's approved
+    await expect(header).toContainText("Switching makes a new header picture in that style");
+    await style.getByRole("button", { name: "Photo" }).click();
+    await expect(header.getByText("Earlier ones")).toBeVisible({ timeout: 60_000 });
+    await expect(header.getByText("You chose photos for your brand images.")).toBeVisible();
+    await expect(header.getByText("Not used yet")).toBeVisible();
+    expect(await styleOf()).toContain("PHOTO STYLE");
+    await expect(cover.getByRole("button", { name: "Make the facebook cover" })).toBeDisabled();
+    await header.getByRole("button", { name: "Use this" }).first().click();
+    await expect(header.getByText("In use").first()).toBeVisible({ timeout: 30_000 });
     await expect(cover).toContainText("Made to match your website header picture.");
     await cover.getByRole("button", { name: "Make the facebook cover" }).click();
     await expect(cover.getByText(/Practice preview/).first()).toBeVisible({ timeout: 60_000 });

@@ -14,6 +14,7 @@ import {
   type NewBrandAsset,
   refineLogo,
 } from "@/lib/brand/generate";
+import { imageStyle } from "@/lib/brand/image-style";
 import { EXAMPLE_IMAGE } from "@/lib/brand/slots";
 import { logoPrompt } from "@/lib/brand/prompts";
 import { applyDesign } from "@/lib/brand/refine";
@@ -343,7 +344,9 @@ export async function runScenario(ctx: ImageRunContext, scenario: ImageScenario)
   result.taglines = await text("Taglines", [], () => suggestTaglines(ctx.model, brief));
 
   // Brand images, as the app makes them: the example first, approved by the owner, then the rest matching it
-  const imageTitle = (kind: string) => `Brand image: ${kind.replace(/_/g, " ")}${kind === EXAMPLE_IMAGE ? " (the example, approved before the rest)" : ""}`;
+  // Photo or illustration, as the app's rule decides from the brief the images are made from
+  const medium = imageStyle(logo?.brief ?? brief).medium;
+  const imageTitle = (kind: string) => `Brand image: ${kind.replace(/_/g, " ")}, ${medium}${kind === EXAMPLE_IMAGE ? " (the example, approved before the rest)" : ""}`;
   const rest = IMAGE_KINDS.filter((kind) => kind !== EXAMPLE_IMAGE);
   const report = (kinds: readonly BrandImageKind[], made: BatchResult | string | null, missingReason?: string) => {
     for (const kind of kinds) {

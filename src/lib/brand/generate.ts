@@ -7,6 +7,7 @@ import { kitColors } from "./colors";
 import { letterCount } from "./layout";
 import { clearFrame, logoColors, oneColor, type Pixels } from "./pixels";
 import { decodePng, encodePng } from "./png";
+import { imageStyle } from "./image-style";
 import { practiceSvg } from "./practice";
 import { brandImagePrompt, logoPrompt, ownLogoEditPrompt, pictureEditPrompt, refinePrompt, retryLines, versionPrompt } from "./prompts";
 import { applyDesign, inherited } from "./refine";
@@ -21,6 +22,7 @@ import {
   type ConceptReply,
   IMAGE_KINDS,
   LOGO_KINDS,
+  type ImageMedium,
   type PaletteColor,
   type VersionKind,
 } from "./types";
@@ -114,6 +116,8 @@ interface Job {
   fix?: (image: Pixels) => Pixels;
   // One more try, written from what the first one's check flagged
   retry?: (check: AssetCheck) => Job;
+  // Brand images: shown on the practice preview
+  medium?: ImageMedium;
 }
 
 export interface BatchResult {
@@ -149,6 +153,7 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
       tagline: job.concept.concept ? job.concept.brief.tagline : "",
       palette: job.concept.concept?.palette ?? job.design?.palette ?? [],
       typography: job.concept.concept?.typography ?? "",
+      medium: job.medium,
     });
     file = { mimeType: "image/svg+xml", data: new TextEncoder().encode(preview.svg), width: preview.width, height: preview.height };
   } else {
@@ -435,15 +440,17 @@ export async function makeVersions(
 export async function makeBrandImages(
   models: Models,
   store: AssetStore,
-  // The approved example the others match; never sent for the example's own slot
-  input: { logo: LogoRef; kinds: BrandImageKind[]; change: string | null; example?: ImageInput | null; requestKey: string; userKey?: string; now: Date },
+  // example: the approved one the others match, never sent for its own slot; medium: the owner's Photo / Illustration switch
+  input: { logo: LogoRef; kinds: BrandImageKind[]; change: string | null; example?: ImageInput | null; medium?: ImageMedium | null; requestKey: string; userKey?: string; now: Date },
 ): Promise<BatchResult> {
   const { logo } = input;
+  const medium = imageStyle(logo.brief, input.medium ?? null).medium;
   const jobs = input.kinds.map((kind): Job => {
     const example = kind !== EXAMPLE_IMAGE && input.example ? input.example : null;
-    const prompt = brandImagePrompt(logo.brief, paletteOf(logo), kind, input.change, example ? EXAMPLE_IMAGE : undefined);
+    const prompt = brandImagePrompt(logo.brief, paletteOf(logo), kind, input.change, example ? EXAMPLE_IMAGE : undefined, input.medium ?? null);
     return {
       kind,
+      medium,
       concept: logo,
       sourceId: logo.logoId,
       change: input.change,

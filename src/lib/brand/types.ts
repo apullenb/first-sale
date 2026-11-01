@@ -110,6 +110,9 @@ export const ASSET_KINDS = [...LOGO_KINDS, ...IMAGE_KINDS] as const;
 export type AssetKind = (typeof ASSET_KINDS)[number];
 export const ASSET_ORIGINS = ["generated", "uploaded"] as const;
 export type AssetOrigin = (typeof ASSET_ORIGINS)[number];
+// Brand images: styled photos or illustrations (image-style.ts)
+export const IMAGE_MEDIUMS = ["photo", "illustration"] as const;
+export type ImageMedium = (typeof IMAGE_MEDIUMS)[number];
 // Approved file ids: the version set together, each brand image on its own
 export type BrandPicks = Partial<Record<VersionKind | BrandImageKind, string>>;
 

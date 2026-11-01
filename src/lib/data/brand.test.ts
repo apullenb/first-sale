@@ -18,6 +18,7 @@ import {
   createRoundForOwner,
   findAssetByRequestForOwner,
   findRoundByRequestForOwner,
+  brandImageMedium,
   getAssetFileForOwner,
   getAssetForOwner,
   getBrandForOwner,
@@ -27,6 +28,7 @@ import {
   pickFileForOwner,
   saveBriefForOwner,
   setAssetCheckForOwner,
+  setImageMediumForOwner,
   unchooseLogoForOwner,
   unpickFileForOwner,
 } from "./brand";
@@ -243,6 +245,27 @@ describe("the brand kit", () => {
     // A logo is never a version or brand picture
     expect(await pickFileForOwner(db, "owner-a", logo)).toBe(false);
     expect(await chooseLogoForOwner(db, "owner-a", ids.stacked)).toBe(false);
+  });
+});
+
+describe("the Photo / Illustration switch", () => {
+  it("starts with the rule on the chosen logo's brief, then follows the owner", async () => {
+    const { concepts, logo } = await approvedKit();
+    expect(brandImageMedium((await getBrandForOwner(db, "owner-a"))!)).toEqual({ medium: "photo", by: "rules" });
+    const example = await add(concepts[0].id, { kind: "website_hero", sourceId: logo });
+    const cover = await add(concepts[0].id, { kind: "facebook_cover", sourceId: logo });
+    await pickFileForOwner(db, "owner-a", example);
+    await pickFileForOwner(db, "owner-a", cover);
+
+    expect(await setImageMediumForOwner(db, "owner-a", "illustration")).toBe(true);
+    const state = (await getBrandForOwner(db, "owner-a"))!;
+    expect(brandImageMedium(state)).toEqual({ medium: "illustration", by: "owner" });
+    // A new style needs a new example: its approval clears, and the file stays as an earlier one
+    expect(state.picks.website_hero).toBeUndefined();
+    expect(state.picks.facebook_cover).toBe(cover);
+    expect(state.assets.some((asset) => asset.id === example)).toBe(true);
+    expect(await setImageMediumForOwner(db, "nobody", "photo")).toBe(false);
+    expect((await getBrandForOwner(db, "owner-b"))?.imageMedium ?? null).toBeNull();
   });
 });
 

@@ -75,6 +75,9 @@ test.describe("marketing plan and social media", () => {
     await expect(page.getByRole("region", { name: "Website header picture" }).getByText("Recommended")).toBeVisible();
     await expect(page.getByRole("region", { name: "Link preview" }).getByText("Recommended")).toBeVisible();
     await expect(page.getByRole("region", { name: "Facebook cover" }).getByText("Recommended")).toHaveCount(0);
+    // Photos unless the owner asks for drawings
+    const headerStyle = page.getByRole("region", { name: "Website header picture" }).getByRole("group", { name: "Style of your brand images" });
+    await expect(headerStyle.getByRole("button", { name: "Photo" })).toHaveAttribute("aria-pressed", "true");
     for (const [slot, button] of [
       ["Website header picture", "Make the website header picture"],
       ["Facebook cover", "Make the facebook cover"],

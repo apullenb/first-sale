@@ -14,8 +14,8 @@ import { applyDesign, planRefinement, refinementSchema } from "@/lib/brand/refin
 import { approvedExample, EXAMPLE_IMAGE } from "@/lib/brand/slots";
 import { writeStory } from "@/lib/brand/story";
 import { suggestTaglines } from "@/lib/brand/tagline";
-import { type BrandBrief, brandBriefSchema, type BrandImageKind, IMAGE_KINDS, VERSION_KINDS, type VersionKind } from "@/lib/brand/types";
-import { BRAND_LIMITS } from "@/lib/data/brand";
+import { type BrandBrief, brandBriefSchema, type BrandImageKind, IMAGE_KINDS, IMAGE_MEDIUMS, VERSION_KINDS, type VersionKind } from "@/lib/brand/types";
+import { BRAND_LIMITS, brandImageMedium } from "@/lib/data/brand";
 import {
   addMyBrandAsset,
   chooseMyLogo,
@@ -37,6 +37,7 @@ import {
   pickMyBrandFile,
   saveMyBrandBrief,
   setMyBrandAssetCheck,
+  setMyImageMedium,
   setMyOwnLogoColors,
   unpickMyBrandFile,
   updateMyDocument,
@@ -373,10 +374,27 @@ export async function makeImagesAction(input: unknown): Promise<ActionResult<str
   const example = exampleFile ? { mimeType: exampleFile.mimeType, data: exampleFile.data } : null;
 
   const result = await runWorkflow("brand_images", slotSubject(logo.logoId, kinds), async () =>
-    makeBrandImages({ image, vision: getModel() }, store, { logo, kinds, change, example, requestKey: parsed.data.requestKey, userKey: await myAiKey(), now: new Date() }),
+    makeBrandImages({ image, vision: getModel() }, store, { logo, kinds, change, example, medium: state?.imageMedium ?? null, requestKey: parsed.data.requestKey, userKey: await myAiKey(), now: new Date() }),
   );
   refresh();
   return batchResult(result);
+}
+
+const mediumSchema = z.object({ logoId: id, medium: z.enum(IMAGE_MEDIUMS) });
+
+// The owner's Photo / Illustration switch. remake: an example exists in the other style, so a new one is needed.
+export async function setImageMediumAction(input: unknown): Promise<ActionResult<{ remake: boolean }>> {
+  const parsed = mediumSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
+  const state = await getMyBrandState();
+  if (!state) return { ok: false, message: NO_BUSINESS };
+  if (!state.chosenLogoId) return { ok: false, message: "Choose or upload your logo first." };
+  if (state.chosenLogoId !== parsed.data.logoId) return { ok: false, message: LOGO_CHANGED };
+  if (brandImageMedium(state).medium === parsed.data.medium) return { ok: true, value: { remake: false } };
+  if (!(await setMyImageMedium(parsed.data.medium))) return { ok: false, message: NO_BUSINESS };
+  const hasExample = state.assets.some((asset) => asset.kind === EXAMPLE_IMAGE && asset.sourceId === state.chosenLogoId);
+  refresh();
+  return { ok: true, value: { remake: hasExample } };
 }
 
 // --- Edits and picks for versions and brand images

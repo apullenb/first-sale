@@ -11,12 +11,13 @@ import { dollars } from "@/lib/brand/cost";
 import { brandFileName, brandFileUrl } from "@/lib/brand/files";
 import { CHECKED, type Export, type Guide, IMAGE_SPECS, LOGO_SPECS, PROFILE_FACTS } from "@/lib/brand/sizes";
 import { approvedExample, EXAMPLE_IMAGE, imageSlots, type Slot, versionSlots } from "@/lib/brand/slots";
-import { type AssetCheck, type BrandImageKind, type BrandPicks, CODE_MODEL, type VersionKind } from "@/lib/brand/types";
+import { type AssetCheck, type BrandImageKind, type BrandPicks, CODE_MODEL, type ImageMedium, type VersionKind } from "@/lib/brand/types";
 import type { AssetSummary } from "@/lib/data/brand";
 import { CheckNotes, MadeBy } from "./asset-view";
 import { BrandRunButton, EditPrompt, type Intent, PlusTile } from "./controls";
 import { ExactDownload } from "./exact-download";
 import { GuidedImage } from "./guided-image";
+import { MediumSwitch } from "./medium-switch";
 
 type PictureKind = VersionKind | BrandImageKind;
 
@@ -78,9 +79,11 @@ interface SlotProps {
   recommend?: boolean;
   // A line under the purpose, such as how the example works
   note?: string | null;
+  // Shown under the note, such as the example's Photo / Illustration switch
+  control?: ReactNode;
 }
 
-function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, running, blocked, guides = [], circle, exports, facts, recommend, note }: SlotProps) {
+function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, running, blocked, guides = [], circle, exports, facts, recommend, note, control }: SlotProps) {
   const { newest, picked, earlier } = slot;
   const one = practice ? "Practice mode: nothing is charged." : `One picture: ${dollars(1)}.`;
   const lower = title.toLowerCase();
@@ -97,6 +100,7 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
     <Card title={title} icon={ICONS[kind]} id={`slot-${kind}`} headingLevel={3} action={status} className="flex h-full flex-col" bodyClassName="flex-1">
       <p className="text-sm text-muted">{purpose}</p>
       {note ? <p className="text-sm text-rule">{note}</p> : null}
+      {control}
       {!newest ? (
         running ? (
           <div className="grid place-items-center rounded-xl border border-line bg-wash text-muted" style={{ aspectRatio: ratio(size) }}>
@@ -265,6 +269,7 @@ export function ImageSlots({
   practice,
   running,
   recommended,
+  style,
 }: {
   chosenId: string | null;
   name: string;
@@ -274,6 +279,8 @@ export function ImageSlots({
   running: ReadonlySet<string>;
   // Kinds worth making, from the owner's marketing answers
   recommended: readonly BrandImageKind[];
+  // Photo or illustration, and whether the owner's switch or the rule decided
+  style: { medium: ImageMedium; by: "owner" | "rules" };
 }) {
   const example = approvedExample(assets, chosenId, picks);
   const exampleTitle = IMAGE_SPECS[EXAMPLE_IMAGE].title.toLowerCase();
@@ -309,6 +316,11 @@ export function ImageSlots({
               blocked={blocked}
               recommend={recommended.includes(slot.kind)}
               note={note}
+              control={
+                isExample && chosenId ? (
+                  <MediumSwitch logoId={chosenId} medium={style.medium} by={style.by} hasExample={!slot.empty} cost={practice ? "practice mode, nothing is charged" : `one picture, ${dollars(1)}`} />
+                ) : null
+              }
               guides={spec.guides}
               exports={spec.exports}
               facts={<SizeFacts kind={slot.kind} />}

@@ -56,7 +56,7 @@ describe("image-quality flags", () => {
 describe("image scenarios", () => {
   it("has the four businesses, each a valid brief, with both kinds of brand image", () => {
     expect(IMAGE_SCENARIOS.map((each) => each.id)).toEqual(["dog-grooming", "soy-candles", "taco-truck", "western-boutique"]);
-    expect(IMAGE_SCENARIOS.map((each) => imageStyle({ ...each.brief, story: "" }).medium)).toEqual(["illustration", "photo", "illustration", "photo"]);
+    expect(IMAGE_SCENARIOS.map((each) => imageStyle({ ...each.brief, story: "" }).medium)).toEqual(["photo", "photo", "photo", "photo"]);
     for (const scenario of IMAGE_SCENARIOS) {
       expect(brandBriefSchema.safeParse({ ...scenario.brief, story: "", storyByOwner: false, storyApproved: false }).success).toBe(true);
       expect(scenario.logoChange.length).toBeGreaterThan(3);
