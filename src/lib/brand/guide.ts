@@ -1,5 +1,5 @@
-import { PDFDocument, type PDFFont, type PDFImage, type PDFPage, rgb, StandardFonts } from "pdf-lib";
-import { toWinAnsi, wrap } from "@/lib/documents/pdf-writer";
+import { PDFDocument, type PDFFont, type PDFImage, type PDFPage, rgb } from "pdf-lib";
+import { embedFonts, toWinAnsi, wrap } from "@/lib/documents/pdf-writer";
 import { colorRows, rgbOf } from "./colors";
 import { PRACTICE_LABEL } from "./practice";
 import { USPTO } from "./sizes";
@@ -84,8 +84,7 @@ export async function logoGuidePdf(input: GuideInput): Promise<Uint8Array> {
   const title = `${input.businessName} logo guide`;
   doc.setTitle(toWinAnsi(title));
   doc.setProducer("SnapStart");
-  const regular = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const { regular, bold } = await embedFonts(doc);
   const width = PAGE.width - PAGE.margin * 2;
   const gap = 10;
   let page = doc.addPage([PAGE.width, PAGE.height]);
