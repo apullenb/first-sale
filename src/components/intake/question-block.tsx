@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { Icon } from "@/components/icons";
 import { Chip } from "@/components/ui";
 import type { IntakeAnswers, Mark } from "@/lib/intake/answers";
-import type { QuestionSpec } from "@/lib/intake/questions";
+import { isOptional, type QuestionSpec } from "@/lib/intake/questions";
 import { AiSuggestionBadge, ChoiceCards, ChoiceTiles } from "./choices";
 
 // One click-to-answer question: why it's asked, help when the owner isn't sure, and unfamiliar words explained.
@@ -66,6 +66,7 @@ export function QuestionBlock({
         <h2 id={questionId} className={QUESTION_TITLE}>
           {spec.title(answers)}
         </h2>
+        {isOptional(spec) ? <Chip tone="gray">Optional</Chip> : null}
         <MarkBadge mark={mark} />
       </div>
       <WhyLine id={whyId}>

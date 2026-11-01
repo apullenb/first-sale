@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { candles, groomer, SCENARIOS, tacos } from "./scenarios";
-import { completeIntake, newOwner, open, sidebar, signUp, uniqueEmail } from "./support";
+import { completeIntake, newOwner, open, pick, pickPlace, sidebar, signUp, uniqueEmail } from "./support";
 
 test.describe("business intake", () => {
   for (const s of SCENARIOS) {
@@ -48,6 +48,45 @@ test.describe("business intake", () => {
     await page.waitForURL("**/business?welcome=1");
     const saved = page.getByRole("region", { name: "Not decided yet" });
     await expect(saved.getByRole("definition").filter({ hasText: "No date yet" })).toBeVisible();
+    await context.close();
+  });
+
+  test("groomer: follow-ups that shape recommendations must be answered, and a double click can’t skip a part", async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await signUp(page, groomer.ownerName, uniqueEmail("groomer-follow-ups"));
+    const heading = page.getByRole("heading", { level: 1 });
+    const next = page.getByRole("button", { name: "Continue" });
+
+    await page.getByRole("button", { name: new RegExp(`^${groomer.kind}`) }).click();
+    await page.getByRole("group", { name: "What will you sell? Pick any." }).getByRole("button", { name: groomer.sells[0], exact: true }).click();
+    await next.click();
+    await expect(heading).toHaveText("What you’ve done so far");
+    await pick(page.getByRole("group", { name: "Where are you now?" }), "Just an idea so far");
+    await next.click();
+
+    await expect(heading).toHaveText("Where will your business be?");
+    await pickPlace(page, "State", groomer.place.state);
+    await pickPlace(page, "City or town", groomer.place.city);
+    await pickPlace(page, "County", groomer.place.county);
+    // Unanswered city-limits question: a double click stays here and says why
+    await next.dblclick();
+    await expect(heading).toHaveText("Where will your business be?");
+    await expect(page.getByRole("main").getByRole("alert")).toContainText(/city limits/);
+    await pick(page.getByRole("group", { name: /^Is your address inside the city limits/ }), "Yes");
+    await next.click();
+
+    await expect(heading).toHaveText("Who owns it?");
+    await pick(page.getByRole("group", { name: "Who owns it?" }), "Just me");
+    await next.click();
+    await expect(heading).toHaveText("Who owns it?");
+    await expect(page.getByRole("main").getByRole("alert")).toContainText(/co-owner/);
+    await pick(page.getByRole("group", { name: "Might someone join as a co-owner later?" }), "No");
+    // One part per click, however fast
+    await next.dblclick();
+    await expect(heading).toHaveText("What’s it called?");
+    await page.waitForTimeout(800);
+    await expect(heading).toHaveText("What’s it called?");
     await context.close();
   });
 

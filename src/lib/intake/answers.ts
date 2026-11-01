@@ -393,9 +393,64 @@ export function profileToAnswers(p: BusinessProfile): IntakeAnswers {
   };
 }
 
+// Follow-ups that shape the requirements or the structure advice: Continue waits for them, and "Not sure" always counts
+const REQUIRED_FOLLOW_UPS: Partial<Record<FollowUp, string>> = {
+  insideCityLimits: "Say whether your address is inside the city limits. “Not sure” is fine.",
+  ownerRelation: "Say who the other owners are. “Not sure” is fine.",
+  mayAddOwners: "Say whether someone might join as a co-owner later. “Not sure” is fine.",
+  nameIsLegalName: "Say whether the business name is just your own legal name. “Not sure” is fine.",
+  registeredAs: "Say what kind of business you registered. “Not sure” is fine.",
+  alreadyHave: "Pick what you already have, or “None yet”.",
+  foodNeedsCold: "Say whether any of it needs to be kept cold. “Not sure” is fine.",
+  makesForKids: "Say whether any items are made mainly for children. “Not sure” is fine.",
+  foodContact: "Say whether any items touch food. “Not sure” is fine.",
+  inventorySources: "Pick where your stock comes from. “Not sure” is fine.",
+  servicesLicensed: "Say whether your work needs a personal license. “Not sure” is fine.",
+  handoff: "Pick how customers get what they buy. “Not sure” is fine.",
+  customersVisit: "Say whether customers will come to your home. “Not sure” is fine.",
+  helpKinds: "Pick what kind of help. “Not sure” is fine.",
+};
+
+// Questions the owner may leave blank; everything else on a step is needed before Continue
+export const OPTIONAL_FIELDS: readonly (keyof IntakeAnswers)[] = ["startupBudget", "firstYearSales", "takesOnDebt", "hiringPlans", "launchTiming", "experience", "goals"];
+
+const STEP_OF: Partial<Record<FollowUp, StepId>> = {
+  insideCityLimits: "place",
+  ownerRelation: "owners",
+  mayAddOwners: "owners",
+  nameIsLegalName: "name",
+  registeredAs: "status",
+  alreadyHave: "status",
+  foodNeedsCold: "details",
+  makesForKids: "details",
+  foodContact: "details",
+  inventorySources: "details",
+  servicesLicensed: "details",
+  handoff: "channels",
+  customersVisit: "premises",
+  helpKinds: "help",
+};
+
+function missingFollowUp(step: StepId, a: IntakeAnswers): string | null {
+  for (const [field, message] of Object.entries(REQUIRED_FOLLOW_UPS) as [FollowUp, string][]) {
+    if (STEP_OF[field] !== step || !asks(field, a)) continue;
+    const value = a[field];
+    if (Array.isArray(value) ? !value.length : !value) return message;
+  }
+  return null;
+}
+
 // What stops Continue on a step; null when the step is complete enough
 export function stepProblem(step: StepId, a: IntakeAnswers): string | null {
+  return ownProblem(step, a) ?? missingFollowUp(step, a);
+}
+
+function ownProblem(step: StepId, a: IntakeAnswers): string | null {
   switch (step) {
+    case "status":
+      return a.stage ? null : "Pick where you are now.";
+    case "premises":
+      return a.premises ? null : "Pick where you’ll work. “Not sure yet” is fine.";
     case "sell":
       if (!a.category) return "Pick the kind of business closest to yours. “Something else” works too.";
       if (a.category === "resale_shop" && !a.productTags.length && !a.firstItems.trim()) return "Say what kind of shop it is, or pick what you’ll sell.";

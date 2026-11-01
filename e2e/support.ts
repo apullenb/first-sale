@@ -48,7 +48,7 @@ export async function logOut(page: Page) {
 }
 
 // Clicks a choice tile inside a question group, unless it's already on
-async function pick(group: Locator, option: string) {
+export async function pick(group: Locator, option: string) {
   let button = group.getByRole("button", { name: option, exact: true });
   if (!(await button.count())) button = group.getByRole("button", { name: startsWith(option) });
   await expect(button.first(), `option “${option}”`).toBeVisible();
@@ -84,7 +84,7 @@ async function labelledBy(group: Locator): Promise<string | null> {
   return group.evaluate((el, list) => list.split(" ").map((id) => el.ownerDocument.getElementById(id)?.textContent ?? "").join(" "), ids);
 }
 
-async function pickPlace(page: Page, box: string, value: string) {
+export async function pickPlace(page: Page, box: string, value: string) {
   const input = page.getByRole("combobox", { name: box });
   if ((await input.inputValue()).startsWith(value)) return;
   await input.fill(value);
