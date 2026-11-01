@@ -138,7 +138,7 @@ test.describe("what applies to you and the paperwork", () => {
 
     // The answer guide opens as a document, filled from saved details only
     await expect(page.getByRole("heading", { level: 1, name: /^Answers for: Form SS-4/ })).toBeVisible({ timeout: 60_000 });
-    await expect(page.getByRole("link", { name: /Open the official application/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Open the official application/ }).first()).toBeVisible();
     const answers = page.getByRole("region", { name: "Your answers" });
     await expect(answers.getByRole("textbox", { name: "Applicant: Applicant’s phone number" })).toHaveValue(candles.details.phone);
     await expect(answers.getByRole("textbox", { name: "Line 8b: Number of LLC members" })).toHaveValue("2");
@@ -179,6 +179,12 @@ test.describe("what applies to you and the paperwork", () => {
     await expect(checked).toContainText("The original is kept exactly as downloaded");
     const answers = page.getByRole("region", { name: "Your answers" });
     const save = page.getByRole("region", { name: "Save your reviewed version" });
+    // Clear steps for what to do with the form once it's prepared
+    const next = page.getByRole("region", { name: "What to do with this form" });
+    await expect(next.getByRole("heading", { name: "Download your filled copy" })).toBeVisible();
+    await expect(next.getByRole("heading", { name: /Send it to / })).toBeVisible();
+    await expect(next.getByRole("heading", { name: "Mark it submitted" })).toBeVisible();
+    await expect(next).toContainText("SnapStart never files anything for you.");
     // Only confirmed answers go into the copy
     await save.getByRole("button", { name: "Save a filled copy" }).click();
     await expect(save.getByRole("alert")).toContainText("Confirm at least one answer first.");
