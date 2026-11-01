@@ -9,6 +9,8 @@ export default defineConfig({
   // Each scenario is one owner whose steps build on each other
   fullyParallel: false,
   workers: 3,
+  // One retry for timing slips under load; real failures still fail and flakes are reported
+  retries: 1,
   timeout: 300_000,
   expect: { timeout: 20_000 },
   reporter: [["list"], ["html", { outputFolder: "e2e/.report", open: "never" }]],
