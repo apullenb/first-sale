@@ -6,6 +6,10 @@ test("daily workflows: configure, review, persist and try demos", async ({ brows
   const { page } = await newOwner(browser, candles);
   await open(page, "/run");
   await page.getByRole("region", { name: "Connect your email" }).getByRole("link", { name: "Set this up" }).click();
+  const today = page.getByRole("definition").filter({ hasText: /made-up customer email/ });
+  await expect(today).toBeVisible();
+  await expect(page.getByText(/Connecting an email account isn’t available yet/)).toBeVisible();
+  await expect(page.getByText("Demo setup.", { exact: true })).toHaveCount(0);
   await page.getByRole("checkbox", { name: "Draft customer replies" }).uncheck();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByLabel("Business email to connect later").fill("hello@example.com");

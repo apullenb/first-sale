@@ -11,6 +11,10 @@ export const OPERATIONS = {
     choices: ["Gmail", "Outlook", "Other email"],
     sourceLabel: "Which email service do you use?",
     goals: ["Draft customer replies", "Flag messages that need my attention"],
+    // What the owner can do today, what waits on a connection SnapStart doesn't offer yet, and what setup gives them
+    worksNow: "Choose what to get help with, save your inbox and follow-up preferences, and try a sample with a made-up customer email.",
+    needsConnection: "Reading your real inbox and drafting replies to real customers. Connecting an email account isn’t available yet.",
+    afterSetup: "Your preferences are saved, so when connecting is available your help starts the way you chose. Until then, nothing reads or sends your email.",
   },
   requests: {
     title: "Track orders & customer requests",
@@ -21,5 +25,8 @@ export const OPERATIONS = {
     choices: ["Email", "Website", "Enter requests myself"],
     sourceLabel: "Where do your requests come from?",
     goals: ["Track orders", "Track questions and custom requests"],
+    worksNow: "Choose what to track, save where requests come from and when to follow up, and try a sample with a made-up customer request.",
+    needsConnection: "Pulling in real orders from your email or website, and real reminders. Connecting them isn’t available yet.",
+    afterSetup: "Your preferences are saved, so when connecting is available tracking starts the way you chose. Until then, no orders, stock or money change.",
   },
 } as const;
