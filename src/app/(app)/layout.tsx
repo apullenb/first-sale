@@ -15,7 +15,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         <SidebarWithData />
       </Suspense>
       <div className="min-w-0">
-        <header className="flex items-center pt-4 md:pt-1">
+        <header className="flex items-center pt-4 md:hidden">
           <Link href="/" aria-label="SnapStart home">
             <Logo className="w-36 sm:w-40" />
           </Link>
