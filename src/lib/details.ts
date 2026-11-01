@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { BUSINESS_STRUCTURES } from "./domain";
+import { isEmailAddress, isUsPhone } from "./rules/contact-setup";
 
 // Business details that forms ask for, beyond the intake answers, and decisions the owner records.
 // Never Social Security numbers, tax ids or other identity numbers: forms leave those for the owner to fill in.
@@ -135,6 +136,8 @@ export function detailProblem(key: DetailKey, value: string): string | null {
   if (!trimmed) return `Enter ${spec.label.toLowerCase()}.`;
   if (trimmed.length > spec.maxLength) return `Keep it under ${spec.maxLength} characters.`;
   if (spec.options && !spec.options.some(([option]) => option === trimmed)) return "Pick one of the options.";
+  if (key === "business_email" && !isEmailAddress(trimmed)) return "Enter an email address like hello@example.com.";
+  if (key === "business_phone" && !isUsPhone(trimmed)) return "Enter a US phone number with its area code, like (512) 555-0123.";
   if (looksLikeIdNumber(trimmed)) return "SnapStart doesn’t store Social Security or tax ID numbers. Fill those in on the form yourself.";
   return null;
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { ContactQuestion } from "@/components/contact/contact-question";
 import { Icon } from "@/components/icons";
 import { DashboardWidgets, LaunchCard } from "@/components/plan/dashboard-widgets";
 import { JourneyStages, StartHere } from "@/components/plan/journey";
@@ -132,6 +133,9 @@ async function Overview() {
         />
         {profile ? <LaunchCard date={profile.launchDate} /> : null}
       </div>
+
+      {/* Asked once for owners who finished intake before it was asked; then a step if they put it off */}
+      {profile ? <ContactQuestion /> : null}
 
       {alsoWaiting.length ? (
         <section aria-labelledby="waiting-heading" className="flex items-start gap-3 rounded-[14px] border border-check-ring bg-check-tint px-4 py-3.5 text-check">
