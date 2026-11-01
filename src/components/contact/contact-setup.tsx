@@ -20,8 +20,6 @@ export interface ContactItemView {
   state: ItemState;
   // Saved in Business details
   value: string | null;
-  // "I already have this", without typing it
-  marked: boolean;
 }
 
 // Whether the owner has a business email and phone, or wants help or to do it later. Nothing is sent and no password is asked for.
