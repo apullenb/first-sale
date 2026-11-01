@@ -165,7 +165,7 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
       <Card title="Business details" icon="clipboard" id="details-heading">
         <p className="text-muted">Forms ask for these. Fill them in here, and SnapStart can draft your form answers for you to check.</p>
         <Note icon="lock" tone="quiet">
-          SnapStart never stores Social Security or tax id numbers. Forms leave those for you to fill in yourself.
+          SnapStart never stores Social Security or tax ID numbers. Forms leave those for you to fill in yourself.
         </Note>
         <ul className="flex flex-col">
           {DETAIL_KEYS.filter((key) => !(DETAILS[key] as DetailSpec).decision).map((key) => {

@@ -187,7 +187,7 @@ export function checkChoices(basis: AgreementBasis, input: ChoicesInput): { ok: 
   for (const [index, name] of basis.owners.entries()) {
     const typed = input.members[index];
     const contribution = typed.contribution.replace(/[\s.]+$/, "").trim();
-    if (looksLikeIdNumber(contribution)) return { ok: false, message: "Leave Social Security and tax id numbers out of the agreement." };
+    if (looksLikeIdNumber(contribution)) return { ok: false, message: "Leave Social Security and tax ID numbers out of the agreement." };
     if (single) {
       members.push({ name, basisPoints: 10_000, contribution });
       continue;
@@ -203,7 +203,7 @@ export function checkChoices(basis: AgreementBasis, input: ChoicesInput): { ok: 
   if (!single && !input.decisions) return { ok: false, message: "Choose how the owners make decisions." };
   const manager = input.manager.trim();
   if (basis.managed === "manager" && !manager) return { ok: false, message: "Enter the name of the person who manages the LLC." };
-  if (looksLikeIdNumber(manager)) return { ok: false, message: "Leave Social Security and tax id numbers out of the agreement." };
+  if (looksLikeIdNumber(manager)) return { ok: false, message: "Leave Social Security and tax ID numbers out of the agreement." };
   const choices = { members, decisions: single ? null : input.decisions, manager: basis.managed === "manager" ? manager : null };
 
   // A signed document can't have names with letters swapped for "?"
