@@ -152,7 +152,7 @@ export async function expectPracticeBanner(page: Page) {
   await expect(page.getByRole("main").getByText("Practice mode.", { exact: true }).first()).toBeVisible();
 }
 
-export const PRACTICE_PREVIEW = "Practice preview, not made by Muse";
+export const PRACTICE_PREVIEW = "Practice preview, not made by AI";
 
 export function sidebar(page: Page): Locator {
   return page.getByRole("navigation", { name: "Sections" });

@@ -85,7 +85,7 @@ describe("the logo guide PDF", () => {
   it("says so when it's made from practice previews, which it can't show", async () => {
     const bytes = await logoGuidePdf({ ...input, simulated: true, images: [{ label: "Main logo", file: { mimeType: "image/svg+xml", data: new TextEncoder().encode("<svg/>") } }] });
     const text = (await readPdf(bytes)).pages[0].text;
-    expect(text).toContain("Practice preview, not made by Muse");
+    expect(text).toContain("Practice preview, not made by AI");
     expect(text).toContain("no logo drawn");
   });
 });

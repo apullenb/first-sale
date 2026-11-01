@@ -6,7 +6,7 @@ import type { ActionResult } from "@/app/(app)/business/actions";
 import { MARKETING_PLATFORMS, PLATFORM_DATA } from "@/data/marketing-platforms";
 import { PROFILE_FACTS } from "@/data/social-profiles";
 import { getModel } from "@/lib/ai";
-import { getMyBrandState, getMyBusiness, getMyMarketing, listMyJourneyMarks, myAiKey, updateMyMarketing } from "@/lib/data/my-business";
+import { getMyBrandState, getMyBusiness, getMyMarketing, listMyJourneyMarks, listMyProducts, myAiKey, updateMyMarketing } from "@/lib/data/my-business";
 import { OwnerFacingError } from "@/lib/errors";
 import { completeIntake, SKILL_LEVELS } from "@/lib/marketing/intake";
 import { checkBio, checkHandle, checkName, isSetUp, socialAccounts, withPickedAccounts } from "@/lib/rules/social";
@@ -40,7 +40,7 @@ export async function draftSocialBiosAction(input: unknown): Promise<ActionResul
     .filter((account) => PROFILE_FACTS[account.id]?.bio && (platform ? account.id === platform : !social[account.id]?.bio && !isSetUp(account, keys)))
     .map((account) => account.id);
   if (!want.length) return { ok: false, message: "Your bios are written. Edit one to change it, or draft it again." };
-  const facts = bioFacts(business.profile, brand?.brief ?? null);
+  const facts = bioFacts(business.profile, brand?.brief ?? null, await listMyProducts());
 
   return runWorkflow("social_bios", null, async () => {
     const drafted = await draftBios(getModel(), facts, want, intake.exclude, await myAiKey());

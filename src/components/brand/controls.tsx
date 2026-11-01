@@ -110,14 +110,14 @@ interface RunProps {
   pendingLabel: string;
   working: string;
   variant?: "ai" | "secondary";
-  // Owner-facing cost, shown next to the button
-  cost?: string;
+  // A short line next to the button, such as the practice-mode label
+  hint?: string;
   // Lets the owner say what to change, for "make a new one"
   withChange?: boolean;
   blocked?: string | null;
 }
 
-export function BrandRunButton({ intent, label, pendingLabel, working, variant = "ai", cost, withChange, blocked }: RunProps) {
+export function BrandRunButton({ intent, label, pendingLabel, working, variant = "ai", hint, withChange, blocked }: RunProps) {
   const uid = useId();
   const [change, setChange] = useState("");
   const { run, pending, requestKey, error, note } = useBrandRun(intent, blocked);
@@ -147,7 +147,7 @@ export function BrandRunButton({ intent, label, pendingLabel, working, variant =
         <Icon name={variant === "ai" ? "sparkles" : "refresh"} size="sm" />
         {pending ? pendingLabel : label}
       </button>
-      {cost ? <p className="text-sm text-muted">{cost}</p> : null}
+      {hint ? <p className="text-sm text-muted">{hint}</p> : null}
       {blocked ? <p className="text-sm text-muted">{blocked}</p> : null}
       <Working label={pending === "drawing" ? "Drawing the new ideas and checking their spelling… this can take two or three minutes" : working} active={pending !== null} />
       <Messages error={error} note={note} />
@@ -164,12 +164,12 @@ interface PlusProps {
   // CSS aspect ratio of the placeholder, such as "1 / 1"
   ratio: string;
   working: string;
-  cost: string;
+  hint: string;
   blocked?: string | null;
 }
 
 // An empty slot: a soft gray placeholder with a "+" that makes this one file
-export function PlusTile({ intent, label, sketch, ratio, working, cost, blocked }: PlusProps) {
+export function PlusTile({ intent, label, sketch, ratio, working, hint, blocked }: PlusProps) {
   const { run, pending, error, note } = useBrandRun(intent, blocked);
   const busy = pending !== null;
   return (
@@ -192,7 +192,7 @@ export function PlusTile({ intent, label, sketch, ratio, working, cost, blocked 
           {busy ? <span className="size-6 rounded-full border-2 border-accent-tint border-t-accent motion-safe:animate-spin" /> : <Icon name="plus" size="lg" strokeWidth={2.4} />}
         </span>
       </button>
-      <p className="text-sm text-muted">{blocked ?? cost}</p>
+      <p className="text-sm text-muted">{blocked ?? hint}</p>
       <Working label={working} active={busy} />
       <Messages error={error} note={note} />
     </div>
@@ -203,7 +203,7 @@ interface EditProps {
   // A logo is changed with refineLogoAction; a version or brand image with editPictureAction
   target: { kind: "logo" | "picture"; assetId: string };
   label?: string;
-  cost: string;
+  hint: string;
   working: string;
   // Said once the new file is made
   done: string;
@@ -212,7 +212,7 @@ interface EditProps {
 }
 
 // "Edit": asks what to change, then makes a new file from the owner's words and keeps this one
-export function EditPrompt({ target, label = "Edit", cost, working, done, latestId }: EditProps) {
+export function EditPrompt({ target, label = "Edit", hint, working, done, latestId }: EditProps) {
   const uid = useId();
   const requestKey = useRequestKey();
   const [open, setOpen] = useState(false);
@@ -282,7 +282,7 @@ export function EditPrompt({ target, label = "Edit", cost, working, done, latest
             }}
             className={`${INPUT} min-h-20`}
           />
-          <p className="text-sm text-muted">A new picture is made from your words. This one is kept, so you can pick either. {cost}</p>
+          <p className="text-sm text-muted">A new picture is made from your words. This one is kept, so you can pick either. {hint}</p>
           <div className="flex flex-wrap gap-2">
             {/* aria-disabled, not disabled: a disabled button drops focus */}
             <button type="submit" aria-disabled={pending} className={`${AI_BUTTON} aria-disabled:opacity-60`}>
@@ -337,7 +337,7 @@ function Swatches({ hexes }: { hexes: string[] }) {
 
 interface RefineProps {
   assetId: string;
-  cost: string;
+  hint: string;
   // The logo as drawn, with earlier changes applied
   current: { palette: PaletteColor[]; typography: string; tagline: string };
   // Offered when this logo has no tagline
@@ -347,7 +347,7 @@ interface RefineProps {
 }
 
 // One-click changes, written by code. Each makes one new picture and keeps this one.
-export function RefineLogo({ assetId, cost, current, ownerTagline, pickedFamilies }: RefineProps) {
+export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilies }: RefineProps) {
   const uid = useId();
   const requestKey = useRequestKey();
   // A different change is a different request, so it gets a new key
@@ -389,7 +389,7 @@ export function RefineLogo({ assetId, cost, current, ownerTagline, pickedFamilie
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-sm text-muted">Each change makes one new picture from this logo. {cost}</p>
+      <p className="text-sm text-muted">Each change makes one new picture from this logo. {hint}</p>
 
       <div className="flex flex-col gap-2">
         <h4 className={LABEL}>Simpler</h4>

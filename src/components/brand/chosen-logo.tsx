@@ -6,7 +6,6 @@ import { Icon } from "@/components/icons";
 import { Done } from "@/components/marketing/pieces";
 import { SECONDARY_LINK } from "@/components/styles";
 import { Card } from "@/components/ui";
-import { dollars } from "@/lib/brand/cost";
 import { brandFileUrl } from "@/lib/brand/files";
 import type { AssetSummary } from "@/lib/data/brand";
 import { CheckNotes, MadeBy } from "./asset-view";
@@ -64,7 +63,7 @@ export function ChosenLogo({ chosen, edits, before, hasPicks, practice, business
           <EditPrompt
             target={{ kind: "logo", assetId: chosen.id }}
             label="Edit my logo"
-            cost={practice ? "Practice mode: nothing is charged." : `One picture: ${dollars(1)}.`}
+            hint={practice ? "Practice mode: you’ll see a labeled sample." : ""}
             working="Making an edited copy of your logo and checking it… this can take a minute or two"
             done="Done. Your edited logo is below, next to this one. Choose “Use this” to switch to it."
           />
@@ -111,7 +110,7 @@ export function ChosenLogo({ chosen, edits, before, hasPicks, practice, business
                   </p>
                 ) : (
                   <>
-                    <MadeBy simulated={logo.simulated} model={logo.model} what={own ? "Edited by Meta’s Muse Image from your logo" : undefined} />
+                    <MadeBy simulated={logo.simulated} model={logo.model} what={own ? "Edited by AI from your logo" : undefined} />
                     <CheckNotes check={logo.check} simulated={logo.simulated} />
                   </>
                 )}

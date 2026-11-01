@@ -19,7 +19,7 @@ function explain(medium: ImageMedium, by: "owner" | "rules"): string {
 }
 
 // Photo or illustration for every brand image, set on the example. A switch after the example exists makes a new one.
-export function MediumSwitch({ logoId, medium, by, hasExample, cost }: { logoId: string; medium: ImageMedium; by: "owner" | "rules"; hasExample: boolean; cost: string }) {
+export function MediumSwitch({ logoId, medium, by, hasExample, hint }: { logoId: string; medium: ImageMedium; by: "owner" | "rules"; hasExample: boolean; hint: string }) {
   const requestKey = useRequestKey();
   const [pending, setPending] = useState<ImageMedium | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +54,7 @@ export function MediumSwitch({ logoId, medium, by, hasExample, cost }: { logoId:
         <p className="text-sm text-rule">{explain(medium, by)}</p>
         <Segmented label="Style of your brand images" options={[...OPTIONS]} value={pending ?? medium} onChange={choose} />
       </div>
-      {hasExample ? <p className="text-sm text-muted">Switching makes a new header picture in that style ({cost}). The current one is kept under “Earlier ones”.</p> : null}
+      {hasExample ? <p className="text-sm text-muted">Switching makes a new header picture in that style. {hint} The current one is kept under “Earlier ones”.</p> : null}
       <Working label={`Making your header picture as ${pending === "illustration" ? "an illustration" : "a photo"}… this can take a minute or two`} active={pending !== null && hasExample} />
       {error ? (
         <p role="alert" className={ALERT}>

@@ -6,6 +6,7 @@ import { TEXT_LINK } from "@/components/styles";
 import { Chip, ResourceLink } from "@/components/ui";
 import { RecommendedBadge } from "@/components/recommended";
 import { comparePlan, type CostLine, costSummary, firstYearText, lower, usd } from "@/lib/website/costs";
+import type { BudgetShare } from "@/lib/website/budget";
 import type { OptionExplanation } from "@/lib/website/options";
 import type { PlatformInfo } from "@/lib/website/platforms";
 import { packageTerms, TERM_LABELS } from "@/lib/website/terms";
@@ -43,11 +44,14 @@ export function PlatformCard({
   platform,
   recommended,
   chosen,
+  share,
   explanation,
 }: {
   platform: PlatformInfo;
   recommended: { reasons: string[] } | null;
   chosen: boolean;
+  // Share of the owner's startup budget; null when it isn't known
+  share: BudgetShare | null;
   explanation: OptionExplanation | null;
 }) {
   const id = `platform-${platform.id}`;
@@ -136,7 +140,7 @@ export function PlatformCard({
         </Expander>
       </div>
 
-      <CostSummaryBox platform={platform} />
+      <CostSummaryBox platform={platform} share={share} />
 
       <div className="flex flex-col gap-2 self-end border-t border-line pt-4">
         <ChoosePlatformButton
@@ -236,7 +240,7 @@ function CostRow({ line, extra }: { line: CostLine; extra: boolean }) {
 const say = (line: CostLine) => (line.term ? lower(line.label) : line.label);
 
 // The plan, each extra as a line, then totals worked out in code, all for the same need
-function CostSummaryBox({ platform }: { platform: PlatformInfo }) {
+function CostSummaryBox({ platform, share }: { platform: PlatformInfo; share: BudgetShare | null }) {
   const costs = costSummary(platform);
   const from = costs.from ? "from " : "";
   const lines = [costs.base, ...costs.extras];
@@ -284,6 +288,9 @@ function CostSummaryBox({ platform }: { platform: PlatformInfo }) {
         <p className="text-sm text-muted">
           <strong className="font-semibold text-rule">In the total:</strong> {counted.map(say).join(", ")}.{" "}
           <strong className="font-semibold text-rule">Not in the total:</strong> {left.map((line) => `${say(line)} (${line.whyNot})`).join("; ")}.
+        </p>
+        <p className={`text-sm ${share?.heavy ? "font-semibold text-check" : "text-rule"}`}>
+          <strong className="font-semibold">Of your budget:</strong> {share ? share.text : "Add your startup budget in your answers to see this."}
         </p>
       </div>
     </section>

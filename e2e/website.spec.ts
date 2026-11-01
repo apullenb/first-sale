@@ -17,6 +17,9 @@ test.describe("create your website", () => {
     // Every package marks the same five things and shows a cost summary worked out in code
     const choose = page.getByRole("region", { name: "Step 1: Choose a package" });
     await expect(choose).toContainText("We recommend");
+    // The recommendation against the startup budget, with a $0 way to test demand
+    await expect(choose.getByRole("region", { name: "Your budget" })).toContainText("Cheapest way to test demand first");
+    await expect(page.getByRole("region", { name: "Choose where to build your site" })).toContainText("What it costs");
     for (const name of PACKAGES) {
       const card = choose.getByRole("article", { name });
       await expect(card).toBeVisible();

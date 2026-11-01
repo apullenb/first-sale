@@ -96,6 +96,8 @@ export interface MarketingStep {
   general: boolean;
   // From a plan drafted in practice mode
   practice: boolean;
+  // Keys of plan actions folded into this step, so their ticks count here
+  merged?: string[];
 }
 
 // The step's place on the page, for "go to this step" links

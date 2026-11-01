@@ -92,7 +92,7 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
     title: "Link preview",
     purpose: "The picture that shows when someone shares a link to your website on Facebook and other apps.",
     size: "1200x630",
-    exports: [{ label: "1200 × 630", width: 1200, height: 630, type: "image/png", maxBytes: 8_000_000, note: "Meta’s recommended size, 8 MB or smaller" }],
+    exports: [{ label: "1200 × 630", width: 1200, height: 630, type: "image/png", maxBytes: 8_000_000, note: "Facebook’s recommended size, 8 MB or smaller" }],
     guides: [],
     source: LINK_SHARE,
     facts: ["Meta recommends at least 1200 × 630 pixels, close to a 1.91:1 shape, so the whole picture shows without cropping."],

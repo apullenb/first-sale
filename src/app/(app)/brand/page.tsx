@@ -78,7 +78,7 @@ async function Brand() {
 
   return (
     <>
-      {practice ? <PracticeBanner what="Your brand description here is a practice sample, not written by Muse." /> : null}
+      {practice ? <PracticeBanner what="Your brand description here is a practice sample, not written by AI." /> : null}
       {approved ? (
         <>
           <Completed eyebrow="Your brand" title="You approved your brand description">
