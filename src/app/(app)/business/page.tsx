@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { DetailField } from "@/components/business/detail-field";
 import { Icon } from "@/components/icons";
+import { ContactQuestion } from "@/components/contact/contact-question";
 import { BusinessHeading } from "@/components/intake/business-heading";
 import { CHAPTERS, rowsByChapter } from "@/components/intake/chapters";
 import { LocalDate } from "@/components/local-date";
@@ -90,6 +91,7 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
       </div>
 
       {welcoming && current.profile ? <Welcome profile={current.profile} /> : null}
+      {welcoming && current.profile ? <ContactQuestion /> : null}
 
       {draft?.mode === "edit" && !(current.profile && sameAnswers(draft.answers, profileToAnswers(current.profile))) ? (
         <div className="flex flex-wrap items-center gap-3 rounded-[14px] border border-check-ring bg-check-tint px-4 py-3 text-check">

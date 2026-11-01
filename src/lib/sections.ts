@@ -45,6 +45,16 @@ export const SECTIONS: Section[] = [
     summary: "Questions about where you are, who owns it, what you sell, how you sell it, and your budget.",
   },
   {
+    href: "/contact",
+    title: "Business email and phone",
+    group: "Start your business",
+    step: null,
+    // Listed in the menu as a step only once the owner puts it in their plan
+    under: "/business",
+    milestone: 2,
+    summary: "Add the business email and phone you have, or follow Google’s own steps to set them up.",
+  },
+  {
     href: "/start",
     title: "Start your business",
     group: "Start your business",
