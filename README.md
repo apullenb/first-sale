@@ -44,7 +44,7 @@ Not built yet: password reset and email verification. Both need an email-sending
 1. Create a hosted Postgres database and set `DATABASE_URL`. The app refuses to start on Vercel without it.
 2. Set `BETTER_AUTH_SECRET` (`openssl rand -base64 32`) and `BETTER_AUTH_URL` (the production address).
 3. Run `DATABASE_URL=… npm run db:migrate` against the production database before the first deploy and after each schema change.
-4. Each preview's deployment URL and branch URL are trusted for sign-in automatically (`VERCEL_URL`, `VERCEL_BRANCH_URL`). List custom preview domains in `BETTER_AUTH_TRUSTED_ORIGINS`, comma-separated.
+4. The production address and each preview's deployment and branch URLs are trusted for sign-in automatically (`VERCEL_PROJECT_PRODUCTION_URL`, `VERCEL_URL`, `VERCEL_BRANCH_URL`). List custom preview domains in `BETTER_AUTH_TRUSTED_ORIGINS`, comma-separated.
 
 Research and form reading can take a few minutes, so those pages allow up to 300 seconds (`maxDuration`). Check that your Vercel plan allows that. Uploads are capped at 4 MB to fit Vercel's request size limit.
 

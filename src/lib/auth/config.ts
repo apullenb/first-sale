@@ -12,13 +12,13 @@ export interface AuthSettings {
   trustedOrigins?: string[];
 }
 
-// Vercel deployment and branch URLs, plus any listed in BETTER_AUTH_TRUSTED_ORIGINS (comma-separated)
+// Vercel's production, deployment and branch URLs, plus any listed in BETTER_AUTH_TRUSTED_ORIGINS (comma-separated)
 function envTrustedOrigins(): string[] {
   const listed = (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? "")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
-  const vercel = [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL]
+  const vercel = [process.env.VERCEL_PROJECT_PRODUCTION_URL, process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL]
     .filter((host): host is string => Boolean(host))
     .map((host) => `https://${host}`);
   return [...listed, ...vercel];
