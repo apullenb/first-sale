@@ -7,6 +7,7 @@ import { Icon } from "@/components/icons";
 import { PICKS, PickTile, Why } from "@/components/marketing/pieces";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { Card, Chip } from "@/components/ui";
+import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { Working } from "@/components/working";
 import {
   FACT_GROUPS,
@@ -44,6 +45,7 @@ export function PlanInputs({ facts, basis, initial, money, hasDraft, privacy }: 
   const [picks, setPicks] = useState<PlanAnswers>(initial.picks);
   const [status, setStatus] = useState<"idle" | "drafting">("idle");
   const [error, setError] = useState<string | null>(null);
+  const job = useJobWatch();
   useLayoutEffect(() => () => setError(null), []);
 
   const questions = useMemo(() => planQuestions(basis, picks), [basis, picks]);
@@ -61,7 +63,8 @@ export function PlanInputs({ facts, basis, initial, money, hasDraft, privacy }: 
     try {
       const shown = Object.fromEntries(questions.flatMap((question) => (picks[question.key] ? [[question.key, picks[question.key]]] : [])));
       const result = await draftBusinessPlanAction({ picks: shown, overrides, money: estimates.money });
-      if (!result.ok) setError(result.message);
+      if (!result.ok && result.busy) job.watch([result.busy]);
+      else if (!result.ok) setError(result.message);
       else requestAnimationFrame(() => document.getElementById("plan-review-heading")?.scrollIntoView({ behavior: "smooth", block: "start" }));
     } catch {
       setError("Couldn’t reach SnapStart. Check your connection and try again.");
@@ -103,14 +106,14 @@ export function PlanInputs({ facts, basis, initial, money, hasDraft, privacy }: 
         )}
 
         <div className="flex flex-col items-start gap-2 border-t border-line pt-5">
-          <button type="button" onClick={draft} disabled={status === "drafting"} className={AI_BUTTON}>
+          <button type="button" onClick={draft} disabled={status === "drafting" || job.watching} className={AI_BUTTON}>
             <Icon name="sparkles" size="sm" />
             {status === "drafting" ? "Drafting your plan…" : hasDraft ? "Draft my plan again" : "Draft my plan"}
           </button>
           {status === "drafting" ? null : (
             <p className="text-[14.5px] text-muted">Writes a formal business plan from the facts and answers above. {privacy}</p>
           )}
-          <Working label="Writing your business plan. This can take a minute or two." active={status === "drafting"} />
+          <Working label={job.watching ? RUNNING_ELSEWHERE : "Writing your business plan. This can take a minute or two."} active={status === "drafting" || job.watching} />
           {error ? (
             <p role="alert" className={ALERT}>
               {error}

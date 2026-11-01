@@ -131,7 +131,7 @@ async function MarketingView() {
   const running = run?.status === "running";
   const runNotice =
     run && (running || run.message === CUT_OFF_MESSAGE) ? (
-      <RunStatus status={running ? "running" : "failed"} message={null} what="Writing your marketing plan" />
+      <RunStatus status={running ? "running" : "failed"} job={{ workflow: "marketing_plan", subjectId: null }} message={null} what="Writing your marketing plan" />
     ) : null;
   const stepsNote = !current
     ? "These come from your approved plan. Your answers changed since, so write your plan again to update them."
