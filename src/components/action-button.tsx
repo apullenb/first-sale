@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useLayoutEffect, useState } from "react";
 import type { ActionResult } from "@/app/(app)/business/actions";
+import { RUNNING_ELSEWHERE, useJobWatch } from "./job-watch";
 import { AI_BUTTON, DANGER, PRIMARY, SECONDARY } from "./styles";
 import { Working } from "./working";
 
@@ -29,6 +30,7 @@ export function ActionButton({ action, label, pendingLabel, pendingStatus, varia
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const job = useJobWatch();
 
   // Clear old errors when the page is hidden: kept-mounted screens keep their state
   useLayoutEffect(() => () => setError(null), []);
@@ -40,7 +42,8 @@ export function ActionButton({ action, label, pendingLabel, pendingStatus, varia
     try {
       const result = await action();
       if (!result.ok) {
-        setError(result.message);
+        if (result.busy) job.watch([result.busy]);
+        else setError(result.message);
         return;
       }
       if (openDocument && typeof result.value === "string") router.push(`/documents/${result.value}`);
@@ -54,10 +57,12 @@ export function ActionButton({ action, label, pendingLabel, pendingStatus, varia
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <button type="button" onClick={run} disabled={pending} className={STYLES[variant]}>
-        {pending ? pendingLabel : label}
+      <button type="button" onClick={run} disabled={pending || job.watching} className={STYLES[variant]}>
+        {pending || job.watching ? pendingLabel : label}
       </button>
-      {ai ? (
+      {job.watching ? (
+        <Working label={RUNNING_ELSEWHERE} active />
+      ) : ai ? (
         <Working label={pendingStatus ?? pendingLabel} active={pending} />
       ) : (
         // Always rendered, so screen readers announce the change
