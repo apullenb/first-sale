@@ -7,6 +7,7 @@ import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { ALERT, INPUT, PRIMARY, SECONDARY, SECONDARY_LINK } from "@/components/styles";
 import type { PlanSection } from "@/lib/documents/types";
+import { ESTIMATES_KEY } from "@/lib/rules/plan-money";
 import { countPlaceholders, fileHref } from "./labels";
 
 interface Props {
@@ -196,6 +197,8 @@ export function PlanEditor({ documentId, sections, version, savedAt, hasFile }: 
             const headingId = `${uid}-h-${index}`;
             const editingSection = mode?.index === index && mode.kind === "section";
             const passage = mode?.index === index && mode.kind === "passage" ? mode : null;
+            // Worked out in code from the money estimates, so not edited as text
+            const locked = section?.key === ESTIMATES_KEY;
             return (
               <section key={section?.key ?? index} aria-labelledby={headingId} className="flex flex-col gap-3">
                 {editingSection ? (
@@ -212,20 +215,24 @@ export function PlanEditor({ documentId, sections, version, savedAt, hasFile }: 
                       <h3 id={headingId} className="min-w-0 flex-1 font-display text-[21px] leading-snug sm:text-[23px]">
                         <span className="text-faint">{index + 1}.</span> {edit.heading}
                       </h3>
-                      <button
-                        type="button"
-                        onClick={() => setMode({ index, kind: "section" })}
-                        className={`${SECONDARY} ${SMALL} -mt-0.5`}
-                        aria-label={`Edit section ${index + 1}: ${edit.heading}`}
-                        disabled={Boolean(mode) || busy}
-                      >
-                        <Icon name="pencil" size="sm" className="text-muted" />
-                        <span className="hidden sm:inline">Edit section</span>
-                      </button>
+                      {locked ? (
+                        <span className="text-[14px] text-muted">Change it under Money estimates</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setMode({ index, kind: "section" })}
+                          className={`${SECONDARY} ${SMALL} -mt-0.5`}
+                          aria-label={`Edit section ${index + 1}: ${edit.heading}`}
+                          disabled={Boolean(mode) || busy}
+                        >
+                          <Icon name="pencil" size="sm" className="text-muted" />
+                          <span className="hidden sm:inline">Edit section</span>
+                        </button>
+                      )}
                     </div>
                     <div className="flex flex-col gap-3 text-[16.5px] leading-[1.7] text-ink">
                       {paragraphsOf(edit.body).map((part) => (
-                        <p key={part.start} data-para="" data-section={index} data-start={part.start} className="whitespace-pre-line break-words">
+                        <p key={part.start} data-para={locked ? undefined : ""} data-section={index} data-start={part.start} className="whitespace-pre-line break-words">
                           {passage ? highlighted(part, passage.start, passage.end) : withNotes(part.text)}
                         </p>
                       ))}

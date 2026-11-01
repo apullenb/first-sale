@@ -8,10 +8,12 @@ import { RunNotice } from "@/components/documents/run-notice";
 import { Icon } from "@/components/icons";
 import { PracticeBanner } from "@/components/practice-banner";
 import { PRIMARY_LINK } from "@/components/styles";
-import { Card, PageHead } from "@/components/ui";
+import { Card, Chip, PageHead } from "@/components/ui";
+import { getModel } from "@/lib/ai";
 import { getMyBusiness, lastMyRun, listMyDocuments } from "@/lib/data/my-business";
 import { planVersion } from "@/lib/documents/business-plan";
 import { knownFacts, restoreAnswers } from "@/lib/documents/plan-facts";
+import { EMPTY_MONEY, ESTIMATES_KEY, PLAN_LEVEL_LABELS, planMoney } from "@/lib/rules/plan-money";
 import { myPlanSources } from "./sources";
 
 export const metadata = { title: "Business plan" };
@@ -69,7 +71,15 @@ async function Plan() {
       facts={facts}
       basis={basis}
       initial={restoreAnswers(basis, facts, draft?.answers, draft?.inputs ?? {})}
+      money={
+        draft?.money ?? {
+          ...EMPTY_MONEY,
+          // Starts from the product list: prices, and costs where saved
+          items: sources.products.slice(0, 12).map((product) => ({ name: product.name.slice(0, 60), priceCents: product.priceCents, unitCostCents: product.unitCostCents ?? null, unitsPerMonth: null })),
+        }
+      }
       hasDraft={drafted}
+      privacy={privacyNote()}
     />
   );
 
@@ -94,10 +104,16 @@ async function Plan() {
       )}
 
       {doc && draft && drafted ? (
-        <Card title="Review your plan" icon="book" id="plan-review-heading">
+        <Card
+          title="Review your plan"
+          icon="book"
+          id="plan-review-heading"
+          action={<Chip tone={planMoney(draft.money ?? EMPTY_MONEY).level === "lender" ? "accent" : "gray"}>{PLAN_LEVEL_LABELS[planMoney(draft.money ?? EMPTY_MONEY).level]}</Chip>}
+        >
           {draft.simulated ? <PracticeBanner what="This business plan was drafted in practice mode." /> : null}
           <PlanEditor
-            key={draft.draftedAt ?? "draft"}
+            // Starts fresh for each draft and each change to the estimates
+            key={`${draft.draftedAt ?? "draft"}-${planVersion(draft.sections.filter((section) => section.key === ESTIMATES_KEY))}`}
             documentId={doc.id}
             sections={draft.sections}
             version={planVersion(draft.sections)}
@@ -108,4 +124,20 @@ async function Plan() {
       ) : null}
     </>
   );
+}
+
+// Storage, AI processing and filing are separate; which AI service gets the text depends on this setup
+function privacyNote(): string {
+  let model;
+  try {
+    model = getModel();
+  } catch {
+    model = null;
+  }
+  const ai = !model
+    ? "SnapStart’s AI service isn’t set up right now, so nothing is sent to one."
+    : model.simulated || !model.dataHandling
+      ? "In practice mode nothing is sent to an AI service; built-in rules write the draft."
+      : `To write it, they are sent to ${model.dataHandling.recipient}. ${model.dataHandling.notes.join(" ")}`;
+  return `Your plan is stored in your SnapStart account. ${ai} Nothing is published or submitted to government offices.`;
 }

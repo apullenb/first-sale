@@ -20,7 +20,7 @@ export interface PlanSources {
   profile: BusinessProfile;
   // The decided structure's name, and where the decision was made
   structure: { name: string; from: "decision" | "registered" } | null;
-  products: { name: string; priceCents: number }[];
+  products: { name: string; priceCents: number; unitCostCents?: number | null }[];
   brand: { customers: string; tagline: string; story: string } | null;
   // An approved marketing plan
   marketing: { summary: string; audience: string } | null;
