@@ -4,6 +4,7 @@ import { type FormEvent, type ReactNode, useEffect, useId, useLayoutEffect, useR
 import type { ActionResult } from "@/app/(app)/business/actions";
 import { drawRoundAction, editPictureAction, makeImagesAction, makeVersionsAction, moreLikeThisAction, refineLogoAction } from "@/app/(app)/brand/actions";
 import { Icon } from "@/components/icons";
+import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { LABEL, PickOption } from "@/components/marketing/pieces";
 import { useRequestKey, Working } from "@/components/working";
 import { AI_BUTTON, ALERT, INPUT, SECONDARY } from "@/components/styles";
@@ -61,9 +62,10 @@ function useBrandRun(intent: Intent, blocked?: string | null) {
   const inFlight = useRef(false);
   const messages = useMessages();
   const { setError, setNote } = messages;
+  const job = useJobWatch();
 
   async function run(change?: string) {
-    if (inFlight.current || blocked) return false;
+    if (inFlight.current || blocked || job.watching) return false;
     inFlight.current = true;
     setPending("first");
     setError(null);
@@ -73,7 +75,8 @@ function useBrandRun(intent: Intent, blocked?: string | null) {
       if (intent.kind === "more") {
         const round = await moreLikeThisAction({ conceptId: intent.conceptId, requestKey: requestKey.get() });
         if (!round.ok) {
-          setError(round.message);
+          if (round.busy) job.watch([round.busy]);
+          else setError(round.message);
           return false;
         }
         setPending("drawing");
@@ -86,7 +89,8 @@ function useBrandRun(intent: Intent, blocked?: string | null) {
         result = await makeImagesAction({ requestKey: requestKey.get(), logoId: intent.logoId, kinds: intent.kinds, change: change?.trim() || null });
       }
       if (!result.ok) {
-        setError(result.message);
+        if (result.busy) job.watch([result.busy]);
+        else setError(result.message);
         return false;
       }
       requestKey.clear();
@@ -101,7 +105,7 @@ function useBrandRun(intent: Intent, blocked?: string | null) {
     }
   }
 
-  return { run, pending, requestKey, ...messages };
+  return { run, pending, watching: job.watching, requestKey, ...messages };
 }
 
 interface RunProps {
@@ -120,7 +124,7 @@ interface RunProps {
 export function BrandRunButton({ intent, label, pendingLabel, working, variant = "ai", hint, withChange, blocked }: RunProps) {
   const uid = useId();
   const [change, setChange] = useState("");
-  const { run, pending, requestKey, error, note } = useBrandRun(intent, blocked);
+  const { run, pending, watching, requestKey, error, note } = useBrandRun(intent, blocked);
 
   return (
     <div className="flex flex-col items-start gap-2">
@@ -143,13 +147,16 @@ export function BrandRunButton({ intent, label, pendingLabel, working, variant =
           />
         </div>
       ) : null}
-      <button type="button" onClick={async () => (await run(change)) && setChange("")} disabled={pending !== null || Boolean(blocked)} className={variant === "ai" ? AI_BUTTON : SECONDARY}>
+      <button type="button" onClick={async () => (await run(change)) && setChange("")} disabled={pending !== null || watching || Boolean(blocked)} className={variant === "ai" ? AI_BUTTON : SECONDARY}>
         <Icon name={variant === "ai" ? "sparkles" : "refresh"} size="sm" />
-        {pending ? pendingLabel : label}
+        {pending || watching ? pendingLabel : label}
       </button>
       {hint ? <p className="text-sm text-muted">{hint}</p> : null}
       {blocked ? <p className="text-sm text-muted">{blocked}</p> : null}
-      <Working label={pending === "drawing" ? "Drawing the new ideas and checking their spelling… this can take two or three minutes" : working} active={pending !== null} />
+      <Working
+        label={watching ? RUNNING_ELSEWHERE : pending === "drawing" ? "Drawing the new ideas and checking their spelling… this can take two or three minutes" : working}
+        active={pending !== null || watching}
+      />
       <Messages error={error} note={note} />
     </div>
   );
@@ -170,8 +177,8 @@ interface PlusProps {
 
 // An empty slot: a soft gray placeholder with a "+" that makes this one file
 export function PlusTile({ intent, label, sketch, ratio, working, hint, blocked }: PlusProps) {
-  const { run, pending, error, note } = useBrandRun(intent, blocked);
-  const busy = pending !== null;
+  const { run, pending, watching, error, note } = useBrandRun(intent, blocked);
+  const busy = pending !== null || watching;
   return (
     <div className="flex flex-col gap-2">
       <button
@@ -193,7 +200,7 @@ export function PlusTile({ intent, label, sketch, ratio, working, hint, blocked 
         </span>
       </button>
       <p className="text-sm text-muted">{blocked ?? hint}</p>
-      <Working label={working} active={busy} />
+      <Working label={watching ? RUNNING_ELSEWHERE : working} active={busy} />
       <Messages error={error} note={note} />
     </div>
   );
@@ -224,6 +231,7 @@ export function EditPrompt({ target, label = "Edit", hint, working, done, latest
   // Focus goes back to the Edit button when the form closes, not to the page
   const refocus = useRef(false);
   const { error, setError } = useMessages();
+  const job = useJobWatch();
   useLayoutEffect(() => () => setMade(null), []);
   useEffect(() => {
     if (open || !refocus.current) return;
@@ -238,7 +246,7 @@ export function EditPrompt({ target, label = "Edit", hint, working, done, latest
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (inFlight.current) return;
+    if (inFlight.current || job.watching) return;
     if (change.trim().length < 3) return setError("Say what you’d like changed, such as “Make the letters thicker”.");
     inFlight.current = true;
     setPending(true);
@@ -247,6 +255,10 @@ export function EditPrompt({ target, label = "Edit", hint, working, done, latest
     try {
       const input = { assetId: target.assetId, requestKey: requestKey.get(), change };
       const result = target.kind === "logo" ? await refineLogoAction(input) : await editPictureAction(input);
+      if (!result.ok && result.busy) {
+        job.watch([result.busy]);
+        return close();
+      }
       if (!result.ok) return setError(result.message);
       requestKey.clear();
       setChange("");
@@ -302,13 +314,14 @@ export function EditPrompt({ target, label = "Edit", hint, working, done, latest
             setOpen(true);
             setMade(null);
           }}
+          disabled={job.watching}
           className={SECONDARY}
         >
           <Icon name="pencil" size="sm" />
           {label}
         </button>
       )}
-      <Working label={working} active={pending} />
+      <Working label={job.watching ? RUNNING_ELSEWHERE : working} active={pending || job.watching} />
       {showMade ? (
         <p role="status" className="flex items-start gap-2 text-[15px] font-semibold text-done">
           <Icon name="check" size="sm" strokeWidth={2.4} className="mt-0.5" />
@@ -354,6 +367,8 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
   const lastIntent = useRef<string | null>(null);
   const inFlight = useRef(false);
   const [pending, setPending] = useState(false);
+  const job = useJobWatch();
+  const busy = pending || job.watching;
   const [family, setFamily] = useState<ColorFamily | "custom" | null>(null);
   const [hexes, setHexes] = useState(() => current.palette.map((color) => color.hex.toUpperCase()));
   const [style, setStyle] = useState<LetteringStyle | null>(null);
@@ -363,7 +378,7 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
   const lightCustom = family === "custom" && Math.max(...hexes.map((hex) => contrast(hex, "#ffffff"))) < 3;
 
   async function send(intent: { refinement: Refinement }) {
-    if (inFlight.current) return;
+    if (inFlight.current || job.watching) return;
     const signature = JSON.stringify(intent);
     if (signature !== lastIntent.current) {
       requestKey.clear();
@@ -375,6 +390,7 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
     setNote(null);
     try {
       const result = await refineLogoAction({ assetId, requestKey: requestKey.get(), ...intent });
+      if (!result.ok && result.busy) return job.watch([result.busy]);
       if (!result.ok) return setError(result.message);
       requestKey.clear();
       lastIntent.current = null;
@@ -394,7 +410,7 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
       <div className="flex flex-col gap-2">
         <h4 className={LABEL}>Simpler</h4>
         <p className="text-sm text-muted">Fewer details and thicker lines, so it still reads when it’s small.</p>
-        <button type="button" onClick={() => send({ refinement: { kind: "simpler" } })} disabled={pending} className={`${SECONDARY} w-fit`}>
+        <button type="button" onClick={() => send({ refinement: { kind: "simpler" } })} disabled={busy} className={`${SECONDARY} w-fit`}>
           Make it simpler
         </button>
       </div>
@@ -451,7 +467,7 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
           <button
             type="button"
             onClick={() => family && send({ refinement: { kind: "colors", colors: family === "custom" ? { hexes } : { family } } })}
-            disabled={pending || !family}
+            disabled={busy || !family}
             className={`${SECONDARY} w-fit`}
           >
             Use these colors
@@ -468,7 +484,7 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
               <PickOption key={key} type="radio" name={`${uid}-lettering`} checked={style === key} onChange={() => setStyle(key)} label={LETTERING_STYLES[key].label} layout="word" />
             ))}
           </div>
-          <button type="button" onClick={() => style && send({ refinement: { kind: "lettering", style } })} disabled={pending || !style} className={`${SECONDARY} w-fit`}>
+          <button type="button" onClick={() => style && send({ refinement: { kind: "lettering", style } })} disabled={busy || !style} className={`${SECONDARY} w-fit`}>
             Change the lettering
           </button>
         </fieldset>
@@ -484,20 +500,20 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
           <button
             type="button"
             onClick={() => send({ refinement: { kind: "tagline", text: tagline } })}
-            disabled={pending || !tagline.trim() || tagline.trim() === current.tagline}
+            disabled={busy || !tagline.trim() || tagline.trim() === current.tagline}
             className={SECONDARY}
           >
             {current.tagline ? "Use this tagline instead" : "Add this tagline"}
           </button>
           {current.tagline ? (
-            <button type="button" onClick={() => send({ refinement: { kind: "tagline", text: "" } })} disabled={pending} className={SECONDARY}>
+            <button type="button" onClick={() => send({ refinement: { kind: "tagline", text: "" } })} disabled={busy} className={SECONDARY}>
               Remove the tagline
             </button>
           ) : null}
         </div>
       </div>
 
-      <Working label="Redrawing your logo and checking the spelling… this can take a minute or two" active={pending} />
+      <Working label={job.watching ? RUNNING_ELSEWHERE : "Redrawing your logo and checking the spelling… this can take a minute or two"} active={busy} />
       <Messages error={error} note={note} />
     </div>
   );

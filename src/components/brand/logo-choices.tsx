@@ -3,6 +3,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { drawRoundAction, getIdeasAction, suggestTaglinesAction } from "@/app/(app)/brand/actions";
 import { Icon } from "@/components/icons";
+import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { PickTile, SectionHead, SOFT } from "@/components/marketing/pieces";
 import { useRequestKey, Working } from "@/components/working";
 import { AI_BUTTON, ALERT, INPUT, SECONDARY } from "@/components/styles";
@@ -38,6 +39,10 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [taglineError, setTaglineError] = useState<string | null>(null);
+  // Tagline suggestions and logo ideas each follow their own running job
+  // Suggestions aren't saved, so ones made in another tab stay there
+  const taglineWatch = useJobWatch(() => setTaglineError("Those suggestions were made in another tab. Choose Suggest for new ones here."));
+  const watcher = useJobWatch();
   const taglineInput = useRef<HTMLInputElement>(null);
   const addButton = useRef<HTMLButtonElement>(null);
   // Where focus goes after the tagline box opens or closes, so it isn't lost
@@ -64,7 +69,7 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
   }
 
   async function run(next: Phase, job: () => Promise<void>) {
-    if (inFlight.current) return;
+    if (inFlight.current || watcher.watching || taglineWatch.watching) return;
     inFlight.current = true;
     setPhase(next);
     try {
@@ -82,6 +87,7 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
     setTaglineError(null);
     return run("suggesting", async () => {
       const result = await suggestTaglinesAction({ name: choices.name });
+      if (!result.ok && result.busy) return taglineWatch.watch([result.busy]);
       if (!result.ok) return setTaglineError(result.message);
       setSuggestions(result.value);
       setAddingTagline(true);
@@ -95,9 +101,11 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
     setError(null);
     return run("writing", async () => {
       const ideas = await getIdeasAction({ requestKey: requestKey.get(), choices });
+      if (!ideas.ok && ideas.busy) return watcher.watch([ideas.busy]);
       if (!ideas.ok) return setError(ideas.message);
       setPhase("drawing");
       const drawn = await drawRoundAction(ideas.value);
+      if (!drawn.ok && drawn.busy) return watcher.watch([drawn.busy]);
       if (!drawn.ok) return setError(`${drawn.message} Your ideas are saved: choose “Draw the missing logos” below to try again.`);
       // Kept until the drawings are back, so a retry reuses the same round and draws only what's missing
       requestKey.clear();
@@ -106,7 +114,7 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
     });
   }
 
-  const busy = phase !== "idle";
+  const busy = phase !== "idle" || watcher.watching || taglineWatch.watching;
   return (
     <section aria-labelledby={`${uid}-heading`} className="flex flex-col gap-4">
       <SectionHead id={`${uid}-heading`} number={number} title="What your logo shows" lead="Only about the logo itself. How your brand feels comes from your description above." />
@@ -164,7 +172,7 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
             {/* aria-disabled, not disabled: a disabled button drops focus */}
             <button type="button" onClick={suggest} aria-disabled={busy} aria-label="Suggest taglines from your brand" className={`${AI_BUTTON} shrink-0 px-3.5 aria-disabled:opacity-60`}>
               <Icon name="sparkles" size="sm" />
-              {phase === "suggesting" ? "Suggesting…" : "Suggest"}
+              {phase === "suggesting" || taglineWatch.watching ? "Suggesting…" : "Suggest"}
             </button>
           </div>
           <p className="text-sm text-muted">A few words under your name, such as “Sourdough and pastries”. Type your own, or choose Suggest for ideas from your brand.</p>
@@ -181,7 +189,7 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
               No tagline
             </button>
           ) : null}
-          <Working label="Suggesting taglines from your brand… this takes a few seconds" active={phase === "suggesting"} />
+          <Working label={taglineWatch.watching ? RUNNING_ELSEWHERE : "Suggesting taglines from your brand… this takes a few seconds"} active={phase === "suggesting" || taglineWatch.watching} />
           {taglineError ? (
             <p role="alert" className={ALERT}>
               {taglineError}
@@ -235,9 +243,9 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
           {blocked ? <p className={ALERT}>{blocked}</p> : null}
           <button type="button" onClick={generate} disabled={busy || Boolean(blocked)} className={`${AI_BUTTON} w-fit`}>
             <Icon name="sparkles" size="sm" />
-            {phase === "writing" ? "Writing ideas…" : phase === "drawing" ? "Drawing logos…" : hasIdeas ? "Generate new logo ideas" : "Generate logo ideas"}
+            {phase === "writing" || watcher.watching ? "Writing ideas…" : phase === "drawing" ? "Drawing logos…" : hasIdeas ? "Generate new logo ideas" : "Generate logo ideas"}
           </button>
-          <Working label="Writing logo ideas… this can take a minute" active={phase === "writing"} />
+          <Working label={watcher.watching ? RUNNING_ELSEWHERE : "Writing logo ideas… this can take a minute"} active={phase === "writing" || watcher.watching} />
           <Working label={`Drawing ${IDEAS.first} logos and checking their spelling… this can take two or three minutes`} active={phase === "drawing"} />
           {note ? (
             <p role="status" className={ALERT}>

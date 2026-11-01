@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useId, useLayoutEffect, useRef, useState } from "react";
 import { generatePhotoAction } from "@/app/(app)/photos/actions";
 import { Icon } from "@/components/icons";
+import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { PICKS, PickOption } from "@/components/marketing/pieces";
 import { AI_BUTTON, ALERT, INPUT } from "@/components/styles";
 import { MAX_ANSWER } from "@/lib/photos/instructions";
@@ -39,6 +40,7 @@ export function PhotoSetup({ photoId, objects, question, aiCategory, initial, se
   // Set before the first await, so a second submit in the same moment can't slip through
   const inFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  const job = useJobWatch();
   useLayoutEffect(() => () => setError(null), []);
 
   // A different request gets a new key
@@ -52,7 +54,7 @@ export function PhotoSetup({ photoId, objects, question, aiCategory, initial, se
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (inFlight.current || blocked) return;
+    if (job.watching || inFlight.current || blocked) return;
     if (!category) return setError("Choose what kind of product this is.");
     if (objects.length > 1 && forSale.length === 0) return setError("Tick at least one thing you’re selling.");
     if (question && !answer.trim()) return setError("Answer the question about your photo first.");
@@ -61,6 +63,7 @@ export function PhotoSetup({ photoId, objects, question, aiCategory, initial, se
     setError(null);
     try {
       const result = await generatePhotoAction({ photoId, requestKey: requestKey.get(), look, crop, category, forSale, answer });
+      if (!result.ok && result.busy) return job.watch([result.busy]);
       if (!result.ok) return setError(result.message);
       requestKey.clear();
       router.push(`/photos/${photoId}?v=${result.value}`);
@@ -184,14 +187,14 @@ export function PhotoSetup({ photoId, objects, question, aiCategory, initial, se
         <p className={ALERT}>{blocked}</p>
       ) : (
         <div className="flex flex-col items-start gap-2">
-          <button type="submit" disabled={pending} className={AI_BUTTON}>
+          <button type="submit" disabled={pending || job.watching} className={AI_BUTTON}>
             <Icon name="sparkles" size="sm" />
             {pending ? "Making your photo…" : hasVersions ? "Make another version" : "Make my store photo"}
           </button>
           <p className="text-sm text-muted">Your original photo is kept as it is. Each try is saved as a new version.</p>
         </div>
       )}
-      <Working active={pending} label="Making your photo, then checking it against your original. This can take a minute or two." />
+      <Working active={pending || job.watching} label={job.watching ? RUNNING_ELSEWHERE : "Making your photo, then checking it against your original. This can take a minute or two."} />
       {error ? (
         <p role="alert" className={ALERT}>
           {error}

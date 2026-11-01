@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { makeImagesAction, setImageMediumAction } from "@/app/(app)/brand/actions";
+import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { Segmented } from "@/components/marketing/pieces";
 import { useRequestKey, Working } from "@/components/working";
 import { ALERT } from "@/components/styles";
@@ -24,12 +25,13 @@ export function MediumSwitch({ logoId, medium, by, hasExample, hint }: { logoId:
   const [pending, setPending] = useState<ImageMedium | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inFlight = useRef(false);
+  const job = useJobWatch();
   // Kept-mounted screens keep their state
   useLayoutEffect(() => () => setError(null), []);
 
   async function choose(value: string) {
     const next = IMAGE_MEDIUMS.find((option) => option === value);
-    if (!next || next === medium || inFlight.current) return;
+    if (!next || next === medium || inFlight.current || job.watching) return;
     inFlight.current = true;
     setPending(next);
     setError(null);
@@ -38,6 +40,7 @@ export function MediumSwitch({ logoId, medium, by, hasExample, hint }: { logoId:
       if (!saved.ok) return setError(saved.message);
       if (!saved.value.remake) return;
       const made = await makeImagesAction({ requestKey: requestKey.get(), logoId, kinds: [EXAMPLE_IMAGE], change: null });
+      if (!made.ok && made.busy) return job.watch([made.busy]);
       if (!made.ok) return setError(made.message);
       requestKey.clear();
     } catch {
@@ -55,6 +58,7 @@ export function MediumSwitch({ logoId, medium, by, hasExample, hint }: { logoId:
         <Segmented label="Style of your brand images" options={[...OPTIONS]} value={pending ?? medium} onChange={choose} />
       </div>
       {hasExample ? <p className="text-sm text-muted">Switching makes a new header picture in that style. {hint} The current one is kept under “Earlier ones”.</p> : null}
+      {job.watching ? <Working label={RUNNING_ELSEWHERE} active /> : null}
       <Working label={`Making your header picture as ${pending === "illustration" ? "an illustration" : "a photo"}… this can take a minute or two`} active={pending !== null && hasExample} />
       {error ? (
         <p role="alert" className={ALERT}>

@@ -288,3 +288,20 @@ export function pdfBuffer(text = "Application for a mobile vendor permit. Busine
   body += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
   return Buffer.from(body, "latin1");
 }
+
+// The next action that succeeds answers as if its job were already running, as when another tab started it.
+// The job still runs, so the page should follow it and then show its result.
+export async function answerNextAsBusy(page: Page, job: { workflow: string; subjectId: string | null }) {
+  let done = false;
+  await page.route("**/*", async (route) => {
+    const request = route.request();
+    if (done || request.method() !== "POST" || !request.headers()["next-action"]) return route.fallback();
+    const response = await route.fetch();
+    const body = await response.text();
+    const line = /^(\w+):\{"ok":true.*$/m;
+    if (!line.test(body)) return route.fulfill({ response, body });
+    done = true;
+    const busy = JSON.stringify({ ok: false, message: "This is already running.", busy: job });
+    await route.fulfill({ response, body: body.replace(line, (_, id: string) => `${id}:${busy}`) });
+  });
+}

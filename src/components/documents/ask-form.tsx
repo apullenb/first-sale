@@ -3,6 +3,7 @@
 import { type FormEvent, useId, useLayoutEffect, useState } from "react";
 import { askDocumentAction } from "@/app/(app)/documents/actions";
 import { Icon } from "@/components/icons";
+import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { AI_BUTTON, ALERT, INPUT } from "@/components/styles";
 import { Working } from "@/components/working";
 
@@ -16,6 +17,7 @@ export function AskForm({ documentId, maxQuestion }: Props) {
   const [question, setQuestion] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const job = useJobWatch();
   useLayoutEffect(() => () => setError(null), []);
 
   async function ask(event: FormEvent<HTMLFormElement>) {
@@ -24,7 +26,8 @@ export function AskForm({ documentId, maxQuestion }: Props) {
     setError(null);
     try {
       const result = await askDocumentAction({ documentId, question, fieldId: null });
-      if (!result.ok) setError(result.message);
+      if (!result.ok && result.busy) job.watch([result.busy]);
+      else if (!result.ok) setError(result.message);
       else setQuestion("");
     } catch {
       setError("Couldn’t reach SnapStart. Check your connection and try again.");
@@ -54,11 +57,11 @@ export function AskForm({ documentId, maxQuestion }: Props) {
         </p>
       </div>
       <div className="flex flex-col items-start gap-2">
-        <button type="submit" disabled={pending} className={AI_BUTTON}>
+        <button type="submit" disabled={pending || job.watching} className={AI_BUTTON}>
           <Icon name="sparkles" size="sm" />
           {pending ? "Looking for the answer…" : "Ask"}
         </button>
-        <Working label="Looking through the form for the answer. This can take a minute." active={pending} />
+        <Working label={job.watching ? RUNNING_ELSEWHERE : "Looking through the form for the answer. This can take a minute."} active={pending || job.watching} />
         {error ? (
           <p role="alert" className={ALERT}>
             {error}
