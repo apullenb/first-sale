@@ -92,7 +92,7 @@ async function PhotoView({ params, searchParams }: { params: Promise<{ id: strin
             Original, kept exactly as uploaded · {fileFacts(photo)} · <LocalDate iso={photo.createdAt.toISOString()} />
           </figcaption>
         </figure>
-        <RunNotice run={checkRun} what="Checking your photo" />
+        <RunNotice run={checkRun} job={{ workflow: "photo_check", subjectId: photo.id }} what="Checking your photo" />
         {check ? (
           <CheckSummary check={check} />
         ) : checkRun?.status !== "running" ? (
@@ -111,7 +111,7 @@ async function PhotoView({ params, searchParams }: { params: Promise<{ id: strin
 
       {check?.usable ? (
         <Card title={versions.length ? "Make another version" : "Make a store photo"} icon="sparkles" id="make-heading" bodyClassName="gap-4">
-          <RunNotice run={editRun} what="Making your photo" />
+          <RunNotice run={editRun} job={{ workflow: "photo_edit", subjectId: photo.id }} what="Making your photo" />
           <PhotoSetup
             // A new check resets the choices; a failed edit keeps its message
             key={`${photo.id}:${check.checkedAt}`}

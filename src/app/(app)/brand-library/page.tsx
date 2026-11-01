@@ -7,6 +7,7 @@ import { LibraryUpload } from "@/components/brand/library-upload";
 import { ImageSlots, NoLogoYet } from "@/components/brand/slots";
 import { formatBytes } from "@/components/documents/labels";
 import { Icon, type IconName } from "@/components/icons";
+import { JobWatch } from "@/components/job-watch";
 import { Kicker } from "@/components/marketing/pieces";
 import { PracticeBanner } from "@/components/practice-banner";
 import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
@@ -200,6 +201,7 @@ async function Library() {
         group === "brand_images" ? (
           <Group key={group} group={group} items={groups[group]} count={counts[group]} uploadsTitle="Brand images you added">
             {chosen ? null : <NoLogoYet />}
+            {chosen && running.size ? <JobWatch jobs={[...running].map((kind) => ({ workflow: "brand_images", subjectId: `${chosen.id}:${kind}` }))} what="Making your brand images" /> : null}
             <ImageSlots key={chosen?.id ?? "none"} chosenId={chosen?.id ?? null} name={state?.brief?.name || business.profile?.name || ""} assets={state?.assets ?? []} picks={state?.picks ?? {}} practice={practice} running={running} recommended={recommended} style={state ? brandImageMedium(state) : { medium: "photo", by: "rules" }} />
           </Group>
         ) : (

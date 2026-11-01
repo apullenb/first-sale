@@ -3,6 +3,7 @@
 import { useLayoutEffect, useState } from "react";
 import { explainOptionAction } from "@/app/(app)/website/option-actions";
 import { Icon } from "@/components/icons";
+import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { ALERT, SECONDARY } from "@/components/styles";
 import { Working } from "@/components/working";
 import type { OptionExplanation } from "@/lib/website/options";
@@ -13,6 +14,8 @@ export function ExplainOption({ optionKey, name, explanation, firstYear }: { opt
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The explanation arrives with the refreshed page
+  const job = useJobWatch(() => setOpen(true));
   useLayoutEffect(() => () => setError(null), []);
 
   async function toggle() {
@@ -24,7 +27,8 @@ export function ExplainOption({ optionKey, name, explanation, firstYear }: { opt
     setError(null);
     try {
       const result = await explainOptionAction(optionKey);
-      if (!result.ok) setError(result.message);
+      if (!result.ok && result.busy) job.watch([result.busy]);
+      else if (!result.ok) setError(result.message);
       else setOpen(true);
     } catch {
       setError("Couldn’t reach SnapStart. Check your connection and try again.");
@@ -35,11 +39,11 @@ export function ExplainOption({ optionKey, name, explanation, firstYear }: { opt
 
   return (
     <div className="flex flex-col gap-2">
-      <button type="button" onClick={toggle} disabled={pending} aria-expanded={open} className={`${SECONDARY} w-fit`}>
+      <button type="button" onClick={toggle} disabled={pending || job.watching} aria-expanded={open} className={`${SECONDARY} w-fit`}>
         <Icon name={open ? "close" : "lightbulb"} size="sm" />
-        {pending ? "Explaining…" : open ? "Hide the explanation" : `Explain ${name} more`}
+        {pending || job.watching ? "Explaining…" : open ? "Hide the explanation" : `Explain ${name} more`}
       </button>
-      <Working label={`Writing a plain explanation of ${name} for your business.`} active={pending} />
+      <Working label={job.watching ? RUNNING_ELSEWHERE : `Writing a plain explanation of ${name} for your business.`} active={pending || job.watching} />
       {error ? (
         <p role="alert" className={ALERT}>
           {error}

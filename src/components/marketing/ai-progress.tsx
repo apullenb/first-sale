@@ -6,6 +6,7 @@ import type { ActionResult } from "@/app/(app)/business/actions";
 import { draftMarketingPlanAction } from "@/app/(app)/marketing/actions";
 import { ActionButton } from "@/components/action-button";
 import { Icon } from "@/components/icons";
+import { useJobWatch } from "@/components/job-watch";
 import { AI_BUTTON, ALERT, SECONDARY } from "@/components/styles";
 
 // A progress screen for one AI request. Steps tick off on a timer; the last one waits for the reply.
@@ -95,6 +96,11 @@ export function AiProgressButton({ action, label, title, steps, estimateMs, vari
   const [phase, setPhase] = useState<"idle" | "running" | "finished">("idle");
   const [error, setError] = useState<string | null>(null);
   const { finish } = useFinishAndRefresh();
+  // Already running, maybe in another tab: the progress screen stays up until it ends
+  const job = useJobWatch(() => {
+    setPhase("finished");
+    finish(idle);
+  });
 
   // Kept-mounted screens keep their state, so clear old errors when the page is hidden
   useLayoutEffect(() => () => setError(null), []);
@@ -111,6 +117,7 @@ export function AiProgressButton({ action, label, title, steps, estimateMs, vari
     setError(null);
     try {
       const result = await action();
+      if (!result.ok && result.busy) return job.watch([result.busy]);
       if (!result.ok) {
         setError(result.message);
         idle();

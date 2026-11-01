@@ -109,7 +109,7 @@ function Reading({ doc, runs }: FormViewProps) {
 
   return (
     <Card title="Reading the form" icon="search" id="reading-heading">
-      <RunNotice run={runs.read} what="Reading this form" />
+      <RunNotice run={runs.read} job={{ workflow: "read_document", subjectId: doc.id }} what="Reading this form" />
 
       {stillReading && !readable ? null : readable ? (
         <>
@@ -175,7 +175,7 @@ function Explain({ doc, run }: { doc: StoredDocument; run: RunState | null }) {
   const guide = doc.guide;
   return (
     <Card title="What this form is for" icon="lightbulb" id="explain-heading">
-      <RunNotice run={run} what="Explaining this form" />
+      <RunNotice run={run} job={{ workflow: "explain_document", subjectId: doc.id }} what="Explaining this form" />
       {guide ? <Guide guide={guide} /> : <p className="text-rule">Get a plain-language explanation of this form, what to gather first, and what each blank asks for.</p>}
       <ActionButton
         action={explainDocumentAction.bind(null, doc.id)}
@@ -300,7 +300,7 @@ function Ask({ doc, maxQuestion }: { doc: StoredDocument; maxQuestion: number })
 function Answers({ doc, runs, editorFields, answersSignature, sourceLabels, detailOptions, draftBlocked }: FormViewProps) {
   return (
     <Card title="Your answers" icon="pencil" id="answers-heading">
-      <RunNotice run={runs.draft} what="Drafting answers" />
+      <RunNotice run={runs.draft} job={{ workflow: "draft_answers", subjectId: doc.id }} what="Drafting answers" />
       {doc.content.fields.length ? (
         <AnswersEditor
           documentId={doc.id}

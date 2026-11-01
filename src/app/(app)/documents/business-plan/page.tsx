@@ -86,7 +86,7 @@ async function Plan() {
 
   return (
     <>
-      <RunNotice run={run} what="Drafting your business plan" />
+      <RunNotice run={run} job={{ workflow: "business_plan", subjectId: null }} what="Drafting your business plan" />
 
       {doc && savedAt ? (
         <>

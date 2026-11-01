@@ -4,9 +4,11 @@ import { type ReactNode, useId, useLayoutEffect, useState } from "react";
 import { draftAnswersAction, saveAnswersAction } from "@/app/(app)/documents/actions";
 import { refreshDraftAction } from "@/app/(app)/documents/form-actions";
 import { Icon } from "@/components/icons";
+import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { Working } from "@/components/working";
 import type { FieldKind } from "@/lib/documents/types";
+import type { JobRef } from "@/lib/workflows";
 
 export interface EditorField {
   id: string;
@@ -58,6 +60,7 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
   const [seen, setSeen] = useState(signature);
   const [status, setStatus] = useState<"idle" | "drafting" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
+  const job = useJobWatch();
   useLayoutEffect(() => () => setError(null), []);
 
   // New saved answers from the server replace the form's contents
@@ -75,7 +78,7 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
   const answered = editable.filter((field) => rowOf(field).value.trim()).length;
   const confirmed = editable.filter((field) => rowOf(field).value.trim() && rowOf(field).confirmed).length;
   const drafted = fields.some((field) => field.source || field.fillYourself);
-  const pending = status === "drafting" || status === "saving";
+  const pending = status === "drafting" || status === "saving" || job.watching;
 
   function update(field: EditorField, patch: Partial<Row>) {
     setRows((current) => ({ ...current, [field.id]: { ...rowOf(field), ...current[field.id], ...patch } }));
@@ -100,13 +103,14 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
     await run("saving", () => saveAnswersAction({ documentId, answers, saveDetails }));
   }
 
-  async function run(next: "drafting" | "saving", action: () => Promise<{ ok: true } | { ok: false; message: string }>) {
+  async function run(next: "drafting" | "saving", action: () => Promise<{ ok: true } | { ok: false; message: string; busy?: JobRef }>) {
     setStatus(next);
     setError(null);
     try {
       const result = await action();
       if (!result.ok) {
-        setError(result.message);
+        if (result.busy) job.watch([result.busy]);
+        else setError(result.message);
         setStatus("idle");
       } else setStatus(next === "saving" ? "saved" : "idle");
     } catch {
@@ -133,7 +137,10 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
                   ? "Draft answers again"
                   : "Draft answers from my business details"}
           </button>
-          <Working label="Matching the form’s blanks to your business details. This can take a minute." active={status === "drafting"} />
+          <Working
+            label={job.watching ? RUNNING_ELSEWHERE : "Matching the form’s blanks to your business details. This can take a minute."}
+            active={status === "drafting" || job.watching}
+          />
         </div>
       )}
 

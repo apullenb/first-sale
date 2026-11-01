@@ -15,6 +15,7 @@ import { BrandNotes } from "@/components/brand/notes";
 import { VersionSlots } from "@/components/brand/slots";
 import { RunNotice } from "@/components/documents/run-notice";
 import { Icon } from "@/components/icons";
+import { JobWatch } from "@/components/job-watch";
 import { Kicker, SectionHead } from "@/components/marketing/pieces";
 import { PracticeBanner } from "@/components/practice-banner";
 import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
@@ -117,7 +118,7 @@ async function Logo({ searchParams }: { searchParams: SearchParams }) {
     <>
       <BrandDescription brief={brief} ready={storyReady} />
 
-      <RunNotice run={ideasRun} what="Writing logo ideas" />
+      <RunNotice run={ideasRun} job={{ workflow: "brand_ideas", subjectId: null }} what="Writing logo ideas" />
       <LogoChoices
         number={2}
         initial={{ name: brief.name, tagline: brief.tagline, logoKinds: brief.logoKinds, symbolIdea: brief.symbolIdea, logoLikes: brief.logoLikes }}
@@ -128,7 +129,7 @@ async function Logo({ searchParams }: { searchParams: SearchParams }) {
 
       {state.rounds.length ? (
         <div className="flex flex-col gap-3">
-          <RunNotice run={drawRun} what="Drawing your logos" />
+          {latestRound ? <RunNotice run={drawRun} job={{ workflow: "brand_draw", subjectId: latestRound.id }} what="Drawing your logos" /> : null}
           <IdeasSection
             number={3}
             rounds={state.rounds}
@@ -271,8 +272,14 @@ async function ChosenView({ chosen, state, brief, practice }: { chosen: AssetSum
           }
         />
         {VERSION_KINDS.map((kind, index) => (
-          <RunNotice key={kind} run={runs[index]?.status === "failed" ? runs[index] : null} what={`Making the ${LOGO_SPECS[kind].title.toLowerCase()} version`} />
+          <RunNotice
+            key={kind}
+            run={runs[index]?.status === "failed" ? runs[index] : null}
+            job={{ workflow: "brand_versions", subjectId: `${chosen.id}:${kind}` }}
+            what={`Making the ${LOGO_SPECS[kind].title.toLowerCase()} version`}
+          />
         ))}
+        {running.size ? <JobWatch jobs={[...running].map((kind) => ({ workflow: "brand_versions", subjectId: `${chosen.id}:${kind}` }))} what="Making your logo versions" /> : null}
         <VersionSlots key={chosen.id} chosenId={chosen.id} name={name} assets={state.assets} picks={state.picks} practice={practice} running={running} />
       </section>
 

@@ -75,7 +75,7 @@ export function ReceivedView({ doc, steps, run, matched, versions, acceptedTypes
       {simulated ? <PracticeBanner what="This document was explained in practice mode." /> : null}
 
       <Card title="What this document is" icon="lightbulb" id="explain-heading">
-        <RunNotice run={run} what="Explaining this document" />
+        <RunNotice run={run} job={{ workflow: "explain_received", subjectId: doc.id }} what="Explaining this document" />
         {received ? (
           <Explanation received={received} flags={doc.guide?.flags ?? []} explainedAt={doc.guide?.createdAt ?? null} matched={matched} doc={doc} />
         ) : (
