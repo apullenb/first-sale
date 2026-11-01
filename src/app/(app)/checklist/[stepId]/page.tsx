@@ -145,16 +145,17 @@ async function StepDetail({ params }: { params: Params }) {
   });
   // Legal terms get plain words the first time they show on this page
   const explained = new Set<string>();
-  const plain = (lines: FilingStep["lines"]) => lines.map((line) => ({ ...line, text: explainTerms(line.text, explained) }));
+  const termContext = `${step.title} ${form?.title ?? ""}`;
+  const plain = (lines: FilingStep["lines"]) => lines.map((line) => ({ ...line, text: explainTerms(line.text, explained, termContext) }));
   // A step that's ready to do shows one choice of how, with each way's own steps
   const pathForm = fileable && !step.retired && step.status === "todo" && !blockers.length && usesPaths(form) ? form : null;
-  const formTerms = pathForm ? termsIn(pathForm.title, explained) : [];
+  const formTerms = pathForm ? termsIn(pathForm.title, explained, termContext) : [];
   const linesOf = (kind: FilingStep["kind"]) => filed.find((each) => each.kind === kind)?.lines ?? [];
   // What comes first and what to have ready; missing details show on their own below
   const firstLines = pathForm
     ? plain([...linesOf("before").filter((line) => !line.text.startsWith("Nothing has to come first")), ...linesOf("gather").filter((line) => !line.unknown)])
     : [];
-  const missingPlain = missing.map((item) => explainTerms(item, explained));
+  const missingPlain = missing.map((item) => explainTerms(item, explained, termContext));
   const rawPaths = pathForm ? filingPaths(pathForm) : null;
   const paths = rawPaths
     ? {
@@ -430,7 +431,7 @@ async function StepDetail({ params }: { params: Params }) {
         )}
 
         <Fold title="Why it’s on your list" summary={step.agency || jurisdictionLabel(step, place)} icon="info" open={conditions.length > 0 && step.status === "todo"}>
-          {step.why ? <p>{explainTerms(step.why, explained)}</p> : null}
+          {step.why ? <p>{explainTerms(step.why, explained, termContext)}</p> : null}
           {conditions.length ? (
             <Note icon="branch">
               <p className="font-semibold">It depends on</p>

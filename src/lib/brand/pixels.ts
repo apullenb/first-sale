@@ -264,3 +264,62 @@ export function placement(content: Box, target: { width: number; height: number 
   const height = content.height * scale;
   return { ...target, draw: { x: (target.width - width) / 2, y: (target.height - height) / 2, width, height } };
 }
+
+// Distance from the background at which a pixel counts as fully part of the logo, and below which it's file noise
+const FULL_INK = 48;
+const NOISE = 8;
+
+// The whole logo in one color on its own plain background, edges kept soft: each pixel keeps how far it was
+// from the background, as a blend toward the one color. Null when the background isn't one plain color.
+export function oneColor(image: Pixels, hex: string): Pixels | null {
+  const background = plainBackground(image);
+  if (!background) return null;
+  const ink = rgbOfHex(hex);
+  const data = new Uint8ClampedArray(image.data.length);
+  for (let index = 0; index < data.length; index += 4) {
+    const alpha = image.data[index + 3] / 255;
+    const amount = Math.min(1, Math.max(0, distance(image.data, index, background) - NOISE) / (FULL_INK - NOISE)) * alpha;
+    for (let channel = 0; channel < 3; channel++) data[index + channel] = Math.round(background[channel] + (ink[channel] - background[channel]) * amount);
+    data[index + 3] = 255;
+  }
+  return { data, width: image.width, height: image.height };
+}
+
+function ring(image: Pixels, depth: number): number[] {
+  const { width, height } = image;
+  const pixels: number[] = [];
+  for (let x = depth; x < width - depth; x++) pixels.push(depth * width + x, (height - 1 - depth) * width + x);
+  for (let y = depth + 1; y < height - 1 - depth; y++) pixels.push(y * width + depth, y * width + width - 1 - depth);
+  return pixels;
+}
+
+// A ring's color when nearly all of it is that one color
+function ringColor(image: Pixels, depth: number): Rgb | null {
+  const pixels = ring(image, depth);
+  const color: Rgb = [0, 1, 2].map((channel) => median(pixels.map((pixel) => image.data[pixel * 4 + channel]))) as Rgb;
+  const matching = pixels.filter((pixel) => distance(image.data, pixel * 4, color) <= BACKGROUND_TOLERANCE).length;
+  return matching / pixels.length >= 0.95 ? color : null;
+}
+
+// A plain frame or box drawn around the edge, such as a thin gray square, painted over with the background inside it.
+// Untouched when there's no frame: the outer rings must be plain and a different color from the plain rings inside.
+export function clearFrame(image: Pixels, maxShare = 0.08): Pixels {
+  const maxDepth = Math.floor(Math.min(image.width, image.height) * maxShare);
+  const colors: Rgb[] = [];
+  for (let depth = 0; depth < maxDepth; depth++) {
+    const color = ringColor(image, depth);
+    if (!color) break;
+    colors.push(color);
+  }
+  const inner = colors.at(-1);
+  if (!inner || colors.length < 2) return image;
+  const differs = (color: Rgb) => Math.max(...color.map((value, channel) => Math.abs(value - inner[channel]))) > BACKGROUND_TOLERANCE;
+  let frame = 0;
+  while (frame < colors.length && !colors.slice(frame).every((color) => !differs(color))) frame++;
+  if (!frame || frame === colors.length) return image;
+  const data = new Uint8ClampedArray(image.data);
+  for (let depth = 0; depth < frame; depth++) {
+    for (const pixel of ring(image, depth)) data.set([...inner, 255], pixel * 4);
+  }
+  return { data, width: image.width, height: image.height };
+}

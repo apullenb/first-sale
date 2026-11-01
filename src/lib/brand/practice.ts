@@ -98,7 +98,13 @@ export function practiceSvg({ kind, conceptKind, name, tagline, palette, typogra
       const shapes = [0.1, 0.35, 0.65, 0.9]
         .map((x, index) => `<circle cx="${width * x}" cy="${height * (index % 2 ? 0.25 : 0.75)}" r="${height * 0.22}" fill="${index % 2 ? dark : accent}" opacity="0.18"/>`)
         .join("");
-      const centered = kind === "youtube_banner" || kind === "link_preview" ? nameText(width / 2, height * 0.47, width * 0.5, height * 0.12, dark) : "";
+      // Where each slot's prompt puts the logo
+      const centered =
+        kind === "website_hero"
+          ? nameText(width * 0.18, height * 0.14, width * 0.28, height * 0.07, dark)
+          : kind === "facebook_cover"
+            ? nameText(width * 0.7, height * 0.5, width * 0.4, height * 0.1, dark)
+            : nameText(width / 2, height * 0.47, width * 0.5, height * 0.12, dark);
       body = `<rect width="${width}" height="${height}" fill="${accent}" opacity="0.12"/>${shapes}${centered}`;
     }
   }

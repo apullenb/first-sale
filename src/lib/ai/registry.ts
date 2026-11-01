@@ -28,6 +28,15 @@ export function getModel(env: Env = process.env): ModelProvider {
   return model;
 }
 
+// Practice mode (the mock model) costs nothing, so it never counts toward or hits the AI limit
+export function practiceMode(env: Env = process.env): boolean {
+  try {
+    return getModel(env).simulated;
+  } catch {
+    return false;
+  }
+}
+
 function createProvider(provider: string, env: Env): ModelProvider {
   switch (provider) {
     case "mock":

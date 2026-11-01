@@ -36,8 +36,6 @@ export interface ImageSpec {
   // Where the numbers come from; null when First Sale picked them
   source: { name: string; url: string } | null;
   facts: string[];
-  // The logo goes in the image
-  withLogo: boolean;
 }
 
 const FACEBOOK = { name: "Facebook Help Center: Page profile picture and cover photo dimensions", url: "https://www.facebook.com/help/125379114252045" };
@@ -50,7 +48,7 @@ const FB_FAST_BAND = 16 / 9 / (851 / 315);
 export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
   facebook_cover: {
     title: "Facebook cover",
-    purpose: "The wide picture across the top of your Facebook Page.",
+    purpose: "The wide picture across the top of your Facebook Page, with your logo.",
     size: "1920x1080",
     exports: [
       { label: "Full picture (16:9)", width: 1920, height: 1080, type: "image/jpeg", note: "How Facebook shows covers on computers" },
@@ -67,7 +65,6 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
       "It must be at least 400 × 150 pixels. Facebook says an 851 × 315 JPG under 100 KB loads fastest.",
       "Your profile picture covers part of the left side.",
     ],
-    withLogo: false,
   },
   youtube_banner: {
     title: "YouTube banner",
@@ -80,17 +77,15 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
       "YouTube recommends 2560 × 1440 pixels (at least 2048 × 1152) and a file of 6 MB or smaller.",
       "Only the middle 1235 × 338 (at 2048 × 1152) is safe for your logo: the rest gets cropped on phones and computers.",
     ],
-    withLogo: true,
   },
   website_hero: {
     title: "Website header picture",
-    purpose: "A wide picture for the top of your home page, with no words, so your headline can go on top.",
+    purpose: "A wide picture for the top of your home page, with your logo in a corner and calm space for your headline.",
     size: "1920x1080",
     exports: [{ label: "1920 × 1080", width: 1920, height: 1080, type: "image/jpeg" }],
     guides: [],
     source: null,
     facts: ["There’s no standard size for website pictures. First Sale makes a 16:9 picture, a shape most website builders handle well."],
-    withLogo: false,
   },
   link_preview: {
     title: "Link preview",
@@ -100,7 +95,6 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
     guides: [],
     source: LINK_SHARE,
     facts: ["Meta recommends at least 1200 × 630 pixels, close to a 1.91:1 shape, so the whole picture shows without cropping."],
-    withLogo: true,
   },
 };
 

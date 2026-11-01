@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { candles, groomer, tacos } from "./scenarios";
-import { checkRequirements, decideStructure, expectPracticeBanner, newOwner, open, openFold, pdfBuffer, saveDetail, sidebar } from "./support";
+import { checkRequirements, decideStructure, expectPracticeBanner, markStepDone, newOwner, open, openFold, pdfBuffer, saveDetail, sidebar } from "./support";
 
 test.describe("what applies to you and the paperwork", () => {
   test("groomer: requirements check, the plan, and recording a step", async ({ browser }) => {
@@ -119,6 +119,8 @@ test.describe("what applies to you and the paperwork", () => {
     await saveDetail(page, "Business phone", candles.details.phone);
     await decideStructure(page, /^Limited liability company/);
     await checkRequirements(page);
+    // Practice mode adds a labeled formation step for Colorado; the EIN waits for it
+    await markStepDone(page, /Form your LLC with the state of Colorado/);
 
     // The sales tax permit they said they already have is flagged
     await open(page, "/start/tax-ids");
@@ -164,6 +166,7 @@ test.describe("what applies to you and the paperwork", () => {
     const { page } = await newOwner(browser, candles);
     await decideStructure(page, /^Limited liability company/);
     await checkRequirements(page);
+    await markStepDone(page, /Form your LLC with the state of Colorado/);
     await open(page, "/start/tax-ids");
     await page.getByRole("link", { name: /Employer Identification Number/ }).first().click();
     await page.waitForURL("**/checklist/**");

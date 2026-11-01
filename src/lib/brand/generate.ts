@@ -2,11 +2,26 @@ import { ImageEditError, type ImageEditResult, type ImageInput, type ImageModel,
 import { OwnerFacingError } from "@/lib/errors";
 import { imageInfo } from "@/lib/photos/image-info";
 import { checkBrandImage, checkLogo, checkVersion, type Expected, failedCheck, marksFor, skippedCheck } from "./checks";
+import { kitColors } from "./colors";
+import { clearFrame, logoColors, oneColor, type Pixels } from "./pixels";
+import { decodePng, encodePng } from "./png";
 import { practiceSvg } from "./practice";
-import { brandImagePrompt, logoPrompt, ownLogoEditPrompt, pictureEditPrompt, refinePrompt, versionPrompt } from "./prompts";
+import { brandImagePrompt, logoPrompt, ownLogoEditPrompt, pictureEditPrompt, refinePrompt, retryLines, versionPrompt } from "./prompts";
 import { applyDesign, inherited } from "./refine";
 import { sizeFor } from "./sizes";
-import { type AssetCheck, type AssetKind, type BrandBrief, type BrandDesign, type BrandImageKind, type ConceptReply, IMAGE_KINDS, type VersionKind } from "./types";
+import { EXAMPLE_IMAGE } from "./slots";
+import {
+  type AssetCheck,
+  type AssetKind,
+  type BrandBrief,
+  type BrandDesign,
+  type BrandImageKind,
+  type ConceptReply,
+  IMAGE_KINDS,
+  LOGO_KINDS,
+  type PaletteColor,
+  type VersionKind,
+} from "./types";
 
 // Each file is saved only once its bytes check out, so a failed try leaves nothing behind.
 // Limits are checked before paying, and a request key already used returns the saved file instead of paying again.
@@ -89,6 +104,10 @@ interface Job {
   requestKey: string;
   call: () => Promise<ImageEditResult>;
   check: (file: ImageInput) => Promise<AssetCheck>;
+  // Fixes code can guarantee, run on the returned pixels before saving
+  fix?: (image: Pixels) => Pixels;
+  // One more try, written from what the first one's check flagged
+  retry?: (check: AssetCheck) => Job;
 }
 
 export interface BatchResult {
@@ -129,6 +148,8 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
     const info = result.data.byteLength <= MAX_RESULT_BYTES ? imageInfo(result.data) : null;
     if (!info) throw new OwnerFacingError("The image service sent back something that isn’t a usable picture. Nothing was saved. Try again.");
     file = { mimeType: info.type, data: result.data, width: info.width, height: info.height };
+    const fixed = job.fix ? fixPng(file.data, job.fix) : null;
+    if (fixed) file = { ...file, mimeType: "image/png", data: fixed };
   }
 
   const added = await store.add({
@@ -152,7 +173,40 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
       ? skippedCheck(now)
       : await job.check({ mimeType: file.mimeType, data: file.data }).catch(() => failedCheck(now));
   await store.setCheck(added.id, check);
-  return added.id;
+  if (!job.retry || !needsRetry(check) || (await store.room(1)) !== "ok") return added.id;
+  // Both are kept: the retry shows as newest and the first try stays under "Earlier ones"
+  return runOne(models, store, job.retry(check), now).catch(() => added.id);
+}
+
+// The app's own check found the version drifted from the logo, or its lettering wrong
+export function needsRetry(check: AssetCheck): boolean {
+  if (check.method !== "ai") return false;
+  return check.drift.length > 0 || Boolean(check.lettering?.problems.length && check.lettering.status !== "unreadable");
+}
+
+// Null when the file isn't a PNG this can read, or nothing changed
+function fixPng(data: Uint8Array, fix: (image: Pixels) => Pixels): Uint8Array | null {
+  const image = decodePng(data);
+  if (!image) return null;
+  const fixed = fix(image);
+  return fixed === image ? null : encodePng(fixed);
+}
+
+// The one color: the logo's darkest, as the kit uses; for an uploaded logo, read from its pixels
+function solidInk(logo: LogoRef, version: Pixels): string {
+  const listed = paletteOf(logo);
+  if (listed.length) return kitColors(listed).ink;
+  const source = decodePng(logo.logo.data) ?? version;
+  return kitColors(logoColors(source).map((hex): PaletteColor => ({ hex, name: hex }))).ink;
+}
+
+// Logos never get a frame; the one-color version is made one color in code, whatever came back
+function logoFix(kind: AssetKind, logo: LogoRef | null): ((image: Pixels) => Pixels) | undefined {
+  if (!(LOGO_KINDS as readonly string[]).includes(kind)) return undefined;
+  return (image) => {
+    const unframed = clearFrame(image);
+    return kind === "solid" && logo ? (oneColor(unframed, solidInk(logo, unframed)) ?? unframed) : unframed;
+  };
 }
 
 // Several at once; each one that comes back is kept even if others fail
@@ -211,6 +265,7 @@ export async function drawConcepts(models: Models, store: AssetStore, input: { c
       requestKey: drawKey(concept.id),
       call: () => generate({ prompt, size: sizeFor("logo"), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
       check: (file) => checkLogo(models.vision, file, expected(concept, "logo"), input.now, input.userKey),
+      fix: logoFix("logo", null),
     };
   });
   return runBatch(models, store, jobs, input.now);
@@ -233,6 +288,7 @@ async function editOwnLogo(models: Models, store: AssetStore, input: { logo: Log
     requestKey: input.requestKey,
     call: () => models.image.edit({ instruction: prompt, images: [logo.logo], size: sizeFor("logo"), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
     check: (file) => checkLogo(models.vision, file, expected(logo, "logo"), input.now, input.userKey),
+    fix: logoFix("logo", null),
   };
   const result = await runBatch(models, store, [job], input.now);
   return result.ids[0];
@@ -264,20 +320,24 @@ export async function refineLogo(
     requestKey: input.requestKey,
     call: () => models.image.edit({ instruction: prompt, images: [logo.logo], size: sizeFor("logo"), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
     check: (file) => checkLogo(models.vision, file, expected(logo, "logo"), input.now, input.userKey),
+    fix: logoFix("logo", null),
   };
   const result = await runBatch(models, store, [job], input.now);
   return result.ids[0];
 }
 
-// The chosen logo is image 1 of every version, so the design stays the same
+// The chosen logo is image 1 of every version, so the design stays the same.
+// When the check flags drift, one more try is made and both are kept.
 export async function makeVersions(
   models: Models,
   store: AssetStore,
   input: { logo: LogoRef; kinds: VersionKind[]; requestKey: string; userKey?: string; now: Date },
 ): Promise<BatchResult> {
   const { logo } = input;
-  const jobs = input.kinds.map((kind): Job => {
-    const prompt = versionPrompt(logo.brief, logo.concept, kind, logo.words);
+  const job = (kind: VersionKind, flagged: AssetCheck | null): Job => {
+    const prompt = [versionPrompt(logo.brief, logo.concept, kind, logo.words), ...(flagged ? retryLines(flagged) : [])].join("\n");
+    // Tied to the logo, so a key kept from another logo's try can't return that logo's files
+    const requestKey = `${logo.logoId}:${input.requestKey}:${kind}${flagged ? ":retry" : ""}`;
     return {
       kind,
       concept: logo,
@@ -285,23 +345,26 @@ export async function makeVersions(
       change: null,
       design: inherited(logo.design),
       prompt,
-      // Tied to the logo, so a key kept from another logo's try can't return that logo's files
-      requestKey: `${logo.logoId}:${input.requestKey}:${kind}`,
+      requestKey,
       call: () => models.image.edit({ instruction: prompt, images: [logo.logo], size: sizeFor(kind), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
       check: (file) => checkVersion(models.vision, logo.logo, file, kind, expected(logo, kind), input.now, input.userKey),
+      fix: logoFix(kind, logo),
+      retry: flagged ? undefined : (check) => job(kind, check),
     };
-  });
-  return runBatch(models, store, jobs, input.now);
+  };
+  return runBatch(models, store, input.kinds.map((kind) => job(kind, null)), input.now);
 }
 
 export async function makeBrandImages(
   models: Models,
   store: AssetStore,
-  input: { logo: LogoRef; kinds: BrandImageKind[]; change: string | null; requestKey: string; userKey?: string; now: Date },
+  // The approved example the others match; never sent for the example's own slot
+  input: { logo: LogoRef; kinds: BrandImageKind[]; change: string | null; example?: ImageInput | null; requestKey: string; userKey?: string; now: Date },
 ): Promise<BatchResult> {
   const { logo } = input;
   const jobs = input.kinds.map((kind): Job => {
-    const prompt = brandImagePrompt(logo.brief, paletteOf(logo), kind, input.change);
+    const example = kind !== EXAMPLE_IMAGE && input.example ? input.example : null;
+    const prompt = brandImagePrompt(logo.brief, paletteOf(logo), kind, input.change, example ? EXAMPLE_IMAGE : undefined);
     return {
       kind,
       concept: logo,
@@ -310,7 +373,8 @@ export async function makeBrandImages(
       design: inherited(logo.design),
       prompt,
       requestKey: `${logo.logoId}:${input.requestKey}:${kind}`,
-      call: () => models.image.edit({ instruction: prompt, images: [logo.logo], size: sizeFor(kind), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
+      call: () =>
+        models.image.edit({ instruction: prompt, images: example ? [logo.logo, example] : [logo.logo], size: sizeFor(kind), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
       check: (file) => checkBrandImage(models.vision, file, kind, expected(logo, "logo"), input.now, input.userKey),
     };
   });
@@ -341,6 +405,7 @@ export async function editPicture(
       isImage
         ? checkBrandImage(models.vision, file, kind as BrandImageKind, expected(logo, "logo"), input.now, input.userKey)
         : checkVersion(models.vision, logo.logo, file, kind as VersionKind, expected(logo, kind), input.now, input.userKey),
+    fix: logoFix(kind, logo),
   };
   const result = await runBatch(models, store, [job], input.now);
   return result.ids[0];

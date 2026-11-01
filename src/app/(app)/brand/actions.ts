@@ -11,6 +11,7 @@ import { logoGuidePdf } from "@/lib/brand/guide";
 import { type AssetStore, type BatchResult, drawConcepts, editPicture, type LogoRef, makeBrandImages, makeVersions, refineLogo, UPLOAD_ONE_CLICK } from "@/lib/brand/generate";
 import { MAX_CHANGE } from "@/lib/brand/prompts";
 import { applyDesign, planRefinement, refinementSchema } from "@/lib/brand/refine";
+import { approvedExample, EXAMPLE_IMAGE } from "@/lib/brand/slots";
 import { writeStory } from "@/lib/brand/story";
 import { suggestTaglines } from "@/lib/brand/tagline";
 import { type BrandBrief, brandBriefSchema, type BrandImageKind, IMAGE_KINDS, VERSION_KINDS, type VersionKind } from "@/lib/brand/types";
@@ -52,6 +53,7 @@ const PRACTICE_FILE = "This is a practice preview, not a logo Muse drew. Choose 
 const PRACTICE_IDEAS = "These ideas are practice placeholders, not written for your business. Choose “Generate logo ideas” to have Muse write real ones.";
 const SAY_CHANGE = "Say what you’d like changed, such as “Make the letters thicker”.";
 const LOGO_CHANGED = "Your logo changed. Reload the page.";
+const EXAMPLE_FIRST = "First make your website header picture and choose “Use this” on it. Your other brand images are made to match it.";
 const id = z.string().min(1).max(60);
 
 function imageModel(): ImageModel | null {
@@ -362,9 +364,15 @@ export async function makeImagesAction(input: unknown): Promise<ActionResult<str
   if (typeof logo === "string") return { ok: false, message: logo };
   const change = parsed.data.change ? ownerText(parsed.data.change, MAX_CHANGE) || null : null;
   const kinds = [...new Set(parsed.data.kinds)];
+  // The others wait for the owner to approve the example, then match it
+  const state = await getMyBrandState();
+  const approved = state ? approvedExample(state.assets, logo.logoId, state.picks) : null;
+  const exampleFile = approved ? await getMyBrandAssetFile(approved.id) : null;
+  if (kinds.some((kind) => kind !== EXAMPLE_IMAGE) && !exampleFile) return { ok: false, message: EXAMPLE_FIRST };
+  const example = exampleFile ? { mimeType: exampleFile.mimeType, data: exampleFile.data } : null;
 
   const result = await runWorkflow("brand_images", slotSubject(logo.logoId, kinds), async () =>
-    makeBrandImages({ image, vision: getModel() }, store, { logo, kinds, change, requestKey: parsed.data.requestKey, userKey: await myAiKey(), now: new Date() }),
+    makeBrandImages({ image, vision: getModel() }, store, { logo, kinds, change, example, requestKey: parsed.data.requestKey, userKey: await myAiKey(), now: new Date() }),
   );
   refresh();
   return batchResult(result);

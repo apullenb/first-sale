@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { imageSlots, versionSlots } from "./slots";
+import { approvedExample, imageSlots, recommendedImages, versionSlots } from "./slots";
 
 const file = (id: string, kind: string, sourceId: string | null = "logo-1") => ({ id, kind, sourceId });
 
@@ -36,6 +36,18 @@ describe("brand image slots", () => {
     expect(slots.map((slot) => slot.kind)).toEqual(["website_hero", "facebook_cover", "youtube_banner", "link_preview"]);
     expect(slots.filter((slot) => slot.empty).map((slot) => slot.kind)).toEqual(["facebook_cover", "youtube_banner", "link_preview"]);
     expect(slots[0]).toMatchObject({ newest: { id: "h1" }, picked: { id: "h1" } });
+  });
+
+  it("recommend a platform's image only when the owner hasn't excluded it; the website's always", () => {
+    expect([...recommendedImages(null)]).toEqual(["website_hero", "facebook_cover", "youtube_banner", "link_preview"]);
+    expect([...recommendedImages({ exclude: ["facebook"] })]).toEqual(["website_hero", "youtube_banner", "link_preview"]);
+    expect([...recommendedImages({ exclude: ["facebook", "youtube", "tiktok"] })]).toEqual(["website_hero", "link_preview"]);
+  });
+
+  it("have an approved example only once the owner uses a header made from the chosen logo", () => {
+    expect(approvedExample([file("h1", "website_hero")], "logo-1", {})).toBeNull();
+    expect(approvedExample([file("h1", "website_hero")], "logo-1", { website_hero: "h1" })).toMatchObject({ id: "h1" });
+    expect(approvedExample([file("h0", "website_hero", "logo-0")], "logo-1", { website_hero: "h0" })).toBeNull();
   });
 
   it("are all empty without a chosen logo", () => {

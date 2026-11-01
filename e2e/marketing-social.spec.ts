@@ -26,6 +26,7 @@ test.describe("marketing plan and social media", () => {
     await use.getByRole("button", { name: /^Google Business Profile/ }).click();
     await q.getByRole("group", { name: "Do you already have any of these for your business?" }).getByRole("button", { name: "Instagram" }).click();
     await q.getByRole("group", { name: "Any you don’t want at all?" }).getByRole("button", { name: "TikTok" }).click();
+    await q.getByRole("group", { name: "Any you don’t want at all?" }).getByRole("button", { name: "Facebook" }).click();
     await q.getByRole("button", { name: "Next", exact: true }).click();
 
     // Part 2 needs every answer
@@ -70,6 +71,10 @@ test.describe("marketing plan and social media", () => {
     await images.locator("details").evaluateAll((folds) => folds.forEach((fold) => ((fold as HTMLDetailsElement).open = true)));
     await images.getByRole("link", { name: "Take me there : Open your brand images" }).click();
     await page.waitForURL("**/brand-library#group-brand_images");
+    // Facebook was ruled out, so its cover isn't recommended; the website's pictures always are
+    await expect(page.getByRole("region", { name: "Website header picture" }).getByText("Recommended")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Link preview" }).getByText("Recommended")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Facebook cover" }).getByText("Recommended")).toHaveCount(0);
     for (const [slot, button] of [
       ["Website header picture", "Make the website header picture"],
       ["Facebook cover", "Make the facebook cover"],

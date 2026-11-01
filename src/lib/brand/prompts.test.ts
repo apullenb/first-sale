@@ -75,16 +75,56 @@ describe("refinements, versions and brand images", () => {
     expect(versionPrompt(testBrief(), testConcept({ kind: "wordmark", symbol: null }), "profile")).toContain("first letter");
   });
 
-  it("place the logo unchanged where it belongs, and keep words out of the others", () => {
+  it("put the logo, unchanged, in every brand image, big enough to recognize, and no other words", () => {
     const banner = brandImagePrompt(testBrief(), testConcept().palette, "youtube_banner", null);
     expect(banner).toContain("Place the logo from image 1 exactly as it is");
     expect(banner).toContain("middle 60% of the width");
+    expect(banner).toContain("Make it big there");
     const hero = brandImagePrompt(testBrief(), testConcept().palette, "website_hero", "more bread");
-    expect(hero).toContain("Use it only for its colors and drawing style");
-    expect(hero).toContain("Don’t include the logo, its symbol, or any letters, words or numbers.");
+    expect(hero).toContain("Place the logo from image 1 exactly as it is");
+    expect(hero).toContain("top-left corner");
+    expect(hero).toContain("where the owner’s headline will go");
     expect(hero).toContain("The owner’s change: “more bread”");
-    expect(hero).toContain("no pictures of specific products");
+    expect(hero).toContain("obvious at a glance what “Rise Bakery” sells");
+    expect(hero).toContain("never invent other products");
+    expect(hero).toContain("The only words anywhere are the ones in the logo.");
     expect(hero).toContain("Rise Bakery is a porch swing");
+    expect(brandImagePrompt(testBrief(), [], "facebook_cover", null)).toContain("right half of that band");
+  });
+
+  it("make photos for most brands and illustrations only for playful ones", () => {
+    const calm = brandImagePrompt(testBrief({ vibes: ["rustic", "warm", "earthy"], leanings: { era: null, tone: null, energy: null, finish: null } }), [], "website_hero", null);
+    expect(calm).toContain("photorealistic, professionally styled lifestyle and product photograph");
+    expect(calm).toContain("shallow depth of field");
+    expect(calm).toContain("Not an illustration, cartoon");
+    const playful = brandImagePrompt(testBrief({ vibes: ["playful", "bright and colorful", "cheerful"] }), testConcept().palette, "website_hero", null);
+    expect(playful).toContain("flat illustrated scene");
+    expect(playful).not.toContain("photorealistic");
+  });
+
+  it("match the approved example in the other slots", () => {
+    const cover = brandImagePrompt(testBrief(), [], "facebook_cover", null, "website_hero");
+    expect(cover).toContain("Image 2 is the business’s approved website header picture. Match its look exactly");
+    expect(brandImagePrompt(testBrief(), [], "facebook_cover", null)).not.toContain("Image 2");
+  });
+
+  it("keep the logo's letter case and skip frames in versions", () => {
+    const stacked = versionPrompt(testBrief(), testConcept(), "stacked");
+    expect(stacked).toContain("the same capital and lowercase letters");
+    expect(stacked).toContain("in the same capitals and lowercase as image 1");
+    expect(stacked).not.toContain("Letter case may follow the lettering style");
+    expect(versionPrompt(testBrief(), testConcept(), "profile")).toContain("No border, frame, box");
+    expect(versionPrompt(testBrief(), testConcept(), "solid")).toContain("Don’t merge shapes into a blob");
+  });
+
+  it("ask for edits that clearly show and change nothing else", () => {
+    const refine = refinePrompt(testBrief(), testConcept(), "Make the lettering bolder");
+    expect(refine).toContain("clearly visible at a glance");
+    expect(refine).toContain("Don’t switch it to Title Case");
+    // A lettering restyle is the one change allowed to redraw the letters
+    expect(refinePrompt(testBrief(), testConcept(), ["Redraw only the lettering, in this style: bold."])).not.toContain("Don’t switch it to Title Case");
+    expect(ownLogoEditPrompt("Rise", "Bolder")).toContain("clearly visible at a glance");
+    expect(pictureEditPrompt("facebook_cover", "Warmer", { brief: testBrief(), concept: testConcept() })).toContain("a photo stays a photo");
   });
 
   it("work from an uploaded logo without claiming what it shows", () => {
@@ -95,7 +135,6 @@ describe("refinements, versions and brand images", () => {
     expect(versionPrompt(testBrief(), null, "solid", "")).toContain("Keep every word and letter exactly as it is in image 1");
     expect(versionPrompt(testBrief(), null, "profile", "Rise")).not.toContain("letter by letter");
     const hero = brandImagePrompt(testBrief(), [], "website_hero", null);
-    expect(hero).toContain("in the logo’s colors and drawing style");
     expect(hero).not.toContain("()");
   });
 
@@ -106,7 +145,7 @@ describe("refinements, versions and brand images", () => {
     expect(stacked).toContain("“More space under the symbol”");
     expect(stacked).toContain("R-i-s-e B-a-k-e-r-y");
     expect(pictureEditPrompt("profile", "Bigger", { brief: testBrief(), concept: testConcept() })).not.toContain("letter by letter");
-    expect(pictureEditPrompt("facebook_cover", "Warmer", { brief: testBrief(), concept: null, words: "Rise" })).toContain("Don’t include the logo");
+    expect(pictureEditPrompt("facebook_cover", "Warmer", { brief: testBrief(), concept: null, words: "Rise" })).toContain("keep it exactly as in image 2");
     expect(pictureEditPrompt("youtube_banner", "Warmer", { brief: testBrief(), concept: null, words: "Rise" })).toContain("“Rise” (letter by letter: R-i-s-e)");
   });
 

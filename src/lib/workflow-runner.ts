@@ -1,6 +1,7 @@
 import "server-only";
 import { getDb } from "@/db/client";
 import { getCurrentUser } from "@/lib/auth/server";
+import { practiceMode } from "@/lib/ai";
 import { takeAiRequest } from "@/lib/data/ai-quota";
 import { finishMyRun, startMyRun } from "@/lib/data/my-business";
 import { OwnerFacingError } from "@/lib/errors";
@@ -14,7 +15,7 @@ const GENERIC = "That didn’t work this time. Your saved work is safe. Try agai
 // and records how it ended so a reload can show it. Logs never include document text or the owner's answers.
 export async function runWorkflow<T>(workflow: WorkflowId, subjectId: string | null, job: () => Promise<T>): Promise<RunResult<T>> {
   const user = await getCurrentUser();
-  if (WORKFLOWS[workflow].usesAi) {
+  if (WORKFLOWS[workflow].usesAi && !practiceMode()) {
     const quota = await takeAiRequest(getDb(), user.id);
     if (quota !== "ok") {
       const message =
@@ -50,3 +51,4 @@ export async function runWorkflow<T>(workflow: WorkflowId, subjectId: string | n
     return { ok: false, message };
   }
 }
+

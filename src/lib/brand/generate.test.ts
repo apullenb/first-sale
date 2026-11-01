@@ -3,6 +3,7 @@ import { getImageModel, getModel, ImageEditError, type ImageEditRequest, type Im
 import { OwnerFacingError } from "@/lib/errors";
 import { pngBytes } from "@/lib/photos/test-images";
 import { type AssetStore, drawConcepts, drawKey, editPicture, type LogoRef, makeBrandImages, makeVersions, type NewBrandAsset, refineLogo } from "./generate";
+import { decodePng, encodePng } from "./png";
 import { PRACTICE_LABEL } from "./practice";
 import { logoPrompt } from "./prompts";
 import { applyDesign, planRefinement } from "./refine";
@@ -53,6 +54,31 @@ const vision: ModelProvider = {
     return { text: JSON.stringify({ lettering: ["Rise Bakery"], readable: true, notes: "", flags: [] }), finishReason: "stop", usage: null };
   },
 };
+
+// Reads no lettering, which never asks for a retry, and gives the drift reply
+function visionFor(drift: { flags: { kind: string; detail: string }[] }): ModelProvider {
+  return {
+    ...vision,
+    async complete(request) {
+      const text = JSON.stringify(request.messages);
+      const reply = text.includes("compare a small business") ? drift : { lettering: [], readable: false, notes: "" };
+      return { text: JSON.stringify(reply), finishReason: "stop", usage: null };
+    },
+  };
+}
+
+// A white PNG with filled boxes, framed in `edge` when given
+function canvasPng(width: number, height: number, boxes: { x: number; y: number; w: number; h: number; color: [number, number, number] }[], edge?: [number, number, number]) {
+  const data = new Uint8ClampedArray(width * height * 4);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const box = boxes.findLast((each) => x >= each.x && x < each.x + each.w && y >= each.y && y < each.y + each.h);
+      const onEdge = edge && (x === 0 || y === 0 || x === width - 1 || y === height - 1);
+      data.set([...(onEdge ? edge : (box?.color ?? [255, 255, 255])), 255], (y * width + x) * 4);
+    }
+  }
+  return encodePng({ data, width, height });
+}
 
 const concepts = [1, 2, 3].map((n) => ({ id: `concept-${n}`, concept: testConcept({ title: `Idea ${n}` }), brief: testBrief() }));
 const chosenBytes = pngBytes(1536, 1024, 42);
@@ -172,7 +198,7 @@ describe("changes, versions and brand images start from the logo itself", () => 
     const { model, edit } = imageModel();
     const { store, saved } = memoryStore();
     const input = { logo, kinds: ["stacked", "profile", "solid"] as const, requestKey: "v1", now };
-    await makeVersions({ image: model, vision }, store, { ...input, kinds: [...input.kinds] });
+    await makeVersions({ image: model, vision: visionFor({ flags: [] }) }, store, { ...input, kinds: [...input.kinds] });
     expect(edit).toHaveBeenCalledTimes(3);
     for (const call of edit.mock.calls) expect(call[0].images).toEqual([{ mimeType: "image/png", data: chosenBytes }]);
     expect(saved.map((asset) => [asset.kind, asset.sourceId, asset.requestKey])).toEqual([
@@ -183,8 +209,58 @@ describe("changes, versions and brand images start from the logo itself", () => 
     expect(edit.mock.calls.map((call) => call[0].size)).toEqual(["1024x1024", "1024x1024", "1536x1024"]);
 
     // A retry after a lost connection pays for nothing
-    await makeVersions({ image: model, vision }, store, { ...input, kinds: [...input.kinds] });
+    await makeVersions({ image: model, vision: visionFor({ flags: [] }) }, store, { ...input, kinds: [...input.kinds] });
     expect(edit).toHaveBeenCalledTimes(3);
+  });
+
+  it("tries a version once more when the check flags drift, and keeps both", async () => {
+    const { model, edit } = imageModel();
+    const { store, saved } = memoryStore();
+    const drifting = visionFor({ flags: [{ kind: "lettering", detail: "The g in grooming became a capital G" }] });
+    const result = await makeVersions({ image: model, vision: drifting }, store, { logo, kinds: ["stacked"], requestKey: "r1", now });
+    expect(edit).toHaveBeenCalledTimes(2);
+    expect(edit.mock.calls[1][0].instruction).toContain("- The g in grooming became a capital G");
+    expect(saved.map((asset) => asset.requestKey)).toEqual(["logo-1:r1:stacked", "logo-1:r1:stacked:retry"]);
+    expect(saved.every((asset) => asset.check?.drift.length === 1)).toBe(true);
+    // The retry is the one shown; never a third try
+    expect(result.ids).toEqual(["asset-2"]);
+  });
+
+  it("skips the retry when there's no room for another file", async () => {
+    const { model, edit } = imageModel();
+    const drifting = visionFor({ flags: [{ kind: "symbol", detail: "The dog is missing" }] });
+    let left = 1;
+    const { store } = memoryStore();
+    const tight: AssetStore = { ...store, room: async () => (left-- > 0 ? "ok" : "too_many") };
+    await makeVersions({ image: model, vision: drifting }, tight, { logo, kinds: ["stacked"], requestKey: "r2", now });
+    expect(edit).toHaveBeenCalledTimes(1);
+  });
+
+  it("makes the one-color version one color in code, keeping white details", async () => {
+    const twoBlues = canvasPng(60, 40, [
+      { x: 10, y: 10, w: 15, h: 15, color: [40, 90, 200] },
+      { x: 30, y: 10, w: 15, h: 15, color: [10, 30, 90] },
+      { x: 15, y: 15, w: 4, h: 4, color: [255, 255, 255] },
+    ]);
+    const { model } = imageModel();
+    model.edit = vi.fn(async () => ({ data: twoBlues, format: "png" }));
+    const { store, saved } = memoryStore();
+    await makeVersions({ image: model, vision: visionFor({ flags: [] }) }, store, { logo, kinds: ["solid"], requestKey: "s1", now });
+    const pixels = decodePng(saved[0].data)!;
+    const colors = new Set<string>();
+    for (let index = 0; index < pixels.data.length; index += 4) colors.add(Array.from(pixels.data.slice(index, index + 3)).join(","));
+    // testConcept's darkest color, #1F3A2E, and the white
+    expect([...colors].sort()).toEqual(["255,255,255", "31,58,46"]);
+  });
+
+  it("clears a frame drawn around the icon", async () => {
+    const framed = canvasPng(40, 40, [{ x: 15, y: 15, w: 10, h: 10, color: [30, 60, 40] }], [144, 144, 144]);
+    const { model } = imageModel();
+    model.edit = vi.fn(async () => ({ data: framed, format: "png" }));
+    const { store, saved } = memoryStore();
+    await makeVersions({ image: model, vision: visionFor({ flags: [] }) }, store, { logo, kinds: ["profile"], requestKey: "f1", now });
+    const pixels = decodePng(saved[0].data)!;
+    expect(Array.from(pixels.data.slice(0, 4))).toEqual([255, 255, 255, 255]);
   });
 
   it("never returns another logo's files for a reused request key", async () => {
@@ -205,6 +281,17 @@ describe("changes, versions and brand images start from the logo itself", () => 
     expect(edit.mock.calls.map((call) => call[0].size)).toEqual(["1920x1080", "2560x1440", "1920x1080", "1200x630"]);
     for (const call of edit.mock.calls) expect(call[0].images[0].data).toEqual(chosenBytes);
   });
+
+  it("sends the approved example as image 2 for the other slots, never for the example itself", async () => {
+    const { model, edit } = imageModel();
+    const { store } = memoryStore();
+    const example = { mimeType: "image/png", data: pngBytes(1920, 1080, 9) };
+    await makeBrandImages({ image: model, vision }, store, { logo, kinds: ["website_hero", "facebook_cover"], change: null, example, requestKey: "x1", now });
+    expect(edit.mock.calls[0][0].images).toHaveLength(1);
+    expect(edit.mock.calls[1][0].images).toEqual([{ mimeType: "image/png", data: chosenBytes }, example]);
+    expect(edit.mock.calls[1][0].instruction).toContain("Image 2 is the business’s approved website header picture. Match its look exactly");
+    expect(edit.mock.calls[0][0].instruction).not.toContain("Image 2");
+  });
 });
 
 describe("editing a version or brand image", () => {
@@ -222,11 +309,13 @@ describe("editing a version or brand image", () => {
     expect(saved[0]).toMatchObject({ kind: "stacked", sourceId: "logo-1", conceptId: "concept-1", change: "More space under the symbol", requestKey: "logo-1:e1:edit" });
   });
 
-  it("keeps words out of a brand image that has no logo in it", async () => {
+  it("keeps the logo as it is in a brand image, and no other words", async () => {
     const { model, edit } = imageModel();
     const { store, saved } = memoryStore();
     await editPicture({ image: model, vision }, store, { logo, picture: { kind: "website_hero", file: picture }, change: "Warmer colors", requestKey: "e2", now });
-    expect(edit.mock.calls[0][0].instruction).toContain("Don’t include the logo, its symbol, or any letters, words or numbers.");
+    expect(edit.mock.calls[0][0].instruction).toContain("keep it exactly as in image 2");
+    expect(edit.mock.calls[0][0].instruction).toContain("No words other than the ones in the logo.");
+    expect(edit.mock.calls[0][0].instruction).toContain("clearly visible at a glance");
     expect(edit.mock.calls[0][0].size).toBe("1920x1080");
     expect(saved[0]).toMatchObject({ kind: "website_hero", sourceId: "logo-1" });
   });
