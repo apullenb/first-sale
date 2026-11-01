@@ -1,10 +1,12 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { getImageModel, getModel, MUSE_DEFAULTS } from "@/lib/ai";
+import { getImageModel, getModel, type ImageModel, type ModelProvider, MUSE_DEFAULTS } from "@/lib/ai";
 import { ArgsError, liveRefusal, parseArgs, USAGE } from "./args";
 import { Budget, BudgetReached } from "./budget";
 import { type BenchCase, CASES } from "./cases";
-import { pricesFor } from "./pricing";
+import { runScenario, type ScenarioResult, totalsLine, totalsOf, writeIndex } from "./image-quality";
+import { IMAGE_SCENARIOS, type ImageScenario } from "./image-scenarios";
+import { type Prices, pricesFor } from "./pricing";
 import { Recorder } from "./recorder";
 import { type RunInfo, type RunRecord, summaryMarkdown } from "./report";
 import { type Task, TASKS } from "./tasks";
@@ -28,17 +30,19 @@ async function main(): Promise<number> {
   let options;
   let tasks: Task[];
   let cases: BenchCase[];
+  let scenarios: ImageScenario[];
   try {
     options = parseArgs(process.argv.slice(2));
     tasks = pick(TASKS, options.tasks, "task");
     cases = pick(CASES, options.cases, "case");
+    scenarios = pick(IMAGE_SCENARIOS, options.scenarios, "scenario");
   } catch (error) {
     if (!(error instanceof ArgsError)) throw error;
     console.error(`${error.message}\n\n${USAGE}`);
     return 2;
   }
   if (options.help) {
-    console.log(`${USAGE}\n\nTasks: ${TASKS.map((task) => task.id).join(", ")}\nCases: ${CASES.map((each) => each.id).join(", ")}`);
+    console.log(`${USAGE}\n\nTasks: ${TASKS.map((task) => task.id).join(", ")}\nCases: ${CASES.map((each) => each.id).join(", ")}\nScenarios: ${IMAGE_SCENARIOS.map((each) => each.id).join(", ")}`);
     return 0;
   }
 
@@ -59,6 +63,13 @@ async function main(): Promise<number> {
   const model = recorder.wrapModel(getModel(env));
   const innerImage = getImageModel(env);
   const image = innerImage ? recorder.wrapImage(innerImage) : null;
+  if (options.imageQuality) {
+    try {
+      return await imageQualityRun({ model, image, recorder, budget, prices, scenarios });
+    } finally {
+      recorder.close();
+    }
+  }
   // Pictures are free in practice mode; live, each is billed
   const imagesOn = !live || options.images;
   const now = new Date();
@@ -130,6 +141,60 @@ async function main(): Promise<number> {
   const summary = summaryMarkdown(runInfo, runs, new Map(TASKS.map((task) => [task.id, task.title])));
   writeFileSync(path.join(dir, "summary.md"), `${summary}\n`);
   console.log(`\n${summary}\nWrote ${path.relative(ROOT, dir)}/results.json and summary.md`);
+  return 0;
+}
+
+async function imageQualityRun(input: {
+  model: ModelProvider;
+  image: ImageModel | null;
+  recorder: Recorder;
+  budget: Budget | null;
+  prices: Prices;
+  scenarios: ImageScenario[];
+}): Promise<number> {
+  const { model, image, recorder, budget, prices, scenarios } = input;
+  if (!image?.generate) {
+    console.error("This provider has no image model that can draw, so there's nothing to judge.");
+    return 1;
+  }
+  const now = new Date();
+  const startedAt = now.toISOString();
+  const dir = path.join(ROOT, "bench", "results", startedAt.replace(/[:.]/g, "-"));
+  mkdirSync(dir, { recursive: true });
+  console.log(`First Sale image-quality run: ${scenarios.length} scenarios, pictures by ${image.name} (${image.model})${budget ? `, budget $${budget.limitUsd}` : ", practice mode"}\n`);
+
+  const results: ScenarioResult[] = [];
+  const info = console.info;
+  console.info = () => {};
+  recorder.beginRun();
+  try {
+    for (const scenario of scenarios) {
+      const started = Date.now();
+      const result = await runScenario({ model, image, prices, budget, now, dir }, scenario);
+      results.push(result);
+      const made = result.pictures.filter((picture) => picture.status === "made").length;
+      console.log(`${scenario.id}: ${made} of ${result.pictures.length} pictures, ${((Date.now() - started) / 1000).toFixed(1)} s${result.notes.length ? ` (${result.notes.join("; ")})` : ""}`);
+    }
+  } finally {
+    console.info = info;
+  }
+
+  const finishedAt = new Date().toISOString();
+  const totals = totalsOf(results, recorder.current().calls, Date.parse(finishedAt) - now.getTime());
+  writeIndex(
+    dir,
+    {
+      startedAt,
+      finishedAt,
+      provider: { name: model.name, model: model.model, simulated: model.simulated },
+      imageModel: { name: image.name, model: image.model, simulated: image.simulated },
+      prices,
+      budget: budget ? { limitUsd: budget.limitUsd, spentUsd: budget.spent } : null,
+    },
+    results,
+    totals,
+  );
+  console.log(`\n${totalsLine(totals, model.simulated || image.simulated)}\nWrote ${path.relative(ROOT, dir)}/index.md, images.json and images/`);
   return 0;
 }
 
