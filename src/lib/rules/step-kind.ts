@@ -1,11 +1,11 @@
-import type { PlanTopic } from "@/lib/domain";
+import { OWNER_ACTIONS, type PlanTopic } from "@/lib/domain";
 import type { RequirementStatus } from "@/lib/research/applicability";
 import { choosesStructure } from "./plan";
 
 // Plain code: what kind of thing a step asks of the owner, which decides its wording and how it's marked done.
 // Only a filing is sent to an office; only a filing or a question to an office waits to hear back.
 
-export const STEP_KINDS = ["decision", "training", "compliance", "filing", "contact"] as const;
+export const STEP_KINDS = OWNER_ACTIONS;
 export type StepKind = (typeof STEP_KINDS)[number];
 
 export interface KindInput {
@@ -14,6 +14,8 @@ export interface KindInput {
   forStructures?: readonly string[] | null;
   feeCents?: number | null;
   requirementStatus?: RequirementStatus;
+  // The research model's read; missing on steps saved before it was asked
+  ownerAction?: StepKind | null;
 }
 
 // Sends or registers something with an office
@@ -29,6 +31,8 @@ export function stepKindOf(step: KindInput, options: { confirm?: boolean; hasFor
   if (choosesStructure(step)) return "decision";
   if (options.confirm || step.requirementStatus === "to_find_out") return "contact";
   if (options.hasForm) return "filing";
+  // A fee means something is paid to an office
+  if (step.ownerAction && (!step.feeCents || step.ownerAction === "filing")) return step.ownerAction;
   const title = step.title.trim();
   // "Operate as a sole proprietorship": a structure with nothing to send is a choice
   if (DECIDES.test(title) && !step.feeCents) return "decision";

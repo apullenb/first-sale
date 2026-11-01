@@ -52,6 +52,8 @@ export interface PlanTaskDraft {
   notes?: { title: string; background: string }[];
   // Read from the office's official pages
   contacts?: Contacts | null;
+  // The model's read of what the owner does; stepKindOf decides
+  ownerAction?: RequirementDraft["ownerAction"];
 }
 
 // The rule-written part of a step, for plans saved before it existed
@@ -170,6 +172,7 @@ export function buildPlan(
       question: questionOf(requirement) ?? "",
       notes: requirement.background ? [{ title: requirement.title, background: requirement.background }] : [],
       contacts: null,
+      ownerAction: requirement.ownerAction ?? null,
     };
   });
 
@@ -250,6 +253,7 @@ function askByOffice(drafts: PlanTaskDraft[], requirements: readonly CheckedRequ
       alreadyHave: null,
       question: "",
       notes: members.flatMap((member) => member.notes ?? []),
+      ownerAction: "contact",
     });
     for (const member of members) into.set(member.key, key);
   }

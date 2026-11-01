@@ -59,6 +59,61 @@ describe("price claims", () => {
   });
 });
 
+describe("broader price wording", () => {
+  const two = records({ prices: [{ name: "Cookie six-pack", cents: 1200 }, { name: "Brownie", cents: 400 }] });
+  const flags = (text: string, recs = records()) => claimConflicts({ ...blank, intro: text }, recs);
+
+  it("reads number words and bucks", () => {
+    expect(flags("Everything is under ten dollars.")[0]).toMatch(/“under ten dollars”.*\$12/);
+    expect(flags("Nothing costs more than twelve bucks.")).toEqual([]);
+    expect(flags("Treats for less than twenty-five dollars.")).toEqual([]);
+    expect(flags("Treats for less than 11 dollars.")).toHaveLength(1);
+  });
+
+  it("flags “$10 and under” and “all items $X or less”", () => {
+    expect(flags("Gifts $10 and under.")).toHaveLength(1);
+    expect(flags("All items $11 or less.")).toHaveLength(1);
+    expect(flags("All items $12 or less.")).toEqual([]);
+  });
+
+  it("reads a bare “under ten” only when it's about prices", () => {
+    expect(flags("Everything under ten.")).toHaveLength(1);
+    expect(flags("Prices under 10!")).toHaveLength(1);
+    expect(flags("Great for kids under 10.")).toEqual([]);
+    expect(flags("Ready in under ten minutes.")).toEqual([]);
+  });
+
+  it("flags “nothing over”, “everything under” and “max”", () => {
+    expect(flags("Nothing over $10.")).toHaveLength(1);
+    expect(flags("Nothing over $12.")).toEqual([]);
+    expect(flags("Everything under $12.")).toHaveLength(1);
+    expect(flags("Max $10 per box.")).toHaveLength(1);
+    expect(flags("Boxes $10 max.")).toHaveLength(1);
+  });
+
+  it("checks “starting from” and “as low as” both ways", () => {
+    expect(flags("Boxes starting from $15.", two)[0]).toMatch(/Brownie is \$4/);
+    expect(flags("Treats as low as $4.", two)).toEqual([]);
+    expect(flags("Treats as low as $2.", two)).toEqual(["Welcome says “as low as $2”, but your lowest price is $4. Change the words or the price."]);
+    expect(flags("Treats as low as five bucks.", two)).toHaveLength(1);
+  });
+
+  it("flags a range a product breaks", () => {
+    expect(flags("Boxes $5–$10.", two)[0]).toMatch(/“\$5–\$10”.*\$12/);
+    expect(flags("Boxes $4-$12.", two)).toEqual([]);
+    expect(flags("Boxes $5 to $15.", two)[0]).toMatch(/Brownie is \$4/);
+    expect(flags("Boxes between $4 and $10.", two)).toHaveLength(1);
+    expect(flags("Treats 5 to 15 dollars.", two)).toHaveLength(1);
+  });
+
+  it("keeps hedged claims while they're true", () => {
+    expect(flags("Most items under ten dollars.", two)).toEqual([]);
+    expect(flags("Most boxes $3–$5.", two)).toEqual([]);
+    expect(flags("Most boxes $1–$3.", two)).toHaveLength(1);
+    expect(flags("Most items under $3.", two)).toHaveLength(1);
+  });
+});
+
 describe("ordering claims", () => {
   it("flags pickup-only words when nearby delivery was chosen", () => {
     const copy = { ...blank, howToBuy: "Pickup only, at our Denton kitchen." };
@@ -74,6 +129,39 @@ describe("ordering claims", () => {
     const copy = { ...blank, faq: [{ question: "Do you ship?", answer: "Yes, we ship nationwide." }] };
     expect(claimConflicts(copy, records())).toEqual(["Answer 1 offers shipping, but your answers don’t say you ship. Change the words or your answers."]);
     expect(claimConflicts({ ...blank, intro: "Do you ship?" }, records())).toEqual([]);
+  });
+
+  it("flags free delivery or shipping that wasn't chosen", () => {
+    const pickupOnly = records({ handoff: ["pickup_home"] });
+    const flags = (text: string, recs = pickupOnly) => claimConflicts({ ...blank, howToBuy: `Order for pickup. ${text}` }, recs);
+    expect(flags("Free delivery on every order.")).toEqual(["How to buy offers delivery, but your answers don’t say you deliver. Change the words or your answers."]);
+    expect(flags("Free shipping over $30.")).toEqual(["How to buy offers shipping, but your answers don’t say you ship. Change the words or your answers."]);
+  });
+
+  it("flags “local delivery only” against pickup or shipping", () => {
+    const copy = { ...blank, intro: "Local delivery only.", howToBuy: "Order for pickup, delivery or shipping." };
+    expect(claimConflicts(copy, records({ handoff: ["pickup_home", "local_delivery", "ship_in_state"] }))).toEqual([
+      "Welcome says you don’t ship, but you said you ship orders. Change the words or your answers.",
+      "Welcome says there’s no pickup, but you said customers can pick up. Change the words or your answers.",
+    ]);
+    expect(claimConflicts({ ...copy, howToBuy: "We deliver." }, records({ handoff: ["local_delivery"] }))).toEqual([]);
+  });
+
+  it("flags offered pickup when no pickup was chosen", () => {
+    const copy = { ...blank, howToBuy: "We deliver nearby. Pickup available on Saturdays." };
+    expect(claimConflicts(copy, records({ handoff: ["local_delivery"] }))).toEqual([
+      "How to buy offers pickup, but your answers don’t say customers can pick up. Change the words or your answers.",
+    ]);
+    expect(claimConflicts(copy, records())).toEqual([]);
+  });
+
+  it("flags nationwide shipping when shipping wasn't chosen, or only in state", () => {
+    const copy = { ...blank, howToBuy: "Pickup or delivery. We ship nationwide." };
+    expect(claimConflicts(copy, records())).toEqual(["How to buy offers shipping, but your answers don’t say you ship. Change the words or your answers."]);
+    expect(claimConflicts(copy, records({ handoff: ["pickup_home", "local_delivery", "ship_in_state"] }))).toEqual([
+      "How to buy says you ship out of state, but you said you ship only within your state. Change the words or your answers.",
+    ]);
+    expect(claimConflicts(copy, records({ handoff: ["pickup_home", "local_delivery", "ship_out_of_state"] }))).toEqual([]);
   });
 
   it("asks How to buy to name each chosen way", () => {

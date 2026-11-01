@@ -88,6 +88,7 @@ List the requirements that apply to this business, most important first:
 - renewal and renewalFeeUsd: only when the evidence you quote states them. Copy the renewal wording exactly. Otherwise null.
 - gather: the information and documents to have ready, from the sources when they list them.
 - doneWhen: what finishing this step looks like, in plain words. Name a specific document only if a source names it.
+- ownerAction: what the owner does for it. "decision" when they choose something and send nothing, such as picking a business structure; "training" for a course, class or exam; "compliance" for a rule they follow on their own, such as labels, limits on what they sell, or keeping records; "filing" when they send, register, apply for or pay for something with an office, such as a form, permit, license, registration or tax report; "contact" when the only thing to do is ask an office a question.
 - dependsOn: keys of other requirements that must be finished first, only when this one truly needs them.
 - whoToCall: the office that handles it, such as "your county health department". No phone numbers or web addresses.
 - whatToAsk: two to four short questions SnapStart should settle about it.

@@ -231,6 +231,9 @@ describe("researchRequirements", () => {
     });
     expect(plan.get("structure")!.index).toBeLessThan(plan.get("ein")!.index);
     expect(plan.get("ein")!.index).toBeLessThan(plan.get("sales-tax")!.index);
+    // What the owner does travels with each step, for stepKindOf
+    expect(plan.get("structure")!.ownerAction).toBe("decision");
+    expect(plan.get("cottage-food")!.ownerAction).toBe("compliance");
 
     // No search in practice mode: one "not searched yet" question a topic, after the city-limits question
     expect(result.openQuestions[0].question).toMatch(/inside the city limits of Columbus/);

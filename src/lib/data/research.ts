@@ -154,6 +154,7 @@ export async function saveResearchForOwner(
           renewal: requirement.renewal,
           renewalFeeCents: requirement.renewalFeeUsd === null ? null : Math.round(requirement.renewalFeeUsd * 100),
           alreadyHave: requirement.alreadyHave,
+          ownerAction: requirement.ownerAction,
         })),
       );
     }
@@ -255,6 +256,7 @@ export function draftOf(row: ResearchSnapshot["requirements"][number]): Requirem
     forStructures: row.forStructures,
     renewal: row.renewal,
     renewalFeeUsd: row.renewalFeeCents === null ? null : row.renewalFeeCents / 100,
+    ownerAction: row.ownerAction,
     verification: row.verification,
   };
 }
