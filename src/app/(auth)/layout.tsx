@@ -1,4 +1,4 @@
-import { LogoMark } from "@/components/logo";
+import { Logo } from "@/components/logo";
 
 const POINTS = [
   "Find out what your business needs, with links to official sources",
@@ -13,13 +13,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         aria-label="About SnapStart Business Assembly Kit"
         className="flex flex-col gap-3 rounded-[18px] bg-sidebar p-6 text-white shadow-lift md:max-w-md md:flex-1 md:gap-4 md:p-8"
       >
-        <div className="flex items-center gap-2.5">
-          <LogoMark className="bg-accent text-white" />
-          <span className="text-[22px] font-extrabold tracking-[-0.03em]">
-            Snap<span className="text-sky">Start</span>
-          </span>
-        </div>
-        <p className="text-sm font-semibold tracking-wide text-white/70">Business Assembly Kit</p>
+        <Logo light className="w-full max-w-80" />
         <p className="font-display text-[32px] leading-[1.15] md:mt-3 md:text-[38px]">
           From idea to first sale.
         </p>
