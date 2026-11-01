@@ -58,5 +58,5 @@ registerMockFixture(STORY_SCHEMA_NAME, (request) => {
     answers = JSON.parse(/<answers>\n([\s\S]*)\n<\/answers>/.exec(text)?.[1] ?? "{}");
   } catch {}
   const feel = (answers.feel ?? []).slice(0, 3).join(", ") || "just right";
-  return JSON.stringify({ picture: `${answers.name ?? "Your business"} feels ${feel}. This is a practice placeholder: connect Muse to get a brand description written for your business.` });
+  return JSON.stringify({ picture: `${answers.name ?? "Your business"} feels ${feel}. This is a practice sample, not a description written for your business.` });
 });
