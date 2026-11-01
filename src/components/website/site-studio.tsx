@@ -91,7 +91,7 @@ function itemsFrom(drafts: Record<string, ItemDraft>, copy: WebsiteCopy, library
   });
 }
 
-// The First Sale site: look and live preview, then the demo finish
+// The SnapStart site: look and live preview, then the demo finish
 export function SiteStudio(props: Props) {
   const { saved, library, finish, products } = props;
   const uid = useId();
@@ -164,7 +164,7 @@ export function SiteStudio(props: Props) {
       if (!result.ok) setError({ at, message: result.message ?? "That didn’t work. Try again." });
       setStatus(result.ok && next === "saving" ? "saved" : "idle");
     } catch {
-      setError({ at, message: "Couldn’t reach First Sale. Check your connection and try again." });
+      setError({ at, message: "Couldn’t reach SnapStart. Check your connection and try again." });
       setStatus("idle");
     }
   }
@@ -191,7 +191,7 @@ export function SiteStudio(props: Props) {
           id="step-design"
           number={props.stepNumber}
           title="Design it and see it live"
-          lead="First Sale builds your site from your approved words, brand and items. Make your choices and the preview updates as you go."
+          lead="SnapStart builds your site from your approved words, brand and items. Make your choices and the preview updates as you go."
         />
         <div className="grid items-start gap-5 @4xl:grid-cols-[minmax(0,21rem)_minmax(0,1fr)]">
           <Card title="Your design" icon="palette" id="design-controls-heading" headingLevel={3} bodyClassName="gap-5">
@@ -438,7 +438,7 @@ export function SiteStudio(props: Props) {
           id="step-finish"
           number={props.stepNumber + 1}
           title="Finish your site"
-          lead="First Sale checks your site is ready. This is a demo: nothing is published online."
+          lead="SnapStart checks your site is ready. This is a demo: nothing is published online."
         />
         <Card bodyClassName="gap-4">
           <FinishControls finish={finish} dirty={dirty} pending={pending} finishing={status === "finishing"} error={error?.at === "finish" ? error.message : null} onFinish={finishNow} />
@@ -498,7 +498,7 @@ function FinishControls({
           </ul>
         </div>
       ) : (
-        <Done>Everything First Sale checks is ready.</Done>
+        <Done>Everything SnapStart checks is ready.</Done>
       )}
       {finish.notes.length ? (
         <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-rule">

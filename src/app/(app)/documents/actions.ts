@@ -114,7 +114,7 @@ export async function officialFormAction(input: unknown): Promise<ActionResult<s
   if (!parsed.success) return { ok: false, message: "Paste the link to the form." };
   const government = governmentFor(parsed.data.url.trim());
   if (!government) {
-    return { ok: false, message: "First Sale only fetches forms from official .gov websites. Download it yourself and upload it instead." };
+    return { ok: false, message: "SnapStart only fetches forms from official .gov websites. Download it yourself and upload it instead." };
   }
   const fetched = await fetchOfficialPage(parsed.data.url.trim(), [government.domain], fetch, { pdf: true, html: false, maxBytes: MAX_UPLOAD_BYTES });
   if (!fetched.ok || !fetched.pdf) {
@@ -306,7 +306,7 @@ export async function saveAnswersAction(input: unknown): Promise<ActionResult> {
     if (!edit || mustFillYourself(field)) continue;
     const value = edit.value.trim();
     if (looksLikeIdNumber(value)) {
-      return { ok: false, message: `“${field.label}”: First Sale doesn’t store Social Security or tax id numbers. Fill those in on the form yourself.` };
+      return { ok: false, message: `“${field.label}”: SnapStart doesn’t store Social Security or tax id numbers. Fill those in on the form yourself.` };
     }
     if (value && field.kind === "choice" && field.options.length && !field.options.includes(value)) {
       return { ok: false, message: `“${field.label}”: pick one of the form’s own options.` };
@@ -477,7 +477,7 @@ async function currentBusinessPlan(): Promise<StoredDocument | null> {
   return docs.find((doc) => doc.generatedKind === "business_plan") ?? null;
 }
 
-// Drafts the plan from what First Sale knows, the owner's edits to it and their answers. Facts are read again here, never taken from the page.
+// Drafts the plan from what SnapStart knows, the owner's edits to it and their answers. Facts are read again here, never taken from the page.
 export async function draftBusinessPlanAction(input: unknown): Promise<ActionResult<string>> {
   const parsed = planInputSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Keep each answer shorter, then try again." };

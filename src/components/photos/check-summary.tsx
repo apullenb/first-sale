@@ -33,7 +33,7 @@ export function CheckSummary({ check }: { check: PhotoCheck }) {
         <div className="flex flex-col gap-3 rounded-xl border border-check-ring bg-check-tint px-4 py-3 text-check">
           <p className="font-semibold">This photo can’t be edited accurately, so nothing will be made from it.</p>
           <p className="text-[15px]">
-            First Sale won’t guess at parts of your product it can’t see clearly. A quick retake usually fixes it, with no
+            SnapStart won’t guess at parts of your product it can’t see clearly. A quick retake usually fixes it, with no
             special equipment.
           </p>
           {check.problems.length ? (

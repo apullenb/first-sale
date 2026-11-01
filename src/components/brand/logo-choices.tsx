@@ -13,7 +13,7 @@ import { PRACTICE_LABEL } from "@/lib/brand/practice";
 import { BRIEF_LIMITS } from "@/lib/brand/types";
 import { LogoKindPicker } from "./feel-pickers";
 
-const OFFLINE = "Couldn’t reach First Sale. Check your connection, then try again.";
+const OFFLINE = "Couldn’t reach SnapStart. Check your connection, then try again.";
 
 interface Props {
   initial: Choices;

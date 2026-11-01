@@ -84,9 +84,9 @@ export function journeyStages(input: JourneyInput): Stage[] {
         ? stage("/structure", "todo", "You’re not sure yet. Filings that depend on it wait until you choose.")
         : stage("/structure", "todo", "Compare a sole proprietorship, an LLC and more, then choose."),
     !input.researched
-      ? stage("/requirements", "todo", "Not checked yet. First Sale checks official government sites for you.")
+      ? stage("/requirements", "todo", "Not checked yet. SnapStart checks official government sites for you.")
       : input.answersChanged
-        ? stage("/requirements", "check", "Your answers changed, so First Sale updates what applies when you open it.")
+        ? stage("/requirements", "check", "Your answers changed, so SnapStart updates what applies when you open it.")
         : input.questions
             ? stage("/requirements", "todo", `${input.questions} quick ${input.questions === 1 ? "question" : "questions"} left to answer.`)
             : stage("/requirements", "done", "Checked on official government sites, and every question answered."),
@@ -140,18 +140,18 @@ export function nextMove(input: JourneyInput): NextMove {
   if (!input.researched) {
     return move(
       "Find out what applies to you",
-      "First Sale checks official government sites and works out the rules that fit your business.",
+      "SnapStart checks official government sites and works out the rules that fit your business.",
       "/requirements",
       "Find what applies to me",
     );
   }
   if (input.answersChanged) {
-    return move("Update what applies to you", "You changed some answers, so First Sale checks again and updates your steps.", "/requirements", "Update my steps");
+    return move("Update what applies to you", "You changed some answers, so SnapStart checks again and updates your steps.", "/requirements", "Update my steps");
   }
   if (input.questions) {
     return move(
       `Answer ${input.questions === 1 ? "a quick question" : `${input.questions} quick questions`}`,
-      "Each one is about your own plans, so First Sale can tell you exactly what applies.",
+      "Each one is about your own plans, so SnapStart can tell you exactly what applies.",
       "/requirements#questions",
       "Answer the questions",
     );

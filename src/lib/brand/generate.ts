@@ -67,8 +67,8 @@ export interface AssetStore {
 
 export const ROOM_MESSAGES = {
   not_found: "Your brand wasn’t found. Reload the page and try again.",
-  too_many: "You’ve made as many brand files as First Sale can keep. Remove ideas you don’t need, then try again.",
-  too_large: "Your brand files are taking up all the space First Sale allows. Remove ideas you don’t need, then try again.",
+  too_many: "You’ve made as many brand files as SnapStart can keep. Remove ideas you don’t need, then try again.",
+  too_large: "Your brand files are taking up all the space SnapStart allows. Remove ideas you don’t need, then try again.",
 } as const;
 
 export interface Models {
@@ -95,7 +95,7 @@ export interface LogoRef {
   words?: string;
 }
 
-export const UPLOAD_ONE_CLICK = "One-click changes are only for logos drawn here. Say what you’d like changed instead, and First Sale makes an edited copy of your logo.";
+export const UPLOAD_ONE_CLICK = "One-click changes are only for logos drawn here. Say what you’d like changed instead, and SnapStart makes an edited copy of your logo.";
 
 interface Job {
   kind: AssetKind;
@@ -294,7 +294,7 @@ async function runBatch(models: Models, store: AssetStore, jobs: Job[], now: Dat
 
 function generator(models: Models) {
   const generate = models.image.generate;
-  if (!generate) throw new OwnerFacingError("Logo drawing isn’t turned on for First Sale yet.");
+  if (!generate) throw new OwnerFacingError("Logo drawing isn’t turned on for SnapStart yet.");
   return generate.bind(models.image);
 }
 

@@ -23,7 +23,7 @@ export function DocumentTitle({ documentId, title }: { documentId: string; title
       if (!result.ok) setError(result.message);
       else setEditing(false);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }

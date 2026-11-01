@@ -96,7 +96,7 @@ function Body({ step }: { step: ShownStep }) {
   );
 }
 
-// What First Sale says about a step it marked done itself
+// What SnapStart says about a step it marked done itself
 const AUTO_NOTE: Partial<Record<ShownStep["kind"], string>> = { brand_images: "Every brand image has one you chose." };
 
 // The plan's steps, with as much help as the owner's answers call for. The owner ticks each one off; auto: done by what they made.
@@ -114,7 +114,7 @@ export function MarketingStepList({ steps, done, auto = [], next }: { steps: Sho
       const result = await setMarketingStepAction({ key, done: checked });
       if (!result.ok) setError(result.message);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(null);
     }
@@ -154,7 +154,7 @@ export function MarketingStepList({ steps, done, auto = [], next }: { steps: Sho
                         <Icon name="check" size="xs" /> Done
                       </span>
                     ) : null}
-                    {byFacts ? <span>{AUTO_NOTE[step.kind] ?? "First Sale marked this done from what you made."}</span> : null}
+                    {byFacts ? <span>{AUTO_NOTE[step.kind] ?? "SnapStart marked this done from what you made."}</span> : null}
                   </div>
                   {!isDone && step.why ? <p className="pt-0.5 text-[15.5px] text-rule">{step.why}</p> : null}
                 </div>

@@ -33,7 +33,7 @@ export function StepLink({ documentId, stepId, steps }: Props) {
       }
     } catch {
       setValue(previous);
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }

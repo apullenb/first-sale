@@ -66,10 +66,10 @@ export function packageTerms(platform: PlatformInfo): TermRow[] {
   return [
     domainRow(platform),
     platform.hosting
-      ? { term: "hosting", status: "included", note: platform.builtBy === "first_sale" ? "Part of the First Sale fee." : "Part of every plan." }
+      ? { term: "hosting", status: "included", note: platform.builtBy === "first_sale" ? "Part of the SnapStart fee." : "Part of every plan." }
       : { term: "hosting", status: "not_included", note: "Find a host yourself." },
     platform.builtBy === "first_sale"
-      ? { term: "builder", status: "included", note: "First Sale builds it from your choices." }
+      ? { term: "builder", status: "included", note: "SnapStart builds it from your choices." }
       : { term: "builder", status: "included", note: `You build it yourself with ${platform.name}’s designs.` },
     platform.checkout === "built_in"
       ? { term: "checkout", status: "included", note: fee ? `Card fee ${fee} per sale on ${plan.name}.` : `Card fee on ${plan.name} not checked here.` }

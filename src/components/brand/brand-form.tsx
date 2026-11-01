@@ -13,7 +13,7 @@ import { BRIEF_LIMITS, type BrandBrief } from "@/lib/brand/types";
 import { MAX_COLOR_FAMILIES, VIBE_LIMITS } from "@/lib/brand/vibes";
 import { ColorPicker, LeaningPicker, VibePicker } from "./feel-pickers";
 
-const OFFLINE = "Couldn’t reach First Sale. Check your connection, then try again.";
+const OFFLINE = "Couldn’t reach SnapStart. Check your connection, then try again.";
 
 // What the description is written from; changing any of these makes it out of date
 const STORY_INPUTS = ["sells", "customers", "vibes", "leanings", "colors", "likedColors"] as const;

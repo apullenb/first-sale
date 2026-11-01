@@ -147,7 +147,7 @@ export function PlatformCard({
           payment={platform.demoPrice ? { plan: plan.name, price: `${usd(plan.monthlyUsd)} a month` } : undefined}
         />
         <p className="text-sm text-muted">
-          {platform.demoPrice ? "The First Sale price is a demo price, not final. Card fees from " : `Prices from ${platform.name}’s own pages, `}
+          {platform.demoPrice ? "The SnapStart price is a demo price, not final. Card fees from " : `Prices from ${platform.name}’s own pages, `}
           {platform.sources.map((source, index) => (
             <span key={source.url}>
               {index ? ", " : ""}

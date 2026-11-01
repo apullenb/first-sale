@@ -182,7 +182,7 @@ export async function decideStructure(page: Page, ownership: RegExp, name = /^Re
   await expect(page.getByRole("region", { name: "Decision history" }).getByRole("listitem").first()).toBeVisible();
 }
 
-// Records a step as done before First Sale ("I’ve already done this"), so the steps after it open up
+// Records a step as done before SnapStart ("I’ve already done this"), so the steps after it open up
 export async function markStepDone(page: Page, title: RegExp) {
   await open(page, "/start");
   await page.getByRole("link", { name: title }).first().click();
@@ -191,7 +191,7 @@ export async function markStepDone(page: Page, title: RegExp) {
   await page.getByRole("button", { name: "I’ve already done this" }).click();
   const already = page.getByRole("region", { name: "Already done" });
   await already.locator("input[type=file]").setInputFiles({ name: "filed.pdf", mimeType: "application/pdf", buffer: pdfBuffer("Filed") });
-  await already.getByText("I finished this step myself, before or outside First Sale.").click();
+  await already.getByText("I finished this step myself, before or outside SnapStart.").click();
   await already.getByRole("button", { name: "Mark it done" }).click();
   await expect(page.getByRole("status").filter({ hasText: /^Done: / })).toBeAttached();
 }

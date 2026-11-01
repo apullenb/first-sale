@@ -10,7 +10,7 @@ export { CODE_MODEL };
 
 export type Built = { ok: true; image: Pixels; note: string; confidence: number } | { ok: false; note: string; confidence: number };
 
-const UNREADABLE = "The logo file isn’t a PNG First Sale can take apart.";
+const UNREADABLE = "The logo file isn’t a PNG SnapStart can take apart.";
 const percent = (confidence: number) => `${Math.round(confidence * 100)}% sure`;
 
 function prepare(bytes: Uint8Array, letters: number | null) {

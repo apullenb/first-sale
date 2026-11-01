@@ -66,7 +66,7 @@ export function ProfileEditor({ platform, platformName, facts, initial, handles,
       if (!result.ok) setError(result.message);
       else if (approve) setEditing(false);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(null);
     }
@@ -160,7 +160,7 @@ export function ProfileEditor({ platform, platformName, facts, initial, handles,
                 ))}
             </div>
           ) : null}
-          <p className="text-sm text-muted">First Sale can’t see which names are taken. {platformName} tells you when you sign up.</p>
+          <p className="text-sm text-muted">SnapStart can’t see which names are taken. {platformName} tells you when you sign up.</p>
         </div>
       ) : null}
 
@@ -175,7 +175,7 @@ export function ProfileEditor({ platform, platformName, facts, initial, handles,
           {hints ? (
             <p className="text-[15px] text-muted">
               {facts.bio.max === null
-                ? `${platformName} doesn’t publish a limit, so First Sale keeps it short.`
+                ? `${platformName} doesn’t publish a limit, so SnapStart keeps it short.`
                 : `A line or two that says what you sell and where. ${platformName} allows ${facts.bio.max} characters.`}
             </p>
           ) : null}
@@ -196,7 +196,7 @@ export function ProfileEditor({ platform, platformName, facts, initial, handles,
           />
           <Problems list={shown(bioProblems, bio)} />
           {initial.notes.length && !changedBio ? (
-            <ul aria-label="What First Sale changed in the draft" className="flex flex-col gap-1 text-sm text-muted">
+            <ul aria-label="What SnapStart changed in the draft" className="flex flex-col gap-1 text-sm text-muted">
               {initial.notes.map((note) => (
                 <li key={note} className="flex items-start gap-2">
                   <span className="pt-px">{note}</span>

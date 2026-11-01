@@ -46,7 +46,7 @@ export function ActionButton({ action, label, pendingLabel, pendingStatus, varia
       if (openDocument && typeof result.value === "string") router.push(`/documents/${result.value}`);
       else if (doneHref) router.push(doneHref);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }

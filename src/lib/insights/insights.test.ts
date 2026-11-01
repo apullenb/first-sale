@@ -78,14 +78,14 @@ describe("insight facts", () => {
     expect(factsMessage(buildInputs(sources({ profile: { ...sources().profile, name: null } })), {}, NOW)).toContain("Not picked yet");
   });
 
-  it("counts only numbers the owner gave as known, not counts or dates First Sale adds", () => {
+  it("counts only numbers the owner gave as known, not counts or dates SnapStart adds", () => {
     const known = ownerNumbers(buildInputs(sources({ planInputs: { prices: "Loaves are $8" } })));
     expect(known.has("1000")).toBe(true);
     expect(known.has("8")).toBe(true);
     // Days to launch and the number of approved photos
     expect(known.has("34")).toBe(false);
     expect(known.has("2")).toBe(false);
-    // Those are First Sale's own counts, which the model may repeat but never as money
+    // Those are SnapStart's own counts, which the model may repeat but never as money
     expect([...appNumbers(buildInputs(sources()), NOW)].sort()).toEqual(["0", "1", "2", "34"]);
   });
 

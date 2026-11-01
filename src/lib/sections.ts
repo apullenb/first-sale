@@ -34,7 +34,7 @@ export const SECTIONS: Section[] = [
     group: null,
     step: null,
     milestone: 8,
-    summary: "Forms you’re working on, with help understanding and filling them in, plus your business plan and other documents First Sale prepared.",
+    summary: "Forms you’re working on, with help understanding and filling them in, plus your business plan and other documents SnapStart prepared.",
   },
   {
     href: "/business",
@@ -69,7 +69,7 @@ export const SECTIONS: Section[] = [
     step: 3,
     milestone: 3,
     summary:
-      "First Sale checks official government sites for the rules that fit your business, then asks a few quick questions about the ones that depend on you.",
+      "SnapStart checks official government sites for the rules that fit your business, then asks a few quick questions about the ones that depend on you.",
   },
   {
     href: "/brand",
@@ -93,7 +93,7 @@ export const SECTIONS: Section[] = [
     group: "Build your brand",
     step: 3,
     milestone: 13,
-    summary: "Learn the pieces of a website, compare four packages and what each costs, then build yours with First Sale or connect the site you already have.",
+    summary: "Learn the pieces of a website, compare four packages and what each costs, then build yours with SnapStart or connect the site you already have.",
   },
   {
     href: "/products",
@@ -126,7 +126,7 @@ export const SECTIONS: Section[] = [
     group: "Build your brand",
     step: 6,
     milestone: 15,
-    summary: "Set up the accounts in your marketing plan, with a name, bio, profile picture and cover ready for each. You sign up; First Sale never posts for you.",
+    summary: "Set up the accounts in your marketing plan, with a name, bio, profile picture and cover ready for each. You sign up; SnapStart never posts for you.",
   },
   {
     href: "/brand-library",
@@ -137,12 +137,29 @@ export const SECTIONS: Section[] = [
     summary: "Your logos, brand images, product photos and other pictures, kept together and sorted.",
   },
   {
-    href: "/orders",
-    title: "Orders",
+    href: "/run",
+    title: "Run your business",
+    group: "Run your business",
+    step: null,
+    overview: true,
+    milestone: 6,
+    summary: "Choose help with daily work, set your preferences, and try a workflow before connecting your tools.",
+  },
+  {
+    href: "/email",
+    title: "Connect your email",
     group: "Run your business",
     step: null,
     milestone: 6,
-    summary: "Orders update stock by fixed rules. AI drafts the customer reply and flags anything missing.",
+    summary: "Set up help with customer messages and reply drafts, with every reply waiting for your review.",
+  },
+  {
+    href: "/orders",
+    title: "Orders & requests",
+    group: "Run your business",
+    step: null,
+    milestone: 6,
+    summary: "Set up tracking for orders and customer requests, with follow-up reminders and your review at every step.",
   },
   {
     href: "/planning-for-help",

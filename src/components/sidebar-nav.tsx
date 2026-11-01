@@ -89,7 +89,7 @@ function PhoneBar({ children }: { children: ReactNode }) {
       <Link href="/" className="flex min-h-11 items-center gap-2">
         <LogoMark className="bg-accent text-white" />
         <span className="text-lg font-extrabold tracking-[-0.03em]">
-          First <span className="text-sky">Sale</span>
+          Snap<span className="text-sky">Start</span>
         </span>
       </Link>
       {children}
@@ -107,7 +107,7 @@ function Panel({ pathname, status, business, account }: PanelProps) {
         <Link href="/" className="flex min-h-11 w-fit items-center gap-2.5 short:min-h-10" title="Step by step from your idea to your first sale">
           <LogoMark className="bg-accent text-white" />
           <span className="text-[22px] font-extrabold tracking-[-0.03em]">
-            First <span className="text-sky">Sale</span>
+            Snap<span className="text-sky">Start</span>
           </span>
         </Link>
       </div>

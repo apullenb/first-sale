@@ -1,6 +1,6 @@
 // Stored shapes for the website section. Plain types, so the schema can import them.
 
-// "first_sale": First Sale builds and hosts the site from the owner's choices (a demo for now)
+// "first_sale": SnapStart builds and hosts the site from the owner's choices (a demo for now)
 export const PLATFORMS = ["first_sale", "square", "wix", "shopify"] as const;
 export type PlatformId = (typeof PLATFORMS)[number];
 
@@ -43,7 +43,7 @@ export interface WebsiteContent extends WebsiteCopy {
   simulated: boolean;
 }
 
-// The demo finish of the site First Sale builds. Nothing goes online.
+// The demo finish of the site SnapStart builds. Nothing goes online.
 export interface SiteFinish {
   at: string;
   // The version finished, so the page can tell when there are newer changes

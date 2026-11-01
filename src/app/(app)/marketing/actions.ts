@@ -32,7 +32,7 @@ export async function saveMarketingIntakeAction(input: unknown): Promise<ActionR
 // The business plan answers that help a marketing plan; costs and funding stay out
 const PLAN_ANSWERS = ["customers", "different", "prices", "pricing", "sales_goal", "monthly_goal"];
 
-// What the owner already made in First Sale, which shapes the steps
+// What the owner already made in SnapStart, which shapes the steps
 async function stepContext() {
   const [brand, website, photos] = await Promise.all([getMyBrand(), getMyWebsitePlan(), listMyPhotoLibrary()]);
   const context: StepContext = { hasLogo: Boolean(brand), hasWebsite: Boolean(website?.platform), approvedPhotos: photos.length };
@@ -196,6 +196,6 @@ async function planPdf(plan: MarketingPlan, now: Date) {
     notice: plan.simulated ? "Practice draft: written by built-in rules, not by the AI service." : undefined,
     // Sections the checks emptied are left out
     blocks: blocks.filter((block) => (block.paragraphs ?? []).some((text) => text.trim()) || (block.entries ?? []).length > 0),
-    footer: "Marketing plan made with First Sale",
+    footer: "Marketing plan made with SnapStart",
   });
 }

@@ -6,7 +6,7 @@ import type { DocumentField, DraftAnswers } from "./types";
 // Prepared copies of a form. Only answers the owner confirmed go in; signatures and ID numbers stay blank.
 // Nothing here files anything: the owner checks, signs and files the copy themselves.
 
-export const NOT_FILED = "Prepared with First Sale. Not filed. Check every answer, sign it yourself, and file it with the office named on the form.";
+export const NOT_FILED = "Prepared with SnapStart. Not filed. Check every answer, sign it yourself, and file it with the office named on the form.";
 
 export type FillOutcome =
   | { ok: true; bytes: Uint8Array; filled: number; skipped: string[] }
@@ -57,7 +57,7 @@ export async function fillPdfCopy(original: Uint8Array, fields: readonly Documen
   }
   // In the file's details rather than on the page, so a printed copy can still be filed
   doc.setSubject(toWinAnsi(NOT_FILED));
-  doc.setProducer("First Sale");
+  doc.setProducer("SnapStart Business Assembly Kit");
   return { ok: true, bytes: await doc.save(), filled, skipped };
 }
 
@@ -76,7 +76,7 @@ export async function answerSheet(input: {
     }
     if (answer.state === "fill_yourself") return { label: field.label, value: "Fill in yourself", note: answer.note };
     // Only confirmed answers are printed
-    if (answer.state !== "confirmed") return { label: field.label, value: "Not confirmed yet", note: `Check and confirm it in First Sale · Page ${field.page}` };
+    if (answer.state !== "confirmed") return { label: field.label, value: "Not confirmed yet", note: `Check and confirm it in SnapStart · Page ${field.page}` };
     const value = field.kind === "checkbox" ? (answer.value === "Yes" ? "Tick this box" : "Leave this box unticked") : answer.value;
     return { label: field.label, value, note: `You confirmed this · From: ${input.sourceLabel(answer.source)} · Page ${field.page}` };
   });
@@ -85,6 +85,6 @@ export async function answerSheet(input: {
     subtitle: `Prepared ${input.preparedOn}`,
     notice: NOT_FILED,
     blocks: [{ entries }],
-    footer: "First Sale answer sheet · Not filed",
+    footer: "SnapStart answer sheet · Not filed",
   });
 }

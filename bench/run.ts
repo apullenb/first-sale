@@ -79,7 +79,7 @@ async function main(): Promise<number> {
   const plan = Array.from({ length: options.repeat }, (_, index) => index + 1).flatMap((repeat) =>
     tasks.flatMap((task) => (task.shared ? [SHARED] : cases).map((each) => ({ task, each, repeat }))),
   );
-  console.log(`First Sale AI benchmark: ${plan.length} runs on ${model.name} (${model.model})${live ? `, budget $${options.budgetUsd}` : ", practice mode"}\n`);
+  console.log(`SnapStart AI benchmark: ${plan.length} runs on ${model.name} (${model.model})${live ? `, budget $${options.budgetUsd}` : ", practice mode"}\n`);
 
   // The app's own per-call log lines repeat what's recorded here
   const info = console.info;
@@ -161,7 +161,7 @@ async function imageQualityRun(input: {
   const startedAt = now.toISOString();
   const dir = path.join(ROOT, "bench", "results", startedAt.replace(/[:.]/g, "-"));
   mkdirSync(dir, { recursive: true });
-  console.log(`First Sale image-quality run: ${scenarios.length} scenarios, pictures by ${image.name} (${image.model})${budget ? `, budget $${budget.limitUsd}` : ", practice mode"}\n`);
+  console.log(`SnapStart image-quality run: ${scenarios.length} scenarios, pictures by ${image.name} (${image.model})${budget ? `, budget $${budget.limitUsd}` : ", practice mode"}\n`);
 
   const results: ScenarioResult[] = [];
   const info = console.info;

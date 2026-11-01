@@ -66,7 +66,7 @@ async function PhotoView({ params, searchParams }: { params: Promise<{ id: strin
   const editRunning = editRun?.status === "running";
   const blocked =
     editing.state === "unavailable"
-      ? "Photo editing isn’t turned on for First Sale yet."
+      ? "Photo editing isn’t turned on for SnapStart yet."
       : editRunning
         ? "A photo is being made right now. This page will update when it’s done."
         : null;

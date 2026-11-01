@@ -111,7 +111,7 @@ export function ownerNames(value: string | undefined): string[] {
 export function agreementReadiness(profile: BusinessProfile, facts: ReadonlyMap<string, Fact>, structure: BusinessStructure | null): AgreementReadiness {
   if (!structure) return { kind: "none", why: "Record your business structure first. The agreement depends on it." };
   if (structure === "sole_proprietorship") return { kind: "none", why: "A sole proprietorship has one owner, so there’s no owners’ agreement to sign." };
-  if (structure === "corporation") return { kind: "none", why: "A corporation adopts bylaws instead. First Sale doesn’t prepare bylaws yet." };
+  if (structure === "corporation") return { kind: "none", why: "A corporation adopts bylaws instead. SnapStart doesn’t prepare bylaws yet." };
 
   const value = (id: string) => facts.get(id)?.value ?? null;
   const owners = ownerNames(value("detail.owner_names") ?? undefined);
@@ -209,7 +209,7 @@ export function checkChoices(basis: AgreementBasis, input: ChoicesInput): { ok: 
   // A signed document can't have names with letters swapped for "?"
   const letters = unprintable([basis.name, ...basis.owners, basis.purpose ?? "", basis.address ?? "", choices.manager ?? "", ...members.map((member) => member.contribution)].join(" "));
   if (letters.length) {
-    return { ok: false, message: `First Sale’s PDFs can’t print ${letters.join(" ")} yet, so it can’t make this agreement without changing a name or detail. Ask a lawyer to prepare it for now.` };
+    return { ok: false, message: `SnapStart’s PDFs can’t print ${letters.join(" ")} yet, so it can’t make this agreement without changing a name or detail. Ask a lawyer to prepare it for now.` };
   }
   return { ok: true, choices };
 }
@@ -404,7 +404,7 @@ export function agreementPdf(built: BuiltAgreement, preparedOn: string, approved
   return {
     title: built.title,
     subtitle: `Prepared ${preparedOn} · Approved ${approvedOn}`,
-    notice: `Prepared by First Sale from your answers. It’s a starting point, not legal advice: have a lawyer review it${multiple ? ", especially with more than one owner" : ""}. It isn’t filed with the state: ${multiple ? `every ${built.owner} signs it` : `the ${built.owner} signs it`}, and the business keeps it with its records.`,
+    notice: `Prepared by SnapStart from your answers. It’s a starting point, not legal advice: have a lawyer review it${multiple ? ", especially with more than one owner" : ""}. It isn’t filed with the state: ${multiple ? `every ${built.owner} signs it` : `the ${built.owner} signs it`}, and the business keeps it with its records.`,
     blocks: [
       ...built.sections.map((section) => ({ heading: section.heading, paragraphs: [section.body] })),
       ...(multiple
@@ -425,6 +425,6 @@ export function agreementPdf(built: BuiltAgreement, preparedOn: string, approved
         entries: built.signers.map((name) => ({ label: name, value: "Signature: ____________________________    Date: ______________" })),
       },
     ],
-    footer: "Prepared with First Sale",
+    footer: "Prepared with SnapStart",
   };
 }

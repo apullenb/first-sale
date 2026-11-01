@@ -18,7 +18,7 @@ const formSchema = z.object({
 
 const SAVE_MESSAGES = {
   no_business: "Tell us about your business first.",
-  too_many: "You’ve added as many products as First Sale keeps. Remove ones you no longer sell, then try again.",
+  too_many: "You’ve added as many products as SnapStart keeps. Remove ones you no longer sell, then try again.",
   bad_photo: "That photo wasn’t found. It may have been deleted. Pick another one.",
   not_found: "That product wasn’t found. It may have been removed. Reload the page.",
 } as const;

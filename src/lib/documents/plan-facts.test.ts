@@ -80,7 +80,7 @@ describe("planQuestions", () => {
     expect(questionsFor({ ...shop, inventorySources: ["secondhand"] }).map((question) => question.key)).not.toContain("supplies");
   });
 
-  it("skips what First Sale already knows", () => {
+  it("skips what SnapStart already knows", () => {
     const full = { ...bakery, firstYearSales: "under_5k", hiringPlans: "not_now", launchDate: "2027-01-15" } as const;
     const keys = questionsFor(full, {
       products: [{ name: "Sourdough loaf", priceCents: 900 }],

@@ -120,7 +120,7 @@ async function StepDetail({ params }: { params: Params }) {
   const next = nextTask ? { ...nextTask.step, requirementStatus: nextTask.requirementStatus } : null;
   const back = group ? { href: group.href, label: group.name } : { href: "/start", label: "Start your business" };
   const accept = Object.keys(ACCEPTED_TYPES).join(",");
-  // First Sale's reason, when no official page spells the rule out for this place
+  // SnapStart's reason, when no official page spells the rule out for this place
   const reason = sourced || task?.kind === "confirm" ? null : (step.notes?.[0]?.background ?? null);
 
   const minutes = formatMinutes(stepMinutes(step));
@@ -359,7 +359,7 @@ async function StepDetail({ params }: { params: Params }) {
                   : paths?.paper && paths.online
                     ? "Choose how to do it"
                     : fileable
-                      ? "First Sale fills in the blanks your details answer. You check, sign and send it yourself."
+                      ? "SnapStart fills in the blanks your details answer. You check, sign and send it yourself."
                       : "Here’s how to do it yourself"}
               </h2>
               {choosesStructure(step) ? (
@@ -402,7 +402,7 @@ async function StepDetail({ params }: { params: Params }) {
                     </h3>
                     {progress}
                   </div>
-                  <p className="text-sm text-muted">Opening a link or a form never changes this. You record what you did. First Sale never files anything for you.</p>
+                  <p className="text-sm text-muted">Opening a link or a form never changes this. You record what you did. SnapStart never files anything for you.</p>
                 </>
               )}
             </>
@@ -451,7 +451,7 @@ async function StepDetail({ params }: { params: Params }) {
 
         <Fold
           title="Official source"
-          summary={confirming ? confirming.title : step.links[0] ? `A related page: ${step.links[0].title}` : "Decided by First Sale from how this works for businesses like yours"}
+          summary={confirming ? confirming.title : step.links[0] ? `A related page: ${step.links[0].title}` : "Decided by SnapStart from how this works for businesses like yours"}
           icon="link"
         >
           {step.links.length ? (
@@ -469,7 +469,7 @@ async function StepDetail({ params }: { params: Params }) {
               ))}
             </ul>
           ) : (
-            <p className="text-rule">The official pages First Sale read don’t spell this out for your area, so it decided from how it works for businesses like yours.</p>
+            <p className="text-rule">The official pages SnapStart read don’t spell this out for your area, so it decided from how it works for businesses like yours.</p>
           )}
           {sourced ? <StatusChip sourced /> : null}
         </Fold>
@@ -631,7 +631,7 @@ function NotOnList({ standing }: { standing: Standing<PlanStep> }) {
     place: { text: standing.place[0] ?? "Whether this applies depends on where you are.", href: "/business/edit", action: "Confirm your place" },
     structure: { text: "This is for some business structures only. It shows up on your list once you choose one.", href: "/structure", action: "Go to Business structure" },
     optional: { text: "This one is your choice, so it isn’t on your list.", href: "/requirements", action: "See what applies to you" },
-    outside: { text: `First Sale doesn’t research this kind of rule.${step.whoToCall ? ` It’s handled by ${step.whoToCall}.` : ""}`, href: "/requirements", action: "See what applies to you" },
+    outside: { text: `SnapStart doesn’t research this kind of rule.${step.whoToCall ? ` It’s handled by ${step.whoToCall}.` : ""}`, href: "/requirements", action: "See what applies to you" },
     other_structure: { text: "This step isn’t for the business structure you chose.", href: "/requirements", action: "See what changes" },
   };
   const note = say[standing.inclusion];
@@ -655,7 +655,7 @@ function PlaceGap({ gap, condition }: { gap: NonNullable<ReturnType<typeof place
         <Icon name="pencil" size="sm" />
         {gap.action}
       </Link>
-      <p className="text-sm text-muted">Your property tax bill or lease shows it. Once it’s saved, First Sale updates this step.</p>
+      <p className="text-sm text-muted">Your property tax bill or lease shows it. Once it’s saved, SnapStart updates this step.</p>
     </div>
   );
 }
@@ -683,14 +683,14 @@ function PrerequisiteState({ done, office }: { done: boolean; office: boolean })
   );
 }
 
-// A rule even the deeper look couldn't settle: what First Sale found, then one message to the office that can say for sure
+// A rule even the deeper look couldn't settle: what SnapStart found, then one message to the office that can say for sure
 function AskOffice({ step, profile, place }: { step: PlanStep; profile: BusinessProfile; place: Place }) {
   const office = step.whoToCall || step.agency;
   const notes = step.notes ?? [];
   return (
     <section aria-labelledby="ask-heading" className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6">
       <h2 id="ask-heading" className={STATE_TITLE}>
-        What First Sale found
+        What SnapStart found
       </h2>
       {notes.length ? (
         <ul className="flex flex-col gap-3">
@@ -703,7 +703,7 @@ function AskOffice({ step, profile, place }: { step: PlanStep; profile: Business
         </ul>
       ) : null}
       <p className="text-rule">
-        First Sale searched {office ? `${office}’s` : "the office’s"} official site, its code and its forms, and couldn’t say for sure how this works for your business. They can tell you in writing.
+        SnapStart searched {office ? `${office}’s` : "the office’s"} official site, its code and its forms, and couldn’t say for sure how this works for your business. They can tell you in writing.
       </p>
       <WrittenInquiry
         inquiry={writtenInquiry({ title: step.title, questions: step.whatToAsk, profile, place })}

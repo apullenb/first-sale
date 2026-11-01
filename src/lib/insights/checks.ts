@@ -23,7 +23,7 @@ export const PAGE_LINKS: Record<InsightPage, InsightLink> = {
   planning_for_help: { href: "/planning-for-help", label: getSection("/planning-for-help").title },
 };
 
-// Pages whose legal facts First Sale checked against official sources
+// Pages whose legal facts SnapStart checked against official sources
 const SOURCED_HREFS = new Set(["/requirements", "/start", "/checklist", "/structure", "/documents"]);
 
 const SMALL_NUMBER_WORDS = "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety";
@@ -85,7 +85,7 @@ const LEGAL: RegExp[] = [
 ];
 const STRUCTURE_TOPIC = /\b(?:llc|sole proprietor(?:ship)?|partnership|corporations?|liabilit(?:y|ies)|liable)\b/i;
 
-// Says whether a rule applies, what it allows or what it does; only First Sale's checked pages may say that
+// Says whether a rule applies, what it allows or what it does; only SnapStart's checked pages may say that
 const CLAIM_PARTS = [
   String.raw`\brequire[sd]?\b`,
   String.raw`\bmust\b`,
@@ -144,7 +144,7 @@ const tidy = (text: string) => text.replace(/\s+/g, " ").trim();
 export interface CheckContext {
   // Numbers the owner gave in their own answers; money and percentages must be one of these
   known: ReadonlySet<string>;
-  // Counts and days First Sale worked out itself, which may be repeated but never as money
+  // Counts and days SnapStart worked out itself, which may be repeated but never as money
   counts: ReadonlySet<string>;
   // Startup-plan steps by key, for "take me there"
   steps: ReadonlyMap<string, { id: string; title: string }>;

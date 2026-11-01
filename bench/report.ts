@@ -166,7 +166,7 @@ export function summaryMarkdown(info: RunInfo, runs: readonly RunRecord[], title
   );
   const mock = info.provider.simulated;
   const lines: string[] = [];
-  lines.push(`# First Sale AI benchmark`);
+  lines.push(`# SnapStart AI benchmark`);
   lines.push("");
   if (mock) {
     lines.push(

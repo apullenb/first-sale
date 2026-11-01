@@ -33,7 +33,7 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
       if (!result.ok) setError(result.message ?? "Something went wrong. Try again.");
       else setOpen(false);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }
@@ -75,7 +75,7 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
             Disconnect
           </button>
         </div>
-        <p className="text-sm text-muted">In a real launch, products and pictures you make in First Sale would update this site. In the demo, nothing is sent to it.</p>
+        <p className="text-sm text-muted">In a real launch, products and pictures you make in SnapStart would update this site. In the demo, nothing is sent to it.</p>
         {alert}
       </div>
     );
@@ -134,7 +134,7 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
         </button>
       </div>
       <p className="text-[15px] text-rule">
-        Connecting lets you update your site with the products and pictures you make in First Sale. You’ll never be asked for a password here.
+        Connecting lets you update your site with the products and pictures you make in SnapStart. You’ll never be asked for a password here.
       </p>
       <div className="flex flex-col gap-2">
         <p id={`${uid}-where`} className="font-semibold">

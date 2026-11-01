@@ -251,7 +251,7 @@ export const checklistTasks = pgTable(
     alreadyHave: text("already_have"),
     // The model's condition, asked of the owner; empty when it doesn't depend on one
     question: text("question").notNull().default(""),
-    // Why First Sale decided a rule no official page spells out, and the office's contact details
+    // Why SnapStart decided a rule no official page spells out, and the office's contact details
     notes: jsonb("notes").$type<{ title: string; background: string }[]>().notNull().default([]),
     contacts: jsonb("contacts").$type<Contacts>(),
     // Filing progress: submitted, then done once the office approves; never set by opening a link
@@ -545,9 +545,9 @@ export const websitePlans = pgTable("website_plans", {
   moreOptions: jsonb("more_options").$type<MoreOptions>(),
   // "Explain more" answers, by option key, so each is written once
   explanations: jsonb("explanations").$type<Record<string, OptionExplanation>>().notNull().default({}),
-  // The site First Sale builds: look, parts shown, and each item's price, photo and buy link
+  // The site SnapStart builds: look, parts shown, and each item's price, photo and buy link
   design: jsonb("design").$type<SiteDesign>(),
-  // Demo finish of the site First Sale builds; nothing is published
+  // Demo finish of the site SnapStart builds; nothing is published
   finished: jsonb("finished").$type<SiteFinish>(),
   // A site the owner already has, connected in the demo
   existingSite: jsonb("existing_site").$type<ExistingSite>(),
@@ -718,7 +718,7 @@ export const businessInsights = pgTable("business_insights", {
   updatedAt: updatedAt(),
 });
 
-// "I already have this" for a step done outside First Sale, with the owner's link or note. A row means done.
+// "I already have this" for a step done outside SnapStart, with the owner's link or note. A row means done.
 export const journeyMarks = pgTable(
   "journey_marks",
   {
@@ -763,3 +763,11 @@ export const brandLibraryFiles = pgTable(
   },
   (table) => [index("brand_library_files_business_idx").on(table.businessId, table.group)],
 );
+
+export const operationSetups = pgTable("operation_setups", {
+  businessId: businessId(),
+  kind: text("kind", { enum: ["email", "requests"] }).notNull(),
+  config: jsonb("config").$type<import("@/lib/rules/operations").OperationSetup>().notNull(),
+  paused: boolean("paused").notNull().default(false),
+  updatedAt: updatedAt(),
+}, (table) => [primaryKey({ columns: [table.businessId, table.kind] })]);

@@ -110,7 +110,7 @@ function Paste({ value }: { value: PasteValue }) {
   }
 }
 
-// The owner ticks off each step they've done on the platform; First Sale can't do these for them
+// The owner ticks off each step they've done on the platform; SnapStart can't do these for them
 export function SetupChecklist({ steps, done }: { steps: ChecklistStep[]; done: string[] }) {
   const [pending, setPending] = useState<string | null>(null);
   const [ticked, setTicked] = useState<string | null>(null);
@@ -125,7 +125,7 @@ export function SetupChecklist({ steps, done }: { steps: ChecklistStep[]; done: 
       const result = await setSetupStepAction({ key, done: checked });
       if (!result.ok) setError(result.message);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(null);
     }

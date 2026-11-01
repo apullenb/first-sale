@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FIRST_SALE_SITE_MONTHLY_USD, PLATFORM_DATA, PLATFORM_ORDER } from "@/data/website-platforms";
+import { SNAPSTART_SITE_MONTHLY_USD, PLATFORM_DATA, PLATFORM_ORDER } from "@/data/website-platforms";
 import { comparePlan, costSummary, feeText, firstYearText } from "./costs";
 import type { PlatformInfo } from "./platforms";
 import { finishStands } from "./site/finish";
@@ -86,10 +86,10 @@ describe("costSummary", () => {
     expect(line(PLATFORM_DATA.wix, "domain")).toMatchObject({ amount: { kind: "free_first_year" }, counted: true });
   });
 
-  it("prices the First Sale site from its demo constant, leaving out what isn't known", () => {
+  it("prices the SnapStart site from its demo constant, leaving out what isn't known", () => {
     const site = costSummary(PLATFORM_DATA.first_sale);
     expect(PLATFORM_DATA.first_sale.demoPrice).toBe(true);
-    expect(site).toMatchObject({ monthlyUsd: FIRST_SALE_SITE_MONTHLY_USD, firstYearUsd: FIRST_SALE_SITE_MONTHLY_USD * 12, from: false });
+    expect(site).toMatchObject({ monthlyUsd: SNAPSTART_SITE_MONTHLY_USD, firstYearUsd: SNAPSTART_SITE_MONTHLY_USD * 12, from: false });
     expect(site.extras.filter((each) => !each.counted).map((each) => each.term)).toEqual(["domain", "email", "checkout"]);
   });
 

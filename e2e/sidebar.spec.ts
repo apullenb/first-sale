@@ -7,7 +7,7 @@ async function markHave(page: Page, path: string, label: string) {
   await open(page, path);
   await page.getByRole("button", { name: label }).click();
   const panel = page.getByRole("region", { name: label });
-  await panel.getByRole("textbox", { name: /Note for your records/ }).fill("Done before First Sale");
+  await panel.getByRole("textbox", { name: /Note for your records/ }).fill("Done before SnapStart");
   await panel.getByRole("button", { name: "Mark as done" }).click();
   await expect(page.getByText("You already have this.")).toBeVisible();
 }

@@ -46,7 +46,7 @@ export default function WebsitePage() {
       <PageHead
         kicker={<Kicker icon="globe">Build your brand · Step 3</Kicker>}
         title="Create your website"
-        lead="Compare the packages, pick one, and First Sale helps you build it. With a First Sale site, we build it from your choices; with Square, Wix or Shopify, you get steps with your words ready to paste."
+        lead="Compare the packages, pick one, and SnapStart helps you build it. With a SnapStart site, we build it from your choices; with Square, Wix or Shopify, you get steps with your words ready to paste."
       />
       <Suspense fallback={<p className="text-muted">Loading your website plan…</p>}>
         <WebsitePlanView />
@@ -139,9 +139,9 @@ async function WebsitePlanView() {
         ) : (
           cards
         )}
-        <Fold open={Boolean(plan?.moreOptions)} icon="search" title="Want to see other options?" summary="First Sale can search the web for more builders">
+        <Fold open={Boolean(plan?.moreOptions)} icon="search" title="Want to see other options?" summary="SnapStart can search the web for more builders">
           <div className="@container flex flex-col gap-3">
-            <p className="text-rule">These four fit most first websites. To compare others, First Sale can search the web for more builders, with their prices, pros and cons.</p>
+            <p className="text-rule">These four fit most first websites. To compare others, SnapStart can search the web for more builders, with their prices, pros and cons.</p>
             {optionsRun && (optionsRun.status === "running" || optionsRun.message === CUT_OFF_MESSAGE) ? (
               <RunStatus status={optionsRun.status === "running" ? "running" : "failed"} message={null} what="Searching for more options" />
             ) : null}
@@ -241,7 +241,7 @@ async function WebsitePlanView() {
               <section aria-labelledby="step-design" className="flex flex-col gap-4">
                 <SectionHead id="step-design" number={4} title="Design it and see it live" />
                 <Card>
-                  <p className="text-muted">Draft your pages in step 3, and First Sale builds a live preview of your site here for you to change.</p>
+                  <p className="text-muted">Draft your pages in step 3, and SnapStart builds a live preview of your site here for you to change.</p>
                 </Card>
               </section>
             )
@@ -397,7 +397,7 @@ function BuildSteps({ site, platformId }: { site: LoadedSite; platformId: Platfo
         id="step-build"
         number={4}
         title={`Build it on ${platform.name}`}
-        lead={`You set up the site yourself on ${platform.name}; First Sale can’t sign in or pay for you. Each step says where to click, links to that page on ${platform.name}, and has your own words, colors, logo and item details ready to paste.`}
+        lead={`You set up the site yourself on ${platform.name}; SnapStart can’t sign in or pay for you. Each step says where to click, links to that page on ${platform.name}, and has your own words, colors, logo and item details ready to paste.`}
       />
       <Card bodyClassName="gap-4">
         {platform.signupUrl ? (

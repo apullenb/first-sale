@@ -72,7 +72,7 @@ function launchLabel(date: string): string {
   return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
-// What the plan uses that the owner already told First Sale
+// What the plan uses that the owner already told SnapStart
 function knownFacts(profile: BusinessProfile, hasLogo: boolean, website: string | null) {
   const sells = profile.firstItems || examplesText(profile.category, profile.productTags) || profile.offeringKinds.map((kind) => OFFERING_KIND_LABELS[kind]).join(", ");
   return [
@@ -162,7 +162,7 @@ async function MarketingView() {
           <Completed eyebrow="Your marketing plan" title="You already have a marketing plan">
             {alreadyHave}
           </Completed>
-          <Revisit label="Revisit this step" summary="Answer the questions here after all, and First Sale writes a plan with you.">
+          <Revisit label="Revisit this step" summary="Answer the questions here after all, and SnapStart writes a plan with you.">
             {questions}
           </Revisit>
         </>
@@ -263,7 +263,7 @@ function NextCard({
         <p className="text-[16.5px] text-muted">
           {move.again
             ? "Write your plan again so it matches your new answers."
-            : "First Sale looks at everything you’ve told it, from what you sell to your budget, launch date, brand and website, and drafts a plan for you to check."}
+            : "SnapStart looks at everything you’ve told it, from what you sell to your budget, launch date, brand and website, and drafts a plan for you to check."}
         </p>
         {runNotice}
         {running ? null : <WritePlanButton again={move.again} />}

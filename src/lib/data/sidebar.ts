@@ -13,7 +13,7 @@ export interface SidebarFacts {
   documents: { role: string | null; answers: DraftAnswers; factsUsed: Record<string, string> | null }[];
   logoChosen: boolean;
   brandDescribed: boolean;
-  // The demo finish of a First Sale site, or a connected existing site
+  // The demo finish of a SnapStart site, or a connected existing site
   websiteFinished: boolean;
   websiteConnected: boolean;
   products: number;

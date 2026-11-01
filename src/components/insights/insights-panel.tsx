@@ -92,7 +92,7 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
     } catch {
       focusNext.current = "button";
       ticker.stop();
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     }
   }
 
@@ -105,7 +105,7 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
         const result = await markInsightAction({ key: item.key, mark: value });
         if (!result.ok) setError(result.message);
       } catch {
-        setError("Couldn’t reach First Sale. Check your connection and try again.");
+        setError("Couldn’t reach SnapStart. Check your connection and try again.");
       }
     });
   }
@@ -151,7 +151,7 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
           </h2>
         </div>
         <p className="text-rule">
-          First Sale reads what you’ve told it so far, like your answers, licenses and registrations, brand and website, and shares what’s strong, a few
+          SnapStart reads what you’ve told it so far, like your answers, licenses and registrations, brand and website, and shares what’s strong, a few
           things to keep an eye on, tips for success and creative ideas.
         </p>
         {practice ? (
@@ -235,7 +235,7 @@ function SavedInsights({ insights, marks, changed, onMark, refreshButton, errorA
 
       <footer className="flex flex-col gap-3 border-t border-line pt-5">
         <p className="text-sm text-muted">
-          Anything about laws, permits, taxes or fees links to pages First Sale checked against official sources. Points that state their own
+          Anything about laws, permits, taxes or fees links to pages SnapStart checked against official sources. Points that state their own
           rules, fees or numbers are left out.
           {insights.removed > 0
             ? ` This time ${insights.removed === 1 ? "one point was" : `${insights.removed} points were`} left out to keep this kind, short and true to your facts.`

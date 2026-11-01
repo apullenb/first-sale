@@ -56,7 +56,7 @@ interface Props {
   initial: StoredIntake | null;
   // A plan exists, so saving can skip writing a new one
   hasPlan: boolean;
-  // What First Sale already knows, so it isn't asked again
+  // What SnapStart already knows, so it isn't asked again
   known: { label: string; value: string }[];
   // Editing saved answers: closes the form after a cancel or a save without a new plan
   onDone?: () => void;
@@ -129,7 +129,7 @@ export function MarketingIntakeForm({ initial, hasPlan, known, onDone }: Props) 
         onDone?.();
       });
     } catch (problem) {
-      setError(problem instanceof Error && problem.message !== "Failed to fetch" ? problem.message : "Couldn’t reach First Sale. Check your connection and try again.");
+      setError(problem instanceof Error && problem.message !== "Failed to fetch" ? problem.message : "Couldn’t reach SnapStart. Check your connection and try again.");
       setPhase("form");
     }
   }

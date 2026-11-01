@@ -48,7 +48,7 @@ export interface PlanTaskDraft {
   alreadyHave: string | null;
   // The model's condition, asked of the owner on What applies to you; empty when it doesn't depend on one
   question: string;
-  // Why First Sale decided this applies, when no official page spells it out
+  // Why SnapStart decided this applies, when no official page spells it out
   notes?: { title: string; background: string }[];
   // Read from the office's official pages
   contacts?: Contacts | null;
@@ -127,7 +127,7 @@ export function buildPlan(
   const drafts = requirements.map((requirement, index): PlanTaskDraft => {
     const cited = requirement.sourceIds.flatMap((id) => byId.get(id) ?? []);
     const sourced = requirement.verification === "sourced";
-    // First Sale decides; the reason it gives (notes) replaces any doubt passed on to the owner
+    // SnapStart decides; the reason it gives (notes) replaces any doubt passed on to the owner
     const uncertainty: string[] = [];
 
     return {
@@ -226,7 +226,7 @@ function askByOffice(drafts: PlanTaskDraft[], requirements: readonly CheckedRequ
       ...members[0],
       key,
       title: `Ask ${name} about ${members.length} rules`,
-      why: `First Sale searched ${name}’s official site and couldn’t settle ${LIST.format(members.map((member) => member.title.replace(/^./, (first) => first.toLowerCase())))}. One message to ${name} covers ${members.length === 2 ? "both" : "all of them"}.`,
+      why: `SnapStart searched ${name}’s official site and couldn’t settle ${LIST.format(members.map((member) => member.title.replace(/^./, (first) => first.toLowerCase())))}. One message to ${name} covers ${members.length === 2 ? "both" : "all of them"}.`,
       agency: office.name,
       links,
       prepare: [...new Set(members.flatMap((member) => member.prepare))].slice(0, 8),

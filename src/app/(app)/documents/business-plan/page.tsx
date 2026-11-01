@@ -31,7 +31,7 @@ export default function BusinessPlanPage() {
             </span>
           }
           title="Your business plan"
-          lead="A formal plan that describes your business, what you sell, who buys it and how you’ll run it. Check what First Sale already knows, answer a few questions, then review the draft and save it."
+          lead="A formal plan that describes your business, what you sell, who buys it and how you’ll run it. Check what SnapStart already knows, answer a few questions, then review the draft and save it."
         />
       </div>
       <Suspense fallback={<p className="text-muted">Loading your business plan…</p>}>

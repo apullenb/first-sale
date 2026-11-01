@@ -32,7 +32,7 @@ export function AskForm({ documentId, fields, maxQuestion }: Props) {
         setFieldId("");
       }
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }

@@ -113,7 +113,7 @@ async function makeVersion(photoId: string, input: Omit<MakeVersionInput, "origi
       return null;
     }
   })();
-  if (!image) return { ok: false, message: "Photo editing isn’t turned on for First Sale yet." };
+  if (!image) return { ok: false, message: "Photo editing isn’t turned on for SnapStart yet." };
   const original = await getMyPhotoFile(photoId);
   if (!original) return { ok: false, message: NOT_FOUND };
 

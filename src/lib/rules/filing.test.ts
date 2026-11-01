@@ -38,7 +38,7 @@ describe("filingSteps", () => {
     const cost = lines(steps, "cost");
     expect(cost[0]).toMatchObject({ text: "Fee: $25 to file.", source: { url: "https://www.sos.texas.gov/corp/forms/503_boc.pdf", checkedOn: "2026-10-27" } });
     expect(cost[1].text).toBe("Deadline: none found on an official page.");
-    expect(lines(steps, "submit").at(-1)!.text).toMatch(/First Sale never files anything/);
+    expect(lines(steps, "submit").at(-1)!.text).toMatch(/SnapStart never files anything/);
     expect(lines(steps, "after").at(-1)!.text).toBe("Then you can start “Get an EIN”.");
   });
 
@@ -82,7 +82,7 @@ describe("filingPaths", () => {
       "Not filed: you sign and send it yourself",
     ]);
     expect(paths.online).toMatchObject({ url: "https://sa.www4.irs.gov/modiein/individual/index.jsp", checkedByHand: "2026-10-27" });
-    expect(paths.online!.send.at(-1)!.text).toMatch(/First Sale never files anything/);
+    expect(paths.online!.send.at(-1)!.text).toMatch(/SnapStart never files anything/);
   });
 
   it("gives the mailing address of a form that's otherwise filed online", () => {

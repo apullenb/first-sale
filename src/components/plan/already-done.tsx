@@ -107,14 +107,14 @@ function MarkDone({
           return;
         }
       }
-      const result = await setStepStatusAction({ stepId, status: "done", note: "Done before or outside First Sale", confirmed });
+      const result = await setStepStatusAction({ stepId, status: "done", note: "Done before or outside SnapStart", confirmed });
       if (!result.ok) setError(result.message);
       else {
         celebrate(title);
         router.refresh();
       }
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }
@@ -139,7 +139,7 @@ function MarkDone({
       <p className="text-sm text-muted">It’s saved to this step in your library.</p>
       <label className="flex min-h-11 items-start gap-3">
         <input type="checkbox" className="mt-1 size-5 shrink-0 accent-accent" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
-        <span>I finished this step myself, before or outside First Sale.</span>
+        <span>I finished this step myself, before or outside SnapStart.</span>
       </label>
       <div className="flex flex-wrap gap-2.5">
         <button type="button" disabled={pending || !confirmed} onClick={save} className={PRIMARY}>

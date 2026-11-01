@@ -64,7 +64,7 @@ export function mockResearch(
     whoToCall: "a small business counselor (SBA or SCORE)",
     whatToAsk: ["Which structure fits a business like mine?", "What does each one cost to set up and keep up?"],
     gather: ["How many owners there are", "How much risk your business could carry"],
-    doneWhen: "You’ve picked a structure and noted it in First Sale.",
+    doneWhen: "You’ve picked a structure and noted it in SnapStart.",
   });
 
   if (texas("tx-sos-205")) {
@@ -143,7 +143,7 @@ export function mockResearch(
         ...county,
         title: "File an assumed name certificate with your county clerk",
         agency: "Your county clerk",
-        whyItApplies: `You plan to sell as “${sellsAs}”. A Texas business that isn’t incorporated usually records its assumed name with the county clerk. First Sale couldn’t read your county’s pages to confirm.`,
+        whyItApplies: `You plan to sell as “${sellsAs}”. A Texas business that isn’t incorporated usually records its assumed name with the county clerk. SnapStart couldn’t read your county’s pages to confirm.`,
         whoToCall: "your county clerk",
         whatToAsk: [`Do I need to file an assumed name certificate for “${sellsAs}”?`, "What’s the fee, and how long does it last?"],
       });
@@ -357,7 +357,7 @@ export function mockResearch(
       level: "federal",
       agency: "U.S. Consumer Product Safety Commission",
       applicability: "outside_coverage",
-      whyItApplies: `${profile.makesForKids === "yes" ? "You make things for children." : "You weren’t sure whether you make things for children."} Federal safety rules for children’s products can require testing and labels. First Sale doesn’t research product safety rules.`,
+      whyItApplies: `${profile.makesForKids === "yes" ? "You make things for children." : "You weren’t sure whether you make things for children."} Federal safety rules for children’s products can require testing and labels. SnapStart doesn’t research product safety rules.`,
       whoToCall: "the U.S. Consumer Product Safety Commission",
       whatToAsk: ["Which children’s product rules apply to what I make?", "Do small makers need third-party testing?"],
     });
@@ -370,7 +370,7 @@ export function mockResearch(
       level: "federal",
       agency: "U.S. Food and Drug Administration",
       applicability: "outside_coverage",
-      whyItApplies: `${profile.foodContact === "yes" ? "Some of what you make will touch food, like cutting boards or bowls." : "You weren’t sure whether what you make will touch food."} Finishes and materials for food-contact items have federal rules First Sale doesn’t research.`,
+      whyItApplies: `${profile.foodContact === "yes" ? "Some of what you make will touch food, like cutting boards or bowls." : "You weren’t sure whether what you make will touch food."} Finishes and materials for food-contact items have federal rules SnapStart doesn’t research.`,
       whoToCall: "the U.S. Food and Drug Administration",
       whatToAsk: ["Which finishes are allowed on items that touch food?"],
     });
@@ -384,7 +384,7 @@ export function mockResearch(
       agency: "Each state you ship to",
       applicability: "outside_coverage",
       timing: "later",
-      whyItApplies: "You plan to ship to other states. Some states require sellers to collect their sales tax once sales there pass a limit. First Sale only researches your own state.",
+      whyItApplies: "You plan to ship to other states. Some states require sellers to collect their sales tax once sales there pass a limit. SnapStart only researches your own state.",
       whoToCall: "each state’s department of revenue",
       whatToAsk: ["At what level of sales must an out-of-state seller collect your sales tax?"],
     });
@@ -398,7 +398,7 @@ export function mockResearch(
     level: "city",
     agency: "Your city or county clerk",
     whyItApplies: austinHome
-      ? "Austin says it can’t require permits for most home businesses, but First Sale couldn’t confirm whether another city or county license applies to what you do."
+      ? "Austin says it can’t require permits for most home businesses, but SnapStart couldn’t confirm whether another city or county license applies to what you do."
       : atHome
         ? "Many cities license home-based businesses too."
         : "Many cities license businesses that operate inside city limits.",

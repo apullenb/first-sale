@@ -56,7 +56,7 @@ describe("versions built from the logo", () => {
     const blank = buildVersion(pngBytes(300, 200, 255), "stacked", { letters: 5, ink: "#111111" });
     expect(blank).toMatchObject({ ok: false, confidence: 0 });
     const svg = buildVersion(new TextEncoder().encode("<svg/>"), "profile", { letters: 5, ink: "#111111" });
-    expect(svg).toMatchObject({ ok: false, note: "The logo file isn’t a PNG First Sale can take apart." });
+    expect(svg).toMatchObject({ ok: false, note: "The logo file isn’t a PNG SnapStart can take apart." });
     const wrongName = buildVersion(dog.bytes, "stacked", { letters: 60, ink: "#111111" });
     expect(wrongName.ok).toBe(false);
     expect(wrongName.note).toContain("letter shapes where the name has 60 letters");

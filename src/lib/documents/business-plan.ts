@@ -5,7 +5,7 @@ import type { PdfSpec } from "./pdf-writer";
 import type { PlanStepFact, Sells } from "./plan-facts";
 import type { PlanSection } from "./types";
 
-// A formal business plan. AI writes from facts First Sale holds and the owner's answers; code sets the headings and flags any number they didn't give.
+// A formal business plan. AI writes from facts SnapStart holds and the owner's answers; code sets the headings and flags any number they didn't give.
 
 export const BUSINESS_PLAN_SCHEMA_NAME = "business_plan";
 
@@ -124,7 +124,7 @@ export function businessPlanPdf(title: string, sections: readonly PlanSection[],
     subtitle: `Prepared ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
     notice: simulated ? "Practice draft: written by built-in rules, not by the AI service." : undefined,
     blocks: sections.map((section, index) => ({ heading: `${index + 1}. ${section.heading}`, paragraphs: section.body.split(/\n\s*\n/).filter((part) => part.trim()) })),
-    footer: "Business plan prepared with First Sale",
+    footer: "Business plan prepared with SnapStart",
   };
 }
 

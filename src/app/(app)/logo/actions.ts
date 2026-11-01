@@ -9,8 +9,8 @@ import { MAX_UPLOAD_BYTES } from "@/lib/documents/upload";
 
 const UPLOAD_MESSAGES = {
   no_business: "Tell us about your business first.",
-  too_many: "You’ve made as many brand files as First Sale can keep. Remove logo ideas you don’t need, then try again.",
-  too_large: "Your brand files are taking up all the space First Sale allows. Remove logo ideas you don’t need, then try again.",
+  too_many: "You’ve made as many brand files as SnapStart can keep. Remove logo ideas you don’t need, then try again.",
+  too_large: "Your brand files are taking up all the space SnapStart allows. Remove logo ideas you don’t need, then try again.",
 } as const;
 
 // The owner's own logo: kept byte for byte and chosen at once. The browser's key makes a retry return the same file.

@@ -28,7 +28,7 @@ function useAnswer(stepKey: string, condition: string) {
       if (!result.ok) setError(result.message);
       return result.ok;
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
       return false;
     } finally {
       setPending(false);

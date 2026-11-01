@@ -65,7 +65,7 @@ test.describe("what applies to you and the paperwork", () => {
     const already = page.getByRole("region", { name: "Already done" });
     await already.locator("input[type=file]").setInputFiles({ name: "approval.pdf", mimeType: "application/pdf", buffer: pdfBuffer("Approval letter") });
     await expect(already.getByRole("button", { name: "Mark it done" })).toBeDisabled();
-    await already.getByText("I finished this step myself, before or outside First Sale.").click();
+    await already.getByText("I finished this step myself, before or outside SnapStart.").click();
     await already.getByRole("button", { name: "Mark it done" }).click();
     await expect(page.getByRole("status").filter({ hasText: `Done: ${stepTitle}` })).toBeAttached();
     await expect(page.getByRole("group").filter({ hasText: "Documents for this step" }).first()).not.toContainText("None saved yet");
@@ -80,7 +80,7 @@ test.describe("what applies to you and the paperwork", () => {
     const depends = page.getByRole("region", { name: "Depends on where you are" });
     await expect(depends.getByRole("link", { name: "General business license" })).toBeVisible();
 
-    const more = await openFold(page, "More First Sale looked into");
+    const more = await openFold(page, "More SnapStart looked into");
     await expect(more.getByText(/Practice answer:/).first()).toBeVisible();
 
     // Steps for a structure stay locked until it's decided
@@ -143,7 +143,7 @@ test.describe("what applies to you and the paperwork", () => {
     await expect(answers.getByRole("textbox", { name: "Applicant: Applicant’s phone number" })).toHaveValue(candles.details.phone);
     await expect(answers.getByRole("textbox", { name: "Line 8b: Number of LLC members" })).toHaveValue("2");
     // ID numbers and signatures are always left for the owner
-    await expect(answers.getByText("First Sale never fills in ID numbers, signatures or sworn statements.", { exact: false }).first()).toBeVisible();
+    await expect(answers.getByText("SnapStart never fills in ID numbers, signatures or sworn statements.", { exact: false }).first()).toBeVisible();
     await answers.getByRole("textbox", { name: "Line 7a: Name of the responsible party (the owner in control)" }).fill(candles.ownerName);
     await answers.getByRole("button", { name: "Confirm all filled answers" }).click();
     await expect(answers.getByRole("checkbox", { name: "Confirm Line 7a: Name of the responsible party (the owner in control)" })).toBeChecked();

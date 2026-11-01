@@ -47,7 +47,7 @@ export function samplesFromMessage(message: string): InsightsReply {
   } else if (checked) {
     strengths.push(item("You looked up the rules early", "You already know what applies where you are, so there are fewer surprises later.", "", "requirements"));
   } else {
-    strengths.push(item("You’re asking the right questions early", "Answering First Sale’s questions before you spend money is a smart way to start.", "", "business"));
+    strengths.push(item("You’re asking the right questions early", "Answering SnapStart’s questions before you spend money is a smart way to start.", "", "business"));
   }
 
   const watch: InsightReplyItem[] = [];
@@ -55,8 +55,8 @@ export function samplesFromMessage(message: string): InsightsReply {
     watch.push(
       item(
         "See which rules apply to you",
-        "Every place has its own rules for new businesses. First Sale reads the official pages for where you are and works out what applies.",
-        "Open What applies to you, and First Sale starts checking.",
+        "Every place has its own rules for new businesses. SnapStart reads the official pages for where you are and works out what applies.",
+        "Open What applies to you, and SnapStart starts checking.",
         "requirements",
       ),
     );
@@ -69,7 +69,7 @@ export function samplesFromMessage(message: string): InsightsReply {
     watch.push(
       item(
         "A few answers are still open",
-        "Some answers are marked “not sure”. That’s normal at this stage, and settling them helps First Sale tailor your steps.",
+        "Some answers are marked “not sure”. That’s normal at this stage, and settling them helps SnapStart tailor your steps.",
         "Look over your answers when you know more.",
         "business",
       ),

@@ -8,7 +8,7 @@ import { STATUS_LABELS, type RequirementStatus } from "@/lib/research/applicabil
 import type { PlatformId } from "@/lib/website/types";
 import { FACT_AREAS, type FactArea, type InsightFeedback } from "./types";
 
-// Everything First Sale knows that helps with feedback. Owner names, addresses, emails and phone numbers stay out.
+// Everything SnapStart knows that helps with feedback. Owner names, addresses, emails and phone numbers stay out.
 
 export interface InsightInputs {
   profile: BusinessProfile;
@@ -157,7 +157,7 @@ function planCounts(inputs: InsightInputs) {
   return { stepsBeforeSelling: required.length, stepsBeforeSellingDone: required.filter((step) => step.status === "done").length };
 }
 
-// Counts and dates First Sale works out itself, which the model may repeat
+// Counts and dates SnapStart works out itself, which the model may repeat
 export function appNumbers(inputs: InsightInputs, today: Date): Set<string> {
   const counts = planCounts(inputs);
   const values = [
@@ -174,7 +174,7 @@ export function appNumbers(inputs: InsightInputs, today: Date): Set<string> {
   return new Set(values.flatMap((value) => (typeof value === "number" ? [String(Math.abs(value))] : [])));
 }
 
-// Numbers the owner gave, like their budget, launch date or prices; counts First Sale adds don't count
+// Numbers the owner gave, like their budget, launch date or prices; counts SnapStart adds don't count
 export function ownerNumbers(inputs: InsightInputs): Set<string> {
   const text = [
     ...answerRows(inputs.profile).map((row) => row.value),

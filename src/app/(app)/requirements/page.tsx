@@ -40,7 +40,7 @@ export default function RequirementsPage() {
           </span>
         }
         title="What applies to you"
-        lead={`First Sale checks official government sites and works out every rule that fits your business. If something turns on your plans, it asks you. About ${formatMinutes(CHECK_MINUTES)}.`}
+        lead={`SnapStart checks official government sites and works out every rule that fits your business. If something turns on your plans, it asks you. About ${formatMinutes(CHECK_MINUTES)}.`}
       />
       <Suspense fallback={<p className="text-muted">Loading what applies to you…</p>}>
         <Requirements />
@@ -166,7 +166,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
   const groupOf = (key: string) => view.groups.find((group) => group.tasks.some((task) => task.step.key === key)) ?? null;
   const open = view.open.length;
   const applies = view.tasks.length;
-  // Looked into and decided against, each with First Sale's reason
+  // Looked into and decided against, each with SnapStart's reason
   const notNeeded = research.requirements.filter((requirement) => classify(requirement, context.profile, place, decision).status === "not_needed");
   const answers = research.openQuestions.filter((item) => item.answer);
   // The deeper look didn't finish, such as after a failed attempt: it runs again now
@@ -199,7 +199,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
           ) : (
             <p>Some of your answers changed.</p>
           )}
-          <p className="text-rule">First Sale is updating what applies for these answers. Steps you’ve finished stay finished.</p>
+          <p className="text-rule">SnapStart is updating what applies for these answers. Steps you’ve finished stay finished.</p>
           <CheckRequirementsButton label="Update my steps" variant="primary" auto from={recheck ? "check" : "replan"} />
         </section>
       ) : null}
@@ -225,7 +225,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
             About your plans
           </h2>
           <p className="text-[15px] text-muted">
-            First Sale works out the rules. These are about what you plan to do, so it can tell you exactly which ones are yours. If you haven’t decided, say so: the step stays in your plan so you’re covered.
+            SnapStart works out the rules. These are about what you plan to do, so it can tell you exactly which ones are yours. If you haven’t decided, say so: the step stays in your plan so you’re covered.
           </p>
         </div>
         {questions.length ? (
@@ -253,7 +253,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
                   )}
                   <span className="text-[15px] text-rule">{standing.place[0]}</span>
                   {standing.inclusion === "check_place" ? (
-                    <span className="text-sm text-muted">Add where you are to your answers, and First Sale settles this.</span>
+                    <span className="text-sm text-muted">Add where you are to your answers, and SnapStart settles this.</span>
                   ) : null}
                 </li>
               ))}
@@ -281,7 +281,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
           </Card>
         ) : null}
         {answered.length ? (
-          <Fold title={`Your answers (${answered.length})`} summary="What you told First Sale about your plans" icon="check">
+          <Fold title={`Your answers (${answered.length})`} summary="What you told SnapStart about your plans" icon="check">
             <ul className="flex flex-col divide-y divide-line">
               {answered.map((standing) => (
                 <AnsweredRow key={standing.step.id} standing={standing} group={groupOf(standing.step.key)} />
@@ -311,7 +311,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
         ) : null}
 
         {notNeeded.length ? (
-          <Fold title={`Not needed for your business (${notNeeded.length})`} summary="First Sale looked into these, and they don’t apply to you" icon="minus">
+          <Fold title={`Not needed for your business (${notNeeded.length})`} summary="SnapStart looked into these, and they don’t apply to you" icon="minus">
             <ul className="flex flex-col divide-y divide-line">
               {notNeeded.map((requirement) => (
                 <li key={requirement.id} className="flex flex-col gap-0.5 py-2.5 first:pt-0 last:pb-0">
@@ -331,7 +331,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
         ) : null}
 
         {outside.length ? (
-          <Fold title={`Outside what First Sale checks (${outside.length})`} summary="Rules First Sale doesn’t research, and who does" icon="external">
+          <Fold title={`Outside what SnapStart checks (${outside.length})`} summary="Rules SnapStart doesn’t research, and who does" icon="external">
             <ShortList
               items={outside.map((standing) => ({
                 key: standing.step.id,
@@ -370,7 +370,7 @@ function Results({ profile, research, paper }: { profile: BusinessProfile; resea
         ) : null}
 
         {answers.length ? (
-          <Fold title={`More First Sale looked into (${answers.length})`} summary="Questions that came up while checking, and what they mean for you" icon="search">
+          <Fold title={`More SnapStart looked into (${answers.length})`} summary="Questions that came up while checking, and what they mean for you" icon="search">
             <ul className="flex flex-col gap-2.5">
               {answers.map((item, index) => (
                 <li key={index} className="flex flex-col gap-1 rounded-xl border border-line bg-soft px-3.5 py-3">

@@ -4,7 +4,7 @@ export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 128;
 export const NAME_MAX_LENGTH = 100;
 
-export const NETWORK_ERROR_MESSAGE = "Couldn’t reach First Sale. Check your connection and try again.";
+export const NETWORK_ERROR_MESSAGE = "Couldn’t reach SnapStart. Check your connection and try again.";
 
 export function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());

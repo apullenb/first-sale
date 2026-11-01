@@ -68,7 +68,7 @@ test.describe("documents", () => {
     await open(page, "/documents");
     await page.getByRole("link", { name: "Generate your business plan" }).click();
     await page.waitForURL("**/documents/business-plan");
-    const known = page.getByRole("region", { name: "What First Sale already knows" });
+    const known = page.getByRole("region", { name: "What SnapStart already knows" });
     await expect(known.getByText(candles.businessName)).toBeVisible();
     await expect(known.getByText("Limited liability company (LLC)")).toBeVisible();
 

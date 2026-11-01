@@ -24,7 +24,7 @@ export function ApprovePanel({ photoId, versionId, preview }: { photoId: string;
       const result = await approveVersionAction({ photoId, versionId, confirmed: true });
       if (!result.ok) setError(result.message);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection, then try again.");
+      setError("Couldn’t reach SnapStart. Check your connection, then try again.");
     } finally {
       setPending(false);
     }

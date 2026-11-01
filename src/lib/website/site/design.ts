@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { WebsiteCopy } from "@/lib/website/types";
 
-// The owner's choices for the site First Sale builds: look, which parts show, and each item's price, photo and buy link.
+// The owner's choices for the site SnapStart builds: look, which parts show, and each item's price, photo and buy link.
 // Plain data, so client components and the schema can import it.
 
 export const SITE_STYLES = ["clean", "bold", "warm"] as const;

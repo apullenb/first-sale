@@ -96,7 +96,7 @@ async function Logo({ searchParams }: { searchParams: SearchParams }) {
   const blocked = !storyReady
     ? "Approve your brand description in step 1 first. Your logo ideas are drawn from it."
     : !image?.generate
-      ? "Logo drawing isn’t turned on for First Sale yet."
+      ? "Logo drawing isn’t turned on for SnapStart yet."
       : ideasRun?.status === "running"
         ? "Logo ideas are being written right now. This page will update when they’re ready."
         : null;
@@ -106,7 +106,7 @@ async function Logo({ searchParams }: { searchParams: SearchParams }) {
     <AlreadyHave
       markKey="logo"
       label="I already have a logo"
-      help="Upload your logo, and First Sale uses it for your logo versions, brand images and website. Or just mark this step done if you’d rather keep your logo files elsewhere."
+      help="Upload your logo, and SnapStart uses it for your logo versions, brand images and website. Or just mark this step done if you’d rather keep your logo files elsewhere."
       done={mark ? { url: mark.url, note: mark.note } : null}
     >
       <LogoUpload businessName={brief.name} maxBytes={MAX_UPLOAD_BYTES} replacing={false} />
@@ -165,7 +165,7 @@ async function Logo({ searchParams }: { searchParams: SearchParams }) {
         <Completed eyebrow="Your logo" title="You already have a logo">
           {alreadyHave}
         </Completed>
-        <Revisit label="Revisit this step" summary="Make logo ideas here after all, or upload your logo so First Sale can use it.">
+        <Revisit label="Revisit this step" summary="Make logo ideas here after all, or upload your logo so SnapStart can use it.">
           {making}
         </Revisit>
       </>
@@ -284,9 +284,9 @@ async function ChosenView({ chosen, state, brief, practice }: { chosen: AssetSum
           <Note icon="info" tone="quiet">
             <p className="font-semibold text-rule">What works differently with a logo you uploaded</p>
             <ul className="mt-1 flex list-disc flex-col gap-1 pl-5">
-              <li>First Sale never changes your file. Edits, versions and pictures are new files made from it.</li>
+              <li>SnapStart never changes your file. Edits, versions and pictures are new files made from it.</li>
               <li>Quick changes, like new colors or lettering in one click, are only for logos drawn here. “Edit my logo” works on yours: say what to change.</li>
-              <li>First Sale doesn’t know your logo’s lettering, so the logo guide doesn’t suggest matching fonts.</li>
+              <li>SnapStart doesn’t know your logo’s lettering, so the logo guide doesn’t suggest matching fonts.</li>
               {chosen.mimeType === "image/webp" ? <li>The logo guide can’t hold a WebP picture, so it points to your logo file instead. Upload a PNG to have it in the guide.</li> : null}
             </ul>
           </Note>

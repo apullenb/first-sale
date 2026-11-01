@@ -57,7 +57,7 @@ export function profileImpact(before: BusinessProfile, after: BusinessProfile, c
       context.researchCheckedAt
         ? {
             title: "What applies to you",
-            detail: "First Sale updates it for your new answers when you open it.",
+            detail: "SnapStart updates it for your new answers when you open it.",
             href: "/requirements",
           }
         : { title: "What applies to you", detail: "It’ll use your new answers when you find what applies.", href: "/requirements" },

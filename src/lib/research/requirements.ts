@@ -79,8 +79,8 @@ List the requirements that apply to this business, most important first:
 - Also list state, county and city requirements that commonly apply to a business like this one but that no source here covers. Use an empty sourceIds and null evidence for those. Missing sources never mean a requirement doesn't exist.
 - whyItApplies: one or two plain sentences that tie the requirement to this owner's answers. When it depends on something, say what it depends on instead of saying it definitely applies.
 - Each requirement is one specific thing to do, such as a named license, permit, registration or tax account. Never a catch-all like "Check county rules" or "Confirm city requirements": what you couldn't settle goes in openQuestions.
-- applicability: "applies" when the sources and the owner's answers show it applies, and also when it commonly applies but no source here confirms it (empty sourceIds: First Sale looks deeper and decides); "conditional" only when it turns on a fact about the owner's own business or plans that their answers don't settle, and then condition is a short yes-or-no question about what the owner will do, in everyday words, such as "Will customers come to your home?" or "Will you sell at farmers markets or fairs?"; "optional" for a choice the owner may make but doesn't have to. Rules about a particular product or activity, such as a federal license, are "applies" with an empty sourceIds when no source here covers them: First Sale researches them like any other. Never use "outside_coverage".
-- A condition never mentions a law, rule, permit, license, approval, registration, filing or government. The owner doesn't know those, and deciding them is First Sale's job: list it as "applies" and let the deeper look decide.
+- applicability: "applies" when the sources and the owner's answers show it applies, and also when it commonly applies but no source here confirms it (empty sourceIds: SnapStart looks deeper and decides); "conditional" only when it turns on a fact about the owner's own business or plans that their answers don't settle, and then condition is a short yes-or-no question about what the owner will do, in everyday words, such as "Will customers come to your home?" or "Will you sell at farmers markets or fairs?"; "optional" for a choice the owner may make but doesn't have to. Rules about a particular product or activity, such as a federal license, are "applies" with an empty sourceIds when no source here covers them: SnapStart researches them like any other. Never use "outside_coverage".
+- A condition never mentions a law, rule, permit, license, approval, registration, filing or government. The owner doesn't know those, and deciding them is SnapStart's job: list it as "applies" and let the deeper look decide.
 - Answers that are null, empty or "unsure" are unknown, never "no". When an unknown answer decides whether a requirement applies, mark it conditional and say which answer decides it.
 - The owner's place comes only from their answers. Never guess a county or city from a ZIP code or a mailing city.
 - forStructures: the business structures it's for, such as ["llc"] for forming an LLC. Empty when it applies to any structure. <decisions> says which structure the owner chose, if any.
@@ -90,11 +90,11 @@ List the requirements that apply to this business, most important first:
 - doneWhen: what finishing this step looks like, in plain words. Name a specific document only if a source names it.
 - dependsOn: keys of other requirements that must be finished first, only when this one truly needs them.
 - whoToCall: the office that handles it, such as "your county health department". No phone numbers or web addresses.
-- whatToAsk: two to four short questions First Sale should settle about it.
+- whatToAsk: two to four short questions SnapStart should settle about it.
 - needsProfessional: true when a lawyer or accountant is usually worth consulting.
 - If the owner says they already registered their business, leave out formation steps they've finished but keep the ones that may remain.
 - assumptions: anything you assumed about the owner's situation that changes the list, such as which foods they make. Leave it empty if you assumed nothing.
-- openQuestions: things you couldn't settle, for First Sale to look into, with the office that would know.
+- openQuestions: things you couldn't settle, for SnapStart to look into, with the office that would know.
 - conflicts: where cited sources disagree, or where one source leaves something unclear that matters for this owner, with the source ids. Explain it plainly; don't pick a side the sources don't support.
 - Write for someone with no business background. Short sentences, plain words, no legal jargon. Explain any official term the first time you use it.
 - At most 15 requirements.`;

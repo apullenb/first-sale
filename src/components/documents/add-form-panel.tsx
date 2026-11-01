@@ -127,7 +127,7 @@ export function AddFormPanel({ steps, initialStep, initialKind, initialMode, acc
       if (fileInput.current) fileInput.current.value = "";
       router.push(`/documents/${result.value}`);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setStatus(null);
     }
@@ -151,12 +151,12 @@ export function AddFormPanel({ steps, initialStep, initialKind, initialMode, acc
         <div className="flex flex-col gap-2.5">
           {kind === "have" ? (
             <p className="text-rule">
-              Upload papers you already have, like your LLC certificate or the IRS letter with your EIN (tax ID number), or a letter you got in the mail and aren’t sure about. First Sale can
+              Upload papers you already have, like your LLC certificate or the IRS letter with your EIN (tax ID number), or a letter you got in the mail and aren’t sure about. SnapStart can
               explain what it is, what it means, and anything you need to do.
             </p>
           ) : (
             <p className="text-rule">
-              Add a form you need to fill in, such as a registration or permit application. First Sale reads it, explains it, and helps you draft answers.
+              Add a form you need to fill in, such as a registration or permit application. SnapStart reads it, explains it, and helps you draft answers.
             </p>
           )}
         </div>
@@ -305,7 +305,7 @@ export function AddFormPanel({ steps, initialStep, initialKind, initialMode, acc
                 aria-describedby={`${uid}-url-help`}
               />
               <p id={`${uid}-url-help`} className={HINT}>
-                First Sale only fetches PDF forms from official government websites, usually ending in .gov. If the form is
+                SnapStart only fetches PDF forms from official government websites, usually ending in .gov. If the form is
                 filled in online, paste its questions instead.
               </p>
             </div>
@@ -375,7 +375,7 @@ async function prepareUpload(file: File, acceptedTypes: string[], maxBytes: numb
   }
   const accepted = acceptedTypes.includes(file.type);
   if (!accepted && !file.type.startsWith("image/") && !/\.(png|jpe?g|webp|heic|heif)$/i.test(file.name)) {
-    return { ok: false, message: "First Sale can read PDFs and photos (PNG, JPEG or WebP). Try one of those." };
+    return { ok: false, message: "SnapStart can read PDFs and photos (PNG, JPEG or WebP). Try one of those." };
   }
 
   let bitmap: ImageBitmap;

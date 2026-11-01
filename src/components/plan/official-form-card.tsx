@@ -90,7 +90,7 @@ export function OfficialFormCard({
         ) : (
           <>
             <p className="text-[15px] text-rule">
-              {form.pdfUrl ? "Applying online instead? " : ""}First Sale prepares your answers from your details, so you can copy them in. You review each one first.
+              {form.pdfUrl ? "Applying online instead? " : ""}SnapStart prepares your answers from your details, so you can copy them in. You review each one first.
             </p>
             <FormButton action={prepareAnswerGuideAction} stepId={stepId} formKey={form.key} label="Prepare my answers" pendingLabel="Preparing…" primary={!form.pdfUrl && !quiet} />
           </>
@@ -99,7 +99,7 @@ export function OfficialFormCard({
 
       {form.selfDownload ? (
         <div className="flex flex-col items-start gap-1.5 text-[15px] text-rule">
-          <p>Prefer the paper form? The agency’s site doesn’t let First Sale download it. Download it yourself, then upload it here for help filling it in.</p>
+          <p>Prefer the paper form? The agency’s site doesn’t let SnapStart download it. Download it yourself, then upload it here for help filling it in.</p>
           <OutsideLink href={form.selfDownload.url}>{form.selfDownload.label}</OutsideLink>
           <p className="text-sm text-muted">
             Link checked by hand on <LocalDate iso={`${form.checkedOn}T12:00:00.000Z`} /> on the agency’s forms page.
@@ -195,7 +195,7 @@ export function FormPreview({ label, item, reviewLink = true }: { label: string;
         {confirmed} confirmed · {toCheck} drafted for you to check · {blank} for you to fill in
       </p>
       {doc.verification && !doc.verification.ok ? (
-        <p className="text-[15px] text-check">This download didn’t pass every check, so First Sale didn’t fill it in. Open it to see which check failed.</p>
+        <p className="text-[15px] text-check">This download didn’t pass every check, so SnapStart didn’t fill it in. Open it to see which check failed.</p>
       ) : null}
       {item.outdated.length ? (
         <div className="flex flex-col gap-2 rounded-xl border border-check-ring bg-check-tint px-3.5 py-3 text-check">

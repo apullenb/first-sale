@@ -23,6 +23,7 @@ const ICONS: Record<string, IconName> = {
   "/documents": "book",
   "/brand-library": "image",
   "/orders": "receipt",
+  "/email": "file",
   "/planning-for-help": "users",
 };
 

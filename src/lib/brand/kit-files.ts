@@ -89,7 +89,7 @@ export const KIT_RECIPES: KitRecipe[] = [
   { id: "app-192", group: "website", label: "Home-screen icon, 192 × 192", use: "For Android phones and Chrome.", source: "profile", size: square(192), background: "white", color: "original", trim: 0.14, format: "png", file: "icon 192x192", citation: WEB_MANIFEST },
   { id: "app-512", group: "website", label: "Home-screen icon, 512 × 512", use: "For Android phones and Chrome.", source: "profile", size: square(512), background: "white", color: "original", trim: 0.14, format: "png", file: "icon 512x512", citation: WEB_MANIFEST },
   { id: "facebook-320", group: "social", label: "Facebook, 320 × 320", use: "Facebook’s best-quality Page profile picture size.", source: "profile", size: square(320), background: "white", color: "original", trim: null, format: "png", file: "profile picture - facebook 320x320", citation: FACEBOOK },
-  { id: "square-800", group: "social", label: "Square, 800 × 800", use: "A larger square for other sites, such as YouTube. First Sale picked this size; YouTube shows it at 98 × 98, so check it still reads that small.", source: "profile", size: square(800), background: "white", color: "original", trim: null, format: "png", file: "profile picture - 800x800" },
+  { id: "square-800", group: "social", label: "Square, 800 × 800", use: "A larger square for other sites, such as YouTube. SnapStart picked this size; YouTube shows it at 98 × 98, so check it still reads that small.", source: "profile", size: square(800), background: "white", color: "original", trim: null, format: "png", file: "profile picture - 800x800" },
 ];
 
 // What each platform's own page says, shown under the group with its sources
@@ -121,7 +121,7 @@ export function kitFileName(businessName: string, recipe: KitRecipe, simulated: 
   return safeFileName([businessName.trim(), recipe.file, simulated ? "practice preview" : null].filter(Boolean).join(" - ")) + `.${recipe.format}`;
 }
 
-// A plain-text note for the zip, so the files make sense away from First Sale
+// A plain-text note for the zip, so the files make sense away from SnapStart
 export function kitReadme(input: { businessName: string; recipes: KitRecipe[]; skipped: { recipe: KitRecipe; reason: string }[]; simulated: boolean; colors: { name: string; hex: string }[] }): string {
   const lines = [
     `${input.businessName} logo files`,
@@ -140,6 +140,6 @@ export function kitReadme(input: { businessName: string; recipes: KitRecipe[]; s
     }
     lines.push("");
   }
-  lines.push(`Made by First Sale from your approved logo. Search for similar marks before you print it or spend money on it: ${USPTO.url}`);
+  lines.push(`Made by SnapStart from your approved logo. Search for similar marks before you print it or spend money on it: ${USPTO.url}`);
   return lines.filter((line): line is string => line !== null).join("\n");
 }

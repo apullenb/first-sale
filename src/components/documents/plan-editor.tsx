@@ -165,7 +165,7 @@ export function PlanEditor({ documentId, sections, version, savedAt, hasFile }: 
         setPdf((current) => ({ ...current, status: "idle" }));
       } else setPdf({ status: "idle", savedAt: result.value.savedAt });
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
       setPdf((current) => ({ ...current, status: "idle" }));
     }
   }

@@ -74,7 +74,7 @@ describe("classify", () => {
     expect(classify(checked({ applicability: "conditional" }), profile, place, undecided).question).toMatch(/couldn’t tell/);
   });
 
-  it("never asks the owner what a government requires: that's for First Sale to confirm", () => {
+  it("never asks the owner what a government requires: that's for SnapStart to confirm", () => {
     const rule = checked({ applicability: "conditional", condition: "Whether Aubrey requires a general business license or home-based permit for this shop", level: "city" }, "needs_verification");
     expect(classify(rule, profile, place, undecided)).toMatchObject({ status: "needs_confirmation", question: null, conditions: [] });
     const market = checked({ applicability: "conditional", condition: "Whether each market or city where you sell requires a vendor permit" });

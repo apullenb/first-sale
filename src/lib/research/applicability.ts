@@ -21,10 +21,10 @@ export const STATUS_HELP: Record<RequirementStatus, string> = {
   verified: "An official page confirms this, and it fits your answers.",
   conditional: "It applies only if something is true. Each one says what.",
   optional: "Not required, but worth knowing about.",
-  needs_confirmation: "Official pages don’t spell this out for your area, so First Sale decided from how it works for businesses like yours. Each one says why.",
-  outside_coverage: "First Sale doesn’t research this kind of rule. Each one links to who does.",
-  not_needed: "First Sale looked into it, and it doesn’t apply to a business like yours. Each one says why.",
-  to_find_out: "First Sale searched the office’s own site and still couldn’t say for sure. Each one says how to find out.",
+  needs_confirmation: "Official pages don’t spell this out for your area, so SnapStart decided from how it works for businesses like yours. Each one says why.",
+  outside_coverage: "SnapStart doesn’t research this kind of rule. Each one links to who does.",
+  not_needed: "SnapStart looked into it, and it doesn’t apply to a business like yours. Each one says why.",
+  to_find_out: "SnapStart searched the office’s own site and still couldn’t say for sure. Each one says how to find out.",
 };
 
 export interface Place {
@@ -111,7 +111,7 @@ export interface Classified {
   answer: ConditionAnswer | null;
 }
 
-// What a government requires is for First Sale to decide, never a question for the owner: only facts about their own plans are asked
+// What a government requires is for SnapStart to decide, never a question for the owner: only facts about their own plans are asked
 const ABOUT_RULES =
   /\b(require[sd]?|requiring|allows?|allowed|prohibits?|bans?|approv\w*|permits?|permitted|licen[cs]\w*|regist\w*|files?|filing|dba|zon\w*|compl(y|ies|iance)|rules?|regulat\w*|ordinances?|exempt\w*|inspect\w*|county|city)\b/i;
 export const asksAboutRules = (condition: string) => ABOUT_RULES.test(condition);
@@ -121,7 +121,7 @@ export function questionOf(requirement: Pick<Checked, "applicability" | "conditi
   if (requirement.applicability !== "conditional") return null;
   const condition = requirement.condition.trim();
   if (condition && asksAboutRules(condition)) return null;
-  return condition || "Whether this applies depends on something First Sale couldn’t tell from your answers.";
+  return condition || "Whether this applies depends on something SnapStart couldn’t tell from your answers.";
 }
 
 // Conditions the rules write (structure and place), as opposed to the model's own

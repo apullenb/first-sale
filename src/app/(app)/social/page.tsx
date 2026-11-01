@@ -41,7 +41,7 @@ export default function SocialPage() {
         lead="Get each account in your marketing plan ready: a name, a bio you approve, and your profile picture and cover. Then sign up on each site with the steps here."
       />
       <Note icon="lock" tone="quiet">
-        You sign up and post yourself. First Sale never signs in, creates accounts or posts for you.
+        You sign up and post yourself. SnapStart never signs in, creates accounts or posts for you.
       </Note>
       <Suspense fallback={<p className="text-muted">Loading your accounts…</p>}>
         <SocialView />
@@ -192,7 +192,7 @@ async function SocialView() {
       {toDraft.length && !running ? (
         <NextUp id="bios-heading" icon="sparkles" kicker="Up next" title="Draft your bios">
           <p className="text-[16.5px] text-muted">
-            A short bio for {toDraft.length === 1 ? PLATFORM_DATA[toDraft[0].id].name : `each of your ${toDraft.length} accounts`}, from what you’ve told First Sale. You
+            A short bio for {toDraft.length === 1 ? PLATFORM_DATA[toDraft[0].id].name : `each of your ${toDraft.length} accounts`}, from what you’ve told SnapStart. You
             change anything you like before approving.
           </p>
           <AiProgressButton action={draftSocialBiosAction.bind(null, { platform: null })} label="Draft my bios" {...BIO_PROGRESS} />
@@ -455,7 +455,7 @@ function StepsPart({ account }: { account: SocialAccount }) {
         </>
       )}
       {data.checked === null ? (
-        <Note tone="quiet">These steps are general, because First Sale couldn’t check them against {data.name}’s own guide. If your screen looks different, follow its guide.</Note>
+        <Note tone="quiet">These steps are general, because SnapStart couldn’t check them against {data.name}’s own guide. If your screen looks different, follow its guide.</Note>
       ) : null}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         {go ? <OutsideLink href={go.url}>{go.label}</OutsideLink> : null}

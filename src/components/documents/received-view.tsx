@@ -105,7 +105,7 @@ export function ReceivedView({ doc, steps, run, matched, versions, acceptedTypes
       </Card>
 
       {isReadable(doc.content) ? (
-        <Fold title="The text we read" summary={doc.content.pages.length === 1 ? "1 page, as First Sale read it" : `${doc.content.pages.length} pages, as First Sale read it`} icon="search">
+        <Fold title="The text we read" summary={doc.content.pages.length === 1 ? "1 page, as SnapStart read it" : `${doc.content.pages.length} pages, as SnapStart read it`} icon="search">
           {doc.content.pages.map((page) => (
             <div key={page.number} className="flex flex-col gap-1 border-t border-line pt-3 first:border-0 first:pt-0">
               <p className="text-[13.5px] font-bold uppercase tracking-[0.08em] text-muted">Page {page.number}</p>

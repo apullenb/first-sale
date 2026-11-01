@@ -16,7 +16,7 @@ function checkPicture(bytes: Uint8Array, fileName: string, name: string, minSide
   if (!info) {
     const svg = /\.svgz?$/i.test(fileName) || new TextDecoder().decode(bytes.subarray(0, 300)).includes("<svg");
     if (svg) return { ok: false, message: `SVG files can’t be uploaded, because they can carry code. Export a PNG from your design app instead.` };
-    return { ok: false, message: sniffType(bytes) === "application/pdf" ? `That’s a PDF. ${TYPES}` : `That isn’t a picture First Sale can use. ${TYPES}` };
+    return { ok: false, message: sniffType(bytes) === "application/pdf" ? `That’s a PDF. ${TYPES}` : `That isn’t a picture SnapStart can use. ${TYPES}` };
   }
   if (Math.max(info.width, info.height) > MAX_PICTURE_SIDE || info.width * info.height > maxPixels) {
     const side = Math.min(MAX_PICTURE_SIDE, Math.floor(Math.sqrt(maxPixels))).toLocaleString("en-US");

@@ -133,7 +133,7 @@ async function Brand() {
             <Link href={BRAND_IMAGES_HREF} className={TEXT_LINK}>
               your Brand Library
             </Link>
-            , where First Sale also recommends brand images to make from your logo.
+            , where SnapStart also recommends brand images to make from your logo.
           </p>
         </Card>
       </section>

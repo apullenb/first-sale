@@ -1,6 +1,6 @@
-# First Sale: project plan
+# SnapStart Business Assembly Kit: project plan
 
-*First Sale* is a working name. The app is an AI assistant for first-time business owners in the US. It helps them:
+*SnapStart Business Assembly Kit* (SnapStart) is an AI assistant for first-time business owners in the US. It helps them:
 
 - research what their business legally needs
 - choose a business structure
@@ -159,6 +159,11 @@ Decided 2026-10-26: a **guided workspace**, direction A in the clickable prototy
   - AI drafts a listing and a social post from those facts only. Claims like "gluten-free" are flagged for the owner to confirm, never added.
   - Drafts are cross-checked against the owner's own requirements, such as a home-kitchen label rule.
   - Nothing is exported until the owner approves it.
+- **Daily workflow setup (`/run`, `/email`, `/orders`)**
+  - Two owner-selected workflows: customer email assistance and order/customer-request tracking.
+  - Guided choices → source and reminder preferences → owner review → saved setup, with pause/resume and a built-in sample run.
+  - Preferences are owner-scoped. Everything is explicitly a demo: no OAuth connection, background monitoring, scheduled notification, live request capture or sending is implemented yet.
+  - Live operation needs provider authorization, incoming-event integrations and a durable worker; order and stock changes must continue through the fixed rules.
 - **Order → customer reply (`/orders`)**
   - Sample orders are labeled DEMO.
   - `applyOrder` checks and updates stock all at once or not at all; it never comes from the model.

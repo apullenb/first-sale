@@ -23,7 +23,7 @@ export interface ListedProduct extends ProductValues {
 export const photoKey = (ref: ProductPhotoRef | null) =>
   !ref ? "" : ref.source === "library" ? `library:${ref.fileId}` : ref.source === "version" ? `version:${ref.versionId}` : `original:${ref.photoId}`;
 
-const OFFLINE = "Couldn’t reach First Sale. Check your connection and try again.";
+const OFFLINE = "Couldn’t reach SnapStart. Check your connection and try again.";
 const EMPTY: ProductForm = { name: "", description: "", price: "", unitCost: "", quantity: "", photo: null };
 
 // The owner's products: add, change and remove them. Prices are only what the owner types.
@@ -62,7 +62,7 @@ export function ProductList({ products, choices }: { products: ListedProduct[]; 
           Add a product
         </button>
       ) : (
-        <p className="text-muted">You’ve added as many products as First Sale keeps ({PRODUCT_LIMITS.products}).</p>
+        <p className="text-muted">You’ve added as many products as SnapStart keeps ({PRODUCT_LIMITS.products}).</p>
       )}
     </div>
   );

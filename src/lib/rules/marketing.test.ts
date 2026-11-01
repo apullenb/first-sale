@@ -154,7 +154,7 @@ describe("checkPlan", () => {
     expect(roles("confident")).toEqual(["main", "main"]);
   });
 
-  it("leaves account setup to First Sale's own steps", () => {
+  it("leaves account setup to SnapStart's own steps", () => {
     const checked = checkPlan(
       reply({
         firstActions: [
@@ -230,7 +230,7 @@ describe("buildMarketingSteps", () => {
     expect(steps.find((step) => step.kind === "action")).toMatchObject({ why: "It sells.", how: ["Take a photo."] });
   });
 
-  it("uses what the owner already made in First Sale", () => {
+  it("uses what the owner already made in SnapStart", () => {
     const steps = buildMarketingSteps(plan, answers, { hasLogo: true, hasWebsite: true, approvedPhotos: 3 });
     expect(steps.find((step) => step.key === "look")).toMatchObject({ title: "Download your profile picture", links: [{ href: "/logo" }] });
     expect(steps.find((step) => step.key === "brand_images")).toMatchObject({
@@ -320,7 +320,7 @@ describe("steps saved before brand images moved", () => {
     .filter((step) => step.kind !== "brand_images")
     .map((step) =>
       step.kind === "look"
-        ? { ...step, title: "Download your profile picture and cover", how: ["Open Build your brand in First Sale.", "Download the cover pictures for Facebook and YouTube if you’ll use them."], links: [{ label: "Open Build your brand", href: "/brand", external: false, guide: false }] }
+        ? { ...step, title: "Download your profile picture and cover", how: ["Open Build your brand in SnapStart.", "Download the cover pictures for Facebook and YouTube if you’ll use them."], links: [{ label: "Open Build your brand", href: "/brand", external: false, guide: false }] }
         : step,
     );
 

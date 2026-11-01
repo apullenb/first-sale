@@ -27,7 +27,7 @@ export function ExplainOption({ optionKey, name, explanation, firstYear }: { opt
       if (!result.ok) setError(result.message);
       else setOpen(true);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }

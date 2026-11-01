@@ -25,7 +25,7 @@ export function PickAccounts({ include, social }: { include: MarketingPlatformId
       const result = await pickSocialAccountsAction({ include: picked, social: level });
       if (!result.ok) setError(result.message);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }

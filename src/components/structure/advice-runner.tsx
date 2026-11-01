@@ -20,7 +20,7 @@ export function AdviceRunner() {
       const result = await adviseAction();
       if (!result.ok) setError(result.message);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }
@@ -34,7 +34,7 @@ export function AdviceRunner() {
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <Working label="Weighing everything you told First Sale to recommend a structure, a name plan and a tax plan." active={pending} />
+      <Working label="Weighing everything you told SnapStart to recommend a structure, a name plan and a tax plan." active={pending} />
       {error ? (
         <>
           <p role="alert" className={ALERT}>

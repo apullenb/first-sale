@@ -1,6 +1,6 @@
 import type { Actor, PlanTopic } from "./domain";
 
-// Every multi-step job First Sale runs for an owner: who does it, what it's for, and how long it may take.
+// Every multi-step job SnapStart runs for an owner: who does it, what it's for, and how long it may take.
 // Pages read this to offer the right help on each step and to show a job that's still running.
 
 export interface Workflow {
@@ -37,7 +37,7 @@ export const WORKFLOWS = {
   },
   structure_advice: {
     title: "Recommend a structure",
-    summary: "Weighs everything you told First Sale and recommends a structure, a name plan and a tax plan.",
+    summary: "Weighs everything you told SnapStart and recommends a structure, a name plan and a tax plan.",
     actor: "ai",
     usesAi: true,
     timeLimitMs: 4 * MINUTE,
@@ -205,7 +205,7 @@ export const WORKFLOWS = {
   },
   insights: {
     title: "Get business insights",
-    summary: "Reads what you’ve told First Sale and writes encouraging feedback: what’s strong, what to keep an eye on, tips and ideas.",
+    summary: "Reads what you’ve told SnapStart and writes encouraging feedback: what’s strong, what to keep an eye on, tips and ideas.",
     actor: "ai",
     usesAi: true,
     timeLimitMs: 6 * MINUTE,
@@ -213,7 +213,7 @@ export const WORKFLOWS = {
   },
   marketing_plan: {
     title: "Write my marketing plan",
-    summary: "Reviews everything you’ve told First Sale and drafts a marketing plan: goals, who to reach, where, what to post and what to do first.",
+    summary: "Reviews everything you’ve told SnapStart and drafts a marketing plan: goals, who to reach, where, what to post and what to do first.",
     actor: "ai",
     usesAi: true,
     timeLimitMs: 6 * MINUTE,

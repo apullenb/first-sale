@@ -9,7 +9,7 @@ import type { RetrievedSource } from "./verify";
 const MAX_REDIRECTS = 5;
 const MAX_BYTES = 3_000_000;
 const TIMEOUT_MS = 20_000;
-const USER_AGENT = "FirstSale/0.1 (research for first-time small business owners)";
+const USER_AGENT = "SnapStart/0.1 (research for first-time small business owners)";
 
 export interface SourceToRead {
   id: string;

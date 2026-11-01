@@ -116,7 +116,7 @@ async function Form({ doc }: { doc: StoredDocument }) {
       printedText: field.printedText,
       lowConfidence: field.confidence === "low",
       fillYourself,
-      note: answer?.note || "First Sale leaves this one for you. Fill it in on the form yourself.",
+      note: answer?.note || "SnapStart leaves this one for you. Fill it in on the form yourself.",
       value: fillYourself ? "" : (answer?.value ?? ""),
       source: fillYourself ? "" : (answer?.source ?? ""),
       confirmed: answer?.state === "confirmed",
