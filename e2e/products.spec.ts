@@ -29,6 +29,8 @@ test.describe("products and product photos", () => {
     await expect(version.getByRole("button", { name: "Comparison slider" })).toHaveAttribute("aria-pressed", "true");
     await version.getByText("I compared it with my original photo").click();
     await version.getByRole("button", { name: "Approve and save to my product library" }).click();
+    // Wait for the save before leaving the page
+    await expect(page.getByText("In your product library · approved", { exact: false })).toBeVisible({ timeout: 30_000 });
     await open(page, "/photos");
     await expect(page.getByRole("region", { name: "Your product library" }).getByRole("img").first()).toBeVisible({ timeout: 30_000 });
 
