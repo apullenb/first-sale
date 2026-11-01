@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { Card, OutsideLink } from "@/components/ui";
 import { getImageModel, getModel } from "@/lib/ai";
-import { CHECKED, USPTO } from "@/lib/brand/sizes";
+import { CHECKED_TEXT, USPTO } from "@/lib/brand/sizes";
 
 // Where brand files go depends on which AI service this copy of SnapStart is set up with
 function servicePoints(): string[] {
@@ -43,7 +43,7 @@ export async function BrandNotes() {
         <OutsideLink href={USPTO.url} cue="recommended">
           Search the U.S. trademark database
         </OutsideLink>
-        <p className="text-sm text-muted">Link checked {CHECKED}.</p>
+        <p className="text-sm text-muted">Link checked {CHECKED_TEXT}.</p>
       </Note>
       <Note icon="lock" title="Who sees your brand files">
         <ul className="flex list-disc flex-col gap-1.5 pl-5 text-rule marker:text-accent">

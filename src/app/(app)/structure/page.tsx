@@ -31,6 +31,7 @@ import { displayDetail, STRUCTURE_LABELS } from "@/lib/details";
 import { formatFee } from "@/lib/documents/startup-plan";
 import type { BusinessStructure } from "@/lib/domain";
 import { STATE_NAMES } from "@/lib/intake/options";
+import { STRUCTURE_NAMES } from "@/lib/research/applicability";
 import { profileKey } from "@/lib/research/requirements";
 import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
 import { sectionMetadata } from "@/lib/sections";
@@ -296,7 +297,7 @@ async function Structure() {
       {chosen ? (
         <>
           <Completed
-            title={`You chose ${STRUCTURE_LABELS[chosen]}`}
+            title={`You chose ${STRUCTURE_NAMES[chosen]}`}
             when={lastDecision?.createdAt.toISOString() ?? null}
             lines={[
               ...(nameAnswer ? [{ label: "The name you sell under", value: displayDetail("name_registration_plan", nameAnswer) }] : []),

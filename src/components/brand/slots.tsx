@@ -9,7 +9,7 @@ import { Card, Chip, ResourceLink } from "@/components/ui";
 import { RecommendedBadge } from "@/components/recommended";
 import { dollars } from "@/lib/brand/cost";
 import { brandFileName, brandFileUrl } from "@/lib/brand/files";
-import { CHECKED, type Export, type Guide, IMAGE_SPECS, LOGO_SPECS, PROFILE_FACTS } from "@/lib/brand/sizes";
+import { CHECKED_TEXT, type Export, type Guide, IMAGE_SPECS, LOGO_SPECS, PROFILE_FACTS } from "@/lib/brand/sizes";
 import { approvedExample, EXAMPLE_IMAGE, imageSlots, type Slot, versionSlots } from "@/lib/brand/slots";
 import { type AssetCheck, type BrandImageKind, type BrandPicks, CODE_MODEL, type ImageMedium, type VersionKind } from "@/lib/brand/types";
 import type { AssetSummary } from "@/lib/data/brand";
@@ -349,7 +349,7 @@ function SizeFacts({ kind }: { kind: BrandImageKind }) {
         <p className="mt-1 text-muted">
           Source:{" "}
           <ResourceLink href={spec.source.url}>{spec.source.name}</ResourceLink>
-          , checked {CHECKED}. Sites change their sizes, so check before you upload.
+          , checked {CHECKED_TEXT}. Sites change their sizes, so check before you upload.
         </p>
       ) : null}
     </details>

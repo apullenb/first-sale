@@ -1,14 +1,26 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { OperationSetupPanel } from "@/components/operations/setup";
-import { PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
+import { Icon } from "@/components/icons";
+import { PRIMARY_LINK } from "@/components/styles";
 import { Card, PageHead } from "@/components/ui";
 import { getMyBusiness, listMyOperationSetups } from "@/lib/data/my-business";
 import { OPERATIONS, type OperationKind } from "@/lib/operations/catalog";
 
 export function OperationPage({ kind }: { kind: OperationKind }) {
   const definition = OPERATIONS[kind];
-  return <div className="flex max-w-3xl flex-col gap-6"><PageHead kicker="Run your business" title={definition.title} lead={definition.description} /><Link href="/run" className={TEXT_LINK}>All workflows</Link><Suspense fallback={<p className="text-muted">Loading your setup…</p>}><Setup kind={kind} /></Suspense></div>;
+  return (
+    <div className="flex max-w-3xl flex-col gap-6">
+      <Link href="/run" className="-mb-2 inline-flex min-h-11 w-fit items-center gap-1.5 text-[15px] font-semibold text-muted hover:text-accent">
+        <Icon name="back" size="sm" />
+        Run your business
+      </Link>
+      <PageHead kicker="Run your business" title={definition.title} lead={definition.description} />
+      <Suspense fallback={<p className="text-muted">Loading your setup…</p>}>
+        <Setup kind={kind} />
+      </Suspense>
+    </div>
+  );
 }
 
 async function Setup({ kind }: { kind: OperationKind }) {

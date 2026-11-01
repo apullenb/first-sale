@@ -83,7 +83,7 @@ async function Agreement() {
     return (
       <>
         <Header name={name} />
-        <Card title="Not ready yet" icon="scale" tone="gray" id="agreement-none-heading">
+        <Card title={decided ? "Not needed for your structure" : "Not ready yet"} icon="scale" tone="gray" id="agreement-none-heading">
           <p className="text-rule">{readiness.kind === "none" ? readiness.why : "This agreement is for an LLC or a partnership."}</p>
           {decided ? null : (
             <Link href="/structure" className={PRIMARY_LINK}>
