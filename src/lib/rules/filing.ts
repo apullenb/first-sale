@@ -139,7 +139,7 @@ export function filingSteps(input: FilingInput): FilingStep[] {
   if (form?.signature) submit.push({ text: form.signature.text, source: fromFact(form.signature) });
   if (!submit.length) {
     submit.push({
-      text: `How to submit: unknown. ${confirming ? "The official page explains it" : "We couldn’t confirm it on an official page"}. You submit it yourself${input.agency ? ` to ${input.agency}` : ""}; SnapStart never files anything.`,
+      text: `How to submit: unknown. ${confirming ? "The official page explains it" : "We couldn’t confirm it on an official page"}. You submit it yourself${input.agency ? ` to ${input.agency.replace(/^Your /, "your ")}` : ""}; SnapStart never files anything.`,
       unknown: true,
     });
   } else {

@@ -104,9 +104,9 @@ export function StepBoard({ tasks, costs, skip = null }: Props) {
 
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[15px] text-muted">
         <p>
-          Fees confirmed so far: {formatFee(costs.startupCents)}
+          Fees confirmed so far: {costs.startupCents || !costs.unknown.length ? formatFee(costs.startupCents) : "$0"}
           {costs.yearlyCents ? `, then ${formatFee(costs.yearlyCents)} a year` : ""}
-          {costs.unknown.length ? ` (${costs.unknown.length} set by the office)` : ""}
+          {costs.unknown.length ? `, plus ${costs.unknown.length} ${costs.unknown.length === 1 ? "fee" : "fees"} set by the office` : ""}
         </p>
         <Link href="/start" className={`flex min-h-11 items-center ${TEXT_LINK}`}>
           See every step to start your business

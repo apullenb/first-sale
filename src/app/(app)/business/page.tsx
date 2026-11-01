@@ -10,9 +10,17 @@ import { EYEBROW, LEAD, PRIMARY_LINK, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK }
 import { Card, Chip, IconTile, Note, PageHead } from "@/components/ui";
 import { getMyBusiness, getMyDetails, getMyIntakeDraft, listMyHistory } from "@/lib/data/my-business";
 import { DECISION_KEYS, DETAIL_KEYS, DETAILS, type DetailSpec, displayDetail } from "@/lib/details";
-import type { BusinessProfile } from "@/lib/domain";
+import type { BusinessProfile, BusinessStructure } from "@/lib/domain";
 import { displayName, groupRows, profileToAnswers, sameAnswers, summarize, type SummaryRow } from "@/lib/intake/answers";
+import { structureOf } from "@/lib/research/applicability";
 import { sectionMetadata } from "@/lib/sections";
+
+// LLC and corporation details, hidden once the owner picks a structure that never uses them
+function notForStructure(key: string, structure: BusinessStructure | null): boolean {
+  if (key === "management") return structure === "sole_proprietorship" || structure === "partnership" || structure === "corporation";
+  if (key === "registered_agent") return structure === "sole_proprietorship";
+  return false;
+}
 
 export const metadata = sectionMetadata("/business");
 
@@ -70,6 +78,7 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
 
   const welcoming = welcome === "1" && current.profile !== null;
   const saved = new Map(details.map((detail) => [detail.key, detail]));
+  const structure = current.profile ? structureOf(current.profile, details).structure : null;
   const groups = current.profile ? groupRows(summarize(profileToAnswers(current.profile), { followUps: true })) : null;
 
   return (
@@ -165,10 +174,10 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
       <Card title="Business details" icon="clipboard" id="details-heading">
         <p className="text-muted">Forms ask for these. Fill them in here, and SnapStart can draft your form answers for you to check.</p>
         <Note icon="lock" tone="quiet">
-          SnapStart never stores Social Security or tax id numbers. Forms leave those for you to fill in yourself.
+          SnapStart never stores Social Security or tax ID numbers. Forms leave those for you to fill in yourself.
         </Note>
         <ul className="flex flex-col">
-          {DETAIL_KEYS.filter((key) => !(DETAILS[key] as DetailSpec).decision).map((key) => {
+          {DETAIL_KEYS.filter((key) => !(DETAILS[key] as DetailSpec).decision && (saved.has(key) || !notForStructure(key, structure))).map((key) => {
             const detail = saved.get(key);
             return (
               <li key={key} className="border-b border-line py-4 last:border-b-0 last:pb-0">

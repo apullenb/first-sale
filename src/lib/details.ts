@@ -126,7 +126,7 @@ export function detailProblem(key: DetailKey, value: string): string | null {
   if (!trimmed) return `Enter ${spec.label.toLowerCase()}.`;
   if (trimmed.length > spec.maxLength) return `Keep it under ${spec.maxLength} characters.`;
   if (spec.options && !spec.options.some(([option]) => option === trimmed)) return "Pick one of the options.";
-  if (looksLikeIdNumber(trimmed)) return "SnapStart doesn’t store Social Security or tax id numbers. Fill those in on the form yourself.";
+  if (looksLikeIdNumber(trimmed)) return "SnapStart doesn’t store Social Security or tax ID numbers. Fill those in on the form yourself.";
   return null;
 }
 

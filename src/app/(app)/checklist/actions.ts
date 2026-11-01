@@ -27,7 +27,7 @@ export async function setStepStatusAction(input: unknown): Promise<ActionResult>
   }
   const note = parsed.data.note?.trim() || null;
   if (note && looksLikeIdNumber(note)) {
-    return { ok: false, message: "Leave Social Security and tax id numbers out of notes. Keep them somewhere safe instead." };
+    return { ok: false, message: "Leave Social Security and tax ID numbers out of notes. Keep them somewhere safe instead." };
   }
   const saved = await setMyStepStatus({ stepId, status, note });
   if (!saved) return { ok: false, message: "That step wasn’t found. Reload the page and try again." };

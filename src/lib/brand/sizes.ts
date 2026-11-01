@@ -4,6 +4,7 @@ import type { AssetKind, BrandImageKind, VersionKind } from "./types";
 // Muse Image sets the aspect ratio only (dev.meta.ai/docs/image-generation, checked 2026-10-27), so exact sizes are made by resizing.
 
 export const CHECKED = "2026-10-27";
+export const CHECKED_TEXT = new Date(`${CHECKED}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
 export interface Export {
   label: string;

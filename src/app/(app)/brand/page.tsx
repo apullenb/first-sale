@@ -78,7 +78,7 @@ async function Brand() {
 
   return (
     <>
-      {practice ? <PracticeBanner what="Your brand description here is a placeholder, not written by Muse." /> : null}
+      {practice ? <PracticeBanner what="Your brand description here is a practice sample, not written by Muse." /> : null}
       {approved ? (
         <>
           <Completed eyebrow="Your brand" title="You approved your brand description">
@@ -105,7 +105,8 @@ async function Brand() {
       <section aria-labelledby="own-pictures-heading" className="flex flex-col gap-4">
         <SectionHead
           id="own-pictures-heading"
-          number={4}
+          number={approved || mark ? undefined : 4}
+          icon="image"
           title="Brand pictures you already have"
           lead="Optional. Add pictures you already use, such as a banner, a cover photo or a pattern. They’re kept exactly as you upload them, in your Brand Library’s Brand images group."
         />

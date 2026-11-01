@@ -141,7 +141,7 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
         <span className="font-semibold text-rule">
           {answered} of {editable.length} {editable.length === 1 ? "blank" : "blanks"} answered, {confirmed} confirmed.
         </span>{" "}
-        Leave Social Security and tax id numbers for the form itself: SnapStart doesn’t store them.
+        Leave Social Security and tax ID numbers for the form itself: SnapStart doesn’t store them.
       </p>
 
       <ol className="flex flex-col gap-3">
