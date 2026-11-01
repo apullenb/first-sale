@@ -102,6 +102,6 @@ describe("download names", () => {
   it("labels practice previews in the file name", () => {
     expect(photoFileName("Mug", null)).toBe("Mug - original");
     expect(photoFileName("Mug", { number: 2, simulated: false })).toBe("Mug - version 2");
-    expect(photoFileName("Mug", { number: 3, simulated: true })).toBe("Mug - version 3 - development preview");
+    expect(photoFileName("Mug", { number: 3, simulated: true })).toBe("Mug - version 3 - practice preview");
   });
 });

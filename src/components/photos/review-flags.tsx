@@ -4,7 +4,7 @@ import type { PhotoReview } from "@/lib/photos/types";
 // The AI comparison of an edit with the original. It points at things to check; it never vouches for the photo.
 export function ReviewFlags({ review, preview, checking }: { review: PhotoReview | null; preview: boolean; checking: boolean }) {
   if (preview) {
-    return <p className="text-rule">This is a development preview, so there’s nothing to compare: it’s your original photo, unchanged.</p>;
+    return <p className="text-rule">This is a practice preview, so there’s nothing to compare: it’s your original photo, unchanged.</p>;
   }
   if (!review) {
     return <p className="text-rule">{checking ? "AI is comparing this version with your original…" : "This version wasn’t compared with your original. Look closely yourself."}</p>;

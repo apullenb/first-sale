@@ -23,7 +23,7 @@ test.describe("products and product photos", () => {
     await choose(make.getByRole("group", { name: "Choose a look" }), /^White background/);
     await make.getByRole("button", { name: "Make my store photo" }).click();
     const version = page.getByRole("region", { name: "Version 1 · White background · Square" });
-    await expect(version.getByText("Development preview.", { exact: false })).toBeVisible({ timeout: 60_000 });
+    await expect(version.getByText("Practice preview.", { exact: false })).toBeVisible({ timeout: 60_000 });
     await expect(version.getByRole("figure", { name: "Your original" })).toBeVisible();
     await version.getByRole("button", { name: "Comparison slider" }).click();
     await expect(version.getByRole("button", { name: "Comparison slider" })).toHaveAttribute("aria-pressed", "true");
