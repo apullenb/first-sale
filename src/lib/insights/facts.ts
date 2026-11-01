@@ -48,6 +48,8 @@ export interface InsightSources {
   approvedPhotos: number;
 }
 
+export const PICKUP_SAVED = "Saved on Your business";
+
 const DECISION_KEYS: DetailKey[] = ["structure_choice", "name_registration_plan", "tax_classification_plan", "business_purpose"];
 
 export function buildInputs(sources: InsightSources): InsightInputs {
@@ -55,10 +57,14 @@ export function buildInputs(sources: InsightSources): InsightInputs {
   const website = sources.website;
   return {
     profile: sources.profile,
-    decisions: DECISION_KEYS.flatMap((key) => {
-      const value = sources.details.find((detail) => detail.key === key)?.value;
-      return value ? [{ label: DETAILS[key].label, value: displayDetail(key, value) }] : [];
-    }),
+    decisions: [
+      ...DECISION_KEYS.flatMap((key) => {
+        const value = sources.details.find((detail) => detail.key === key)?.value;
+        return value ? [{ label: DETAILS[key].label, value: displayDetail(key, value) }] : [];
+      }),
+      // Whether it's written down, not the place itself, which may be a home address
+      ...(sources.details.some((detail) => detail.key === "pickup_details") ? [{ label: DETAILS.pickup_details.label, value: PICKUP_SAVED }] : []),
+    ],
     research: sources.research
       ? {
           checkedAt: sources.research.checkedAt.toISOString(),
