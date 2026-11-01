@@ -64,6 +64,9 @@ type Props =
       context: ImpactContext;
     };
 
+// How long Continue waits after a part opens
+const STEP_GUARD_MS = 400;
+
 const TITLES: Record<Exclude<StepId, "details">, string> = {
   sell: "What kind of business is it?",
   place: "Where will your business be?",
@@ -161,6 +164,8 @@ export function IntakeWizard(props: Props) {
   const errorRef = useRef<HTMLParagraphElement>(null);
   // Focus moves only after the owner changes question, not when a kept screen is shown again
   const focusHeading = useRef(false);
+  // Continue waits a moment after each part opens, so a second click can't skip the new part
+  const [settling, setSettling] = useState(false);
   const dirty = useRef(false);
   const closed = useRef(false);
   const inFlight = useRef<Promise<unknown> | null>(null);
@@ -205,6 +210,8 @@ export function IntakeWizard(props: Props) {
   }
 
   function go(to: Step) {
+    setSettling(true);
+    window.setTimeout(() => setSettling(false), STEP_GUARD_MS);
     focusHeading.current = true;
     // The welcome-back note and its Start over button are only for the first screen
     setResumed(null);
@@ -218,8 +225,9 @@ export function IntakeWizard(props: Props) {
     errorRef.current?.focus();
   }
 
-  function next() {
-    if (step === "review") return;
+  function next(event?: { detail: number }) {
+    // A double click, or a click that lands as the next part opens, never skips a part
+    if (step === "review" || (event?.detail ?? 0) > 1) return;
     const problem = stepProblem(step, answers);
     if (problem) return showProblem(problem);
     // Continuing past a step confirms what was filled in on it
@@ -594,6 +602,8 @@ export function IntakeWizard(props: Props) {
                   checked={noDate}
                   onChange={(checked) => {
                     setNoDate(checked);
+                    // Stored as "unsure": no date yet is an answer, not a skipped question
+                    update("launchTiming", checked ? "unsure" : "");
                     if (checked) update("launchDate", "");
                   }}
                 >
@@ -622,7 +632,7 @@ export function IntakeWizard(props: Props) {
               ) : (
                 <span />
               )}
-              <button type="button" onClick={next} disabled={busy} className={PRIMARY}>
+              <button type="button" onClick={(event) => next(event)} disabled={busy || settling} className={PRIMARY}>
                 {fromReview ? "Back to summary" : nextStep(step, answers) === "review" ? "See my summary" : "Continue"}
                 <Icon name="arrow" size="sm" />
               </button>

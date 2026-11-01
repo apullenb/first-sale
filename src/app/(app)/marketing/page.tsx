@@ -23,6 +23,7 @@ import { BUDGET_LABELS, CHANNEL_LABELS, OFFERING_KIND_LABELS, STATE_NAMES } from
 import { completeIntake, intakeKey } from "@/lib/marketing/intake";
 import { type HandHolding, type MarketingStep, stepAnchor } from "@/lib/marketing/types";
 import { autoDoneSteps, doneFacts, doneSteps, handHolding, type MarketingMove, marketingMove, visibleSteps, withCurrentBrandSteps, withoutPlatforms } from "@/lib/rules/marketing";
+import { progressLabel } from "@/lib/progress-labels";
 import { sectionMetadata } from "@/lib/sections";
 import { businessSpecifics, specificsSummary } from "@/lib/specifics";
 
@@ -311,7 +312,7 @@ function NextCard({
       <NextUp id="next-heading" icon="megaphone" kicker={`Up next · step ${move.number} of ${total}`} title={move.step.title}>
         <div className="flex flex-wrap items-center gap-2">
           <Chip tone="accent" icon="check">
-            {done} of {total} done
+            {progressLabel("marketing", done, total)} done
           </Chip>
         </div>
         <ActionFacts why={move.step.why} cost={STEP_COST[move.step.kind]} needs={STEP_NEEDS[move.step.kind]} />

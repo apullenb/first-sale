@@ -1,4 +1,5 @@
 import { CHECK_WHERE, type GroupState } from "./paperwork";
+import { CONTACT_HREF, CONTACT_STEP_TITLE } from "./contact-setup";
 import { CHECK_MINUTES, stepMinutes } from "./progress";
 
 // Plain code: whether each step in the sidebar is done, waiting on someone else, locked behind another, or still the owner's to do
@@ -57,6 +58,8 @@ export interface JourneyFacts {
   socialHave: readonly string[];
   // "I already have this" marks by key
   marks: ReadonlySet<string>;
+  // The business email and phone step, once the owner put it in their plan
+  contact?: "none" | "todo" | "done";
 }
 
 export type SidebarStatus = Record<string, PartStatus>;
@@ -128,15 +131,18 @@ export function menuGroups(parts: readonly PartFacts[]): (GroupFacts & { hrefs: 
   });
 }
 
-// The steps of Start your business in order: the three fixed ones, then one per paperwork group
-export function startSteps(groups: readonly Pick<GroupFacts, "href" | "title" | "part" | "later">[]): StartStep[] {
+// The steps of Start your business in order: the three fixed ones, email and phone if the owner put it off, then one per paperwork group
+export function startSteps(groups: readonly Pick<GroupFacts, "href" | "title" | "part" | "later">[], contact = false): StartStep[] {
   return [
     ...START_STEPS,
+    ...(contact ? [{ href: CONTACT_HREF, title: CONTACT_STEP_TITLE, later: false }] : []),
     ...(groups.length ? groups.map((group) => ({ href: group.href, title: group.title, part: group.part, later: group.later })) : [PAPERWORK_PLACEHOLDER]),
   ];
 }
 
 const DONE: PartStatus = { state: "done", count: 0, minutes: 0 };
+// Signing up for an email address and a phone number
+const CONTACT_MINUTES = 20;
 const TODO: PartStatus = { state: "todo", count: 0, minutes: 0 };
 const either = (done: boolean) => (done ? DONE : TODO);
 const locked = (waitsOn: string[]): PartStatus => ({ state: "locked", count: 0, minutes: 0, waitsOn });
@@ -173,6 +179,7 @@ export function sidebarStatus(facts: JourneyFacts): SidebarStatus {
         ? DONE
         : { state: "todo", count: facts.research === "current" ? facts.questionsOpen : 0, minutes: CHECK_MINUTES, unit: "question" },
     ...(facts.groups.length ? groups : { [PAPERWORK_PLACEHOLDER.href]: checkDone ? DONE : locked([CHECK_WHERE]) }),
+    ...(facts.contact && facts.contact !== "none" ? { [CONTACT_HREF]: facts.contact === "done" ? DONE : { state: "todo" as const, count: 1, minutes: CONTACT_MINUTES } } : {}),
     // Not a step: just a count of documents to check
     "/documents": { state: facts.libraryToCheck ? "todo" : "done", count: facts.libraryToCheck, minutes: 0 },
     "/brand": either(facts.brandDescribed || marked("brand")),

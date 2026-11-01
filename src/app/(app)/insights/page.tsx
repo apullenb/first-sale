@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Icon } from "@/components/icons";
 import { InsightsPanel } from "@/components/insights/insights-panel";
+import { JobWatch } from "@/components/job-watch";
 import { RunStatus } from "@/components/run-status";
 import { PRIMARY_LINK } from "@/components/styles";
 import { Card, PageHead } from "@/components/ui";
@@ -58,8 +59,9 @@ async function InsightsView() {
 
   return (
     <>
-      {run && (run.status === "running" || run.message === CUT_OFF_MESSAGE) ? (
-        <RunStatus status={run.status === "running" ? "running" : "failed"} message={null} what="Writing your insights" />
+      {run?.status === "running" ? <JobWatch jobs={[{ workflow: "insights", subjectId: null }]} what="Writing your insights" /> : null}
+      {run?.status === "failed" && run.message === CUT_OFF_MESSAGE ? (
+        <RunStatus status="failed" message={null} what="Writing your insights" />
       ) : null}
       <InsightsPanel insights={insights} marks={marks} changed={changed} practice={getModel().simulated} />
     </>

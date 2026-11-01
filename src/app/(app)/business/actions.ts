@@ -21,8 +21,10 @@ import { changeSummary, profileImpact } from "@/lib/intake/impact";
 import { placeOptions, type PlaceOptions } from "@/lib/intake/places";
 import { DESCRIPTION_MAX_LENGTH, suggestIntakeAnswers } from "@/lib/intake/suggest";
 import type { IntakeSuggestion } from "@/lib/intake/suggestion-schema";
+import type { JobRef } from "@/lib/workflows";
 
-export type ActionResult<T = null> = { ok: true; value: T } | { ok: false; message: string };
+// `busy`: the same job is already running, maybe in another tab; the page watches it instead of failing
+export type ActionResult<T = null> = { ok: true; value: T } | { ok: false; message: string; busy?: JobRef };
 
 const INVALID_PROFILE = "Some answers are missing or too long. Check them and try again.";
 const NO_BUSINESS = "Your business wasn’t found. Reload the page and try again.";

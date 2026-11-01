@@ -33,6 +33,14 @@ const titles = (result: ReturnType<typeof checkInsights>, section: string) =>
   result.items.filter((each) => each.section === section).map((each) => each.title);
 
 describe("checkInsights", () => {
+  it("links an action done in one field to that field, not the plan that mentions it", () => {
+    const pickup = item("Make pickups easy", { action: "Write your pickup hours and location in the startup plan.", link: "checklist" });
+    const result = checkInsights(reply({ watch: [pickup] }), context());
+    expect(result.items.find((each) => each.title === "Make pickups easy")?.link).toEqual({ href: "/business#detail-pickup_details", label: "Add pickup hours and place" });
+    const other = checkInsights(reply({ watch: [item("Plan your week", { action: "Open your list of steps.", link: "checklist" })] }), context());
+    expect(other.items.find((each) => each.title === "Plan your week")?.link?.href).toBe("/start");
+  });
+
   it("keeps a kind, specific reply as it is, in section order", () => {
     const result = checkInsights(reply(), context());
     expect(result.opening).toBe("Rise Bakery is off to a lovely start.");

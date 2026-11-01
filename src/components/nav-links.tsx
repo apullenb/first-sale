@@ -5,6 +5,7 @@ import { useLayoutEffect, useState } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { formatMinutes } from "@/lib/rules/progress";
 import { type PartStatus, sectionState, type SidebarStatus, type StartStep, startSteps, stepsLeft } from "@/lib/rules/section-status";
+import { progressLabel, SECTION_MEASURES } from "@/lib/progress-labels";
 import { HOME, overviewOf, SECTION_GROUPS, SECTIONS, type SectionGroup } from "@/lib/sections";
 import { celebrate, onCelebrate } from "./celebrate";
 
@@ -86,7 +87,14 @@ export function NavLinks({ activeHref, status }: { activeHref: string | null; st
   const standalone = SECTIONS.filter((section) => section.group === null);
   return (
     <nav aria-label="Sections" className="flex flex-col gap-0.5">
-      <NavItem href={HOME.href} title={HOME.title} icon="home" active={isActive(HOME.href, activeHref)} count={total} />
+      <NavItem
+        href={HOME.href}
+        title={HOME.title}
+        icon="home"
+        active={isActive(HOME.href, activeHref)}
+        count={total}
+        countLabel={`${total} ${total === 1 ? "step" : "steps"} left in Start your business and Build your brand`}
+      />
       {standalone.map((section) => {
         const count = parts[section.href]?.count ?? 0;
         return (
@@ -110,7 +118,12 @@ export function NavLinks({ activeHref, status }: { activeHref: string | null; st
         const counted = countedHrefs(group, status);
         const overview = overviewOf(group);
         const mark = counted.length ? (
-          <SectionMark state={status ? sectionState(parts, counted) : null} done={counted.filter((href) => parts[href]?.state === "done").length} of={counted.length} />
+          <SectionMark
+            state={status ? sectionState(parts, counted) : null}
+            done={counted.filter((href) => parts[href]?.state === "done").length}
+            of={counted.length}
+            title={progressLabel(SECTION_MEASURES[group], counted.filter((href) => parts[href]?.state === "done").length, counted.length)}
+          />
         ) : null;
         const label = (
           <>
@@ -224,7 +237,7 @@ function useCelebrateNewlyDone(status: NavStatus | undefined) {
   }, [scope, done, titles, sections]);
 }
 
-function SectionMark({ state, done, of }: { state: "done" | "waiting" | "todo" | null; done: number; of: number }) {
+function SectionMark({ state, done, of, title }: { state: "done" | "waiting" | "todo" | null; done: number; of: number; title: string }) {
   if (state === "done") {
     return (
       <span title="All done" className="grid size-4 place-items-center rounded-full bg-done-bright text-sidebar">
@@ -247,9 +260,9 @@ function SectionMark({ state, done, of }: { state: "done" | "waiting" | "todo" |
   }
   if (state === null) return null;
   return (
-    <span className="text-[12px] font-semibold normal-case tracking-normal text-white/45 tabular-nums">
-      {done} of {of}
-      <span className="sr-only"> steps done</span>
+    <span title={`${title}, done`} className="whitespace-nowrap text-[12px] font-semibold normal-case tracking-normal text-white/45 tabular-nums">
+      {done} of {of} steps
+      <span className="sr-only"> done</span>
     </span>
   );
 }

@@ -6,6 +6,7 @@ interface SampleFacts {
   businessName?: string;
   launch?: { date: string } | null;
   answers?: { question: string; answer: string; notSure?: boolean }[];
+  decisions?: { label: string; value: string }[];
   requirements?: unknown;
   startupPlan?: { stepsBeforeSelling: number; stepsBeforeSellingDone: number } | string;
   brand?: unknown;
@@ -63,6 +64,16 @@ export function samplesFromMessage(message: string): InsightsReply {
   } else if (plan && plan.stepsBeforeSellingDone < plan.stepsBeforeSelling) {
     watch.push(
       item("Keep your next steps moving", "Small steps add up. Your list shows the one to do next, and what can happen at the same time.", "Open your list of steps and pick the next one.", "checklist"),
+    );
+  }
+  if (/pickup/i.test(answer("How customers get orders")) && !facts.decisions?.some((each) => each.label === "Pickup hours and place")) {
+    watch.push(
+      item(
+        "Tell customers when and where to pick up",
+        "Clear pickup times and a spot that’s easy to find save back-and-forth messages and missed pickups.",
+        "Write down your pickup hours and place.",
+        "pickup",
+      ),
     );
   }
   if (unsure) {

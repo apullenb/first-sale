@@ -19,6 +19,9 @@ import { planCosts } from "@/lib/rules/next-action";
 import type { TaskState } from "@/lib/rules/paperwork";
 import { CHECK_MINUTES, formatMinutes, INTAKE_MINUTES, MAX_SITTING_MINUTES, remainingWork, stepMinutes } from "@/lib/rules/progress";
 import { PAPERWORK_PLACEHOLDER } from "@/lib/rules/section-status";
+import { getMyContactSetup } from "@/lib/contact-status";
+import { progressLabel } from "@/lib/progress-labels";
+import { CONTACT_HREF, CONTACT_STEP_TITLE } from "@/lib/rules/contact-setup";
 import { sectionMetadata } from "@/lib/sections";
 import { savePlanPdfAction } from "../checklist/actions";
 
@@ -45,11 +48,17 @@ export default function StartPage() {
 }
 
 async function Overview() {
-  const [business, paper, run] = await Promise.all([getMyBusiness(), getMyPaperwork(), lastMyRun("research", null)]);
+  const [business, paper, research, followUp, contact] = await Promise.all([
+    getMyBusiness(),
+    getMyPaperwork(),
+    lastMyRun("research", null),
+    lastMyRun("follow_up", null),
+    getMyContactSetup(),
+  ]);
   const answered = Boolean(business?.profile);
   return (
     <>
-      <ResearchRunStatus run={run} retryHref="/requirements" />
+      <ResearchRunStatus runs={{ research, followUp }} retryHref="/requirements" />
       {paper?.view.tasks.some((task) => task.step.simulated) ? <PracticeBanner what="Steps here came from practice results." /> : null}
       {paper ? <Progress paper={paper} /> : null}
 
@@ -63,6 +72,15 @@ async function Overview() {
             icon="store"
             meta={answered ? null : <TimeFact minutes={INTAKE_MINUTES} />}
           />
+          {contact.status.step !== "none" ? (
+            <ListRow
+              href={CONTACT_HREF}
+              title={CONTACT_STEP_TITLE}
+              summary="A business email address and phone number, apart from your personal ones."
+              state={contact.status.step === "done" ? "done" : "ready"}
+              icon="file"
+            />
+          ) : null}
         </Subsection>
         <Subsection number={2} title="Business structure" id="sub-structure">
           <StructureRow paper={paper} answered={answered} />
@@ -108,7 +126,7 @@ function Progress({ paper }: { paper: MyPaperwork }) {
     <div className="-mt-2 flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
         <Chip tone="done" icon="check">
-          {done} of {needed.length} done before your first sale
+          {progressLabel("launch", done, needed.length)} done before your first sale
         </Chip>
         {work.left.length ? (
           <Chip icon="clock">

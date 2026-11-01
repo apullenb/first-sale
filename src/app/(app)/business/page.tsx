@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { DetailField } from "@/components/business/detail-field";
 import { Icon } from "@/components/icons";
+import { ContactQuestion } from "@/components/contact/contact-question";
 import { BusinessHeading } from "@/components/intake/business-heading";
 import { CHAPTERS, rowsByChapter } from "@/components/intake/chapters";
 import { LocalDate } from "@/components/local-date";
@@ -9,9 +10,9 @@ import { History } from "@/components/structure/history";
 import { EYEBROW, LEAD, PRIMARY_LINK, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
 import { Card, Chip, IconTile, Note, PageHead } from "@/components/ui";
 import { getMyBusiness, getMyDetails, getMyIntakeDraft, listMyHistory } from "@/lib/data/my-business";
-import { DECISION_KEYS, DETAIL_KEYS, DETAILS, type DetailSpec, displayDetail } from "@/lib/details";
+import { DECISION_KEYS, DETAIL_KEYS, DETAILS, detailAnchor, type DetailSpec, displayDetail } from "@/lib/details";
 import type { BusinessProfile, BusinessStructure } from "@/lib/domain";
-import { displayName, groupRows, profileToAnswers, sameAnswers, summarize, type SummaryRow } from "@/lib/intake/answers";
+import { answerText, displayName, groupRows, profileToAnswers, sameAnswers, summarize, type SummaryRow, UNANSWERED_NOTE, UNDECIDED_NOTE } from "@/lib/intake/answers";
 import { structureOf } from "@/lib/research/applicability";
 import { sectionMetadata } from "@/lib/sections";
 
@@ -90,6 +91,7 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
       </div>
 
       {welcoming && current.profile ? <Welcome profile={current.profile} /> : null}
+      {welcoming && current.profile ? <ContactQuestion /> : null}
 
       {draft?.mode === "edit" && !(current.profile && sameAnswers(draft.answers, profileToAnswers(current.profile))) ? (
         <div className="flex flex-wrap items-center gap-3 rounded-[14px] border border-check-ring bg-check-tint px-4 py-3 text-check">
@@ -120,12 +122,16 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
               <Rows rows={rows} />
             </Card>
           ))}
-          {groups.open.length ? (
-            <Card title="Still open" icon="question" tone="warn" headingLevel={3} id="answers-open">
-              <p className="text-[15px] text-muted">
-                You said “not sure” or skipped these. We don’t assume an answer: your requirements show what depends on them.
-              </p>
-              <Rows rows={groups.open} />
+          {groups.undecided.length ? (
+            <Card title="Not decided yet" icon="question" tone="warn" headingLevel={3} id="answers-undecided">
+              <p className="text-[15px] text-muted">{UNDECIDED_NOTE}</p>
+              <Rows rows={groups.undecided} />
+            </Card>
+          ) : null}
+          {groups.unanswered.length ? (
+            <Card title="Not answered" icon="question" tone="warn" headingLevel={3} id="answers-unanswered">
+              <p className="text-[15px] text-muted">{UNANSWERED_NOTE}</p>
+              <Rows rows={groups.unanswered} />
             </Card>
           ) : null}
         </section>
@@ -180,7 +186,7 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
           {DETAIL_KEYS.filter((key) => !(DETAILS[key] as DetailSpec).decision && (saved.has(key) || !notForStructure(key, structure))).map((key) => {
             const detail = saved.get(key);
             return (
-              <li key={key} className="border-b border-line py-4 last:border-b-0 last:pb-0">
+              <li key={key} id={detailAnchor(key)} className="scroll-mt-4 border-b border-line py-4 last:border-b-0 last:pb-0">
                 <DetailField detailKey={key} value={detail?.value ?? null} origin={detail ? <Origin detail={detail} /> : null} />
               </li>
             );
@@ -216,8 +222,8 @@ function Rows({ rows }: { rows: SummaryRow[] }) {
         <div key={row.label} className={ROW}>
           <dt className={ROW_LABEL}>{row.label}</dt>
           <dd className={`flex min-w-0 flex-1 basis-56 flex-wrap items-center gap-2 ${row.value ? "font-semibold" : "text-muted"}`}>
-            {row.value || "Not answered"}
-            {row.unsure ? <Chip tone="warn">Not sure yet</Chip> : null}
+            {answerText(row)}
+            {row.state === "undecided" ? <Chip tone="warn">Not decided yet</Chip> : null}
           </dd>
         </div>
       ))}

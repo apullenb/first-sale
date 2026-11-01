@@ -1,5 +1,5 @@
 import type { PREMISES } from "@/lib/domain";
-import { asks, kindsOf, type FollowUp, type IntakeAnswers, type StepId } from "./answers";
+import { asks, kindsOf, OPTIONAL_FIELDS, type FollowUp, type IntakeAnswers, type StepId } from "./answers";
 import {
   BUDGET_LABELS,
   CHANNEL_LABELS,
@@ -69,6 +69,9 @@ export interface QuestionSpec {
   terms?: [string, string][];
   asks: (a: IntakeAnswers) => boolean;
 }
+
+// Shown as "Optional" next to the question
+export const isOptional = (spec: Pick<QuestionSpec, "field">) => OPTIONAL_FIELDS.includes(spec.field);
 
 const always = () => true;
 const followUp = (field: FollowUp) => (a: IntakeAnswers) => asks(field, a);

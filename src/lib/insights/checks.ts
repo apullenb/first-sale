@@ -1,3 +1,4 @@
+import { DETAILS, detailAnchor } from "@/lib/details";
 import { getSection } from "@/lib/sections";
 import { INSIGHT_SECTIONS, type Insight, type InsightLink, type InsightPage, type InsightReplyItem, type InsightSection, type InsightsReply } from "./types";
 
@@ -20,7 +21,14 @@ export const PAGE_LINKS: Record<InsightPage, InsightLink> = {
   brand: { href: "/brand", label: getSection("/brand").title },
   website: { href: "/website", label: getSection("/website").title },
   photos: { href: "/photos", label: getSection("/photos").title },
+  details: { href: "/business#details-heading", label: "Business details" },
+  pickup: { href: `/business#${detailAnchor("pickup_details")}`, label: `Add ${DETAILS.pickup_details.label.toLowerCase()}` },
 };
+
+// Actions the owner does in one field: the link opens that field, whatever page the model picked
+const FIELD_ACTIONS: [RegExp, InsightLink][] = [
+  [/\bpick[- ]?ups?\b[^.]{0,40}\b(?:hours?|times?|days?|location|place|spot|address|details)\b|\b(?:hours?|times?|location|place|spot)\b[^.]{0,30}\bpick[- ]?ups?\b/i, PAGE_LINKS.pickup],
+];
 
 // Pages whose legal facts SnapStart checked against official sources
 const SOURCED_HREFS = new Set(["/requirements", "/start", "/checklist", "/structure", "/documents"]);
@@ -170,6 +178,8 @@ function breaksRules(text: string, context: CheckContext, link: InsightLink | nu
 }
 
 function linkFor(item: InsightReplyItem, context: CheckContext): InsightLink | null {
+  const field = FIELD_ACTIONS.find(([pattern]) => pattern.test(`${item.title} ${item.action}`));
+  if (field) return field[1];
   const step = item.stepKey ? context.steps.get(item.stepKey) : undefined;
   if (step) return { href: `/checklist/${step.id}`, label: step.title };
   return item.link ? PAGE_LINKS[item.link] : null;
