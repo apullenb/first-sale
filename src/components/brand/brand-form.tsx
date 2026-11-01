@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { describeBrandAction, saveBrandAction } from "@/app/(app)/brand/actions";
 import { Icon } from "@/components/icons";
+import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { Done, InfoRows, SectionHead } from "@/components/marketing/pieces";
 import { Working } from "@/components/working";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, PRIMARY_LINK, SECONDARY } from "@/components/styles";
@@ -33,6 +34,21 @@ export function BrandForm({ initial, practice }: { initial: BrandBrief; practice
   const inFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  // A description written in another tab arrives with the refreshed page
+  const followed = useRef(false);
+  const job = useJobWatch(() => {
+    followed.current = true;
+  });
+  useEffect(() => {
+    if (!followed.current) return;
+    followed.current = false;
+    setBrief(initial);
+    setDraft(initial.story);
+    setStale(false);
+    setRevising(false);
+    // Only a new saved description replaces what's on screen
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initial.story]);
   useLayoutEffect(
     () => () => {
       setError(null);
@@ -84,6 +100,7 @@ export function BrandForm({ initial, practice }: { initial: BrandBrief; practice
     if (brief.vibes.length < VIBE_LIMITS.min) return setError(`Pick at least ${VIBE_LIMITS.min} words for how your brand should feel.`);
     return run("describing", async () => {
       const result = await describeBrandAction(brief);
+      if (!result.ok && result.busy) return job.watch([result.busy]);
       if (!result.ok) return setError(result.message);
       setBrief((current) => ({ ...current, story: result.value.story, storyByOwner: false, storyApproved: false }));
       setDraft(result.value.story);
@@ -119,7 +136,7 @@ export function BrandForm({ initial, practice }: { initial: BrandBrief; practice
     heading?.focus({ preventScroll: true });
   }
 
-  const busy = phase !== "idle";
+  const busy = phase !== "idle" || job.watching;
   const textField = (key: "name" | "customers" | "likedColors" | "avoidColors" | "avoid", label: string, help: string, max: number) => (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={`${uid}-${key}`} className="font-semibold">
@@ -242,9 +259,9 @@ export function BrandForm({ initial, practice }: { initial: BrandBrief; practice
           <div className="flex flex-col gap-2 border-t border-line pt-5">
             <button type="button" onClick={describe} disabled={busy} className={`${AI_BUTTON} w-fit`}>
               <Icon name="sparkles" size="sm" />
-              {phase === "describing" ? "Describing…" : brief.story ? "Describe my brand again" : "Describe my brand"}
+              {phase === "describing" || job.watching ? "Describing…" : brief.story ? "Describe my brand again" : "Describe my brand"}
             </button>
-            <Working label="Describing your brand… this takes a few seconds" active={phase === "describing"} />
+            <Working label={job.watching ? RUNNING_ELSEWHERE : "Describing your brand… this takes a few seconds"} active={phase === "describing" || job.watching} />
             {!brief.story ? messages : null}
           </div>
         </Card>

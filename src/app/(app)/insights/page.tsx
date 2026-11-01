@@ -61,7 +61,7 @@ async function InsightsView() {
     <>
       {run?.status === "running" ? <JobWatch jobs={[{ workflow: "insights", subjectId: null }]} what="Writing your insights" /> : null}
       {run?.status === "failed" && run.message === CUT_OFF_MESSAGE ? (
-        <RunStatus status="failed" message={null} what="Writing your insights" />
+        <RunStatus status="failed" job={{ workflow: "insights", subjectId: null }} message={null} what="Writing your insights" />
       ) : null}
       <InsightsPanel insights={insights} marks={marks} changed={changed} practice={getModel().simulated} />
     </>

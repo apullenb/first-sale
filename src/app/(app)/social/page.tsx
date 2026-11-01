@@ -188,7 +188,7 @@ async function SocialView() {
         </p>
       </Card>
 
-      {running || (run && run.message === CUT_OFF_MESSAGE) ? <RunStatus status={running ? "running" : "failed"} message={null} what="Drafting your bios" /> : null}
+      {running || (run && run.message === CUT_OFF_MESSAGE) ? <RunStatus status={running ? "running" : "failed"} job={{ workflow: "social_bios", subjectId: null }} message={null} what="Drafting your bios" /> : null}
       {toDraft.length && !running ? (
         <NextUp id="bios-heading" icon="sparkles" kicker="Up next" title="Draft your bios">
           <p className="text-[16.5px] text-muted">

@@ -26,7 +26,7 @@ export function ResearchRunStatus({ runs, retryHref }: { runs: ResearchRuns; ret
   if (!(runs.research?.status === "failed" && runs.research.message === CUT_OFF_MESSAGE)) return null;
   return (
     <div className="flex flex-col items-start gap-1">
-      <RunStatus status="failed" message={null} what="Your requirements check" />
+      <RunStatus status="failed" job={{ workflow: "research", subjectId: null }} message={null} what="Your requirements check" />
       {retryHref ? (
         <Link href={retryHref} className={`flex min-h-11 items-center ${TEXT_LINK}`}>
           Try again from What applies to you

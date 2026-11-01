@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 import { draftMarketingPlanAction, saveMarketingIntakeAction } from "@/app/(app)/marketing/actions";
 import { Icon } from "@/components/icons";
+import { useJobWatch } from "@/components/job-watch";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles";
 import { MARKETING_PLATFORMS, type MarketingPlatformId, PLATFORM_DATA } from "@/data/marketing-platforms";
 import { DONE_ALREADY, DONE_LABELS, type DoneAlready, MAX_DONE_NOTE, marketingIntakeSchema, SKILL_QUESTIONS, type StoredIntake } from "@/lib/marketing/intake";
@@ -71,6 +72,15 @@ export function MarketingIntakeForm({ initial, hasPlan, known, onDone }: Props) 
   const [error, setError] = useState<string | null>(null);
   const [, startRefresh] = useTransition();
   const { finish } = useFinishAndRefresh();
+  const finished = () => {
+    setPhase("finished");
+    finish(() => {
+      setPhase("form");
+      onDone?.();
+    });
+  };
+  // Already being written, maybe in another tab: the progress screen stays up until it ends
+  const job = useJobWatch(finished);
   const heading = useRef<HTMLHeadingElement>(null);
   const moved = useRef(false);
 
@@ -122,12 +132,9 @@ export function MarketingIntakeForm({ initial, hasPlan, known, onDone }: Props) 
         return;
       }
       const written = await draftMarketingPlanAction();
+      if (!written.ok && written.busy) return job.watch([written.busy]);
       if (!written.ok) throw new Error(`Your answers are saved. ${written.message}`);
-      setPhase("finished");
-      finish(() => {
-        setPhase("form");
-        onDone?.();
-      });
+      finished();
     } catch (problem) {
       setError(problem instanceof Error && problem.message !== "Failed to fetch" ? problem.message : "Couldn’t reach SnapStart. Check your connection and try again.");
       setPhase("form");

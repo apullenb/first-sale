@@ -161,7 +161,7 @@ async function WebsitePlanView() {
           <div className="@container flex flex-col gap-3">
             <p className="text-rule">These four fit most first websites. To compare others, SnapStart can search the web for more builders, with their prices, pros and cons.</p>
             {optionsRun && (optionsRun.status === "running" || optionsRun.message === CUT_OFF_MESSAGE) ? (
-              <RunStatus status={optionsRun.status === "running" ? "running" : "failed"} message={null} what="Searching for more options" />
+              <RunStatus status={optionsRun.status === "running" ? "running" : "failed"} job={{ workflow: "website_options", subjectId: null }} message={null} what="Searching for more options" />
             ) : null}
             <ActionButton
               action={findMoreOptionsAction}
@@ -196,7 +196,7 @@ async function WebsitePlanView() {
             </SectionHead>
             <Card bodyClassName="gap-4">
               {run && (run.status === "running" || run.message === CUT_OFF_MESSAGE) ? (
-                <RunStatus status={run.status === "running" ? "running" : "failed"} message={null} what="Writing your website" />
+                <RunStatus status={run.status === "running" ? "running" : "failed"} job={{ workflow: "website_copy", subjectId: null }} message={null} what="Writing your website" />
               ) : null}
               {content?.simulated ? <PracticeBanner what="These words were drafted in practice mode." /> : null}
               {content && content.platform !== chosen ? (
