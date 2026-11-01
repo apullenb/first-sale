@@ -3,7 +3,8 @@ import { displayDetail, looksLikeIdNumber } from "@/lib/details";
 import type { BusinessProfile, BusinessStructure, PlanTopic } from "@/lib/domain";
 import type { Fact } from "./companion";
 import type { CheckedFact } from "./form-catalog";
-import { type PdfSpec, unprintable } from "./pdf-writer";
+import { unprintable } from "./pdf-text";
+import type { PdfSpec } from "./pdf-writer";
 import type { PlanSection } from "./types";
 
 // The owners' agreement for an LLC (Texas calls it a company agreement) or a partnership.
