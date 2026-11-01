@@ -14,8 +14,8 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         className="flex flex-col gap-3 rounded-[18px] bg-sidebar p-6 text-white shadow-lift md:max-w-md md:flex-1 md:gap-4 md:p-8"
       >
         <Logo light className="w-full max-w-80" />
-        <p className="font-display text-[32px] leading-[1.15] md:mt-3 md:text-[38px]">
-          From idea to first sale.
+        <p className="font-display text-[28px] leading-[1.2] md:mt-3 md:text-[32px]">
+          Your complete small business startup kit to go from idea to a running business.
         </p>
         <p className="text-lg text-white/70">Step-by-step help for first-time business owners in the US.</p>
         <ul className="mt-2 hidden flex-col gap-3 md:flex">
