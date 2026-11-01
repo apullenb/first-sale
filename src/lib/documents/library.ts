@@ -24,7 +24,7 @@ export const ROLE_LABELS: Record<DocumentRole, string> = {
   supporting: "Supporting document",
   receipt: "Filing receipt or confirmation",
   approval: "Approval or license",
-  prepared: "Prepared by First Sale",
+  prepared: "Prepared by SnapStart",
   mail: "Letter or notice you received",
 };
 

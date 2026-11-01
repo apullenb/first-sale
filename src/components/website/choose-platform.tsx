@@ -15,7 +15,7 @@ function focusWhenShown(id: string, tries = 100) {
   } else if (tries > 0) window.setTimeout(() => focusWhenShown(id, tries - 1), 50);
 }
 
-// payment: the First Sale site opens a demo payment screen first; no card details are ever asked for
+// payment: the SnapStart site opens a demo payment screen first; no card details are ever asked for
 export function ChoosePlatformButton({
   platform,
   name,
@@ -48,7 +48,7 @@ export function ChoosePlatformButton({
         focusWhenShown(chosen ? "step-choose" : "step-address");
       }
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }

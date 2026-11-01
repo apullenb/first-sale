@@ -47,7 +47,7 @@ export function unprintable(text: string): string[] {
 export async function writePdf(spec: PdfSpec): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(toWinAnsi(spec.title));
-  doc.setProducer("First Sale");
+  doc.setProducer("SnapStart Business Assembly Kit");
   const regular = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const width = PAGE.width - PAGE.margin * 2;

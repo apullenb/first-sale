@@ -30,7 +30,7 @@ export const websiteCopySchema = z.object({
 
 const PLATFORM_NOTES: Record<PlatformId, string> = {
   first_sale:
-    "First Sale will build and host the site. It has no shopping cart: customers order by email or phone, or pay through a payment link the owner may add to each item.",
+    "SnapStart will build and host the site. It has no shopping cart: customers order by email or phone, or pay through a payment link the owner may add to each item.",
   square: "The site will be built on Square Online, which has an online store with checkout, pickup and delivery.",
   wix: "The site will be built on Wix’s Core plan, which has an online store with checkout.",
   shopify: "The site will be built on Shopify, which has an online store with checkout and shipping.",

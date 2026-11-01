@@ -1,4 +1,5 @@
 import "server-only";
+import { listOperationSetupsForOwner, saveOperationSetupForOwner, pauseOperationSetupForOwner } from "./operations";
 import { createHash } from "node:crypto";
 import { getDb } from "@/db/client";
 import { getCurrentUser } from "@/lib/auth/server";
@@ -616,7 +617,7 @@ export async function markMyInsight(key: string, mark: InsightMark | null) {
   return markInsightForOwner(getDb(), user.id, key, mark);
 }
 
-// Steps the owner did outside First Sale
+// Steps the owner did outside SnapStart
 
 export async function listMyJourneyMarks() {
   const user = await getCurrentUser();
@@ -637,4 +638,19 @@ export async function clearMyJourneyMark(key: string) {
 export async function getMySidebarFacts() {
   const user = await getCurrentUser();
   return getSidebarFactsForOwner(getDb(), user.id);
+}
+
+export async function listMyOperationSetups() {
+  const user = await getCurrentUser();
+  return listOperationSetupsForOwner(getDb(), user.id);
+}
+
+export async function saveMyOperationSetup(input: import("@/lib/rules/operations").OperationSetup) {
+  const user = await getCurrentUser();
+  return saveOperationSetupForOwner(getDb(), user.id, input);
+}
+
+export async function pauseMyOperationSetup(kind: import("@/lib/operations/catalog").OperationKind, paused: boolean) {
+  const user = await getCurrentUser();
+  return pauseOperationSetupForOwner(getDb(), user.id, kind, paused);
 }

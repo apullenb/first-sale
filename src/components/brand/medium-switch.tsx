@@ -41,7 +41,7 @@ export function MediumSwitch({ logoId, medium, by, hasExample, cost }: { logoId:
       if (!made.ok) return setError(made.message);
       requestKey.clear();
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection, then try again.");
+      setError("Couldn’t reach SnapStart. Check your connection, then try again.");
     } finally {
       inFlight.current = false;
       setPending(null);

@@ -32,7 +32,7 @@ export default function BrandLibraryPage() {
       <PageHead
         kicker={<Kicker icon="image">Build your brand</Kicker>}
         title="Your Brand Library"
-        lead="Every logo, brand image and product photo you’ve made or added, sorted into one place. Make the brand images First Sale recommends, view or download anything, and add your own pictures."
+        lead="Every logo, brand image and product photo you’ve made or added, sorted into one place. Make the brand images SnapStart recommends, view or download anything, and add your own pictures."
       />
       <Suspense fallback={<p className="text-muted">Loading your Brand Library…</p>}>
         <Library />
@@ -192,7 +192,7 @@ async function Library() {
         <LibraryUpload groups={LIBRARY_GROUPS} initialGroup="other" maxBytes={MAX_UPLOAD_BYTES} />
         <p className="text-sm text-muted">
           You can add up to {LIBRARY_LIMITS.files} pictures and {formatBytes(LIBRARY_LIMITS.totalBytes)} in all. You’ve added {usage.count} ({formatBytes(usage.bytes)}). Files made or uploaded
-          elsewhere in First Sale don’t count toward this.
+          elsewhere in SnapStart don’t count toward this.
         </p>
       </Card>
 
@@ -222,7 +222,7 @@ async function Library() {
   );
 }
 
-// children: what First Sale makes for this group, shown before the owner's own pictures
+// children: what SnapStart makes for this group, shown before the owner's own pictures
 function Group({ group, items, count, uploadsTitle, children }: { group: LibraryGroup; items: Item[]; count: number; uploadsTitle?: string; children?: ReactNode }) {
   const empty = EMPTY[group];
   const text = LIBRARY_GROUP_TEXT[group];

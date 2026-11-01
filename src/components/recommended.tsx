@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Icon } from "./icons";
 import { IconTile } from "./ui";
 
-// The one look for First Sale's recommendations, so owners learn to spot it: soft violet with a lightbulb
+// The one look for SnapStart's recommendations, so owners learn to spot it: soft violet with a lightbulb
 
 export function RecommendedBadge({ children = "Recommended for you" }: { children?: ReactNode }) {
   return (

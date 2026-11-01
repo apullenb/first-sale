@@ -38,7 +38,7 @@ export interface ProfileText {
 }
 
 export interface BioRule extends ProfileText {
-  // How long First Sale's drafts aim to be; never over max
+  // How long SnapStart's drafts aim to be; never over max
   target: number;
   // The platform refuses links here
   noLinks: boolean;

@@ -47,7 +47,7 @@ export interface JourneyFacts {
   logoChosen: boolean;
   // The owner approved the short description of their brand
   brandDescribed: boolean;
-  // The demo finish of a First Sale site, or an existing site connected in the demo
+  // The demo finish of a SnapStart site, or an existing site connected in the demo
   websiteFinished: boolean;
   websiteConnected: boolean;
   products: number;

@@ -32,7 +32,7 @@ interface Props {
 
 const LINK = "font-semibold text-accent underline decoration-[1.5px] underline-offset-[3px] hover:text-accent-ink";
 
-// What the plan is drafted from: facts First Sale knows, which the owner can change for this plan, and the questions it still asks
+// What the plan is drafted from: facts SnapStart knows, which the owner can change for this plan, and the questions it still asks
 export function PlanInputs({ facts, basis, initial, hasDraft }: Props) {
   const [overrides, setOverrides] = useState(initial.overrides);
   const [picks, setPicks] = useState<PlanAnswers>(initial.picks);
@@ -53,7 +53,7 @@ export function PlanInputs({ facts, basis, initial, hasDraft }: Props) {
       if (!result.ok) setError(result.message);
       else requestAnimationFrame(() => document.getElementById("plan-review-heading")?.scrollIntoView({ behavior: "smooth", block: "start" }));
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     }
     setStatus("idle");
   }
@@ -71,7 +71,7 @@ export function PlanInputs({ facts, basis, initial, hasDraft }: Props) {
         {questions.length ? (
           <>
             <p className="text-rule">
-              Only what your plan needs that First Sale doesn’t know yet. Pick what fits, or choose Other to say it your way. Anything you skip becomes a note in
+              Only what your plan needs that SnapStart doesn’t know yet. Pick what fits, or choose Other to say it your way. Anything you skip becomes a note in
               the draft for you to fill in.
             </p>
             <div className="flex flex-col divide-y divide-line">
@@ -86,7 +86,7 @@ export function PlanInputs({ facts, basis, initial, hasDraft }: Props) {
             </div>
           </>
         ) : (
-          <p className="text-rule">First Sale already has what your plan needs. Check the facts above, then draft your plan.</p>
+          <p className="text-rule">SnapStart already has what your plan needs. Check the facts above, then draft your plan.</p>
         )}
 
         <div className="flex flex-col items-start gap-2 border-t border-line pt-5">
@@ -113,7 +113,7 @@ function isAnswered(answer: PlanAnswer | undefined): boolean {
   return Boolean(answer && (answer.picks.length || answer.other?.trim()));
 }
 
-// --- Facts First Sale already has
+// --- Facts SnapStart already has
 
 function KnownFacts({ facts, overrides, onChange }: { facts: KnownFact[]; overrides: Record<string, string>; onChange: (next: Record<string, string>) => void }) {
   const shown = withOverrides(facts, overrides);
@@ -127,9 +127,9 @@ function KnownFacts({ facts, overrides, onChange }: { facts: KnownFact[]; overri
   }
 
   return (
-    <Card title="What First Sale already knows" icon="clipboard" id="plan-known-heading" action={<Chip tone="gray">{`${facts.length} filled in`}</Chip>}>
+    <Card title="What SnapStart already knows" icon="clipboard" id="plan-known-heading" action={<Chip tone="gray">{`${facts.length} filled in`}</Chip>}>
       <p className="text-rule">
-        Filled in from what you’ve already told First Sale. Use the pencil to change anything for this plan. Your saved answers elsewhere stay as they are.
+        Filled in from what you’ve already told SnapStart. Use the pencil to change anything for this plan. Your saved answers elsewhere stay as they are.
       </p>
       <div className="flex flex-col gap-5">
         {groups.map(({ group, facts: list }) => (

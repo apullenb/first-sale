@@ -99,7 +99,7 @@ test.describe("marketing plan and social media", () => {
 
     // Social media: accounts from the plan, one already set up
     await open(page, "/social");
-    await expect(page.getByText("First Sale never signs in, creates accounts or posts for you.", { exact: false })).toBeVisible();
+    await expect(page.getByText("SnapStart never signs in, creates accounts or posts for you.", { exact: false })).toBeVisible();
     const accounts = page.getByRole("region", { name: "Your accounts" });
     await expect(accounts.getByRole("link", { name: "Instagram (set up)" })).toBeVisible();
     await expect(accounts.getByRole("link", { name: "Pinterest (not set up yet)" })).toBeVisible();

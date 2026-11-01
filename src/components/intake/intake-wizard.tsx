@@ -292,7 +292,7 @@ export function IntakeWizard(props: Props) {
         error: false,
       });
     } catch {
-      setAiNote({ text: "Couldn’t reach First Sale. Check your connection and try again.", error: true });
+      setAiNote({ text: "Couldn’t reach SnapStart. Check your connection and try again.", error: true });
     } finally {
       setAiPending(false);
     }
@@ -316,7 +316,7 @@ export function IntakeWizard(props: Props) {
     } catch (error) {
       closed.current = false;
       const message = error instanceof Error && !(error instanceof TypeError) ? error.message : "";
-      setSaveError(message || "Couldn’t reach First Sale. Check your connection and try again.");
+      setSaveError(message || "Couldn’t reach SnapStart. Check your connection and try again.");
       setSaving(false);
       return;
     }

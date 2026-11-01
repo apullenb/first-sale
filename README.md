@@ -1,4 +1,4 @@
-# First Sale
+# SnapStart Business Assembly Kit
 
 Step-by-step help for first-time US business owners: research what applies to them, choose a structure, work through formation, then run daily work with AI help while staying in control.
 
@@ -66,12 +66,12 @@ Owners answer mostly by clicking: they pick the kind of business closest to thei
 Encouraging feedback on the owner's idea, under "Start your business" in the menu, right after "Your business": it builds on those answers, and helps most before money is spent.
 
 - **What it reads:** the intake answers (products, budget, launch date and the rest), structure and other decisions, requirements and the startup plan, business plan answers (costs and funding included, since they're private feedback), branding, website and approved product photos. Saved owner names, addresses, emails and phone numbers aren't sent, and a business name that is the owner's own name becomes "your business". Free-text answers go as the owner wrote them.
-- **What it writes:** an opening line, what's strong, things to keep an eye on, tips for success and creative ideas. Each item can point to the First Sale page or plan step where the owner can act ("Take me there").
+- **What it writes:** an opening line, what's strong, things to keep an eye on, tips for success and creative ideas. Each item can point to the SnapStart page or plan step where the owner can act ("Take me there").
 - **Tone, in the prompt:** warm, specific and never discouraging. A concern comes up only when it would help, framed kindly, with one small next step. It never states laws, fees, deadlines or numbers itself; it points to the sourced pages instead.
 - **Tone, in code (`src/lib/insights/checks.ts`):**
   - discouraging wording ("bad idea", "will fail", "saturated", "risky", "struggle", "reconsider"…) drops the item
   - a concern without a next step is dropped, there are at most 3, and never more than there are strengths
-  - money or percentages the owner didn't give drop the item, including amounts in words ("fifty dollars"). Other numbers must be the owner's own or First Sale's counts (steps done, days to launch). Made-up statistics ("8 in 10 shoppers", "half of customers") drop it too.
+  - money or percentages the owner didn't give drop the item, including amounts in words ("fifty dollars"). Other numbers must be the owner's own or SnapStart's counts (steps done, days to launch). Made-up statistics ("8 in 10 shoppers", "half of customers") drop it too.
   - anything about laws, permits, taxes, registration or structure may only point to a checked page. It links to Requirements, the plan or Structure, and it's dropped if it says what a rule requires, allows, exempts or protects, or gives a deadline. A point about one of the owner's plan steps may say the step is needed. Platform and market fees count as business facts, not legal ones.
   - word lists can't catch every wording, so they lean toward leaving a point out
   - if nothing encouraging is left, nothing is saved and the owner is asked to try again
@@ -110,11 +110,11 @@ Encouraging feedback on the owner's idea, under "Start your business" in the men
    - **Depends on something:** it applies only if something is true, and the card says what. For example, a city rule while the owner hasn't confirmed they're inside city limits, or an LLC step while the structure is undecided. "Not sure" and unanswered are treated as unknown, never as "no".
    - **Your choice:** optional, such as an EIN for a sole proprietor with no employees.
    - **To confirm:** no official page confirmed it yet.
-   - **Outside what we check:** rules First Sale doesn't research, such as children's product safety, with who does.
+   - **Outside what we check:** rules SnapStart doesn't research, such as children's product safety, with who does.
 
    A step for a structure the owner ruled out stays on record but leaves the plan.
 
-The page shows where the rules come from (state, county, and whether the address is inside city limits; never guessed from a ZIP code). It also shows what changed in the owner's answers since the check, and a "What we checked" list for each research category and level of government. A gap there says "not searched", "no official page found" or "the site didn't let First Sale read it", never "no rule". Where official pages disagree, both are shown.
+The page shows where the rules come from (state, county, and whether the address is inside city limits; never guessed from a ZIP code). It also shows what changed in the owner's answers since the check, and a "What we checked" list for each research category and level of government. A gap there says "not searched", "no official page found" or "the site didn't let SnapStart read it", never "no rule". Where official pages disagree, both are shown.
 
 Calling an office is never a required step. Anything unconfirmed has a prepared written question to copy into the office's contact form or email, with the best official link. Results are saved, and "Re-check sources" runs it again. Changing a decision such as the structure re-plans from the saved research instead, and the owner reviews the changes first. Reading the pages needs an internet connection, even in practice mode.
 
@@ -143,10 +143,10 @@ The first plan applies straight away. After that, a re-check or a changed decisi
 
 ## Official forms
 
-Forms First Sale knows by hand are in `src/data/official-forms/`, each with word-for-word quotes from the official pages and the date they were checked.
+Forms SnapStart knows by hand are in `src/data/official-forms/`, each with word-for-word quotes from the official pages and the date they were checked.
 
 - **IRS Form SS-4 (EIN), from irs.gov:**
-  - "Get the official form" downloads it and checks that it's from the IRS's own site and the exact revision First Sale checked (Rev. December 2025).
+  - "Get the official form" downloads it and checks that it's from the IRS's own site and the exact revision SnapStart checked (Rev. December 2025).
   - The original is kept unchanged.
   - Fixed rules fill the blanks the owner's confirmed details answer, such as line 6, "Travis County, Texas". SSN, EIN and signature blanks always stay empty.
   - A newer revision is flagged and isn't filled by these rules.
@@ -163,7 +163,7 @@ Forms First Sale knows by hand are in `src/data/official-forms/`, each with word
 
 A step offers the forms that fit the owner's county and structure. An LLC gets Form 503, and a sole proprietor or partnership in Travis County gets the county's form.
 
-Links and quotes from sites that refuse automated requests are marked "checked by hand", with the date. First Sale never gets past a site's bot check.
+Links and quotes from sites that refuse automated requests are marked "checked by hand", with the date. SnapStart never gets past a site's bot check.
 
 The owner reviews every answer and saves a reviewed copy (a filled PDF or an answer guide). It's a new version next to the original, marked "Not filed". If a detail a draft used changes later, such as the address or the structure, the draft and its copies are flagged outdated, and "Update the answers" drafts those blanks again.
 
@@ -176,7 +176,7 @@ An LLC's or partnership's own rules: who owns what, who runs it, and how decisio
 - **Approve, then sign.** Approving makes a PDF with Schedule A (the owners' shares) and a signature line for each owner. It says it's a starting point, not legal advice.
 - **Outdated.** If a detail it used changes, it's flagged and can't be approved until it's prepared again. Preparing again removes the old PDF.
 - **Not covered:** buyouts, death or disability, deadlocks, competing businesses and pay. The page lists these for a lawyer.
-- Sole proprietors don't need one. Corporations adopt bylaws instead, which First Sale doesn't prepare yet.
+- Sole proprietors don't need one. Corporations adopt bylaws instead, which SnapStart doesn't prepare yet.
 
 ## Documents and the paperwork companion
 
@@ -184,7 +184,7 @@ Owners can upload a PDF or photo (up to 4 MB), paste a form's text, or have the 
 - explain the form, with each point tied to the form's own words (checked in code), kept apart from researched guidance from the plan
 - answer questions about a field or term
 - draft answers from details the owner has confirmed. The model only matches blanks to facts; the values come from saved details. Signatures, ID numbers and sworn statements are always left for the owner.
-- make a filled copy (fillable PDFs) or an answer sheet, with only answers the owner confirmed. The answer sheet says "Not filed" on the page. The filled copy says so in the PDF's details instead, so a printed copy can still be filed. First Sale never submits anything.
+- make a filled copy (fillable PDFs) or an answer sheet, with only answers the owner confirmed. The answer sheet says "Not filed" on the page. The filled copy says so in the PDF's details instead, so a printed copy can still be filed. SnapStart never submits anything.
 
 The document library is grouped by plan step. Each document shows its role (official original, form you added, answer guide, reviewed copy, receipt, approval or prepared document), its status (draft with answers to check, reviewed copy saved, outdated, record of filing), where it came from, the date it was downloaded or added, and its earlier versions. Owners can preview, download and delete, replace an uploaded file with a newer version (the earlier one stays), and save receipts and approvals to a step. Receipts aren't sent to the AI service. A retried download or upload returns the document already saved instead of a copy.
 
@@ -209,7 +209,7 @@ It also drafts a business plan from the owner's answers. Numbers the owner didn'
    - How familiar they are with social media, how much they know about SEO, and how much marketing content (photos, video, writing) they’ve made.
    - What they’ve done for marketing so far.
 
-   What First Sale already knows (name, what they sell and how, where, budget, launch date, logo, website) isn’t asked again. Answers are saved per business and can be changed later.
+   What SnapStart already knows (name, what they sell and how, where, budget, launch date, logo, website) isn’t asked again. Answers are saved per business and can be changed later.
 2. **Plan.** Muse Spark reads the business answers, the business plan’s customer, difference, price and monthly-goal answers, the brand brief, the website choice, approved photos and startup plan progress. It drafts goals, who to reach, platforms with reasons and how often, things to post about, a weekly rhythm and first actions, behind a progress screen that ticks off each part. Code then checks the draft (`checkPlan` in `src/lib/rules/marketing.ts`):
    - Platforms the owner ruled out are removed, along with every sentence that names them (plurals and other names, like “IG”, too).
    - Platforms they didn’t pick stay only as up to two suggestions, and every one they picked gets a place. If they picked none, the top suggestion leads.
@@ -297,7 +297,7 @@ On the Branding page, owners get a logo made for their business, its versions, t
 9. **Brand pictures.** Pictures for a Facebook cover, a YouTube banner, a website header and a link preview are made from the approved logo in its colors and style. They're flat artwork, never photos of products the owner may not sell. Guides show what each site crops or covers, and exact-size downloads are made in the browser, because Muse Image only sets the shape.
 10. **Brand kit.** The chosen logo, approved versions, palette and approved pictures. Other sections read it through `getMyBrand()`.
     - **Colors** with hex and RGB codes, and how readable each is on white, worked out from WCAG contrast.
-    - **Logo files**, made in the browser from the approved files, one at a time or as a .zip with a note on which file to use where (`src/lib/brand/kit-files.ts`): main and stacked logos on white and see-through; the icon at 1024 × 1024; one-color dark and white see-through files, and white on the logo's darkest color (near-black, said on the page, when every color is light); favicon.ico (16, 32, 48, 96), home-screen icons (180, 192, 512); and profile pictures (Facebook 320 × 320, and an 800 × 800 square First Sale picked). Sizes a platform asks for cite its own page with the date checked. File names drop characters that make folders or that some systems refuse. See-through files remove the plain background (`src/lib/brand/pixels.ts`), un-mixing soft edges from the logo's own nearby color; white inside the logo becomes see-through too, and a picture without one plain background gets no see-through file.
+    - **Logo files**, made in the browser from the approved files, one at a time or as a .zip with a note on which file to use where (`src/lib/brand/kit-files.ts`): main and stacked logos on white and see-through; the icon at 1024 × 1024; one-color dark and white see-through files, and white on the logo's darkest color (near-black, said on the page, when every color is light); favicon.ico (16, 32, 48, 96), home-screen icons (180, 192, 512); and profile pictures (Facebook 320 × 320, and an 800 × 800 square SnapStart picked). Sizes a platform asks for cite its own page with the date checked. File names drop characters that make folders or that some systems refuse. See-through files remove the plain background (`src/lib/brand/pixels.ts`), un-mixing soft edges from the logo's own nearby color; white inside the logo becomes see-through too, and a picture without one plain background gets no see-through file.
     - **Logo guide**: a printable page (a second when the answers are long) saved to Documents (`logo_guide`, replaced when saved again) with the logos, colors, the logo's lettering and free Google Fonts that suit it, clear space, minimum size, and do's and don'ts, all filled in by rules (`src/lib/brand/guide.ts`).
 
 **Stored:** every file is saved byte for byte as Muse returned it, with its pixel size read from the file. A failed drawing saves nothing.
@@ -327,11 +327,11 @@ Limits: 20 rounds of ideas, 120 files, and 250 MB per business. The owner can re
 
 ## Website
 
-On the Website page, owners learn the five pieces of being online, compare four packages in the same format, pick one, choose a web address and approve the words for each page. With a First Sale site, First Sale builds the site from their choices and shows it live; building and hosting are a demo for now. For Square, Wix or Shopify, it gives click-by-click steps with everything ready to paste.
+On the Website page, owners learn the five pieces of being online, compare four packages in the same format, pick one, choose a web address and approve the words for each page. With a SnapStart site, SnapStart builds the site from their choices and shows it live; building and hosting are a demo for now. For Square, Wix or Shopify, it gives click-by-click steps with everything ready to paste.
 
 1. **New to websites?** Web address, hosting, website builder, online store and checkout (a payment provider takes the card, keeps a fee and pays the rest to the owner) and business email (separate from the web address; sometimes in a hosting package, often an add-on from the company that sold the address). Each term has its own icon, used again on every package.
 2. **Choose a package.** Four packages (`src/data/website-platforms.ts`, with sources and the dates checked):
-   - **First Sale site**: First Sale builds and hosts it. Its price is the `FIRST_SALE_SITE_MONTHLY_USD` placeholder ($15 a month), labeled "Demo price".
+   - **SnapStart site**: SnapStart builds and hosts it. Its price is the `SNAPSTART_SITE_MONTHLY_USD` placeholder ($15 a month), labeled "Demo price".
    - **Square, Wix and Shopify**, priced from each company's own pages.
 
    Every card has the same parts:
@@ -340,12 +340,12 @@ On the Website page, owners learn the five pieces of being online, compare four 
    - a cost summary (`src/lib/website/costs.ts`). Every package is priced for the same need: the cheapest plan with the owner's own web address and card payments (Square Plus, Wix Core, Shopify Basic), with that plan's own card fee. It lists the plan with its billing ("$29 a month, billed yearly ($348)", plus month-to-month as its own line where the vendor gives it), each extra as a line, then a monthly and first-year total. Each line says whether it's in the total. Card fees, prices that aren't checked and prices without a stated period (Square's web address) are left out and named, never guessed.
 
    Fixed rules (`src/lib/website/recommend.ts`) recommend one package, with "Explain why":
-   - Services only: the First Sale site.
+   - Services only: the SnapStart site.
    - In person or at markets: Square.
    - Mostly online with a budget: Shopify.
 
    Once a package is chosen, the comparison folds away behind a one-line summary.
-3. **Demo payment.** Choosing the First Sale site opens a payment screen marked "For demo purposes only. No payment is taken." It shows no card field to type in. Close leaves nothing chosen; "Continue (demo)" picks the package.
+3. **Demo payment.** Choosing the SnapStart site opens a payment screen marked "For demo purposes only. No payment is taken." It shows no card field to type in. Close leaves nothing chosen; "Continue (demo)" picks the package.
 4. **Explain more.** Muse Spark explains one option for this owner, from that card's facts with every price taken out. It's told not to give amounts of money, and code drops any sentence that has one; "Your first year" is written by code from the cost summary. Other numbers that aren't in the facts are flagged. An explanation is kept until the card's facts change. Step instructions aren't facts, so changing them doesn't redo explanations.
 5. **Find more options.** Only when the owner asks, Muse searches the web for other builders. Code keeps an option only if its website is among the results and carries its name. Prices, other numbers and money words ("free", "no fees") stay only if they appear in that option's own sources.
 6. **Web address.** Ideas come from the business name and town. Any .com or .net can be checked against the official registry (Verisign RDAP). "Not registered yet" is a snapshot, not a promise. Checks are limited per owner, so the shared registry isn't flooded.
@@ -355,7 +355,7 @@ On the Website page, owners learn the five pieces of being online, compare four 
    - the business plan's answers about customers, what sets the business apart, and prices.
 
    Owner names, addresses, costs and funding are never sent. Numbers the owner didn't give are flagged, and missing facts become [bracketed] notes. The owner edits and approves the words, and approving saves a PDF of them to Documents.
-8. **Design and preview** (First Sale site). A live preview in a sandboxed iframe. The page is one plain HTML file from `src/lib/website/site/render.ts`:
+8. **Design and preview** (SnapStart site). A live preview in a sandboxed iframe. The page is one plain HTML file from `src/lib/website/site/render.ts`:
    - no scripts;
    - a Content-Security-Policy that blocks outside requests and form posts;
    - every piece of text escaped.
@@ -371,7 +371,7 @@ On the Website page, owners learn the five pieces of being online, compare four 
     - a help link;
     - the owner's own business name, search title and description, page words, questions, brand colors, logo, site icon, items with prices and photos, and DNS records for their web address, ready to copy or download.
 
-    Square shows its DNS records per site, so the step says where to find them. For the First Sale site, an optional fold covers Stripe or Square payment links for Buy buttons.
+    Square shows its DNS records per site, so the step says where to find them. For the SnapStart site, an optional fold covers Stripe or Square payment links for Buy buttons.
 11. **I already have a website.** The owner picks where it's built (Square, Wix, Shopify or another builder) and types its address. "Connect (demo)" records it as `existingSite` and shows "Connected (demo)"; nothing reaches the site, and no password, key or token is ever asked for. "I don't want to connect it" just records the address as the step's "already have" mark.
 
 The step counts as done after the demo finish, a connected existing site, or the "already have" mark (`src/lib/rules/section-status.ts`). Words written for one platform must be drafted again before approving if the owner switches platforms. Prices change, so each card shows the date they were checked.

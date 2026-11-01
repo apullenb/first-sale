@@ -32,7 +32,7 @@ const NO_BUSINESS = "Tell us about your business first.";
 export async function choosePlatformAction(platform: unknown): Promise<ActionResult> {
   const parsed = z.enum(PLATFORMS).nullable().safeParse(platform);
   if (!parsed.success) return { ok: false, message: "Pick one of the options." };
-  // A demo finish belongs to the First Sale site
+  // A demo finish belongs to the SnapStart site
   const patch = parsed.data === "first_sale" ? { platform: parsed.data } : { platform: parsed.data, finished: null };
   if (!(await saveMyWebsitePlan(patch))) return { ok: false, message: NO_BUSINESS };
   refresh();
@@ -215,7 +215,7 @@ async function websitePdf(content: WebsiteContent, platformName: string, now: Da
       { heading: "Questions and answers", entries: content.faq.map((entry) => ({ label: entry.question, value: entry.answer })) },
       { heading: "Search results", entries: [{ label: "Title", value: content.seoTitle }, { label: "Description", value: content.seoDescription }] },
     ],
-    footer: "Website words made with First Sale",
+    footer: "Website words made with SnapStart",
   });
 }
 

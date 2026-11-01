@@ -92,7 +92,7 @@ export interface MarketingStep {
   short: string[];
   links: StepLink[];
   by: "rule" | "ai";
-  // Steps First Sale couldn't compare with the platform's own guide
+  // Steps SnapStart couldn't compare with the platform's own guide
   general: boolean;
   // From a plan drafted in practice mode
   practice: boolean;

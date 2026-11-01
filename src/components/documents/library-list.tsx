@@ -61,7 +61,7 @@ export function LibraryList({ documents, steps, outdated }: Props) {
           <DocIcon icon="file" />
           <DocIcon icon="filecheck" />
         </span>
-        <p>No documents yet. Forms you add, papers you upload and documents First Sale prepares land here.</p>
+        <p>No documents yet. Forms you add, papers you upload and documents SnapStart prepares land here.</p>
       </div>
     );
   }

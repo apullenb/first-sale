@@ -108,7 +108,7 @@ describe("checkInsights", () => {
     }
   });
 
-  it("drops made-up statistics and numbers First Sale doesn't know", () => {
+  it("drops made-up statistics and numbers SnapStart doesn't know", () => {
     const result = checkInsights(
       reply({
         tips: [

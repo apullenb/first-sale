@@ -31,7 +31,7 @@ export type CoverageState = (typeof COVERAGE_STATES)[number];
 export const COVERAGE_LABELS: Record<CoverageState, string> = {
   confirmed: "Official page confirms at least one requirement",
   read_unconfirmed: "Official pages read, but none confirmed a requirement",
-  unreadable: "The official site didn’t let First Sale read it",
+  unreadable: "The official site didn’t let SnapStart read it",
   no_official_page: "No official page found",
   search_failed: "Search didn’t finish",
   not_searched: "Not searched yet",

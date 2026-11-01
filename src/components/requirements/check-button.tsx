@@ -54,7 +54,7 @@ export function CheckRequirementsButton({
       const deeper = await followUpAction();
       if (!deeper.ok) setError(deeper.message);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPhase(null);
     }

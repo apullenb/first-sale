@@ -33,7 +33,7 @@ export interface ImageSpec {
   size: string;
   exports: Export[];
   guides: Guide[];
-  // Where the numbers come from; null when First Sale picked them
+  // Where the numbers come from; null when SnapStart picked them
   source: { name: string; url: string } | null;
   facts: string[];
 }
@@ -85,7 +85,7 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
     exports: [{ label: "1920 × 1080", width: 1920, height: 1080, type: "image/jpeg" }],
     guides: [],
     source: null,
-    facts: ["There’s no standard size for website pictures. First Sale makes a 16:9 picture, a shape most website builders handle well."],
+    facts: ["There’s no standard size for website pictures. SnapStart makes a 16:9 picture, a shape most website builders handle well."],
   },
   link_preview: {
     title: "Link preview",

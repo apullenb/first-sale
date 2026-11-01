@@ -15,9 +15,9 @@ export function PracticeTag() {
   return <Chip tone="warn">{PRACTICE_LABEL}</Chip>;
 }
 
-const BUILT_IN_CODE = "Made by First Sale from your logo’s own pixels: nothing was redrawn";
+const BUILT_IN_CODE = "Made by SnapStart from your logo’s own pixels: nothing was redrawn";
 
-// Who made it: Muse, First Sale from the logo's pixels, or a practice stand-in that must never pass for a drawing
+// Who made it: Muse, SnapStart from the logo's pixels, or a practice stand-in that must never pass for a drawing
 export function MadeBy({ simulated, model, what = "Drawn by Meta’s Muse Image" }: { simulated: boolean; model?: string; what?: string }) {
   if (simulated) return <PracticeTag />;
   return (

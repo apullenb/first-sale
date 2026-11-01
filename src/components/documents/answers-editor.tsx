@@ -110,7 +110,7 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
         setStatus("idle");
       } else setStatus(next === "saving" ? "saved" : "idle");
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
       setStatus("idle");
     }
   }
@@ -141,7 +141,7 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
         <span className="font-semibold text-rule">
           {answered} of {editable.length} {editable.length === 1 ? "blank" : "blanks"} answered, {confirmed} confirmed.
         </span>{" "}
-        Leave Social Security and tax id numbers for the form itself: First Sale doesn’t store them.
+        Leave Social Security and tax id numbers for the form itself: SnapStart doesn’t store them.
       </p>
 
       <ol className="flex flex-col gap-3">

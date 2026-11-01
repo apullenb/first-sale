@@ -75,7 +75,7 @@ export function PlaceStep({
       <p className="flex items-center gap-2 text-[15px] text-rule">
         <Icon name="globe" size="sm" className="text-accent" />
         <span>
-          <span className="font-semibold text-ink">Country:</span> United States. First Sale works for US businesses for now.
+          <span className="font-semibold text-ink">Country:</span> United States. SnapStart works for US businesses for now.
         </span>
       </p>
       <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">

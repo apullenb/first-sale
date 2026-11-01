@@ -51,7 +51,7 @@ export function FormStatus({ doc, outdated, versions, acceptedTypes }: Props) {
           </p>
           {check.ok ? null : (
             <p className="text-[15px] text-check">
-              It may be a newer version than the one First Sale checked, so its blanks weren’t filled in automatically. You can still draft answers below and make an answer sheet.
+              It may be a newer version than the one SnapStart checked, so its blanks weren’t filled in automatically. You can still draft answers below and make an answer sheet.
             </p>
           )}
         </Card>

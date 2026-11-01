@@ -9,7 +9,7 @@ export type PasteValue =
   | { kind: "color"; label: string; hex: string }
   | { kind: "file"; label: string; href: string; note: string | null }
   | { kind: "records"; label: string; records: DnsRecord[]; note: string; source: { label: string; url: string } }
-  // Something First Sale can't fill yet, with where to make it
+  // Something SnapStart can't fill yet, with where to make it
   | { kind: "missing"; label: string; text: string; href: string | null };
 
 export interface PasteContext {

@@ -324,7 +324,7 @@ export function recommendedTaxPlan(p: BusinessProfile, option: BusinessStructure
       reasons: [
         { text: tax.text, fact: tax.fact },
         { text: "S corporation status passes its income through to shareholders instead, so it isn’t taxed twice.", fact: "s_corp_pass_through" },
-        { text: "You choose it by filing Form 2553, which First Sale adds to your steps.", fact: "s_corp_election" },
+        { text: "You choose it by filing Form 2553, which SnapStart adds to your steps.", fact: "s_corp_election" },
       ],
     };
   }

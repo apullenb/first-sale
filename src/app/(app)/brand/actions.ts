@@ -49,7 +49,7 @@ import { runWorkflow } from "@/lib/workflow-runner";
 
 const NOT_FOUND = "That wasn’t found. It may have been removed. Reload the page and try again.";
 const NO_BUSINESS = "Tell us about your business first.";
-const OFF = "Logo drawing isn’t turned on for First Sale yet.";
+const OFF = "Logo drawing isn’t turned on for SnapStart yet.";
 const PRACTICE_FILE = "This is a practice preview, not a logo Muse drew. Choose one of the logos Muse made.";
 const PRACTICE_IDEAS = "These ideas are practice placeholders, not written for your business. Choose “Generate logo ideas” to have Muse write real ones.";
 const SAY_CHANGE = "Say what you’d like changed, such as “Make the letters thicker”.";
@@ -146,14 +146,14 @@ export async function suggestTaglinesAction(input: unknown): Promise<ActionResul
   return runWorkflow("brand_tagline", null, async () => {
     const model = getModel();
     const taglines = await suggestTaglines(model, { ...saved, name }, await myAiKey());
-    if (!taglines.length) throw new OwnerFacingError("None of the suggestions passed First Sale’s checks this time. Try again, or type your own.");
+    if (!taglines.length) throw new OwnerFacingError("None of the suggestions passed SnapStart’s checks this time. Try again, or type your own.");
     return { taglines, simulated: model.simulated };
   });
 }
 
 const ROUND_MESSAGES = {
   no_business: NO_BUSINESS,
-  too_many: "You’ve asked for as many rounds of ideas as First Sale keeps. Remove ideas you don’t need, then try again.",
+  too_many: "You’ve asked for as many rounds of ideas as SnapStart keeps. Remove ideas you don’t need, then try again.",
   not_found: NOT_FOUND,
 } as const;
 

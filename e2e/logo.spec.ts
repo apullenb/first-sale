@@ -175,7 +175,7 @@ test.describe("create your logo", () => {
     await expect(sidebar(page).getByRole("link", { name: /^Create your logo , done/ })).toBeVisible({ timeout: 30_000 });
     const icon = page.getByRole("region", { name: "Icon (profile picture)" });
     await icon.getByRole("button", { name: "Make the icon (profile picture)" }).click();
-    await expect(icon.getByText("Made by First Sale from your logo’s own pixels", { exact: false })).toBeVisible({ timeout: 60_000 });
+    await expect(icon.getByText("Made by SnapStart from your logo’s own pixels", { exact: false })).toBeVisible({ timeout: 60_000 });
     await expect(icon.getByText(PRACTICE_PREVIEW)).toHaveCount(0);
     await expect(icon.getByRole("button", { name: "Have AI draw one instead" })).toBeVisible();
 

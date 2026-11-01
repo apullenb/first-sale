@@ -42,7 +42,7 @@ export function RefineForm({ photoId, versionId, versionNumber }: { photoId: str
       setChange("");
       router.push(`/photos/${photoId}?v=${result.value}`);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection, then try again.");
+      setError("Couldn’t reach SnapStart. Check your connection, then try again.");
     } finally {
       inFlight.current = false;
       setPending(false);

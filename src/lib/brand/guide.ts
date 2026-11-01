@@ -83,7 +83,7 @@ export async function logoGuidePdf(input: GuideInput): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   const title = `${input.businessName} logo guide`;
   doc.setTitle(toWinAnsi(title));
-  doc.setProducer("First Sale");
+  doc.setProducer("SnapStart");
   const regular = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const width = PAGE.width - PAGE.margin * 2;
@@ -114,7 +114,7 @@ export async function logoGuidePdf(input: GuideInput): Promise<Uint8Array> {
 
   text(title, bold, 22, PAGE.margin, width);
   const date = input.now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
-  text(`Made ${date} by First Sale from ${input.uploaded ? "the logo you uploaded" : "the logo you approved"}.${input.tagline ? ` Tagline: “${input.tagline}”.` : ""}`, regular, 10, PAGE.margin, width, MUTED);
+  text(`Made ${date} by SnapStart from ${input.uploaded ? "the logo you uploaded" : "the logo you approved"}.${input.tagline ? ` Tagline: “${input.tagline}”.` : ""}`, regular, 10, PAGE.margin, width, MUTED);
 
   if (input.simulated) {
     y -= 8;
@@ -224,7 +224,7 @@ export async function logoGuidePdf(input: GuideInput): Promise<Uint8Array> {
 
   const pages = doc.getPages();
   pages.forEach((each, index) =>
-    drawFooter(each, regular, `Not checked for trademarks: search for similar marks at ${USPTO.url} before you print or spend money on it. Made by First Sale.${pages.length > 1 ? ` Page ${index + 1} of ${pages.length}.` : ""}`),
+    drawFooter(each, regular, `Not checked for trademarks: search for similar marks at ${USPTO.url} before you print or spend money on it. Made by SnapStart.${pages.length > 1 ? ` Page ${index + 1} of ${pages.length}.` : ""}`),
   );
   return doc.save();
 }

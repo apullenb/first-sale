@@ -119,7 +119,7 @@ export function AiProgressButton({ action, label, title, steps, estimateMs, vari
       setPhase("finished");
       finish(idle);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
       idle();
     }
   }

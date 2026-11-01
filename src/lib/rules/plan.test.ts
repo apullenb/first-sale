@@ -28,7 +28,7 @@ describe("slugKey", () => {
   });
 });
 
-describe("rules First Sale decided", () => {
+describe("rules SnapStart decided", () => {
   const place = placeOf(testProfile({ location: { state: "TX", county: "Denton County", city: "Aubrey", insideCityLimits: "yes" } }));
   const decided = (key: string, { background = "", ...overrides }: Parameters<typeof verifiedRequirement>[0] & { background?: string } = {}) => ({
     ...verifiedRequirement({ key, title: `Rule ${key}`, level: "city", agency: "City clerk", ...overrides }),
@@ -43,7 +43,7 @@ describe("rules First Sale decided", () => {
     site: { title: "Contact us", url: "https://www.aubreytx.gov/contact" },
   };
 
-  it("makes each one its own step, with First Sale's reason and the office's contacts, never a step to ask the office", () => {
+  it("makes each one its own step, with SnapStart's reason and the office's contacts, never a step to ask the office", () => {
     const plan = buildPlan(
       [decided("license", { background: "Aubrey licenses businesses that sell from home." }), decided("home"), verifiedRequirement({ key: "ein", level: "federal", verification: "sourced" })],
       sources,
@@ -66,7 +66,7 @@ describe("rules First Sale decided", () => {
     expect(plan[0]).toMatchObject({ title: "Ask the City of Aubrey about 2 rules", requirementStatus: "to_find_out", contacts: aubrey.contacts });
   });
 
-  it("leaves out rules First Sale decided aren't needed", () => {
+  it("leaves out rules SnapStart decided aren't needed", () => {
     const plan = buildPlan([{ ...decided("sign"), status: "not_needed" as const }, decided("license")], sources, false, { place, offices: [aubrey] });
     expect(plan.map((step) => step.key)).toEqual(["license"]);
   });

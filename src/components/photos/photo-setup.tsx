@@ -66,7 +66,7 @@ export function PhotoSetup({ photoId, objects, question, aiCategory, initial, se
       router.push(`/photos/${photoId}?v=${result.value}`);
     } catch {
       // Same key on the next try, so a photo already made isn't paid for twice
-      setError("Couldn’t reach First Sale. Check your connection, then try again.");
+      setError("Couldn’t reach SnapStart. Check your connection, then try again.");
     } finally {
       inFlight.current = false;
       setPending(false);

@@ -15,7 +15,7 @@ export function WebsiteBasics({ exampleDomain }: { exampleDomain: string }) {
     },
     {
       term: "builder",
-      text: "The tool that turns your words and pictures into pages, with no code. With Square, Wix or Shopify you build it yourself; with a First Sale site, First Sale builds it for you.",
+      text: "The tool that turns your words and pictures into pages, with no code. With Square, Wix or Shopify you build it yourself; with a SnapStart site, SnapStart builds it for you.",
     },
     {
       term: "checkout",

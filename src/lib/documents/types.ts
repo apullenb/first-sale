@@ -24,7 +24,7 @@ export interface DocumentField {
 }
 
 export interface DocumentContent {
-  // "catalog": an online application's questions, from First Sale's checked list
+  // "catalog": an online application's questions, from SnapStart's checked list
   readMethod: "pdf_text" | "pdf_form" | "ai_reading" | "pasted" | "catalog" | "none";
   pages: DocumentPage[];
   fields: DocumentField[];

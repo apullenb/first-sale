@@ -24,7 +24,7 @@ export default function PhotosPage() {
       <PageHead
         kicker={<Kicker icon="camera">Build your brand · Add your products</Kicker>}
         title="Product photos"
-        lead="Turn an ordinary photo of what you sell into a polished photo for your online store. Upload it, choose a look, and First Sale does the rest. Your product stays exactly as it is, and nothing is used until you approve it."
+        lead="Turn an ordinary photo of what you sell into a polished photo for your online store. Upload it, choose a look, and SnapStart does the rest. Your product stays exactly as it is, and nothing is used until you approve it."
       />
       <Suspense fallback={<p className="text-muted">Loading your photos…</p>}>
         <Photos />
@@ -55,7 +55,7 @@ async function Photos() {
         <PracticeBanner what="Photos made here are development previews, not made by Muse: each one is your original photo, unchanged." />
       ) : null}
       {editing.state === "unavailable" ? (
-        <Note>Photo editing isn’t turned on for First Sale yet. You can still upload photos, and edit them once it is.</Note>
+        <Note>Photo editing isn’t turned on for SnapStart yet. You can still upload photos, and edit them once it is.</Note>
       ) : null}
       <PhotoUpload maxUploadBytes={MAX_UPLOAD_BYTES} nameLimit={MAX_PHOTO_NAME} />
       <PhotoList photos={photos} />

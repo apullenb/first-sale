@@ -70,7 +70,7 @@ function createProvider(provider: string, env: Env): ModelProvider {
         },
         sendUserKey: false,
         dataHandling: {
-          recipient: `the AI service this copy of First Sale is set up with (${env.AI_NAME || "an OpenAI-compatible service"})`,
+          recipient: `the AI service this copy of SnapStart is set up with (${env.AI_NAME || "an OpenAI-compatible service"})`,
           notes: ["That service’s own terms say how it handles what’s sent to it."],
         },
       });
@@ -84,12 +84,12 @@ function createProvider(provider: string, env: Env): ModelProvider {
 function museDataHandling(model: string) {
   const recipient = "Meta’s AI service (Muse)";
   if (/contributor/i.test(model)) {
-    return { recipient, notes: ["This copy of First Sale uses Meta’s Contributor mode, which lets Meta use what’s sent to train its models."] };
+    return { recipient, notes: ["This copy of SnapStart uses Meta’s Contributor mode, which lets Meta use what’s sent to train its models."] };
   }
   return {
     recipient,
     notes: [
-      "First Sale uses Meta’s Standard mode, which Meta says doesn’t use your content to train its models.",
+      "SnapStart uses Meta’s Standard mode, which Meta says doesn’t use your content to train its models.",
       "Meta’s documentation doesn’t say how long it keeps requests, so we can’t promise more than that.",
       "To cost less, requirement checks ask Meta to keep their prompt cache for up to a day. That cache holds the official pages and your business answers.",
     ],
@@ -104,7 +104,7 @@ function required(env: Env, key: string): string {
 
 export const MUSE_IMAGE_DEFAULTS = { model: "muse-image-1.0" } as const;
 
-// Image editing, picked from env like getModel. Null when the provider has no image editing First Sale supports.
+// Image editing, picked from env like getModel. Null when the provider has no image editing SnapStart supports.
 export function getImageModel(env: Env = process.env): ImageModel | null {
   if (!env.AI_PROVIDER && env.NODE_ENV === "production") {
     throw new Error("AI_PROVIDER is not set. Production never falls back to the mock model.");

@@ -31,7 +31,7 @@ export function GeneratedView({ doc, from, stepTitle, outdated = [] }: Props) {
     <div className="flex max-w-3xl flex-col gap-6">
       <DocumentHead documentId={doc.id} title={doc.title}>
         <p>
-          {kind}, prepared by First Sale on <LocalDate iso={doc.createdAt.toISOString()} />
+          {kind}, prepared by SnapStart on <LocalDate iso={doc.createdAt.toISOString()} />
           {doc.hasFile && doc.byteSize ? ` · ${formatBytes(doc.byteSize)}` : null}
         </p>
       </DocumentHead>
@@ -114,7 +114,7 @@ export function GeneratedView({ doc, from, stepTitle, outdated = [] }: Props) {
               isPlan
                 ? `Delete “${doc.title}”? This removes the plan, your answers to its questions and its PDF. This can’t be undone.`
                 : isAgreement
-                  ? `Delete “${doc.title}”? This removes the agreement, your answers and its PDF from First Sale. Copies you’ve printed or signed aren’t affected. This can’t be undone.`
+                  ? `Delete “${doc.title}”? This removes the agreement, your answers and its PDF from SnapStart. Copies you’ve printed or signed aren’t affected. This can’t be undone.`
                   : `Delete “${doc.title}”? This removes the file. This can’t be undone.`
             }
             doneHref="/documents"

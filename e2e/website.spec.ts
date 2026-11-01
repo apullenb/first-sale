@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { candles, groomer, tacos } from "./scenarios";
 import { newOwner, open, openFold, sidebar } from "./support";
 
-const PACKAGES = ["First Sale site", "Square", "Wix", "Shopify"];
+const PACKAGES = ["SnapStart site", "Square", "Wix", "Shopify"];
 const FIVE_THINGS = ["Web address", "Hosting", "Website builder", "Online store and checkout", "Business email"];
 
 test.describe("create your website", () => {
@@ -28,25 +28,25 @@ test.describe("create your website", () => {
       await expect(costs).toContainText("Not in the total:");
       await expect(card.getByRole("button", { name: `Choose ${name}` })).toBeVisible();
     }
-    const firstSale = choose.getByRole("article", { name: "First Sale site" });
+    const firstSale = choose.getByRole("article", { name: "SnapStart site" });
     // One package is recommended from the answers, with reasons
     const recommended = choose.getByRole("article").filter({ hasText: "Recommended for you" });
     await expect(recommended).toHaveCount(1);
-    await expect(firstSale.getByRole("region", { name: "First Sale site cost summary" }).getByText("Demo price")).toBeVisible();
+    await expect(firstSale.getByRole("region", { name: "SnapStart site cost summary" }).getByText("Demo price")).toBeVisible();
     const why = await openFold(recommended, "Explain why");
     await expect(why.getByRole("listitem").first()).toBeVisible();
     const gets = await openFold(firstSale, /^What you get/);
     await expect(gets.getByRole("listitem").first()).toBeVisible();
 
     // The demo payment screen never asks for card details
-    await firstSale.getByRole("button", { name: "Choose First Sale site" }).click();
-    const dialog = page.getByRole("dialog", { name: "Start your First Sale site" });
+    await firstSale.getByRole("button", { name: "Choose SnapStart site" }).click();
+    const dialog = page.getByRole("dialog", { name: "Start your SnapStart site" });
     await expect(dialog.getByText("For demo purposes only. No payment is taken.")).toBeVisible();
     await expect(dialog.getByText("(demo price)")).toBeVisible();
     await expect(dialog.locator("input, select, textarea, iframe")).toHaveCount(0);
     await dialog.getByRole("button", { name: "Close" }).first().click();
     await expect(dialog).toBeHidden();
-    await firstSale.getByRole("button", { name: "Choose First Sale site" }).click();
+    await firstSale.getByRole("button", { name: "Choose SnapStart site" }).click();
     await dialog.getByRole("button", { name: "Continue (demo)" }).click();
     await expect(choose.getByText("Your choice", { exact: true }).first()).toBeVisible();
     await expect(choose).toContainText("(demo price)");
@@ -110,7 +110,7 @@ test.describe("create your website", () => {
     await finish.getByRole("button", { name: "Finish my site (demo)" }).click();
     const ready = page.getByRole("region", { name: "Your website is ready" });
     await expect(ready).toBeVisible({ timeout: 30_000 });
-    await expect(ready).toContainText("First Sale site");
+    await expect(ready).toContainText("SnapStart site");
     await expect(page.getByText("This is a demo: nothing is published online.").first()).toBeVisible();
     await openFold(page, "Revisit your website");
     await expect(sidebar(page).getByRole("link", { name: /^Create your website , done/ })).toBeVisible({ timeout: 30_000 });

@@ -2,7 +2,7 @@ import { placeholderCount } from "@/lib/website/words";
 import type { PlatformId, WebsiteContent } from "@/lib/website/types";
 import { buyLinkProblem, itemFor, type SiteDesign, shows } from "./design";
 
-// Plain rules for whether the site First Sale builds can be finished (a demo: nothing goes online).
+// Plain rules for whether the site SnapStart builds can be finished (a demo: nothing goes online).
 // Blockers stop the finish; notes are shown, not enforced.
 
 export interface PublishCheck {
@@ -29,7 +29,7 @@ export function publishReadiness(check: PublishCheck): Readiness {
   const blockers: string[] = [];
   const notes: string[] = [];
 
-  if (check.platform !== "first_sale") blockers.push("Choose “First Sale site” in step 1 to finish it here.");
+  if (check.platform !== "first_sale") blockers.push("Choose “SnapStart site” in step 1 to finish it here.");
   if (!check.named) blockers.push("Give your business a name in your answers first.");
   if (!content) {
     blockers.push("Draft your words in step 3.");

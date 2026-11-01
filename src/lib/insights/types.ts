@@ -56,7 +56,7 @@ export interface Insight {
   link: InsightLink | null;
 }
 
-// Parts of what First Sale knows, each hashed so the page can say what changed since
+// Parts of what SnapStart knows, each hashed so the page can say what changed since
 export const FACT_AREAS = ["answers", "plan", "decisions", "business_plan", "brand", "website", "photos"] as const;
 export type FactArea = (typeof FACT_AREAS)[number];
 

@@ -99,7 +99,7 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
               <h2 id="answers-heading" className={SECTION_TITLE}>
                 Your answers
               </h2>
-              <p className="text-muted">You confirmed these. First Sale uses them everywhere, so you won’t be asked again.</p>
+              <p className="text-muted">You confirmed these. SnapStart uses them everywhere, so you won’t be asked again.</p>
             </div>
             <Link href="/business/edit" className={SECONDARY_LINK}>
               <Icon name="pencil" size="sm" />
@@ -163,9 +163,9 @@ async function BusinessOverview({ searchParams }: { searchParams: PageProps<"/bu
       </Card>
 
       <Card title="Business details" icon="clipboard" id="details-heading">
-        <p className="text-muted">Forms ask for these. Fill them in here, and First Sale can draft your form answers for you to check.</p>
+        <p className="text-muted">Forms ask for these. Fill them in here, and SnapStart can draft your form answers for you to check.</p>
         <Note icon="lock" tone="quiet">
-          First Sale never stores Social Security or tax id numbers. Forms leave those for you to fill in yourself.
+          SnapStart never stores Social Security or tax id numbers. Forms leave those for you to fill in yourself.
         </Note>
         <ul className="flex flex-col">
           {DETAIL_KEYS.filter((key) => !(DETAILS[key] as DetailSpec).decision).map((key) => {

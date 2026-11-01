@@ -44,17 +44,17 @@ export function FilingPaths({
 
   const paper = paths.paper ? (
     <NumberedSteps
-      label={`Fill in ${name} with First Sale`}
+      label={`Fill in ${name} with SnapStart`}
       steps={[
         {
-          title: "Check the answers First Sale prepared",
+          title: "Check the answers SnapStart prepared",
           done: Boolean(original),
           body: original ? (
             <FormPreview label="Official form, kept unchanged, with your drafted answers" item={original} reviewLink={false} />
           ) : (
             <>
               <p className={AFTER}>
-                First Sale gets {name} from {form.domain}, checks it’s the right one, keeps the original unchanged, and fills in the blanks your details answer. ID numbers
+                SnapStart gets {name} from {form.domain}, checks it’s the right one, keeps the original unchanged, and fills in the blanks your details answer. ID numbers
                 and signatures stay blank for you.
               </p>
               <FormButton
@@ -114,7 +114,7 @@ export function FilingPaths({
             <FormPreview label="Answers prepared for the online application" item={guide} />
           ) : (
             <>
-              <p className={AFTER}>First Sale prepares your answers from your details, so you can copy them in. You review each one first.</p>
+              <p className={AFTER}>SnapStart prepares your answers from your details, so you can copy them in. You review each one first.</p>
               <FormButton action={prepareAnswerGuideAction} stepId={stepId} formKey={form.key} label="Prepare my answers" pendingLabel="Preparing…" primary />
             </>
           ),
@@ -126,7 +126,7 @@ export function FilingPaths({
               <OutsideLink href={paths.online.url}>Open the official application</OutsideLink>
               {paths.online.checkedByHand ? (
                 <small className="text-sm text-muted">
-                  Link checked by hand on <LocalDate iso={`${paths.online.checkedByHand}T12:00:00.000Z`} />: this site doesn’t let First Sale read it automatically.
+                  Link checked by hand on <LocalDate iso={`${paths.online.checkedByHand}T12:00:00.000Z`} />: this site doesn’t let SnapStart read it automatically.
                 </small>
               ) : null}
               <FilingLines lines={paths.online.send} />
@@ -147,7 +147,7 @@ export function FilingPaths({
         name={group}
         letter="A"
         title={`Fill in ${name} here`}
-        summary={`First Sale fills in the official form from your details. You check it, sign it and send it yourself.`}
+        summary={`SnapStart fills in the official form from your details. You check it, sign it and send it yourself.`}
         open={started === "paper"}
       >
         {paper}
@@ -157,12 +157,12 @@ export function FilingPaths({
         name={group}
         letter="B"
         title={`Apply online on ${siteName(paths.online.url)}`}
-        summary="First Sale prepares your answers. You copy them into the official site and submit it there."
+        summary="SnapStart prepares your answers. You copy them into the official site and submit it there."
         open={started === "online"}
       >
         {online}
       </ChoiceOption>
-      {started ? null : <p className="text-sm text-muted">Pick one. Both end with you sending it yourself; First Sale never files anything for you.</p>}
+      {started ? null : <p className="text-sm text-muted">Pick one. Both end with you sending it yourself; SnapStart never files anything for you.</p>}
     </div>
   );
 }
@@ -172,7 +172,7 @@ export const usesPaths = (form: OfficialForm | null): form is OfficialForm => Bo
 export function MissingDetails({ items }: { items: string[] }) {
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-check-ring bg-check-tint px-3.5 py-3 text-[15px] text-check">
-      <p className="font-semibold">Add these first, so First Sale can fill them in:</p>
+      <p className="font-semibold">Add these first, so SnapStart can fill them in:</p>
       <ul className="flex list-disc flex-col gap-0.5 pl-5">
         {items.map((item) => (
           <li key={item}>{item}</li>

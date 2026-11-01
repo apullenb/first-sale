@@ -2,7 +2,7 @@ import type { PlanTopic, TaskStatus } from "@/lib/domain";
 import type { RequirementStatus } from "@/lib/research/applicability";
 
 // Plain code: what the steps cost.
-// Optional steps and rules outside First Sale's coverage never count toward what's needed before selling.
+// Optional steps and rules outside SnapStart's coverage never count toward what's needed before selling.
 
 export interface ActionStep {
   key: string;

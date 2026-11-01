@@ -24,8 +24,8 @@ describe("the logo kit", () => {
       expect(recipe.citation?.checked).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     }
     expect(KIT_RECIPES.find((recipe) => recipe.id === "app-512")?.size).toEqual({ width: 512, height: 512 });
-    // A size First Sale picked says so, and cites nothing
-    expect(KIT_RECIPES.find((recipe) => recipe.id === "square-800")).toMatchObject({ use: expect.stringContaining("First Sale picked this size") });
+    // A size SnapStart picked says so, and cites nothing
+    expect(KIT_RECIPES.find((recipe) => recipe.id === "square-800")).toMatchObject({ use: expect.stringContaining("SnapStart picked this size") });
     expect(KIT_RECIPES.find((recipe) => recipe.id === "square-800")?.citation).toBeUndefined();
     for (const group of Object.values(KIT_FACTS)) expect(group.sources.length).toBeGreaterThan(0);
   });

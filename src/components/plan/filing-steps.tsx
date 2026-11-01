@@ -57,7 +57,7 @@ function Line({ line }: { line: FilingLine }) {
           {line.link.quiet ? <ResourceLink href={line.link.url}>{line.link.label}</ResourceLink> : <OutsideLink href={line.link.url}>{line.link.label}</OutsideLink>}
           {line.link.checkedByHand ? (
             <small className="text-sm text-muted">
-              Link checked by hand on <LocalDate iso={day(line.link.checkedByHand)} />: this site doesn’t let First Sale read it automatically.
+              Link checked by hand on <LocalDate iso={day(line.link.checkedByHand)} />: this site doesn’t let SnapStart read it automatically.
             </small>
           ) : null}
         </div>

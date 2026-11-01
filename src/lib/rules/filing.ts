@@ -74,25 +74,25 @@ export function filingSteps(input: FilingInput): FilingStep[] {
   const formLines: FilingLine[] = [];
   if (form?.pdfUrl) {
     formLines.push({
-      text: `${form.onlineUrl ? "Way 1: fill" : "Fill"} in the official ${form.formNumber ? `Form ${form.formNumber}` : "form"}${form.revision ? ` (${form.revision})` : ""} with First Sale. It downloads the form from ${form.domain}, checks it’s the right one, keeps the original unchanged, and fills in what it can for you to check.`,
+      text: `${form.onlineUrl ? "Way 1: fill" : "Fill"} in the official ${form.formNumber ? `Form ${form.formNumber}` : "form"}${form.revision ? ` (${form.revision})` : ""} with SnapStart. It downloads the form from ${form.domain}, checks it’s the right one, keeps the original unchanged, and fills in what it can for you to check.`,
       source: { title: form.pageTitle, url: form.pageUrl, checkedOn: form.checkedOn },
     });
   }
   if (form?.onlineUrl) {
     formLines.push({
-      text: `${form.pdfUrl ? "Way 2: apply" : "Apply"} online on the agency’s own site. First Sale prepares your answers first, so you can copy them in.`,
+      text: `${form.pdfUrl ? "Way 2: apply" : "Apply"} online on the agency’s own site. SnapStart prepares your answers first, so you can copy them in.`,
       link: { label: "The official online application", url: form.onlineUrl },
     });
   }
   if (form?.selfDownload) {
     formLines.push({
-      text: "Prefer paper? The agency’s site doesn’t let First Sale download its form, so download it yourself, then upload it to this step for help filling it in.",
+      text: "Prefer paper? The agency’s site doesn’t let SnapStart download its form, so download it yourself, then upload it to this step for help filling it in.",
       link: { label: form.selfDownload.label, url: form.selfDownload.url },
     });
   }
   if (form && !form.pdfUrl && !form.onlineUrl) {
     formLines.push({
-      text: "First Sale prepared your answers from what the official rules say this filing must include.",
+      text: "SnapStart prepared your answers from what the official rules say this filing must include.",
       source: { title: form.pageTitle, url: form.pageUrl, checkedOn: form.checkedOn },
     });
   }
@@ -139,11 +139,11 @@ export function filingSteps(input: FilingInput): FilingStep[] {
   if (form?.signature) submit.push({ text: form.signature.text, source: fromFact(form.signature) });
   if (!submit.length) {
     submit.push({
-      text: `How to submit: unknown. ${confirming ? "The official page explains it" : "We couldn’t confirm it on an official page"}. You submit it yourself${input.agency ? ` to ${input.agency}` : ""}; First Sale never files anything.`,
+      text: `How to submit: unknown. ${confirming ? "The official page explains it" : "We couldn’t confirm it on an official page"}. You submit it yourself${input.agency ? ` to ${input.agency}` : ""}; SnapStart never files anything.`,
       unknown: true,
     });
   } else {
-    submit.push({ text: "You check, sign and submit it yourself. First Sale never files anything for you." });
+    submit.push({ text: "You check, sign and submit it yourself. SnapStart never files anything for you." });
   }
   steps.push({ kind: "submit", title: "Submit it yourself", lines: submit });
 
@@ -167,7 +167,7 @@ export function filingSteps(input: FilingInput): FilingStep[] {
 export interface FilingPaths {
   // Fill in the official paper form here, then sign and send it
   paper: { send: FilingLine[] } | null;
-  // Apply on the agency's own site with the answers First Sale prepared
+  // Apply on the agency's own site with the answers SnapStart prepared
   online: { url: string; checkedByHand?: string; send: FilingLine[] } | null;
 }
 
@@ -189,13 +189,13 @@ export function filingPaths(form: OfficialForm): FilingPaths {
   ];
   if (!paper.length) paper.push({ text: `Send it to ${form.agency} the way the official page says.`, source: { title: form.pageTitle, url: form.pageUrl, checkedOn: form.checkedOn } });
   if (form.signature) paper.push({ text: form.signature.text, source: fromFact(form.signature) });
-  paper.push({ text: "Not filed: you sign and send it yourself. First Sale never files anything for you." });
+  paper.push({ text: "Not filed: you sign and send it yourself. SnapStart never files anything for you." });
 
   const url = onlineMethods.find((method) => method.url)?.url ?? form.onlineUrl;
   const online: FilingLine[] = [
-    { text: "Type in the answers First Sale prepared, then pay and submit it on the official site." },
+    { text: "Type in the answers SnapStart prepared, then pay and submit it on the official site." },
     ...onlineMethods.flatMap((method) => (method.timing ? [{ text: `How long it takes: ${method.timing.text}`, source: fromFact(method.timing) }] : [])),
-    { text: "Anything the site asks you to sign or swear to, you do yourself. First Sale never files anything for you." },
+    { text: "Anything the site asks you to sign or swear to, you do yourself. SnapStart never files anything for you." },
   ];
 
   return {

@@ -13,7 +13,7 @@ import { familyPalette, LETTERING_STYLE_KEYS, LETTERING_STYLES, type LetteringSt
 import { BRIEF_LIMITS, type BrandImageKind, type PaletteColor, type VersionKind } from "@/lib/brand/types";
 import { COLOR_FAMILIES, type ColorFamily } from "@/lib/brand/vibes";
 
-const OFFLINE = "Couldn’t reach First Sale. Check your connection, then try again.";
+const OFFLINE = "Couldn’t reach SnapStart. Check your connection, then try again.";
 
 // Errors and notes clear when the page is hidden: kept-mounted screens keep their state
 function useMessages() {

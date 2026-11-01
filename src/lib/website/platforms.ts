@@ -1,6 +1,6 @@
 import type { PlatformId } from "./types";
 
-// Shape of the curated platform facts in src/data/website-platforms.ts. Every price comes from the vendor's own page, except First Sale's demo price.
+// Shape of the curated platform facts in src/data/website-platforms.ts. Every price comes from the vendor's own page, except SnapStart's demo price.
 
 export interface PlatformPlan {
   name: string;
@@ -21,7 +21,7 @@ export interface PlatformPlan {
   adds: string;
 }
 
-// Something the owner does themselves, with where First Sale already helps
+// Something the owner does themselves, with where SnapStart already helps
 export interface OwnerTask {
   text: string;
   inApp: { label: string; href: string } | null;
@@ -92,11 +92,11 @@ export interface PlatformInfo {
   name: string;
   oneLine: string;
   bestFor: string;
-  // The starting price is First Sale's own placeholder, not read on a vendor's page
+  // The starting price is SnapStart's own placeholder, not read on a vendor's page
   demoPrice: boolean;
   // Every plan the card mentions; the comparison prices the cheapest one with the owner's own address and payments
   plans: PlatformPlan[];
-  // Who makes the pages: the owner with the platform's builder, or First Sale from the owner's choices
+  // Who makes the pages: the owner with the platform's builder, or SnapStart from the owner's choices
   builtBy: "owner" | "first_sale";
   hosting: boolean;
   // Its own cart and checkout, or Buy buttons that open a payment provider's page

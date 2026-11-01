@@ -13,7 +13,7 @@ import { runWorkflow } from "@/lib/workflow-runner";
 
 const NO_BUSINESS = "Tell us about your business first.";
 
-// Writes a new set of insights from everything First Sale knows; the owner's marks carry over
+// Writes a new set of insights from everything SnapStart knows; the owner's marks carry over
 export async function writeInsightsAction(): Promise<ActionResult> {
   const [inputs, saved] = await Promise.all([gatherMyInsightInputs(), getMyInsights()]);
   if (!inputs) return { ok: false, message: NO_BUSINESS };

@@ -97,7 +97,7 @@ async function Agreement() {
   }
 
   const intro =
-    "The owners’ own rules for the business: who owns what, who runs it, and how decisions and money are handled. First Sale fills it in from your details and your answers below. It isn’t filed with the state.";
+    "The owners’ own rules for the business: who owns what, who runs it, and how decisions and money are handled. SnapStart fills it in from your details and your answers below. It isn’t filed with the state.";
 
   if (readiness.kind === "missing") {
     return (

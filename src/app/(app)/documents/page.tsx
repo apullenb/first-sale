@@ -95,7 +95,7 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
       <div className="grid gap-5 lg:grid-cols-2">
         <Card title="Got a letter or form you’re not sure about?" icon="file" id="add-card-heading" className="flex flex-col" bodyClassName="flex-1">
           <p className="text-rule">
-            Add it and First Sale explains what it is and what to do. Add papers you already have, like your LLC certificate or the IRS letter with your EIN (tax ID number), and forms you
+            Add it and SnapStart explains what it is and what to do. Add papers you already have, like your LLC certificate or the IRS letter with your EIN (tax ID number), and forms you
             need to fill in.
           </p>
           <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
@@ -147,7 +147,7 @@ function BusinessPlanCard({ plan }: { plan: StoredDocument | null }) {
     <Card title="Your business plan" icon="book" id="plan-card-heading" className="flex flex-col" bodyClassName="flex-1">
       <p className="text-rule">
         A formal plan that describes what you sell, who buys it, and how you’ll run the business. Banks, lenders and programs that help new businesses often ask
-        for one. First Sale fills in what it already knows and asks only what’s missing.
+        for one. SnapStart fills in what it already knows and asks only what’s missing.
       </p>
       {savedAt ? (
         <Chip tone="accent" icon="check">

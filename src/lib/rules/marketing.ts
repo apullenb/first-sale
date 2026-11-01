@@ -39,7 +39,7 @@ const ROLE_ORDER: Record<PlatformRole, number> = { main: 0, support: 1, later: 2
 const ADDED_WHY = "You picked this. Start it once your main places are going.";
 const LEAD_WHY = "You picked this. Start here.";
 
-// Account setup belongs to First Sale's own steps, so the plan's actions don't repeat it
+// Account setup belongs to SnapStart's own steps, so the plan's actions don't repeat it
 const SETUP_ACTION = /\b(set ?up|create|make|open|start|claim)\b.*\b(account|page|profile|channel)\b/i;
 
 // Removes every trace of ruled-out platforms: their entries and actions, and each sentence or line naming them.
@@ -154,7 +154,7 @@ export function handHolding(area: SkillArea, intake: Pick<StoredIntake, SkillAre
 
 export interface StepContext {
   hasLogo: boolean;
-  // A website platform is chosen in First Sale
+  // A website platform is chosen in SnapStart
   hasWebsite: boolean;
   approvedPhotos: number;
 }
@@ -191,7 +191,7 @@ function lookStep(hasLogo: boolean): StepDraft {
         area: "content",
         platform: null,
         how: [
-          "Open Create your logo in First Sale.",
+          "Open Create your logo in SnapStart.",
           "Make the Icon (profile picture) version of your logo with the + button, and choose “Use this”. It’s made to fit a circle.",
           "Download it and save it on your phone, so it’s ready when you set up each account.",
         ],
@@ -208,7 +208,7 @@ function lookStep(hasLogo: boolean): StepDraft {
         area: "content",
         platform: null,
         how: [
-          "Open Build your brand in First Sale, answer the questions about how your business should feel, and approve your brand description.",
+          "Open Build your brand in SnapStart, answer the questions about how your business should feel, and approve your brand description.",
           "Open Create your logo, and pick the logo idea you like best or upload the logo you already have.",
           "Make the Icon (profile picture) version with the + button, and choose “Use this”.",
           "Download it. You’ll add it to each account you set up.",
@@ -272,7 +272,7 @@ function photosStep(approvedPhotos: number): StepDraft {
       area: "content",
       platform: null,
       how: [
-        "Open Product photos in First Sale and look over the ones you approved.",
+        "Open Product photos in SnapStart and look over the ones you approved.",
         "Pick the ones that show your best work.",
         "Download them to your phone, so they’re ready to post.",
         "Add a few everyday photos too: you at work, your table at a market, a happy customer (ask first).",
@@ -294,7 +294,7 @@ function photosStep(approvedPhotos: number): StepDraft {
       "Take photos near a window in daylight, on a plain background.",
       "Take a few angles of each thing you sell, plus one of you making it or doing the work.",
       "Keep them honest: show exactly what customers get.",
-      "Open Product photos in First Sale to turn your best phone photos into store-ready ones.",
+      "Open Product photos in SnapStart to turn your best phone photos into store-ready ones.",
     ],
     short: ["Take clear photos of what you sell", "Polish your best ones in Product photos"],
     links: [{ label: "Open Product photos", href: "/photos", external: false, guide: false }],
@@ -336,7 +336,7 @@ function searchStep(): StepDraft {
     area: "seo",
     platform: null,
     how: [
-      "Open Website in First Sale and draft your pages, if you haven’t yet.",
+      "Open Website in SnapStart and draft your pages, if you haven’t yet.",
       "Check the search title and search description. Each should say what you sell and your town, in plain words.",
       "Once your site is live, add its address to every profile you set up.",
     ],
@@ -423,7 +423,7 @@ export function visibleSteps(steps: readonly MarketingStep[], exclude: readonly 
     .filter((step) => step.how.length > 0);
 }
 
-// What First Sale already knows is finished, apart from the owner's ticks
+// What SnapStart already knows is finished, apart from the owner's ticks
 export interface DoneFacts {
   // Every brand image kind has a picked file, and none is a practice preview
   brandImagesPicked: boolean;
@@ -434,7 +434,7 @@ export function doneFacts(brand: Pick<BrandKit, "images" | "simulated"> | null):
   return { brandImagesPicked: Boolean(brand && !brand.simulated && Object.values(brand.images).every(Boolean)) };
 }
 
-// Steps done by what the owner made in First Sale; they can't be unticked
+// Steps done by what the owner made in SnapStart; they can't be unticked
 export function autoDoneSteps(steps: readonly MarketingStep[], facts: DoneFacts): string[] {
   return steps.filter((step) => step.kind === "brand_images" && facts.brandImagesPicked).map((step) => step.key);
 }

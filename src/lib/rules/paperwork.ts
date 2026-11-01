@@ -37,7 +37,7 @@ export interface PaperStep {
 }
 
 export type Inclusion =
-  // Applies: an official page confirms it, or First Sale decided it does
+  // Applies: an official page confirms it, or SnapStart decided it does
   | "task"
   // Even the deeper look couldn't settle it: finding out from the office is the step
   | "confirm"

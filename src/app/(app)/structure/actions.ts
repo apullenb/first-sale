@@ -52,7 +52,7 @@ export async function recordDecisionsAction(input: unknown): Promise<ActionResul
   return { ok: true, value: null };
 }
 
-// The AI's recommendation from everything the owner told First Sale; made again when their answers change
+// The AI's recommendation from everything the owner told SnapStart; made again when their answers change
 export async function adviseAction(): Promise<ActionResult> {
   const business = await getMyBusiness();
   if (!business?.profile) return { ok: false, message: "Answer the questions about your business first." };

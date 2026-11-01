@@ -47,7 +47,7 @@ export function startupPlanBlocks(input: { steps: readonly Step[]; maybe?: reado
     ...blocks,
     {
       heading: "Waiting on your answers",
-      paragraphs: ["These depend on your plans, your business structure or where your business is. Answer in First Sale and they’re settled."],
+      paragraphs: ["These depend on your plans, your business structure or where your business is. Answer in SnapStart and they’re settled."],
     },
     ...maybe.map((each) => ({ heading: each.title, paragraphs: [each.why, ...each.conditions.map((condition) => `Depends on: ${condition}`)].filter(Boolean) })),
   ];
@@ -60,9 +60,9 @@ export async function startupPlanPdf(input: { businessName: string; steps: reado
     : "";
   return writePdf({
     title: `Licenses and registrations for ${input.businessName}`,
-    subtitle: `Made ${day(input.now.toISOString())} with First Sale`,
+    subtitle: `Made ${day(input.now.toISOString())} with SnapStart`,
     notice: `A plan to help you get started, not legal advice.${practice}`,
     blocks,
-    footer: "First Sale licenses and registrations",
+    footer: "SnapStart licenses and registrations",
   });
 }

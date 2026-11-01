@@ -7,8 +7,8 @@ import type { PlatformId } from "@/lib/website/types";
 const CHECKED = "2026-10-27";
 const STEPS_CHECKED = "2026-10-28";
 
-// Demo price: a placeholder for First Sale's own monthly fee to build and host a site, until the real price is set
-export const FIRST_SALE_SITE_MONTHLY_USD = 15;
+// Demo price: a placeholder for SnapStart's own monthly fee to build and host a site, until the real price is set
+export const SNAPSTART_SITE_MONTHLY_USD = 15;
 
 const PHOTOS = { label: "Make store-ready photos", href: "/photos" };
 const BRAND = { label: "Get your logo and colors", href: "/logo" };
@@ -31,15 +31,15 @@ export const PLATFORM_ORDER: PlatformId[] = ["first_sale", "square", "wix", "sho
 export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
   first_sale: {
     id: "first_sale",
-    name: "First Sale site",
-    oneLine: "First Sale builds and hosts your site from your words, brand and products. You make the choices; we handle the rest.",
+    name: "SnapStart site",
+    oneLine: "SnapStart builds and hosts your site from your words, brand and products. You make the choices; we handle the rest.",
     bestFor: "services, or taking orders by message or payment link, with the least setup",
     demoPrice: true,
     plans: [
       {
-        name: "First Sale site",
-        price: `$${FIRST_SALE_SITE_MONTHLY_USD} a month`,
-        monthlyUsd: FIRST_SALE_SITE_MONTHLY_USD,
+        name: "SnapStart site",
+        price: `$${SNAPSTART_SITE_MONTHLY_USD} a month`,
+        monthlyUsd: SNAPSTART_SITE_MONTHLY_USD,
         billing: "monthly",
         monthToMonthUsd: null,
         ownAddress: true,
@@ -64,13 +64,13 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
     ],
     youDo: [
       { text: "Pick a look, a main color and which parts show", inApp: null },
-      { text: "Check and approve the words First Sale drafts for each page", inApp: null },
+      { text: "Check and approve the words SnapStart drafts for each page", inApp: null },
       { text: "Optional: make a Stripe or Square payment link for each item", inApp: null },
       { text: "Charge and report sales tax", inApp: TAX_STEP },
       { text: "Bring photos of what you sell, and your logo", inApp: PHOTOS },
     ],
     thingsToKnow: [
-      "This is a demo: First Sale shows how your site is built, but doesn’t put it online yet.",
+      "This is a demo: SnapStart shows how your site is built, but doesn’t put it online yet.",
       "No shopping cart or stock count: Buy buttons open payment links, or customers contact you.",
       "Simpler designs than a full website builder.",
     ],

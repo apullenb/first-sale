@@ -55,7 +55,7 @@ const said = (key: string, answer: SavedAnswer["answer"], condition = TAXED): Sa
 const inclusion = (each: PaperStep, overrides: Partial<PaperworkContext> = {}) => standingOf(each, context(overrides)).inclusion;
 
 describe("what counts as a task", () => {
-  it("lists a requirement an official page confirms, and one First Sale decided applies", () => {
+  it("lists a requirement an official page confirms, and one SnapStart decided applies", () => {
     expect(inclusion(step("a"))).toBe("task");
     expect(standingOf(step("b", { requirementStatus: "needs_confirmation", verification: "needs_verification" }), context())).toMatchObject({ inclusion: "task", requirementStatus: "needs_confirmation" });
   });
@@ -65,7 +65,7 @@ describe("what counts as a task", () => {
     expect(standingOf(unsettled, context())).toMatchObject({ inclusion: "confirm", requirementStatus: "to_find_out" });
   });
 
-  it("leaves out optional rules and rules outside what First Sale checks", () => {
+  it("leaves out optional rules and rules outside what SnapStart checks", () => {
     expect(inclusion(step("a", { requirementStatus: "optional" }))).toBe("optional");
     expect(inclusion(step("b", { requirementStatus: "outside_coverage" }))).toBe("outside");
   });
@@ -114,7 +114,7 @@ describe("what counts as a task", () => {
     expect(view.first?.kind).toBe("check_place");
   });
 
-  it("never asks the owner about a government's rules: those are First Sale's to decide", () => {
+  it("never asks the owner about a government's rules: those are SnapStart's to decide", () => {
     const rule = "Whether Denton County requires any permit for home storage, customer visits, or market sales";
     const saved = step("county-permit", { level: "county", requirementStatus: "conditional", verification: "needs_verification", conditions: [rule], question: rule });
     expect(standingOf(saved, context())).toMatchObject({ inclusion: "task", question: null });

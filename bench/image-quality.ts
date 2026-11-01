@@ -559,7 +559,7 @@ export function totalsLine(totals: Totals, simulated: boolean): string {
 export function indexMarkdown(info: ImageRunInfo, results: readonly ScenarioResult[], totals: Totals): string {
   const practice = info.imageModel.simulated || info.provider.simulated;
   const lines = [
-    "# First Sale image-quality run",
+    "# SnapStart image-quality run",
     "",
     `Started ${info.startedAt}. Text and checks: ${info.provider.name} (${info.provider.model}). Pictures: ${info.imageModel.name} (${info.imageModel.model}).`,
     info.budget ? `Budget $${info.budget.limitUsd.toFixed(2)}, about $${info.budget.spentUsd.toFixed(4)} spent.` : "No budget (practice mode, nothing billed).",

@@ -7,7 +7,7 @@ import { TILE, TILE_OFF, TILE_ON, TileMark } from "@/components/intake/choices";
 import { ALERT, DANGER, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { DETAILS, displayDetail, type DetailKey, type DetailSpec } from "@/lib/details";
 
-const OFFLINE = "Couldn’t reach First Sale. Check your connection and try again.";
+const OFFLINE = "Couldn’t reach SnapStart. Check your connection and try again.";
 const INPUT_TYPES: Partial<Record<DetailKey, string>> = { business_email: "email", business_phone: "tel" };
 
 interface Props {

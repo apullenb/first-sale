@@ -92,7 +92,7 @@ describe("recommendPlatform", () => {
     expect(recommendPlatform(testProfile({ offeringKinds: ["handmade"], channels: ["own_website"], startupBudget: "under_1k" })).platform).toBe("square");
   });
 
-  it("suggests the site First Sale builds for services, with nothing to ship or check out", () => {
+  it("suggests the site SnapStart builds for services, with nothing to ship or check out", () => {
     expect(recommendPlatform(testProfile({ offeringKinds: ["services"], channels: ["in_person"] })).platform).toBe("first_sale");
   });
 

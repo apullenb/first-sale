@@ -5,7 +5,7 @@ import { Card, OutsideLink } from "@/components/ui";
 import { getImageModel, getModel } from "@/lib/ai";
 import { CHECKED, USPTO } from "@/lib/brand/sizes";
 
-// Where brand files go depends on which AI service this copy of First Sale is set up with
+// Where brand files go depends on which AI service this copy of SnapStart is set up with
 function servicePoints(): string[] {
   let model;
   let image;
@@ -13,9 +13,9 @@ function servicePoints(): string[] {
     model = getModel();
     image = getImageModel();
   } catch {
-    return ["First Sale’s AI service isn’t set up right now, so nothing is sent anywhere."];
+    return ["SnapStart’s AI service isn’t set up right now, so nothing is sent anywhere."];
   }
-  if (model.simulated) return ["First Sale is in practice mode: nothing is sent to any AI service, and no pictures are drawn."];
+  if (model.simulated) return ["SnapStart is in practice mode: nothing is sent to any AI service, and no pictures are drawn."];
   if (!model.dataHandling) return [`Your brief and files are sent to ${model.name} to write ideas and check spelling.`];
   return [
     `Your brief is sent to ${model.dataHandling.recipient} to write logo ideas, and each picture is sent back to it to check the spelling.`,
@@ -47,7 +47,7 @@ export async function BrandNotes() {
       </Note>
       <Note icon="lock" title="Who sees your brand files">
         <ul className="flex list-disc flex-col gap-1.5 pl-5 text-rule marker:text-accent">
-          <li>Your brief, ideas and pictures are stored in First Sale’s database. Only you can see them, when you’re signed in.</li>
+          <li>Your brief, ideas and pictures are stored in SnapStart’s database. Only you can see them, when you’re signed in.</li>
           <li>Pictures are kept exactly as Muse made them. Exact-size downloads are made in your browser.</li>
           {servicePoints().map((point) => (
             <li key={point}>{point}</li>

@@ -5,7 +5,7 @@ import { ExplainOption } from "./explain-option";
 import { List } from "./platform-card";
 import { ResourceLink } from "@/components/ui";
 
-// Builders Muse found on request. Labeled as search results: First Sale didn't check these prices itself.
+// Builders Muse found on request. Labeled as search results: SnapStart didn't check these prices itself.
 export function MoreOptionsList({ found, explanations }: { found: MoreOptions; explanations: Record<string, OptionExplanation> }) {
   if (!found.options.length) {
     return <p className="text-muted">The search didn’t turn up other options that fit. The options above cover most first websites.</p>;
@@ -13,7 +13,7 @@ export function MoreOptionsList({ found, explanations }: { found: MoreOptions; e
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm text-muted">
-        Found by an AI web search on <LocalDate iso={found.searchedAt} />. Prices are as the search results showed them; First Sale
+        Found by an AI web search on <LocalDate iso={found.searchedAt} />. Prices are as the search results showed them; SnapStart
         didn’t check them on each site, so confirm before you sign up.
       </p>
       <div className="grid gap-4 @3xl:grid-cols-2">
@@ -36,7 +36,7 @@ export function MoreOptionsList({ found, explanations }: { found: MoreOptions; e
                 optionKey={key}
                 name={option.name}
                 explanation={explanations[key] ?? null}
-                firstYear="First Sale hasn’t checked this option’s prices. See the price above, and check their pricing page before you sign up."
+                firstYear="SnapStart hasn’t checked this option’s prices. See the price above, and check their pricing page before you sign up."
               />
               <p className="text-sm text-muted">
                 <ResourceLink href={option.website}>Visit {option.name}</ResourceLink>

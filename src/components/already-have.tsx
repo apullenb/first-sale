@@ -21,7 +21,7 @@ export interface AlreadyHaveProps {
 
 const SMALL = `${SECONDARY} text-[15px]`;
 
-// For owners who did a step before First Sale: mark it done, with a link or note, and undo it any time
+// For owners who did a step before SnapStart: mark it done, with a link or note, and undo it any time
 export function AlreadyHave({ markKey, label, help, done, linkLabel, children }: AlreadyHaveProps) {
   const uid = useId();
   const [open, setOpen] = useState(false);
@@ -53,7 +53,7 @@ export function AlreadyHave({ markKey, label, help, done, linkLabel, children }:
       if (!result.ok) setError(result.message ?? "Something went wrong. Try again.");
       else setOpen(false);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }

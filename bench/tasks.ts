@@ -272,7 +272,7 @@ export const TASKS: Task[] = [
     kind: "search",
     async run(ctx, c) {
       if (!ctx.model.webSearch) return { grade: ungraded("Needs web search"), skipped: "Needs web search, which only Muse has" };
-      const found = await findMoreOptions(ctx.model, { profile: c.profile, exclude: ["First Sale", "Square", "Wix", "Shopify"] }, ctx.now);
+      const found = await findMoreOptions(ctx.model, { profile: c.profile, exclude: ["SnapStart", "Square", "Wix", "Shopify"] }, ctx.now);
       const raw = (lastJson(ctx.replies(OPTIONS_SCHEMA_NAME)) as { options?: unknown[] } | null)?.options ?? [];
       return { grade: gradeOptions(raw.length, found.options.length) };
     },

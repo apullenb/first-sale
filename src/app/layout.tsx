@@ -22,7 +22,8 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: { default: "First Sale", template: "%s · First Sale" },
+  title: { default: "SnapStart Business Assembly Kit", template: "%s · SnapStart" },
+  applicationName: "SnapStart Business Assembly Kit",
   description: "Step-by-step help for first-time US business owners, from registration to first sale.",
 };
 

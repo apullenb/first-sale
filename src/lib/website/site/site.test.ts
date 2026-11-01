@@ -181,7 +181,7 @@ describe("publishReadiness", () => {
     expect(publishReadiness(check({ content: { ...content, about: "[Add your story] and [more]" } })).blockers[0]).toMatch(/2 \[bracketed\] notes/);
     expect(publishReadiness(check({ content: { ...content, platform: "wix" } })).blockers[0]).toMatch(/another platform/);
     expect(publishReadiness(check({ content: null })).blockers).toEqual(["Draft your words in step 3."]);
-    expect(publishReadiness(check({ platform: "square" })).blockers[0]).toMatch(/First Sale site/);
+    expect(publishReadiness(check({ platform: "square" })).blockers[0]).toMatch(/SnapStart site/);
     expect(publishReadiness(check({ named: false })).blockers).toEqual(["Give your business a name in your answers first."]);
   });
 

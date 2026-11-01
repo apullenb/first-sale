@@ -10,15 +10,16 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-stretch justify-center gap-6 px-4 py-6 sm:px-6 md:flex-row md:gap-7 md:py-10">
       <section
-        aria-label="About First Sale"
+        aria-label="About SnapStart Business Assembly Kit"
         className="flex flex-col gap-3 rounded-[18px] bg-sidebar p-6 text-white shadow-lift md:max-w-md md:flex-1 md:gap-4 md:p-8"
       >
         <div className="flex items-center gap-2.5">
           <LogoMark className="bg-accent text-white" />
           <span className="text-[22px] font-extrabold tracking-[-0.03em]">
-            First <span className="text-sky">Sale</span>
+            Snap<span className="text-sky">Start</span>
           </span>
         </div>
+        <p className="text-sm font-semibold tracking-wide text-white/70">Business Assembly Kit</p>
         <p className="font-display text-[32px] leading-[1.15] md:mt-3 md:text-[38px]">
           From idea to first sale.
         </p>

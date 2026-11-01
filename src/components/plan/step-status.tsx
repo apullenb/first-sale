@@ -43,7 +43,7 @@ export function StepStatus({ stepId, title, status, note, submittedAt, submissio
         if (next === "done") celebrate(title);
       }
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }

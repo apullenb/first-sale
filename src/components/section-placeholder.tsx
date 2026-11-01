@@ -18,7 +18,7 @@ const GROUP_ICONS: Record<string, IconName> = {
 
 export function SectionPlaceholder({ href }: { href: string }) {
   const section = getSection(href);
-  const eyebrow = section.group && section.step !== null ? `${section.group} · Step ${section.step}` : (section.group ?? "First Sale");
+  const eyebrow = section.group && section.step !== null ? `${section.group} · Step ${section.step}` : (section.group ?? "SnapStart");
 
   return (
     <div className="flex max-w-3xl flex-col gap-6">

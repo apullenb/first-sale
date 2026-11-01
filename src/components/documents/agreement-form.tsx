@@ -56,7 +56,7 @@ export function AgreementForm({ owners, who, hasManager, initial, basedOn, hasDr
         setStatus("idle");
       } else setStatus("done");
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
       setStatus("idle");
     }
   }

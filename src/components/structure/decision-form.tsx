@@ -141,7 +141,7 @@ function useDecisionState(props: Props) {
         show(false);
       }
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }
@@ -432,7 +432,7 @@ export function DecisionReview() {
             </li>
           ))}
         </ul>
-        <p className="text-sm text-muted">If these answers change later, First Sale tells you this choice was made with older answers.</p>
+        <p className="text-sm text-muted">If these answers change later, SnapStart tells you this choice was made with older answers.</p>
       </Card>
 
       {error ? (

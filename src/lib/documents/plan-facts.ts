@@ -264,7 +264,7 @@ export function sellsOf(profile: BusinessProfile, answers: PlanAnswers = {}): Se
 // Everything the questions are chosen from
 export interface QuestionBasis {
   profile: BusinessProfile;
-  // Keys of facts First Sale already has
+  // Keys of facts SnapStart already has
   known: readonly string[];
 }
 

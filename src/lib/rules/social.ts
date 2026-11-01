@@ -9,7 +9,7 @@ import { handHolding } from "./marketing";
 
 export interface SocialAccount {
   id: MarketingPlatformId;
-  // The owner had it before First Sale, from their marketing answers
+  // The owner had it before SnapStart, from their marketing answers
   have: boolean;
   // From the plan, when it has this platform
   role: PlatformRole | null;
@@ -176,7 +176,7 @@ export function fitText(text: string, limit: number): string {
   return (out || [...text].slice(0, limit).join("")).replace(/[,;:\s–—-]+$/, "");
 }
 
-// The longest a drafted bio may be: the platform's limit, or First Sale's own when it publishes none
+// The longest a drafted bio may be: the platform's limit, or SnapStart's own when it publishes none
 export function bioLimit(rule: BioRule): number {
   return rule.max === null ? rule.target : Math.min(rule.max, rule.target);
 }

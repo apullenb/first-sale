@@ -8,7 +8,7 @@ import { placeOf, structureOf } from "@/lib/research/applicability";
 import { planCosts } from "@/lib/rules/next-action";
 import { stillToSettle } from "@/lib/rules/paperwork";
 
-// Everything First Sale already knows that a business plan can use, read for the signed-in owner
+// Everything SnapStart already knows that a business plan can use, read for the signed-in owner
 export async function myPlanSources(): Promise<PlanSources | null> {
   const [business, details, paper, products, brand, marketing] = await Promise.all([
     getMyBusiness(),
