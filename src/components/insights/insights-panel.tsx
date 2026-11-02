@@ -145,7 +145,7 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
         title={refreshing ? "Refreshing your insights" : "Writing your insights"}
         steps={STEPS}
         done={ticker.done}
-        note={practice ? "Practice mode: built-in rules make sample insights, so this is quick." : "This usually takes under a minute."}
+        note={practice ? "Practice mode: SnapStart makes sample insights from your answers, so this is quick." : "This usually takes under a minute."}
       />
     );
   } else if (!insights) {
@@ -164,7 +164,7 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
         {practice ? (
           <p className="flex items-start gap-2 text-sm text-check">
             <Icon name="info" size="sm" className="mt-px" />
-            Practice mode: you’ll see sample insights made by built-in rules, not AI.
+            Practice mode: you’ll see sample insights made by SnapStart from your answers, not AI.
           </p>
         ) : null}
         <button type="button" ref={focusIf("button")} onClick={write} className={`${AI_BUTTON} w-fit`}>
@@ -243,7 +243,7 @@ function SavedInsights({ insights, marks, changed, onMark, refreshButton, errorA
       <footer className="flex flex-col gap-3 border-t border-line pt-5">
         <p className="text-sm text-muted">
           Anything about laws, permits, taxes or fees links to pages SnapStart checked against official sources. Points that state their own
-          rules, fees or numbers are left out.
+          requirements, fees or numbers are left out.
           {insights.removed > 0
             ? ` This time ${insights.removed === 1 ? "one point was" : `${insights.removed} points were`} left out to keep this kind, short and true to your facts.`
             : ""}

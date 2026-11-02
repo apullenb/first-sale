@@ -56,7 +56,7 @@ export function startupPlanBlocks(input: { steps: readonly Step[]; maybe?: reado
 export async function startupPlanPdf(input: { businessName: string; steps: readonly Step[]; maybe?: readonly MaybeStep[]; now: Date }): Promise<Uint8Array> {
   const blocks = startupPlanBlocks(input);
   const practice = input.steps.some((step) => step.simulated)
-    ? " Practice mode: built-in rules, not real research, suggested some of these steps."
+    ? " Practice mode: some of these steps are samples, not real research."
     : "";
   return writePdf({
     title: `Licenses and registrations for ${input.businessName}`,

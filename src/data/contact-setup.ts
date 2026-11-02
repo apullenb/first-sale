@@ -74,7 +74,7 @@ export const GMAIL_GUIDE: ContactGuide = {
     { label: "Good to know", quote: "Your Gmail and Google Accounts are separate.", source: ACCOUNT_HELP },
     { label: "Phone number", quote: "Optional: Add and verify a phone number for your account.", source: ACCOUNT_HELP },
   ],
-  unstated: "The Google help page above doesn’t state a price or an age rule for a Google Account. Google asks for your birthday while you sign up; check what it shows you there.",
+  unstated: "The Google help page above doesn’t state a price or an age requirement for a Google Account. Google asks for your birthday while you sign up; check what it shows you there.",
 };
 
 export const VOICE_GUIDE: ContactGuide = {
@@ -97,5 +97,5 @@ export const VOICE_GUIDE: ContactGuide = {
     { label: "Toll-free numbers", quote: "Google Voice doesn’t offer 1–800 numbers.", source: VOICE_SETUP },
     { label: "Texting", quote: "Google Voice messaging is intended only for 1:1, personal conversations.", source: VOICE_TEXTS },
   ],
-  unstated: "The Google pages above don’t state an age rule. Google also sells paid Voice plans; the Basic plan is the one listed at no monthly cost.",
+  unstated: "The Google pages above don’t state an age requirement. Google also sells paid Voice plans; the Basic plan is the one listed at no monthly cost.",
 };

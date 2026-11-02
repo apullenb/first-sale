@@ -9,9 +9,9 @@ test.describe("what applies to you and the paperwork", () => {
     await checkRequirements(page);
     await expectPracticeBanner(page);
     await expect(page.getByText("These requirements are practice results.", { exact: false })).toBeVisible();
-    const where = page.getByRole("region", { name: "Where your rules come from" });
+    const where = page.getByRole("region", { name: "Where your requirements come from" });
     await expect(where).toContainText("Columbus, Franklin County, Ohio");
-    await expect(where).toContainText("You’re inside Columbus city limits, so its rules apply.");
+    await expect(where).toContainText("You’re inside Columbus city limits, so its requirements apply.");
     await expect(page.getByRole("region", { name: "About your plans" })).toContainText("Nothing left to answer");
 
     const checked = await openFold(page, "What we checked");
@@ -74,7 +74,7 @@ test.describe("what applies to you and the paperwork", () => {
   test("tacos: unsure answers keep steps conditional, and locked steps wait", async ({ browser }) => {
     const { page } = await newOwner(browser, tacos);
     await checkRequirements(page);
-    const where = page.getByRole("region", { name: "Where your rules come from" });
+    const where = page.getByRole("region", { name: "Where your requirements come from" });
     await expect(where).toContainText("Not confirmed whether you’re inside Phoenix city limits.");
     await expect(where.getByRole("link", { name: "Confirm your place" })).toBeVisible();
     const depends = page.getByRole("region", { name: "Depends on where you are" });
@@ -94,7 +94,7 @@ test.describe("what applies to you and the paperwork", () => {
 
     // Settling an open answer settles the step that depended on it
     await open(page, "/requirements");
-    await page.getByRole("region", { name: "Where your rules come from" }).getByRole("link", { name: "Confirm your place" }).click();
+    await page.getByRole("region", { name: "Where your requirements come from" }).getByRole("link", { name: "Confirm your place" }).click();
     await page.waitForURL("**/business/edit");
     await page.getByRole("button", { name: "Change inside city limits" }).click();
     await page.getByRole("group", { name: /^Is your address inside the city limits of Phoenix/ }).getByRole("button", { name: "Yes", exact: true }).click();
@@ -103,7 +103,7 @@ test.describe("what applies to you and the paperwork", () => {
     await page.getByRole("button", { name: "Confirm these changes" }).click();
     await page.waitForURL(/\/business(\?|$)/);
     await open(page, "/requirements");
-    await expect(page.getByRole("region", { name: "Where your rules come from" })).toContainText("You’re inside Phoenix city limits, so its rules apply.", { timeout: 60_000 });
+    await expect(page.getByRole("region", { name: "Where your requirements come from" })).toContainText("You’re inside Phoenix city limits, so its requirements apply.", { timeout: 60_000 });
     await expect(page.getByRole("region", { name: "Depends on where you are" })).toHaveCount(0);
 
     // Checking again keeps the answers about their plans

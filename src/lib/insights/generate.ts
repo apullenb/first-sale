@@ -29,7 +29,7 @@ Every item has:
 - title: a short, plain headline, under ten words.
 - detail: two or three short sentences.
 - action: one small next step, as a short sentence that starts with a verb. Use "" only when there's nothing to do.
-- link: the SnapStart page where they can act on it, or null: "business" (their answers), "requirements" (official rules for their place), "structure" (sole proprietorship, LLC and the like), "checklist" (their startup plan), "documents" (forms and documents), "business_plan", "brand" (how their brand should feel and its short description), "logo" (making or uploading a logo, its versions, colors and logo files), "website", "photos" (product photos), "details" (business details forms ask for, like address, email and phone), "pickup" (their pickup hours and place). Pick the page where the action is done, not the plan that mentions it.
+- link: the SnapStart page where they can act on it, or null: "business" (their answers), "requirements" (official requirements for their place), "structure" (sole proprietorship, LLC and the like), "checklist" (their startup plan), "documents" (forms and documents), "business_plan", "brand" (how their brand should feel and its short description), "logo" (making or uploading a logo, its versions, colors and logo files), "website", "photos" (product photos), "details" (business details forms ask for, like address, email and phone), "pickup" (their pickup hours and place). Pick the page where the action is done, not the plan that mentions it.
 - stepKey: when it's about one step in their startup plan, that step's key from <facts>; otherwise null.
 
 Facts and numbers:
@@ -39,7 +39,7 @@ Facts and numbers:
 - Never promise results such as sales or income.
 - Don't repeat points listed as dismissed in <feedback>. Points they found useful can be built on, not repeated.`;
 
-// Sample insights for practice mode, built from the facts by fixed rules
+// Sample insights for practice mode, built from the facts in code
 registerMockFixture(INSIGHTS_SCHEMA_NAME, (request) => {
   const last = request.messages.findLast((message) => message.role === "user");
   return JSON.stringify(samplesFromMessage(typeof last?.content === "string" ? last.content : ""));

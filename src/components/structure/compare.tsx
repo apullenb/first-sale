@@ -88,7 +88,7 @@ export function Comparison({
       </dl>
 
       <figcaption className="text-sm text-muted">
-        In short, from SBA and IRS pages checked {FACTS_CHECKED}. The SBA says the rules vary by state
+        In short, from SBA and IRS pages checked {FACTS_CHECKED}. The SBA says the details vary by state
         <SourceLink fact="varies_by_state" />. “Each option in detail” below has the details and sources.
       </figcaption>
     </figure>

@@ -7,7 +7,7 @@
 
 ### From “I have an idea” to a business that's legally set up, branded and selling.
 
-SnapStart is a startup kit that tailors itself to each owner's business. **Meta Muse** researches the exact licenses, permits and registrations that apply to *their* business in *their* city, county and state, quoting the official government pages. It recommends the right structure, fills in the official forms, and designs their logo, brand photos and website. **AI drafts, rules calculate, the owner approves.**
+SnapStart is a startup kit that tailors itself to each owner's business. **Meta Muse** researches the exact licenses, permits and registrations that apply to *their* business in *their* city, county and state, quoting the official government pages. It recommends the right structure, fills in the official forms, and designs their logo, brand photos and website. **Meta Muse drafts, SnapStart's tested code checks and calculates, and the owner approves every step.**
 
 **[Try the live demo →](https://snapstartkit.vercel.app)**
 
@@ -53,7 +53,7 @@ The full, feature-by-feature reference lives in **[docs/GUIDE.md](docs/GUIDE.md)
 
 ## Why SnapStart
 
-Starting a small business in the US means answering to four governments at once: federal, state, county and city. A home baker in Austin wants to know whether Texas cottage food rules cover her, whether Austin's home-business rules apply when customers pick up at her door, whether she should form an LLC, which form does that, what it costs, and where to send it. The answers are spread across dozens of official sites, written for lawyers.
+Starting a small business in the US means answering to four governments at once: federal, state, county and city. A home baker in Austin wants to know whether Texas's cottage food law covers her, whether Austin's zoning allows customers to pick up at her door, whether she should form an LLC, which form does that, what it costs, and where to send it. The answers are spread across dozens of official sites, written for lawyers.
 
 **SnapStart is built for that owner**: the person starting something for the first time, before they can hire help. A daughter opening a bakery, two brothers selling wooden housewares, a friend dreaming of a boutique. It gives them clear answers grounded in official sources, the paperwork ready to sign, and a brand and website to sell with, all in one guided place.
 
@@ -61,8 +61,8 @@ It works by a simple split:
 
 | | Who does it | Examples |
 |---|---|---|
-| **AI drafts** | Meta Muse | Reads official pages and quotes them, explains a form in plain words, drafts website copy, designs logos, makes brand and product photos, writes a marketing plan |
-| **Rules calculate** | Plain, unit-tested TypeScript | Which rules apply, the order of steps, fees and totals, stock and margins, form answers, every quality check |
+| **Meta Muse drafts** | Meta Muse | Reads official pages and quotes them, explains a form in plain words, drafts website copy, designs logos, makes brand and product photos, writes a marketing plan |
+| **SnapStart's code checks and calculates** | Plain, unit-tested TypeScript | Which requirements apply, the order of steps, fees and totals, stock and margins, form answers, every quality check |
 | **The owner approves** | The person | They review each draft, then sign, file and publish on their own terms |
 
 ## Tailored to your business by Meta Muse
@@ -94,7 +94,7 @@ SnapStart is a guided workspace in three parts, and a **Today** page always show
   </tr>
   <tr>
     <td valign="top"><b>Know exactly what your business needs.</b><br><br>
-      • Researches the rules for your exact city, county and state on official .gov sites, with quotes<br>
+      • Researches the legal requirements for your exact city, county and state on official .gov sites, with quotes<br>
       • Recommends a structure (LLC, sole proprietorship, DBA, taxes) from your answers<br>
       • Fills in official forms like IRS SS-4 and Texas Form 205 for you to sign<br>
       • Turns it all into an ordered plan with fees and renewals</td>
@@ -139,9 +139,9 @@ Ownership structure, business name (DBA), tax treatment and licenses are four di
 
 <img src="docs/media/nav/what-applies-to-you.webp" alt="Menu link: What applies to you" width="177" height="32">
 
-SnapStart reads the federal, state, county and city pages that apply to the owner. **Muse Spark** reads them closely and returns each requirement with a word-for-word quote from the page, and SnapStart works out which ones fit this owner's plans. Official sites come from CISA's .gov registry, which also says which government each page belongs to, so every rule shows exactly where it came from. For Austin, Travis County, Texas, SnapStart reads a hand-picked set of state, county and city pages live.
+SnapStart finds the official government websites for the owner's city, county and state, plus the federal government. A site counts as official only when it's listed in CISA's .gov registry, so every official source is a real government site; anything else is marked for the owner to check. **Muse Spark** reads those pages and pulls out each legal requirement along with a word-for-word quote, so the owner can see exactly where it came from and which government it belongs to. SnapStart then checks each requirement against the owner's answers to show what applies to them. In Austin and Travis County, Texas, it also reads a hand-picked set of state, county and city pages.
 
-<p align="center"><img src="docs/media/requirements.webp" alt="The 'What applies to you' page for a bakery in Austin, Texas: where the rules come from (federal, Texas, Travis County, Austin), seven requirements that apply, and one question about the owner's plans" width="900"></p>
+<p align="center"><img src="docs/media/requirements.webp" alt="The 'What applies to you' page for a bakery in Austin, Texas: where the requirements come from (federal, Texas, Travis County, Austin), seven requirements that apply, and one question about the owner's plans" width="900"></p>
 
 ### Paperwork: the official form, filled in and ready to sign
 
@@ -161,7 +161,7 @@ For an LLC or a partnership, SnapStart prepares the owners' agreement (a company
 
 <img src="docs/media/nav/documents.webp" alt="Menu link: Documents" width="225" height="32">
 
-Owners can upload a PDF or a photo of a letter, paste a form's text, or fetch an official PDF from a .gov link. **Muse Spark's vision** reads photos and scans, including handwriting and glare, and marks anything unclear for the owner to check. The companion explains a form point by point in the form's own words, answers questions about any field, and drafts answers from the owner's confirmed details. Each reviewed copy, receipt and approval is saved as its own version next to the original.
+Got a letter from the state and not sure what it means? Snap a photo or upload the PDF, and it's saved in the business's document library. **Muse Spark**, Meta's vision-capable model, reads it, even a phone photo or a scan, and explains in plain words what the document is, who sent it, and exactly what the owner needs to do next, like a deadline to meet or a fee to pay, each shown in the document's own words. It also points out a mailer that says it isn't from a government agency. For a form they need to fill in, whether uploaded, pasted or fetched from a .gov link, owners can ask about any field, and SnapStart drafts the answers from their saved business details for them to review. Each reviewed copy, receipt and approval is kept as its own version next to the original.
 
 <p align="center"><img src="docs/media/documents.webp" alt="The Documents page: add a document, generate a business plan, and the library with Texas Form 205 as the official form with a draft of 8 answers to check" width="900"></p>
 
@@ -360,7 +360,7 @@ The AI drafts, and SnapStart checks each draft in code at a set step before the 
 |---|---|
 | Research | `verifyRequirements` confirms each quote appears on a page SnapStart fetched, with fees and deadlines inside that quote. Then `checkClaims` asks Muse Spark to confirm each quote says what its requirement claims. |
 | Official sources | The CISA .gov registry (`official-sites.ts`) identifies official sites and which government each belongs to. |
-| Applicability | `classify` sorts each rule into *Applies to you*, *Depends on something*, *Your choice* or *To find out*, from Muse Spark's reading plus the owner's answers. |
+| Applicability | `classify` sorts each requirement into *Applies to you*, *Depends on something*, *Your choice* or *To find out*, from Muse Spark's reading plus the owner's answers. |
 | Open questions | A deeper look (`follow-up.ts`) searches the responsible office's own site and explains the answer in plain words. |
 | Structure | `advise.ts` keeps recommendations to options that fit the owners, with citations to verbatim IRS and SBA quotes. |
 | Website words | `claimConflicts` matches every price and delivery claim against the owner's saved prices and options. |
@@ -369,7 +369,7 @@ The AI drafts, and SnapStart checks each draft in code at a set step before the 
 ### Smart about cost
 
 - **Code where code is exact.** Logo versions and simple edits ("make the lettering bolder", "make the symbol bigger", one-color recolors) are done on the logo's pixels in `layout.ts`. That cut a full benchmark run from 64 image calls to 41.
-- **Style chosen by rules.** Photo or illustration for brand pictures comes from the owner's brand answers (`image-style.ts`).
+- **Style chosen in code.** Photo or illustration for brand pictures comes from the owner's brand answers (`image-style.ts`).
 - **Example first.** One brand picture is approved before the rest are made to match it.
 - **Prompt-cache friendly.** System prompts stay stable; per-request details go in the user message. Content shared across owners (official pages: federal, then state, county, city) comes first, so owners in the same state share a cached prefix. Research asks for 24-hour cache retention.
 - **Right-sized reasoning.** `high` effort for research, `medium` for writing and judging, `low` for extraction such as matching form fields.
@@ -398,7 +398,7 @@ flowchart TB
     Actions["Server Actions"]
     Runner["runWorkflow<br/><sub>AI limits · one run at a time · run records</sub>"]
     Owner["Owner-scoped data layer<br/><sub>src/lib/data/my-business.ts</sub>"]
-    Rules["Rules<br/><sub>src/lib/rules · plan, costs, stock, filing steps</sub>"]
+    Logic["Tested business logic<br/><sub>src/lib/rules · plan, costs, stock, filing steps</sub>"]
     AI["AI layer · src/lib/ai<br/><sub>getModel · generateObject · getImageModel</sub>"]
     Research["Research pipeline<br/><sub>discover · retrieve · verify · classify</sub>"]
     PDF["PDF engine<br/><sub>pdf-lib fill + write · unpdf read</sub>"]
@@ -423,7 +423,7 @@ flowchart TB
   Research -->|"fetches each page"| Gov
   Actions --> PDF
   PDF -->|"downloads official forms"| Gov
-  Owner --> Rules
+  Owner --> Logic
   Owner --> DB
   Auth --> DB
   Pages --> Auth
@@ -518,7 +518,7 @@ sequenceDiagram
 | Types | | `npm run typecheck` |
 | AI benchmark | 25 tasks, graded in code | `npm run bench` |
 
-- **Unit tests** cover the rules, every quality check, each AI feature, and owner-only data access. Each database test gets its own in-memory Postgres. Quotes for Austin and Travis County are tested against saved copies of the official pages.
+- **Unit tests** cover the calculations in `src/lib/rules`, every quality check, each AI feature, and owner-only data access. Each database test gets its own in-memory Postgres. Quotes for Austin and Travis County are tested against saved copies of the official pages.
 - **End-to-end tests** sign up three owners (a mobile dog groomer in Columbus, a two-owner candle business in Denver, a taco truck in Phoenix) and walk them through the real app on a fresh database.
 
 ### The AI benchmark

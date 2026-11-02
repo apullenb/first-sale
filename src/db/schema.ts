@@ -116,7 +116,7 @@ export const researchSnapshots = pgTable("research_snapshots", {
   // Hash of the profile it ran on, to spot answers changed since
   profileKey: text("profile_key").notNull(),
   model: text("model").notNull(),
-  // Practice mode: built-in rules stood in for the AI model
+  // Practice mode: built-in code stood in for the AI model
   simulated: boolean("simulated").notNull().default(false),
   // Whether state and local pages were searched for, or only the built-in source list was read
   searched: boolean("searched").notNull().default(false),

@@ -73,7 +73,7 @@ test.describe("documents", () => {
     await expect(known.getByText("Limited liability company (LLC)")).toBeVisible();
 
     await answerPlanQuestions(page);
-    // Money estimates: the owner's figures, summed by rules
+    // Money estimates: the owner's figures, summed in code
     const money = page.getByRole("region", { name: "Money estimates (optional)" });
     await money.getByRole("button", { name: "Add an item" }).click();
     await money.getByRole("textbox", { name: "Item", exact: true }).last().fill("Soy candle");
@@ -107,7 +107,7 @@ test.describe("documents", () => {
     await expect(page.getByRole("region", { name: "Your documents" }).getByText(/business plan/i).first()).toBeVisible();
   });
 
-  test("candles: the operating agreement is filled by rules and approved by the owners", async ({ browser }) => {
+  test("candles: the operating agreement is filled in by SnapStart and approved by the owners", async ({ browser }) => {
     const { page } = await newOwner(browser, candles);
     await decideStructure(page, /^Limited liability company/);
     await open(page, "/documents/agreement");

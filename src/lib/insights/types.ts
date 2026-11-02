@@ -75,7 +75,7 @@ export interface SavedInsights {
   opening: string;
   items: Insight[];
   generatedAt: string;
-  // Practice mode: sample insights from built-in rules
+  // Practice mode: sample insights from built-in code
   simulated: boolean;
   basis: Partial<Record<FactArea, string>>;
   // Items the code checks took out

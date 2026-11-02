@@ -23,7 +23,7 @@ interface Props {
   hints: boolean;
 }
 
-// Practice drafts come from built-in rules, not AI
+// Practice drafts come from built-in code, not AI
 const BY_TEXT = { ai: "Drafted by AI", practice: "Practice draft", rule: "Plain draft from your answers", owner: "Written by you" } as const;
 
 function Counter({ count, max, target }: { count: number; max: number | null; target: number }) {

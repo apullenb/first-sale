@@ -92,7 +92,7 @@ export function filingSteps(input: FilingInput): FilingStep[] {
   }
   if (form && !form.pdfUrl && !form.onlineUrl) {
     formLines.push({
-      text: "SnapStart prepared your answers from what the official rules say this filing must include.",
+      text: "SnapStart prepared your answers from what the official requirements say this filing must include.",
       source: { title: form.pageTitle, url: form.pageUrl, checkedOn: form.checkedOn },
     });
   }

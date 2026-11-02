@@ -114,7 +114,7 @@ const CLAIM_PARTS = [
 ];
 const NEED = String.raw`\bneed(?:s|ed)?\b`;
 const CLAIM = new RegExp([...CLAIM_PARTS, NEED].join("|"), "i");
-// Pointing at one of the owner's own plan steps: the plan, built by rules, already says it's needed
+// Pointing at one of the owner's own plan steps: the plan, built in code, already says it's needed
 const CLAIM_ON_STEP = new RegExp(CLAIM_PARTS.join("|"), "i");
 
 const NUMBER = /\d[\d,]*(?:\.\d+)?/g;

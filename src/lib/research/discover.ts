@@ -83,7 +83,7 @@ export function searchTopics(profile: BusinessProfile): SearchTopic[] {
       level: "state",
       category: "food",
       about: `selling food made at home in ${state}`,
-      question: official(`${state} state`, "the rules for selling food made in a home kitchen (cottage food)"),
+      question: official(`${state} state`, "the requirements for selling food made in a home kitchen (cottage food)"),
     });
   }
   if (hiring) {
@@ -127,7 +127,7 @@ export function searchTopics(profile: BusinessProfile): SearchTopic[] {
         level: "city",
         category: "zoning",
         about: `running a business from home in ${city}`,
-        question: official(`city of ${city}, ${state}`, "the rules or permit for running a business from home (home occupation)"),
+        question: official(`city of ${city}, ${state}`, "the zoning or permit for running a business from home (home occupation)"),
       });
     }
     if (space) {

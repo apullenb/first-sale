@@ -22,7 +22,7 @@ export const STATUS_HELP: Record<RequirementStatus, string> = {
   conditional: "It applies only if something is true. Each one says what.",
   optional: "Not required, but worth knowing about.",
   needs_confirmation: "Official pages don’t spell this out for your area, so SnapStart decided from how it works for businesses like yours. Each one says why.",
-  outside_coverage: "SnapStart doesn’t research this kind of rule. Each one links to who does.",
+  outside_coverage: "SnapStart doesn’t research this kind of requirement. Each one links to who does.",
   not_needed: "SnapStart looked into it, and it doesn’t apply to a business like yours. Each one says why.",
   to_find_out: "SnapStart searched the office’s own site and still couldn’t say for sure. Each one says how to find out.",
 };
@@ -125,7 +125,7 @@ export function questionOf(requirement: Pick<Checked, "applicability" | "conditi
 }
 
 // Conditions the rules write (structure and place), as opposed to the model's own
-export const RULE_CONDITION = /^(Only if you set up as |Which county you’re in decides|City rules apply only inside|Applies only if your address is inside|You said you’re outside)/;
+export const RULE_CONDITION = /^(Only if you set up as |Which county you’re in decides|City requirements apply only inside|Applies only if your address is inside|You said you’re outside)/;
 
 // "yes" settles the model's condition; "no" and "unsure" leave it open, and the rules' conditions stay either way
 export function classify(requirement: Checked, profile: BusinessProfile, place: Place, decision: StructureDecision, answer: ConditionAnswer | null = null): Classified {
@@ -163,12 +163,12 @@ export function classify(requirement: Checked, profile: BusinessProfile, place: 
 export function placeConditions(level: JurisdictionLevel, place: Place): string[] {
   if (level === "county" && !place.county) return ["Which county you’re in decides this. Add your county to your answers."];
   if (level !== "city") return [];
-  if (!place.city) return ["City rules apply only inside a city’s limits. Add your city to your answers."];
+  if (!place.city) return ["City requirements apply only inside a city’s limits. Add your city to your answers."];
   if (place.insideCity === "unknown") {
     return [`Applies only if your address is inside ${place.city} city limits, which you haven’t confirmed yet. A mailing address can name a city you’re not in.`];
   }
   if (place.insideCity === "no") {
-    return [`You said you’re outside ${place.city} city limits, so ${place.city}’s rules may not apply. Your township or village may have its own.`];
+    return [`You said you’re outside ${place.city} city limits, so ${place.city}’s requirements may not apply. Your township or village may have its own.`];
   }
   return [];
 }

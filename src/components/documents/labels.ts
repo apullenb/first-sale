@@ -38,7 +38,7 @@ export function formKindLabel(origin: DocumentOrigin, mimeType: string): string 
 }
 
 export function originSentence(origin: DocumentOrigin, role: string | null = null): string {
-  if (role === "answer_guide") return "SnapStart listed these questions from the official rules for this application";
+  if (role === "answer_guide") return "SnapStart listed these questions from the official requirements for this application";
   if (origin === "paste") return "You pasted this form’s text";
   if (origin === "official_form") return "SnapStart fetched this form from an official government website";
   return "You uploaded this form";

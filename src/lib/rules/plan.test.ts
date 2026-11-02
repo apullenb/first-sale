@@ -63,7 +63,7 @@ describe("rules SnapStart decided", () => {
       { place, offices: [aubrey] },
     );
     expect(plan.map((step) => step.key)).toEqual(["ask-city-of-aubrey", "sign"]);
-    expect(plan[0]).toMatchObject({ title: "Ask the City of Aubrey about 2 rules", requirementStatus: "to_find_out", contacts: aubrey.contacts });
+    expect(plan[0]).toMatchObject({ title: "Ask the City of Aubrey about 2 requirements", requirementStatus: "to_find_out", contacts: aubrey.contacts });
   });
 
   it("leaves out rules SnapStart decided aren't needed", () => {

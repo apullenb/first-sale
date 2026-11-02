@@ -58,7 +58,7 @@ export function writtenInquiry(input: { title?: string; questions: readonly stri
     body: [
       "Hello,",
       "",
-      `I’m starting a small business in ${placeLabel(place)} and want to make sure I follow the rules. I plan to sell ${what}${how}.${where}${owners}`,
+      `I’m starting a small business in ${placeLabel(place)} and want to make sure I meet every requirement. I plan to sell ${what}${how}.${where}${owners}`,
       "",
       ...(intro ? [intro] : []),
       questions,

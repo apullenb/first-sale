@@ -11,7 +11,7 @@ function servicePoints(): string[] {
     return ["SnapStart’s AI service isn’t set up right now, so documents aren’t sent anywhere to be read."];
   }
   if (model.simulated || !model.dataHandling) {
-    return ["SnapStart is in practice mode: documents aren’t sent to any AI service, and built-in rules stand in for one."];
+    return ["SnapStart is in practice mode: documents aren’t sent to any AI service, and SnapStart makes simple stand-ins from your answers instead."];
   }
   return [
     `When SnapStart reads a document you add, or you ask for help with one, its text or images are sent to ${serviceRecipient(model)} to be read.`,

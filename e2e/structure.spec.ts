@@ -28,7 +28,7 @@ test.describe("business structure", () => {
     await expect(table.getByRole("columnheader", { name: /Limited liability company \(LLC\) Recommended for you/ })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "Sole proprietorship" })).toBeVisible();
     await expect(table.getByRole("cell", { name: /Needs confirming for Ohio/ }).first()).toBeVisible();
-    await expect(owned.getByText("Worked out from your answers by fixed rules, not a legal decision.", { exact: false })).toBeVisible();
+    await expect(owned.getByText("Worked out by SnapStart from your answers, not a legal decision.", { exact: false })).toBeVisible();
 
     const q1 = page.getByRole("group", { name: /Question 1 of 3/ });
     const why = await openFold(q1, "Explain why");

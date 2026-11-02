@@ -3,7 +3,7 @@ import { MARKETING_PLATFORMS, type MarketingPlatformId } from "@/data/marketing-
 
 // The owner's name, handle and bio for each account, as drafted and approved. Kept with the marketing record.
 
-// Longest text kept for any field; each platform's own limit is checked by rules
+// Longest text kept for any field; each platform's own limit is checked in code
 export const MAX_FIELD = { name: 100, handle: 60, bio: 1500 } as const;
 
 export const BIO_AUTHORS = ["ai", "practice", "rule", "owner"] as const;

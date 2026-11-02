@@ -51,7 +51,7 @@ export const waitsOnOffice = (kind: StepKind) => kind === "filing" || kind === "
 export const KIND_TAGS: Record<StepKind, string | null> = {
   decision: "A decision",
   training: "Training",
-  compliance: "A rule to follow",
+  compliance: "A requirement to follow",
   filing: null,
   contact: "Ask the office",
 };

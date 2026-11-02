@@ -7,7 +7,7 @@ test("tacos: business insights are labeled practice samples", async ({ browser }
   await open(page, "/insights");
   await expect(page.getByRole("heading", { level: 1, name: "Business insights" })).toBeVisible();
   const start = page.getByRole("region", { name: "Get friendly feedback on your idea" });
-  await expect(start).toContainText("Practice mode: you’ll see sample insights made by built-in rules, not AI.");
+  await expect(start).toContainText("Practice mode: you’ll see sample insights made by SnapStart from your answers, not AI.");
   await start.getByRole("button", { name: "Get my insights" }).click();
 
   const main = page.getByRole("main");

@@ -41,7 +41,7 @@ export default function RequirementsPage() {
           </span>
         }
         title="What applies to you"
-        lead={`SnapStart checks official government sites and works out every rule that fits your business. If something turns on your plans, it asks you. About ${formatMinutes(CHECK_MINUTES)}.`}
+        lead={`SnapStart checks official government sites and works out every requirement that fits your business. If something turns on your plans, it asks you. About ${formatMinutes(CHECK_MINUTES)}.`}
       />
       <MoveOn from="Start your business" />
       <Suspense fallback={<p className="text-muted">Loading what applies to you…</p>}>
@@ -69,7 +69,7 @@ async function Requirements() {
         <p>
           {business
             ? "Some of your answers need updating before we can look up what applies to you."
-            : "Tell us about your business first. Your answers decide which rules apply."}
+            : "Tell us about your business first. Your answers decide which requirements apply."}
         </p>
         <Link href={business ? "/business/edit" : "/business/new"} className={PRIMARY_LINK}>
           {business ? "Update your answers" : "Tell us about your business"}
@@ -91,21 +91,21 @@ async function Requirements() {
 function PlaceSummary({ place }: { place: Place }) {
   const unsure = place.city && place.insideCity === "unknown";
   const lines: { text: string; known: boolean }[] = [
-    { text: `Federal and ${place.stateName} rules apply to you.`, known: true },
-    { text: place.county ? `${place.county} County rules may apply.` : "County: not given yet, so county rules aren’t checked.", known: Boolean(place.county) },
+    { text: `Federal and ${place.stateName} requirements apply to you.`, known: true },
+    { text: place.county ? `${place.county} County requirements may apply.` : "County: not given yet, so county requirements aren’t checked.", known: Boolean(place.county) },
     {
       text: !place.city
         ? "City: not given yet."
         : place.insideCity === "yes"
-          ? `You’re inside ${place.city} city limits, so its rules apply.`
+          ? `You’re inside ${place.city} city limits, so its requirements apply.`
           : place.insideCity === "no"
-            ? `You’re outside ${place.city} city limits. Your township or village may have its own rules.`
+            ? `You’re outside ${place.city} city limits. Your township or village may have its own requirements.`
             : `Not confirmed whether you’re inside ${place.city} city limits. A mailing address or ZIP code doesn’t say.`,
       known: Boolean(place.city) && place.insideCity !== "unknown",
     },
   ];
   return (
-    <Card title="Where your rules come from" icon="pin" id="place-heading">
+    <Card title="Where your requirements come from" icon="pin" id="place-heading">
       <p className="font-display text-xl leading-snug">{placeLabel(place)}</p>
       <ul className="flex flex-col gap-1.5 text-[15px] text-rule">
         {lines.map((line) => (
@@ -236,7 +236,7 @@ function Results({ profile, research, paper, running }: { profile: BusinessProfi
             About your plans
           </h2>
           <p className="text-[15px] text-muted">
-            SnapStart works out the rules. These are about what you plan to do, so it can tell you exactly which ones are yours. If you haven’t decided, say so: the step stays in your plan so you’re covered.
+            These questions are about what you plan to do, so SnapStart can tell you exactly which requirements are yours. If you haven’t decided, say so: the step stays in your plan so you’re covered.
           </p>
         </div>
         {questions.length ? (
@@ -351,7 +351,7 @@ function Results({ profile, research, paper, running }: { profile: BusinessProfi
         ) : null}
 
         {outside.length ? (
-          <Fold title={`Outside what SnapStart checks (${outside.length})`} summary="Rules SnapStart doesn’t research, and who does" icon="external">
+          <Fold title={`Outside what SnapStart checks (${outside.length})`} summary="Requirements SnapStart doesn’t research, and who does" icon="external">
             <ShortList
               items={outside.map((standing) => ({
                 key: standing.step.id,
@@ -419,7 +419,7 @@ function Results({ profile, research, paper, running }: { profile: BusinessProfi
           </Fold>
         ) : null}
 
-        <Fold title="What we checked" summary="A gap means we couldn’t check, not that there’s no rule" icon="search">
+        <Fold title="What we checked" summary="A gap means we couldn’t check, not that nothing applies" icon="search">
           {research.coverage.length ? <CoverageList cells={research.coverage} /> : <p className="text-muted">Check again to see what each part covered.</p>}
         </Fold>
 
@@ -445,7 +445,7 @@ function Results({ profile, research, paper, running }: { profile: BusinessProfi
 
       {changes.length || unknownChange || running ? null : (
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-muted">Rules change. Checking again keeps your answers about your plans.</p>
+          <p className="text-sm text-muted">Requirements change. Checking again keeps your answers about your plans.</p>
           <CheckRequirementsButton label="Check again" variant="secondary" />
         </div>
       )}

@@ -81,7 +81,7 @@ export function PhotoSetup({ photoId, objects, question, aiCategory, initial, se
       <fieldset className="flex flex-col gap-2">
         <legend className={LEGEND}>What kind of product is this?</legend>
         <p className="text-[15px] text-muted">
-          {aiCategory ? "AI’s guess is picked. Change it if it’s wrong: each kind has its own rules for staying accurate." : "Choose one. Each kind has its own rules for staying accurate."}
+          {aiCategory ? "AI’s guess is picked. Change it if it’s wrong: each kind has its own tips for staying accurate." : "Choose one. Each kind has its own tips for staying accurate."}
         </p>
         <div className={PICKS.wide}>
           {PHOTO_CATEGORIES.map((value) => (
