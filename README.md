@@ -139,7 +139,7 @@ Ownership structure, business name (DBA), tax treatment and licenses are four di
 
 <img src="docs/media/nav/what-applies-to-you.webp" alt="Menu link: What applies to you" width="177" height="32">
 
-SnapStart finds the official government websites for the owner's city, county and state, plus the federal government. A site counts as official only when it's listed in CISA's .gov registry, so every official source is a real government site; anything else is marked for the owner to check. **Muse Spark** reads those pages and pulls out each legal requirement along with a word-for-word quote, so the owner can see exactly where it came from and which government it belongs to. SnapStart then checks each requirement against the owner's answers to show what applies to them. In Austin and Travis County, Texas, it also reads a hand-picked set of state, county and city pages.
+SnapStart finds the official government websites for the owner's city, county and state, plus the federal government. A site counts as official only when it's listed in CISA's .gov registry, so every official source is a real government site; anything else is marked for the owner to check. **Muse Spark** reads those pages and pulls out each legal requirement along with a word-for-word quote, so the owner can see exactly where it came from and which government it belongs to. SnapStart then checks each requirement against the owner's answers to show what applies to them.
 
 <p align="center"><img src="docs/media/requirements.webp" alt="The 'What applies to you' page for a bakery in Austin, Texas: where the requirements come from (federal, Texas, Travis County, Austin), seven requirements that apply, and one question about the owner's plans" width="900"></p>
 
@@ -551,7 +551,7 @@ npm run db:migrate
 npm run dev
 ```
 
-Open <http://localhost:3000>, create an account and answer the intake. Each account has one business, created through the app. Try **Austin, Travis County, Texas** to see the hand-checked source packs and official forms.
+Open <http://localhost:3000>, create an account and answer the intake. Each account has one business, created through the app.
 
 ### Run it live with your own Meta Muse key
 
