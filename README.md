@@ -538,7 +538,23 @@ npm run db:migrate
 npm run dev
 ```
 
-Open <http://localhost:3000>, create an account and answer the intake. Each account has one business, created through the app. Try **Austin, Travis County, Texas** to see the hand-checked source packs and official forms. Add a `MUSE_API_KEY` and set `AI_PROVIDER=muse` to use Meta Muse.
+Open <http://localhost:3000>, create an account and answer the intake. Each account has one business, created through the app. Try **Austin, Travis County, Texas** to see the hand-checked source packs and official forms.
+
+### Run it live with your own Meta Muse key
+
+1. Get an API key from the [Meta Model API](https://dev.meta.ai).
+2. In `.env.local` (copied from `.env.example`, and ignored by git, so your key stays on your machine), set:
+
+   ```bash
+   AI_PROVIDER=muse
+   MUSE_API_KEY=your-key-here
+   MUSE_MODEL=muse-spark-1.3
+   MUSE_IMAGE_MODEL=muse-image-1.0
+   ```
+
+3. Restart `npm run dev`. Requirement research, form reading, logos, brand photos, product photos, website words and price comparisons now run on Muse Spark and Muse Image.
+
+To use a different OpenAI-compatible model instead, set `AI_PROVIDER=openai-compatible` with `AI_BASE_URL`, `AI_API_KEY` and `AI_MODEL`. No keys are committed to this repo; `.env.example` lists every setting with an empty value.
 
 | Variable | Purpose |
 |---|---|
@@ -549,6 +565,7 @@ Open <http://localhost:3000>, create an account and answer the intake. Each acco
 | `DATABASE_URL` | Hosted Postgres; when unset, PGlite in `.pglite/` |
 | `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Sessions; sign-in accepts requests from `BETTER_AUTH_URL` |
 | `BETTER_AUTH_TRUSTED_ORIGINS` | Extra sign-in origins (Vercel previews are added automatically) |
+| `DEMO_OWNER_EMAIL` | Optional open demo: `/demo` shows this account's business read-only, no sign-in needed |
 
 PGlite allows one process at a time, so stop `npm run dev` before `db:migrate`. See [docs/GUIDE.md](docs/GUIDE.md#quick-start) for more.
 
