@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -35,6 +37,7 @@ import { optionsSummary, priceLabel } from "@/lib/rules/products";
 const NO_BUSINESS = "Tell us about your business first.";
 
 export async function choosePlatformAction(platform: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = z.enum(PLATFORMS).nullable().safeParse(platform);
   if (!parsed.success) return { ok: false, message: "Pick one of the options." };
   // A demo finish belongs to the SnapStart site
@@ -53,6 +56,7 @@ const MAX_CHECKS = 20;
 
 // Asks the official .com/.net registry whether a web address is registered
 export async function checkDomainAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const domain = typeof input === "string" ? normalizeDomain(input) : null;
   if (!domain) return { ok: false, message: "Type a web address ending in .com or .net, like yourbusiness.com. Letters, numbers and dashes only." };
   const age = (checkedAt: string) => Date.now() - Date.parse(checkedAt);
@@ -82,6 +86,7 @@ export async function checkDomainAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function chooseDomainAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   if (input === null) {
     if (!(await saveMyWebsitePlan({ domain: null }))) return { ok: false, message: NO_BUSINESS };
     refresh();
@@ -127,6 +132,7 @@ async function siteProducts() {
 }
 
 export async function draftWebsiteAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const [business, plan] = await Promise.all([getMyBusiness(), getMyWebsitePlan()]);
   if (!business?.profile) return { ok: false, message: NO_BUSINESS };
   if (!plan?.platform) return { ok: false, message: "Pick where you’ll build your site first." };
@@ -148,6 +154,7 @@ const saveSchema = z.object({ copy: websiteCopySchema, approve: z.boolean(), dra
 
 // The owner's edits. Approving also saves a printable copy of the words to Documents.
 export async function saveWebsiteCopyAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = saveSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Some of the text is too long. Shorten it and try again." };
   const [business, plan] = await Promise.all([getMyBusiness(), getMyWebsitePlan()]);
@@ -245,6 +252,7 @@ async function websitePdf(content: WebsiteContent, platformName: string, now: Da
 const stepSchema = z.object({ key: z.string().max(60), done: z.boolean() });
 
 export async function setSetupStepAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = stepSchema.safeParse(input);
   const plan = await getMyWebsitePlan();
   const platform = plan?.platform;

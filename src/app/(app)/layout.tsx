@@ -2,6 +2,7 @@ import { unstable_rethrow } from "next/navigation";
 import { Suspense } from "react";
 import Link from "next/link";
 import { AccountMenu } from "@/components/account-menu";
+import { DemoBanner } from "@/components/demo-banner";
 import { Logo } from "@/components/logo";
 import { RefreshOnFocus } from "@/components/refresh-on-focus";
 import { SidebarFallback, SidebarNav, type SidebarBusiness } from "@/components/sidebar-nav";
@@ -22,6 +23,9 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
             <Logo className="w-36 sm:w-40" />
           </Link>
         </header>
+        <Suspense fallback={null}>
+          <DemoBanner />
+        </Suspense>
         <main id="main" className="pt-4 md:pt-3">
           {children}
         </main>

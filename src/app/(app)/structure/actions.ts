@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -21,6 +23,7 @@ const decisionSchema = z.object({
 
 // The owner reviewed and confirmed these; each change is kept in the history with the answers behind it
 export async function recordDecisionsAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = decisionSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Pick an answer for each decision, then try again." };
   const values = Object.entries(parsed.data) as [DetailKey, string][];
@@ -54,6 +57,7 @@ export async function recordDecisionsAction(input: unknown): Promise<ActionResul
 
 // The AI's recommendation from everything the owner told SnapStart; made again when their answers change
 export async function adviseAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const business = await getMyBusiness();
   if (!business?.profile) return { ok: false, message: "Answer the questions about your business first." };
   const profile = business.profile;

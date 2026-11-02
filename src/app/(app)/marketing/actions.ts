@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -22,6 +24,7 @@ const RELOAD = "Your marketing plan changed since this page loaded. Reload the p
 
 // The form refreshes the page itself, after writing the plan when the owner asks for that
 export async function saveMarketingIntakeAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = marketingIntakeSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Some answers are missing. Answer each question, then try again." };
   const saved = await updateMyMarketing(() => ({ intake: parsed.data }));
@@ -69,6 +72,7 @@ async function gatherFacts(intake: MarketingIntake): Promise<Omit<MarketingFacts
 
 // The page refreshes itself once its progress screen finishes. Steps from an earlier approval stay until this draft is approved.
 export async function draftMarketingPlanAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const [business, marketing] = await Promise.all([getMyBusiness(), getMyMarketing()]);
   if (!business?.profile) return { ok: false, message: NO_BUSINESS };
   const intake = completeIntake(marketing?.intake ?? null);
@@ -89,6 +93,7 @@ const approveSchema = z.object({ draftedAt: z.string().max(40) });
 
 // Approving builds the steps and saves a printable copy to the library
 export async function approveMarketingPlanAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = approveSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: RELOAD };
   const marketing = await getMyMarketing();
@@ -128,6 +133,7 @@ export async function approveMarketingPlanAction(input: unknown): Promise<Action
 const stepSchema = z.object({ key: z.string().max(80), done: z.boolean() });
 
 export async function setMarketingStepAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = stepSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "That step wasn’t found. Reload the page and try again." };
   const { key, done } = parsed.data;

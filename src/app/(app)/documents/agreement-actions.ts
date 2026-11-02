@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -36,6 +38,7 @@ async function current() {
 
 // Fills the agreement's fixed wording from saved details and the owner's choices; preparing again replaces it
 export async function prepareAgreementAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = choicesInputSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Check your answers: one of them is too long." };
   const now = await current();
@@ -80,6 +83,7 @@ const approveSchema = z.object({ documentId: z.string().min(1).max(60), prepared
 
 // Approving makes the PDF the owners print and sign; only a draft that still matches their details can be approved
 export async function approveAgreementAction(documentId: unknown, preparedAt: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = approveSchema.safeParse({ documentId, preparedAt });
   if (!parsed.success) return { ok: false, message: NOT_FOUND };
   const now = await current();

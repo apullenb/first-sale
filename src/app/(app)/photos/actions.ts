@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -34,6 +36,7 @@ const id = z.string().min(1).max(60);
 // --- Adding a photo
 
 export async function uploadPhotoAction(form: FormData): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const file = form.get("file");
   const name = form.get("name");
   if (!(file instanceof File)) return { ok: false, message: "Choose a photo to upload." };
@@ -72,6 +75,7 @@ async function runCheck(photoId: string, photo: Parameters<typeof checkPhoto>[1]
 }
 
 export async function checkAgainAction(photoId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(photoId);
   const found = parsed.success ? await getMyPhoto(parsed.data) : null;
   const file = found ? await getMyPhotoFile(found.photo.id) : null;
@@ -141,6 +145,7 @@ const generateSchema = z.object({
 
 // A fresh version from the original, with the chosen look and crop
 export async function generatePhotoAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = generateSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Some choices are missing. Reload the page and try again." };
   const { photoId, requestKey, look, crop, category } = parsed.data;
@@ -171,6 +176,7 @@ const refineSchema = z.object({ photoId: id, versionId: id, requestKey: z.uuid()
 
 // A change to one version in the owner's words; the original still goes with it as the product reference
 export async function refinePhotoAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = refineSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: `Describe the change in up to ${MAX_CHANGE} characters.` };
   const { photoId, versionId, requestKey } = parsed.data;
@@ -205,6 +211,7 @@ const approveSchema = z.object({ photoId: id, versionId: id, confirmed: z.litera
 
 // Only after the owner confirms it shows the product as it really is
 export async function approveVersionAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = approveSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "First confirm that this photo shows your product accurately." };
   const found = await getMyPhoto(parsed.data.photoId);
@@ -215,6 +222,7 @@ export async function approveVersionAction(input: unknown): Promise<ActionResult
 }
 
 export async function removeFromLibraryAction(versionId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(versionId);
   if (!parsed.success || !(await approveMyPhotoVersion(parsed.data, false))) return { ok: false, message: NOT_FOUND };
   refresh();
@@ -222,6 +230,7 @@ export async function removeFromLibraryAction(versionId: unknown): Promise<Actio
 }
 
 export async function deletePhotoAction(photoId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(photoId);
   if (!parsed.success || !(await deleteMyPhoto(parsed.data))) return { ok: false, message: NOT_FOUND };
   refresh();

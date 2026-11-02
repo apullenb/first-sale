@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -16,6 +18,7 @@ const haveSchema = z.object({ item: z.enum(CONTACT_ITEMS), value: z.string().max
 
 // "I have one": saved to Business details, where forms and the website read public contact details
 export async function saveContactAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = haveSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: UNKNOWN };
   const { item, value } = parsed.data;
@@ -31,6 +34,7 @@ const choiceSchema = z.object({ item: z.enum(CONTACT_ITEMS), choice: z.enum(CONT
 
 // "Help me set one up" or "Do this later": either way a step stays in the plan until it's done
 export async function chooseContactAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = choiceSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: UNKNOWN };
   if (!(await mark(contactLaterKey(parsed.data.item), parsed.data.choice))) return { ok: false, message: NO_BUSINESS };
@@ -40,6 +44,7 @@ export async function chooseContactAction(input: unknown): Promise<ActionResult>
 
 // "I already have this", without typing it in
 export async function markContactHaveAction(item: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = z.enum(CONTACT_ITEMS).safeParse(item);
   if (!parsed.success) return { ok: false, message: UNKNOWN };
   if (!(await mark(contactHaveKey(parsed.data)))) return { ok: false, message: NO_BUSINESS };
@@ -48,6 +53,7 @@ export async function markContactHaveAction(item: unknown): Promise<ActionResult
 }
 
 export async function undoContactHaveAction(item: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = z.enum(CONTACT_ITEMS).safeParse(item);
   if (!parsed.success) return { ok: false, message: UNKNOWN };
   await clearMyJourneyMark(contactHaveKey(parsed.data));

@@ -40,6 +40,8 @@ export default defineConfig({
       BETTER_AUTH_URL: BASE_URL,
       BETTER_AUTH_SECRET: "e2e-secret-that-is-at-least-thirty-two-characters",
       E2E_PORT: String(PORT),
+      // The account e2e/demo.spec.ts builds and opens through /demo
+      DEMO_OWNER_EMAIL: "demo-owner@example.test",
       NEXT_TELEMETRY_DISABLED: "1",
     },
   },
