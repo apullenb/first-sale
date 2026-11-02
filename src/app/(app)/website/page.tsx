@@ -7,6 +7,7 @@ import { Completed, Revisit } from "@/components/completed";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { ActionFacts, Kicker, NextUp, SectionHead } from "@/components/marketing/pieces";
+import { MoveOn } from "@/components/move-on";
 import { PracticeBanner } from "@/components/practice-banner";
 import { RunStatus } from "@/components/run-status";
 import { PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
@@ -52,6 +53,7 @@ export default function WebsitePage() {
         title="Create your website"
         lead="Compare the packages, pick one, and SnapStart helps you build it. With a SnapStart site, we build it from your choices; with Square, Wix or Shopify, you get steps with your words ready to paste."
       />
+      <MoveOn from="Build your brand" />
       <Suspense fallback={<p className="text-muted">Loading your website plan…</p>}>
         <WebsitePlanView />
       </Suspense>

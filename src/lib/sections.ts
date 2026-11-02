@@ -82,6 +82,15 @@ export const SECTIONS: Section[] = [
       "SnapStart checks official government sites for the rules that fit your business, then asks a few quick questions about the ones that depend on you.",
   },
   {
+    href: "/build-your-brand",
+    title: "Build your brand",
+    group: "Build your brand",
+    step: null,
+    overview: true,
+    milestone: 12,
+    summary: "Every step to build your brand in one list, in order: your brand, logo, website, products, marketing plan and social media.",
+  },
+  {
     href: "/brand",
     title: "Build your brand",
     group: "Build your brand",

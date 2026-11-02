@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Icon } from "@/components/icons";
+import { MoveOn } from "@/components/move-on";
 import { GroupFacts, LockNote, needsConfirming, priceTasks, TaskListRow, WaitingOnStructure } from "@/components/plan/paperwork";
 import { NextStep } from "@/components/plan/plan-summary";
 import { PracticeBanner } from "@/components/practice-banner";
@@ -96,6 +97,7 @@ async function Group({ params }: { params: Params }) {
           You’ve finished every step here.
         </Note>
       ) : null}
+      {group.state === "done" || group.state === "waiting" ? <MoveOn from="Start your business" /> : null}
 
       <section aria-labelledby="steps-heading" className="flex flex-col gap-3">
         <h2 id="steps-heading" className="font-display text-[22px] leading-snug">

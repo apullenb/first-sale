@@ -10,7 +10,7 @@ import { getMySidebarStatus } from "@/lib/sidebar-status";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="mx-auto w-full max-w-[1360px] flex-1 px-4 pb-24 sm:px-6 md:grid md:grid-cols-[288px_minmax(0,1fr)] md:items-start md:gap-7 md:pt-3">
+    <div className="mx-auto w-full max-w-[1360px] flex-1 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 md:pb-24 md:grid md:grid-cols-[288px_minmax(0,1fr)] md:items-start md:gap-7 md:pt-3">
       <RefreshOnFocus />
       {/* The fallback reads no route, so pages with unknown params still prerender */}
       <Suspense fallback={<SidebarFallback />}>

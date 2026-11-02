@@ -7,6 +7,7 @@ import { LocalDate } from "@/components/local-date";
 import { AiProgressButton } from "@/components/marketing/ai-progress";
 import { Kicker, NextUp } from "@/components/marketing/pieces";
 import { Walkthrough } from "@/components/marketing/step-list";
+import { MoveOn } from "@/components/move-on";
 import { PracticeBanner } from "@/components/practice-banner";
 import { RunStatus } from "@/components/run-status";
 import { AccountMark } from "@/components/social/account-mark";
@@ -43,6 +44,7 @@ export default function SocialPage() {
       <Note icon="lock" tone="quiet">
         You sign up and post yourself. SnapStart never signs in, creates accounts or posts for you.
       </Note>
+      <MoveOn from="Build your brand" />
       <Suspense fallback={<p className="text-muted">Loading your accounts…</p>}>
         <SocialView />
       </Suspense>

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { ActionButton } from "@/components/action-button";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
+import { MoveOn } from "@/components/move-on";
 import { PlanCosts, StepGroup } from "@/components/plan/next-actions";
 import { actionStep, GroupFacts, ListRow, priceTasks, TaskListRow, TimeFact, WaitingOnStructure } from "@/components/plan/paperwork";
 import { StepRow } from "@/components/plan/step-row";
@@ -61,6 +62,7 @@ async function Overview() {
       <ResearchRunStatus runs={{ research, followUp }} retryHref="/requirements" />
       {paper?.view.tasks.some((task) => task.step.simulated) ? <PracticeBanner what="Steps here came from practice results." /> : null}
       {paper ? <Progress paper={paper} /> : null}
+      <MoveOn from="Start your business" />
 
       <ol className="flex flex-col gap-7">
         <Subsection number={1} title="Your business" id="sub-business">

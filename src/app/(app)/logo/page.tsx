@@ -17,6 +17,7 @@ import { RunNotice } from "@/components/documents/run-notice";
 import { Icon } from "@/components/icons";
 import { JobWatch } from "@/components/job-watch";
 import { Kicker, SectionHead } from "@/components/marketing/pieces";
+import { MoveOn } from "@/components/move-on";
 import { PracticeBanner } from "@/components/practice-banner";
 import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Card, Note, PageHead } from "@/components/ui";
@@ -45,6 +46,7 @@ export default function LogoPage({ searchParams }: { searchParams: SearchParams 
         title="Create your logo"
         lead="Logo ideas are drawn from the brand description you approved in step 1 and a few choices about the logo itself. Already have a logo? Upload it instead. Nothing is used until you choose it."
       />
+      <MoveOn from="Build your brand" />
       <Suspense fallback={<p className="text-muted">Loading your logo…</p>}>
         <Logo searchParams={searchParams} />
       </Suspense>

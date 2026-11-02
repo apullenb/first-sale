@@ -16,11 +16,11 @@ test.describe("sidebar and Today", () => {
   test("groomer: “I already have this” on every brand step finishes the section", async ({ browser }) => {
     const { page } = await newOwner(browser, groomer);
     const nav = sidebar(page);
-    await expect(nav.getByRole("button", { name: "Build your brand 0 of 6 steps done" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Build your brand 0 of 6 steps done" })).toBeVisible();
 
     await markHave(page, "/brand", "I already have a brand");
     await markHave(page, "/logo", "I already have a logo");
-    await expect(nav.getByRole("button", { name: "Build your brand 2 of 6 steps done" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Build your brand 2 of 6 steps done" })).toBeVisible();
     await markHave(page, "/products", "My products are already listed somewhere");
     await markHave(page, "/marketing", "I already have a marketing plan");
     await markHave(page, "/social", "I already have my social media set up");
@@ -32,10 +32,15 @@ test.describe("sidebar and Today", () => {
 
     // The last one finishes the section: a check, and the DONE stamp
     await expect(page.getByRole("status").filter({ hasText: /^Done: / })).toBeAttached();
-    await expect(nav.getByRole("button", { name: /^Build your brand , all done/ })).toBeVisible();
+    await expect(nav.getByRole("link", { name: /^Build your brand , all done/ })).toBeVisible();
     for (const step of ["Build your brand", "Create your logo", "Create your website", "Add your products", "Create your marketing plan", "Set up social media"]) {
       await expect(nav.getByRole("link", { name: new RegExp(`^${step} , done`) })).toBeVisible();
     }
+
+    // Then on to the next section
+    await open(page, "/build-your-brand");
+    await page.getByRole("link", { name: "Move on to running your business" }).click();
+    await page.waitForURL("**/run");
   });
 
   test("tacos: Today without a launch date, and section toggles", async ({ browser }) => {
