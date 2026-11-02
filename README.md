@@ -7,7 +7,7 @@
 
 ### From “I have an idea” to a business that's legally set up, branded and selling.
 
-SnapStart walks first-time US small-business owners through every step: what the law asks of *their* business in *their* city, which structure fits, the official forms filled in and ready to sign, then a logo, a website and their products. Built on **Meta Muse**. **AI drafts, rules calculate, the owner approves.**
+SnapStart is a startup kit that tailors itself to each owner's business. **Meta Muse** researches the exact licenses, permits and registrations that apply to *their* business in *their* city, county and state, quoting the official government pages. It recommends the right structure, fills in the official forms, and designs their logo, brand photos and website. **AI drafts, rules calculate, the owner approves.**
 
 **[Try the live demo →](https://snapstartkit.vercel.app)**
 
@@ -34,6 +34,7 @@ SnapStart walks first-time US small-business owners through every step: what the
 ## Contents
 
 - [Why SnapStart](#why-snapstart)
+- [Tailored to your business by Meta Muse](#tailored-to-your-business-by-meta-muse)
 - [At a glance](#at-a-glance)
 - [Feature tour](#feature-tour)
 - [Made with Meta Muse](#made-with-meta-muse)
@@ -63,6 +64,18 @@ It works by a simple split:
 | **AI drafts** | Meta Muse | Reads official pages and quotes them, explains a form in plain words, drafts website copy, designs logos, makes brand and product photos, writes a marketing plan |
 | **Rules calculate** | Plain, unit-tested TypeScript | Which rules apply, the order of steps, fees and totals, stock and margins, form answers, every quality check |
 | **The owner approves** | The person | They review each draft, then sign, file and publish on their own terms |
+
+## Tailored to your business by Meta Muse
+
+Every owner gets a plan built for their business, not a generic checklist. Here's what Meta Muse does with a few clicks of intake answers:
+
+- **Finds the rules that apply to you.** Muse Spark searches the official sites of your city, county, state and the federal government, reads the pages, and quotes the exact lines that apply to your business: a cottage food exemption for a home baker, a food handler card for a food truck, a sales tax permit for anyone selling goods, an assumed name filing when you sell under a brand name.
+- **Sorts what applies from what doesn't.** Muse Spark reads each rule against your answers (where you work, what you sell, who helps you, how customers buy), and SnapStart's rules turn that into "applies", "doesn't apply" or one short question about your plans.
+- **Digs deeper on open questions.** When a page doesn't settle something, Muse Spark looks through the office's own site, code and forms, then explains its answer in plain words. Anything still open becomes a ready-to-send message to the right office, with its email and phone.
+- **Recommends a structure for you.** Muse Spark weighs everything you've told it (partners, risk, plans to hire, how you'll be paid) and explains why a sole proprietorship, LLC or partnership fits, with real-life examples.
+- **Fills in your paperwork.** Muse Spark's vision reads official forms like IRS Form SS-4 and Texas Form 205, and SnapStart fills in every blank it can from your saved details, then shows exactly where to sign and send it.
+- **Builds your brand from your own words.** Muse Spark turns your answers into a brand story and taglines that name what you actually sell. Muse Image draws logo ideas, then brand photos and product photos with your logo printed right into the scene.
+- **Knows your market.** Muse Spark drafts website copy from your real products and prices, compares prices for similar products and services near you with links to each one, and writes a marketing plan for the platforms you chose.
 
 ## At a glance
 
