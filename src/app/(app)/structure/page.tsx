@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Completed, Revisit } from "@/components/completed";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
+import { MoveOn } from "@/components/move-on";
 import { PracticeBanner } from "@/components/practice-banner";
 import { StatusChip } from "@/components/requirements/sources";
 import { SourceButton } from "@/components/requirements/source-button";
@@ -323,6 +324,7 @@ async function Structure() {
           >
             {settled ? next : null}
           </Completed>
+          {settled ? <MoveOn from="Start your business" /> : null}
           <Revisit id="revisit" open={!settled}>
             {guideAndQuestions}
           </Revisit>

@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Celebration } from "./celebrate";
-import { Icon } from "./icons";
-import { Logo, LogoMark } from "./logo";
+import { Logo } from "./logo";
 import { NavLinks, type NavStatus } from "./nav-links";
+import { TabBar } from "./tab-bar";
 
 export interface SidebarBusiness {
   name: string;
@@ -17,9 +17,8 @@ export interface SidebarBusiness {
 
 // Sky outline: the accent is too dark to see on the sidebar
 const SIDEBAR_FOCUS = "[&_:focus-visible]:outline-sky";
-const MENU_BUTTON = "ml-auto flex min-h-11 items-center gap-2 rounded-[10px] px-3 font-semibold hover:bg-white/10 disabled:opacity-60 disabled:hover:bg-transparent";
 
-// A floating navy sidebar on wide screens; a top bar with a slide-out menu on phones
+// A floating navy sidebar on wide screens; tabs along the bottom on phones, with More for the slide-out menu
 export function SidebarNav({ status, business, account }: { status?: NavStatus; business?: SidebarBusiness | null; account?: ReactNode }) {
   const pathname = usePathname();
   // Open only on the page it was opened from; forgotten on any move, so Back doesn't reopen it
@@ -51,13 +50,7 @@ export function SidebarNav({ status, business, account }: { status?: NavStatus; 
     <>
       {/* Before the menu, so it's listening when the menu spots a newly done step */}
       <Celebration />
-      <PhoneBar>
-        <button ref={menuButton} type="button" aria-expanded={open} aria-controls="phone-menu" onClick={() => (open ? setOpenOn(null) : setOpenOn(pathname))} className={MENU_BUTTON}>
-          <Icon name={open ? "close" : "menu"} />
-          Menu
-          {status && Object.values(status.parts).some((part) => part.count) ? <span aria-hidden="true" className="size-2 rounded-full bg-alert" /> : null}
-        </button>
-      </PhoneBar>
+      <TabBar pathname={pathname} status={status} menuOpen={open} onMore={() => (open ? setOpenOn(null) : setOpenOn(pathname))} moreRef={menuButton} />
       {open ? <button ref={scrim} type="button" tabIndex={-1} aria-label="Close the menu" onClick={close} className="fixed inset-0 z-30 bg-navy/40 md:hidden" /> : null}
       <aside
         ref={drawer}
@@ -73,24 +66,13 @@ export function SidebarNav({ status, business, account }: { status?: NavStatus; 
           const next = event.relatedTarget;
           if (open && next && !event.currentTarget.contains(next) && next !== menuButton.current && next !== scrim.current) setOpenOn(null);
         }}
-        className={`fixed inset-y-0 left-0 z-40 w-[300px] max-w-[85vw] p-3 transition-transform md:visible md:sticky md:top-3 md:z-auto md:h-[calc(100vh-1.5rem)] md:w-auto md:max-w-none md:translate-x-0 md:p-0 ${
+        className={`fixed top-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 z-40 w-[300px] max-w-[85vw] p-3 transition-transform md:visible md:sticky md:top-3 md:bottom-auto md:z-auto md:h-[calc(100vh-1.5rem)] md:w-auto md:max-w-none md:translate-x-0 md:p-0 ${
           open ? "translate-x-0" : "invisible -translate-x-full"
         }`}
       >
         <Panel pathname={pathname} status={status} business={business} account={account} />
       </aside>
     </>
-  );
-}
-
-function PhoneBar({ children }: { children: ReactNode }) {
-  return (
-    <div className={`sticky top-0 z-30 -mx-4 flex items-center gap-3 border-b border-white/10 bg-sidebar px-4 py-2 text-white sm:-mx-6 sm:px-6 md:hidden ${SIDEBAR_FOCUS}`}>
-      <Link href="/" aria-label="SnapStart home" className="flex min-h-11 items-center">
-        <LogoMark />
-      </Link>
-      {children}
-    </div>
   );
 }
 
@@ -125,12 +107,7 @@ function Panel({ pathname, status, business, account }: PanelProps) {
 export function SidebarFallback() {
   return (
     <>
-      <PhoneBar>
-        <button type="button" disabled className={MENU_BUTTON}>
-          <Icon name="menu" />
-          Menu
-        </button>
-      </PhoneBar>
+      <TabBar pathname={null} menuOpen={false} />
       <aside className="hidden md:sticky md:top-3 md:block md:h-[calc(100vh-1.5rem)]">
         <Panel pathname={null} />
       </aside>
