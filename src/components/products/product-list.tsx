@@ -457,7 +457,7 @@ const parseChoices = (text: string) => {
     .filter((value) => value && !seen.has(value.toLowerCase()) && seen.add(value.toLowerCase()));
 };
 
-const OPTION_EXAMPLES: Record<ItemKind, string> = { product: "Size, Color, Scent or Flavor", service: "Package, Length or Group size" };
+const OPTION_EXAMPLES: Record<ItemKind, string> = { product: "Size, Color, Scent or Flavor", service: "Package, Size, Session length or Add-on" };
 
 // Option groups and the price and stock of each combination; totals are worked out by rules on save
 function OptionsEditor({
@@ -517,7 +517,7 @@ function OptionsEditor({
             <input
               id={`${uid}-values-${index}`}
               value={texts[index] ?? ""}
-              placeholder={kind === "product" ? "Small, Medium, Large" : "Basic, Full"}
+              placeholder={kind === "product" ? "Small, Medium, Large" : "Basic, Full, Deluxe"}
               onChange={(event) =>
                 update(
                   groups.map((each, at) => (at === index ? { ...each, values: parseChoices(event.target.value) } : each)),

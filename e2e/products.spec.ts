@@ -180,7 +180,7 @@ test.describe("products and product photos", () => {
     await expect(page.getByRole("region", { name: /Prices for Hand-poured soy candles/ })).toContainText("Practice sample");
   });
 
-  test("groomer: services with options, and “My services are already listed somewhere”", async ({ browser }) => {
+  test("groomer: services with options, suggestions, pictures, prices nearby, and “My services are already listed somewhere”", async ({ browser }) => {
     const { page } = await newOwner(browser, groomer);
     await open(page, "/products");
     // A services business is asked about services, not products
@@ -220,6 +220,45 @@ test.describe("products and product photos", () => {
     await editor.getByRole("textbox", { name: "Price for Large" }).fill("95");
     await editor.getByRole("button", { name: "Save changes" }).click();
     await expect(groom).toContainText("$75–$95", { timeout: 30_000 });
+
+    // Suggestions from intake are services: drafted, labeled, no price and no stock
+    await page.getByRole("region", { name: "Start from your answers" }).getByRole("button", { name: "Add these suggestions" }).click();
+    const suggested = list.getByRole("article", { name: "Mobile dog grooming from a van" });
+    await expect(suggested).toContainText("Suggested", { timeout: 30_000 });
+    await expect(suggested).toContainText("Practice draft, not written by AI");
+    await expect(suggested).toContainText("No price yet");
+    await expect(suggested).not.toContainText("stock");
+
+    // Pictures for a service: the finished result first, then the work in progress, a detail and the provider with a customer
+    await groom.getByRole("button", { name: `Pictures of ${first.name}` }).click();
+    const pictures = groom.getByRole("region", { name: `Pictures of ${first.name}` });
+    await expect(pictures).toContainText("They show the kind of work you do, not your actual work.");
+    await pictures.getByRole("button", { name: "Make a main photo from the description" }).click();
+    const main = pictures.getByRole("figure", { name: `Newest main photo of ${first.name}` });
+    await expect(main).toContainText("Practice preview, not made by AI", { timeout: 60_000 });
+    await main.getByText("I understand this is only a practice preview").click();
+    await main.getByRole("button", { name: "Use as main photo" }).click();
+    await expect(main).toContainText("In use as its main photo", { timeout: 30_000 });
+    // Nobody is asked who wears a service
+    await expect(pictures.getByRole("group", { name: "Who wears it?" })).toHaveCount(0);
+    await pictures.getByRole("button", { name: "Make 3 more views" }).click();
+    for (const view of ["in progress", "detail of the result", "at work with a customer"]) {
+      await expect(pictures.getByRole("figure", { name: `Newest ${view} of ${first.name}` })).toContainText("Practice preview, not made by AI", { timeout: 60_000 });
+    }
+    await expect(pictures.getByRole("figure", { name: /another angle/ })).toHaveCount(0);
+
+    // Prices nearby for a service: as the source states them, compared per visit
+    const compare = page.getByRole("region", { name: "Compare prices near you" });
+    await expect(compare).toContainText("See what similar services cost in your area");
+    await compare.getByRole("combobox", { name: "What to compare" }).selectOption({ label: first.name });
+    await compare.getByRole("button", { name: "Compare prices" }).click();
+    const results = compare.getByRole("region", { name: new RegExp(`Prices for ${first.name}`) });
+    await expect(results).toContainText("Practice sample, not a real search.", { timeout: 60_000 });
+    await expect(results).toContainText("Columbus, Ohio");
+    await expect(results.getByRole("term")).toHaveText(["Low per visit", "Typical per visit", "High per visit", "Your price"]);
+    await expect(results.getByRole("definition").last()).toHaveText("$75–$95");
+    await expect(results.getByRole("listitem").first()).toContainText("$15 per visit");
+    await expect(results.getByRole("link", { name: /See this service/ }).first()).toBeVisible();
 
     // A photo of the owner's work becomes a suggested service
     const fromPhoto = page.getByRole("region", { name: "Start from a photo" });

@@ -7,7 +7,7 @@ import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { AI_BUTTON, ALERT, INPUT } from "@/components/styles";
 import { IconTile, OutsideLink } from "@/components/ui";
 import { Working } from "@/components/working";
-import { type PriceCheck, priceStats } from "@/lib/rules/price-compare";
+import { comparableStats, type PriceCheck, UNIT_WORDS } from "@/lib/rules/price-compare";
 import { dollars, type ItemKind, type ItemOptions, priceLabel } from "@/lib/rules/products";
 
 interface ComparedItem {
@@ -22,7 +22,7 @@ interface ComparedItem {
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
 // "Compare prices near you": prices found by search, each with its source; low, typical and high worked out by rules
-export function PriceCompare({ items, checks }: { items: ComparedItem[]; checks: Record<string, PriceCheck> }) {
+export function PriceCompare({ items, checks, noun }: { items: ComparedItem[]; checks: Record<string, PriceCheck>; noun: string }) {
   const uid = useId();
   const [chosen, setChosen] = useState(items[0]?.id ?? "all");
   const [pending, setPending] = useState(false);
@@ -55,7 +55,7 @@ export function PriceCompare({ items, checks }: { items: ComparedItem[]; checks:
         </h2>
       </div>
       <div className="flex flex-col gap-4 p-5">
-        <p className="text-rule">See what similar products and services sell for in your area, with a link to each one, to help you set your own price.</p>
+        <p className="text-rule">See what similar {noun} cost in your area, with a link to each one, to help you set your own prices.</p>
         {items.length ? (
           <div className="flex flex-col gap-3 @md:flex-row @md:items-end">
             <div className="flex flex-col gap-1.5">
@@ -95,8 +95,10 @@ export function PriceCompare({ items, checks }: { items: ComparedItem[]; checks:
 
 function Results({ item, check }: { item: ComparedItem; check: PriceCheck }) {
   const uid = useId();
-  const stats = priceStats(check.prices.map((price) => price.cents));
   const own = priceLabel(item);
+  const compared = comparableStats(check.prices, own);
+  const stats = compared?.stats ?? null;
+  const unit = compared ? UNIT_WORDS[compared.unit] : "";
   return (
     <section aria-labelledby={`${uid}-heading`} className="flex flex-col gap-3 border-t border-line pt-4">
       <h3 id={`${uid}-heading`} className="font-display text-[20px] leading-snug">
@@ -104,12 +106,17 @@ function Results({ item, check }: { item: ComparedItem; check: PriceCheck }) {
         <span className="block text-sm font-normal text-muted">Searched {check.area}</span>
       </h3>
       {check.simulated ? <p className="text-sm font-semibold text-check">Practice sample, not a real search. These sellers aren’t real.</p> : null}
+      {stats && stats.count < check.prices.length ? (
+        <p className="text-sm text-muted">
+          Low, typical and high use only the {stats.count} prices {unit || "for one item"}, so they compare like with like.
+        </p>
+      ) : null}
       {stats ? (
         <dl aria-label={`Price summary for ${item.name}`} className="grid grid-cols-2 gap-2 @md:grid-cols-4">
           {[
-            ["Low", dollars(stats.lowCents)],
-            ["Typical", dollars(stats.typicalCents)],
-            ["High", dollars(stats.highCents)],
+            [`Low${unit ? ` ${unit}` : ""}`, dollars(stats.lowCents)],
+            [`Typical${unit ? ` ${unit}` : ""}`, dollars(stats.typicalCents)],
+            [`High${unit ? ` ${unit}` : ""}`, dollars(stats.highCents)],
             ["Your price", own || "Not set"],
           ].map(([term, value]) => (
             <div key={term} className="rounded-lg border border-line bg-soft px-3 py-2">
