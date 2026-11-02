@@ -34,7 +34,7 @@ SnapStart walks first-time US small-business owners through every step: what the
 ## Contents
 
 - [Why SnapStart](#why-snapstart)
-- [What it does, end to end](#what-it-does-end-to-end)
+- [At a glance](#at-a-glance)
 - [Feature tour](#feature-tour)
 - [Made with Meta Muse](#made-with-meta-muse)
 - [How the AI is built](#how-the-ai-is-built)
@@ -64,72 +64,111 @@ It works by a simple split:
 | **Rules calculate** | Plain, unit-tested TypeScript | Which rules apply, the order of steps, fees and totals, stock and margins, form answers, every quality check |
 | **The owner approves** | The person | They review each draft, then sign, file and publish on their own terms |
 
-## What it does, end to end
+## At a glance
 
-The app is a guided workspace with three parts. A **Today** page shows the next step.
+SnapStart is a guided workspace in three parts, and a **Today** page always shows the one next step.
 
-```mermaid
-flowchart LR
-  subgraph S["1 · Start your business"]
-    direction TB
-    S1["Your business<br/><sub>click-based intake</sub>"] --> S2["Business structure<br/><sub>LLC, sole prop, DBA, taxes</sub>"]
-    S2 --> S3["What applies to you<br/><sub>research on official .gov sites</sub>"]
-    S3 --> S4["Paperwork<br/><sub>official forms, filled in for review</sub>"]
-  end
-  subgraph B["2 · Build your brand"]
-    direction TB
-    B1["Brand feel"] --> B2["Logo + versions"] --> B3["Website"] --> B4["Products and services"] --> B5["Marketing plan<br/>and social media"]
-  end
-  subgraph R["3 · Run your business"]
-    direction TB
-    R1["Email assistant"] --- R2["Orders and requests"]
-  end
-  S --> B --> R
-```
+<table>
+  <tr>
+    <th width="33%">1 · Start your business</th>
+    <th width="33%">2 · Build your brand</th>
+    <th width="33%">3 · Run your business</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/media/glance-start.webp" alt="The 'What to do with this form' steps for Texas Form 205: check every answer, download the filled copy, sign it, send it to the Texas Secretary of State" width="280" height="175"></td>
+    <td align="center"><img src="docs/media/glance-brand.webp" alt="A brand photo made by Muse Image: amber candles among pine branches under a wooden sign printed with the Two Pines Candle Co. logo" width="280" height="175"></td>
+    <td align="center"><img src="docs/media/glance-run.webp" alt="The Run your business page with guided setup for connecting email and tracking orders and customer requests" width="280" height="175"></td>
+  </tr>
+  <tr>
+    <td valign="top"><b>Know exactly what your business needs.</b><br><br>
+      • Researches the rules for your exact city, county and state on official .gov sites, with quotes<br>
+      • Recommends a structure (LLC, sole proprietorship, DBA, taxes) from your answers<br>
+      • Fills in official forms like IRS SS-4 and Texas Form 205 for you to sign<br>
+      • Turns it all into an ordered plan with fees and renewals</td>
+    <td valign="top"><b>Look like a real business on day one.</b><br><br>
+      • Logos drawn by Muse Image, with stacked, icon and one-color versions cut from the logo's own pixels<br>
+      • Brand photos with your logo printed into the scene<br>
+      • A website built from your products, checked against your prices<br>
+      • Prices from similar businesses near you</td>
+    <td valign="top"><b>Keep the day-to-day in one place.</b><br><br>
+      • Guided setup for an email assistant that drafts replies for your review<br>
+      • Order and customer-request tracking with follow-up reminders<br>
+      • Friendly business insights with tips you can act on<br>
+      • Every form, receipt and approval in one document library</td>
+  </tr>
+</table>
 
 ## Feature tour
 
+### Today: the next step, every day
+
+<img src="docs/media/nav/today.webp" alt="Menu link: Today" width="225" height="32">
+
+Today greets the owner with the one thing to do next, a countdown to launch day, and how far they've come in each part. The hero image at the top of this page is Today for a home bakery in Austin.
+
 ### Your business: a click-based intake
+
+<img src="docs/media/nav/your-business.webp" alt="Menu link: Your business" width="201" height="32">
 
 Owners answer mostly by clicking. A home baker, a woodworker and a dog groomer each get the follow-ups that matter for them (food kept cold, items for children, where the work happens). "Not sure" is a welcome answer: SnapStart keeps it as an open question and helps the owner find out. County and city come from Census Bureau lists, progress saves as you go, and the owner confirms a summary before any research starts.
 
 <p align="center"><img src="docs/media/intake.webp" alt="Recording of the intake: picking 'Baked goods and sweets', choosing cookies, bread and cakes, then answering where the business is, who owns it, how it sells and its money goals, ending on the business summary" width="900"></p>
 
-### What applies to you: research grounded in official sources
-
-SnapStart reads the federal, state, county and city pages that apply to the owner. **Muse Spark** reads them closely and returns each requirement with a word-for-word quote from the page, and SnapStart works out which ones fit this owner's plans. Official sites come from CISA's .gov registry, which also says which government each page belongs to, so every rule shows exactly where it came from. For the Austin, Travis County, Texas demo place, SnapStart reads a hand-picked set of state, county and city pages live.
-
-<p align="center"><img src="docs/media/requirements.webp" alt="The 'What applies to you' page for a bakery in Austin, Texas: where the rules come from (federal, Texas, Travis County, Austin), seven requirements that apply, and one question about the owner's plans" width="900"></p>
-
 ### Business structure: four decisions, explained one at a time
+
+<img src="docs/media/nav/business-structure.webp" alt="Menu link: Business structure" width="177" height="32">
 
 Ownership structure, business name (DBA), tax treatment and licenses are four different decisions, and the page walks through each one. **Muse Spark** weighs everything the owner has said and recommends a starting point, citing verbatim IRS and SBA guidance. The owner records their choice with a dated history, and the plan updates to match.
 
 <p align="center"><img src="docs/media/structure.webp" alt="Recording of the structure page: an LLC compared with a sole proprietorship, the owner picks an LLC, the name and tax plan, reviews what recording does, and records the decision into a dated history" width="900"></p>
 
+### What applies to you: research grounded in official sources
+
+<img src="docs/media/nav/what-applies-to-you.webp" alt="Menu link: What applies to you" width="177" height="32">
+
+SnapStart reads the federal, state, county and city pages that apply to the owner. **Muse Spark** reads them closely and returns each requirement with a word-for-word quote from the page, and SnapStart works out which ones fit this owner's plans. Official sites come from CISA's .gov registry, which also says which government each page belongs to, so every rule shows exactly where it came from. For Austin, Travis County, Texas, SnapStart reads a hand-picked set of state, county and city pages live.
+
+<p align="center"><img src="docs/media/requirements.webp" alt="The 'What applies to you' page for a bakery in Austin, Texas: where the rules come from (federal, Texas, Travis County, Austin), seven requirements that apply, and one question about the owner's plans" width="900"></p>
+
 ### Paperwork: the official form, filled in and ready to sign
 
-Each step comes with numbered instructions, and every fee and method links to the official page with the date it was checked. For known forms (IRS SS-4, Texas Forms 205, 401-A, 503 and AP-201, and the Travis County assumed name certificate), SnapStart downloads the real PDF from the agency's own site, confirms it's the right revision, and fills in the blanks from the owner's saved details. "What to do with this form" then explains how to sign it, where to send it and how to record it.
+<img src="docs/media/nav/register-your-business.webp" alt="Menu link: Register your business" width="177" height="32">
+
+Each step comes with numbered instructions, and every fee and method links to the official page with the date it was checked. For known forms (IRS SS-4, Texas Forms 205, 401-A, 503 and AP-201, and the Travis County assumed name certificate), SnapStart downloads the real PDF from the agency's own site, confirms it's the right revision, and fills in the blanks from the owner's saved details. "What to do with this form" then explains how to sign it, where to send it and how to record it. Each part of the paperwork (registering the business, tax IDs, where you work, licenses and permits) has its own menu entry with the time it takes.
 
 <p align="center"><img src="docs/media/paperwork.webp" alt="Recording of the Texas Form 205 step: choose 'Fill in Form 205 here', the form is downloaded from sos.texas.gov and checked as the official form, the LLC's name is filled in from saved business details, then the 'What to do with this form' steps: check, download, sign, mail to the Secretary of State, mark it submitted" width="900"></p>
 
-<details>
-<summary><b>Documents and the paperwork companion</b></summary>
-<br>
+### Owners' agreement
+
+<img src="docs/media/nav/register-your-business.webp" alt="Menu link: Register your business" width="177" height="32">
+
+For an LLC or a partnership, SnapStart prepares the owners' agreement (a company agreement in Texas) from carefully written standard wording, filled in with the owners, their shares, what each puts in and how they'll make decisions. It's saved as a PDF with a signature line for each owner, ready to sign and keep with the business records.
+
+### Documents and the paperwork companion
+
+<img src="docs/media/nav/documents.webp" alt="Menu link: Documents" width="225" height="32">
 
 Owners can upload a PDF or a photo of a letter, paste a form's text, or fetch an official PDF from a .gov link. **Muse Spark's vision** reads photos and scans, including handwriting and glare, and marks anything unclear for the owner to check. The companion explains a form point by point in the form's own words, answers questions about any field, and drafts answers from the owner's confirmed details. Each reviewed copy, receipt and approval is saved as its own version next to the original.
 
 <p align="center"><img src="docs/media/documents.webp" alt="The Documents page: add a document, generate a business plan, and the library with Texas Form 205 as the official form with a draft of 8 answers to check" width="900"></p>
 
-</details>
+### Business insights
+
+<img src="docs/media/nav/business-insights.webp" alt="Menu link: Business insights" width="225" height="32">
+
+Business insights gives owners friendly, specific feedback and tips on their idea, with a link to where they can act on each one. **Muse Spark** reads the whole picture (the answers, plan, brand, website and products) and highlights what's strong, what to keep an eye on, and creative ideas to try. Owners can mark tips as useful, and a refresh notices what's changed since last time.
 
 ### Build your brand: feel first, then a logo
+
+<img src="docs/media/nav/build-your-brand.webp" alt="Menu link: Build your brand" width="201" height="32">
 
 Owners click a few feel words, answer some this-or-that questions and pick color families. **Muse Spark** turns those picks into a short brand description the owner approves or rewrites, and it guides every logo idea, version and picture after that. Owners get a full brand without writing a single prompt.
 
 <p align="center"><img src="docs/media/brand-feel.webp" alt="Recording of Build your brand: picking feel words like cozy, earthy and rustic and color families, then a short brand description the owner approves" width="900"></p>
 
 ### Logo versions, built from the logo's own pixels
+
+<img src="docs/media/nav/create-your-logo.webp" alt="Menu link: Create your logo" width="201" height="32">
 
 **Muse Image** draws the logo ideas. From the chosen logo, SnapStart builds the stacked, icon and one-color versions directly from its pixels: it finds the symbol and the lettering with connected-component analysis and rearranges the original artwork, so every version keeps the logo's exact lettering and adds no extra cost. The brand kit adds colors with contrast ratings, every logo file size, favicons and social profile pictures, made right in the browser.
 
@@ -139,41 +178,65 @@ Owners click a few feel words, answer some this-or-that questions and pick color
 
 ### Website: compare clearly, then build
 
+<img src="docs/media/nav/create-your-website.webp" alt="Menu link: Create your website" width="201" height="32">
+
 Four packages (a site built by SnapStart, Square, Wix and Shopify) are compared side by side in the same format, with what's included, what costs extra and a first-year total worked out from each company's own pricing pages. **Muse Spark** drafts the words for every page from the owner's business, prices and how they deliver, and SnapStart checks that the words match the owner's saved prices. The owner picks a look and a color and sees the site live at computer and phone width.
 
 <p align="center"><img src="docs/media/website.webp" alt="Recording of the website builder: the package comparison with cost summaries, the start screen for the SnapStart site, the drafted words, the design step, then the live preview at computer and phone width, and 'Your website is ready'" width="900"></p>
 
-### Products and services, with options and nearby prices
+### Products, with options and nearby prices
 
-Products get a price, a cost and stock; services get how they're priced, how long they take and where they happen. Options like size, scent or dog size each carry their own price and stock, and SnapStart works out the price range, totals and how much is left from each sale. "Compare prices near you" uses **Muse web search** to show what similar items sell for nearby, with a link to each.
+<img src="docs/media/nav/manage-your-products.webp" alt="Menu link: Manage your products" width="201" height="32">
+
+Products get a price, a cost and stock. Options like size or scent each carry their own price and stock, and SnapStart works out the price range, totals and how much is left from each sale. "Compare prices near you" uses **Muse web search** to show what similar items sell for nearby, with a link to each.
 
 <p align="center"><img src="docs/media/products.webp" alt="Recording of Add your products: a candle with 8 oz and 12 oz options, each with its own price and stock, shown as $24 to $32 with 35 in stock, a second product with its margin worked out, then a comparison of prices nearby" width="900"></p>
 
-<details>
-<summary><b>The same page for a service business</b></summary>
-<br>
+### Services, priced your way
+
+<img src="docs/media/nav/manage-your-services.webp" alt="Menu link: Manage your services" width="201" height="32">
+
+For a service business, the same step becomes **Manage your services**: how each service is priced, how long it takes, where it happens and what's included, with options like dog size carrying their own prices.
+
 <p align="center"><img src="docs/media/services.webp" alt="Add your services for a mobile dog groomer: a Full groom service priced $75 to $95 by dog size, taking about 2 hours" width="760"></p>
-</details>
+
+### Product photos
+
+<img src="docs/media/nav/manage-your-products.webp" alt="Menu link: Manage your products" width="201" height="32">
+
+From the products step, owners can turn an ordinary phone photo into a polished store photo. **Muse Spark** checks the photo first and offers retake tips when needed; **Muse Image** then edits it using the original as its reference, so the product stays exactly as it is while the background and light change. The two are shown side by side for the owner to approve into their product library.
+
+### Marketing plan
+
+<img src="docs/media/nav/create-your-marketing-plan.webp" alt="Menu link: Create your marketing plan" width="201" height="32">
+
+A few quick questions (where the owner wants to show up, how familiar they are with social media, what they've tried) become a marketing plan from **Muse Spark**: goals, who to reach, the platforms that fit, things to post about and a weekly rhythm. Approving it turns the plan into ordered steps, with as much hand-holding as the owner wants.
+
+### Social media
+
+<img src="docs/media/nav/set-up-social-media.webp" alt="Menu link: Set up social media" width="201" height="32">
+
+For each platform in the plan, SnapStart gets the account ready: the name, a bio drafted by **Muse Spark**, a profile picture and a cover from the brand kit, plus step-by-step setup that follows each platform's own help pages.
+
+### Your Brand Library
+
+<img src="docs/media/nav/your-brand-library.webp" alt="Menu link: Your Brand Library" width="201" height="32">
+
+Everything the brand is made of lives in one place: the chosen logo and its versions, brand pictures and any artwork the owner already had, each ready to download.
+
+### Run your business
+
+<img src="docs/media/nav/run-your-business.webp" alt="Menu link: Run your business" width="225" height="32"> <img src="docs/media/nav/connect-your-email.webp" alt="Menu link: Connect your email" width="201" height="32"> <img src="docs/media/nav/orders-and-requests.webp" alt="Menu link: Orders & requests" width="201" height="32">
+
+Guided setup for the daily work an owner can't hire for yet: an email assistant that keeps customer messages together and drafts replies for review, and order and customer-request tracking with reminders to follow up. Each walks through choices and preferences, then lets the owner try it with a sample.
+
+<p align="center"><img src="docs/media/run.webp" alt="The Run your business page: Connect your email and Track orders and customer requests, each ready to set up" width="900"></p>
 
 ### On a phone
 
 Phones get a bottom tab bar (Today, Setup, Brand, Run, More), large tap targets, and a friendly tip pointing to the tabs.
 
 <p align="center"><img src="docs/media/phone-tabs.webp" alt="Recording on a phone: the Today page, then the Setup, Brand and Run tabs, then the full menu from More" width="300"></p>
-
-<details>
-<summary><b>More in the app</b></summary>
-<br>
-
-- **Business insights** gives owners friendly, specific feedback and tips on their idea, with a link to where they can act on each one.
-- **Owners' agreement** prepares an LLC's or partnership's agreement from carefully written standard wording, filled in with the owners, their shares and how they'll decide things, ready to sign.
-- **Marketing plan and social media** turns a few questions into a plan built around the platforms the owner wants, then into step-by-step setup guides for each one, matched to how familiar they are with social media.
-- **Product photos** turns an ordinary phone photo into a polished store photo with **Muse Image**, keeping the product exactly as it is, then shows the two side by side for the owner to approve.
-- **Run your business** offers guided setup for an email assistant and order tracking, with a sample run to try.
-
-Each is described step by step in [docs/GUIDE.md](docs/GUIDE.md).
-
-</details>
 
 ---
 
@@ -442,7 +505,7 @@ sequenceDiagram
 | Types | | `npm run typecheck` |
 | AI benchmark | 25 tasks, graded in code | `npm run bench` |
 
-- **Unit tests** cover the rules, every quality check, each AI feature, and owner-only data access. Each database test gets its own in-memory Postgres. Quotes for the demo place are tested against saved copies of the official pages.
+- **Unit tests** cover the rules, every quality check, each AI feature, and owner-only data access. Each database test gets its own in-memory Postgres. Quotes for Austin and Travis County are tested against saved copies of the official pages.
 - **End-to-end tests** sign up three owners (a mobile dog groomer in Columbus, a two-owner candle business in Denver, a taco truck in Phoenix) and walk them through the real app on a fresh database.
 
 ### The AI benchmark
@@ -475,7 +538,7 @@ npm run db:migrate
 npm run dev
 ```
 
-Open <http://localhost:3000>, create an account and answer the intake. Each demo business is created through the app, one per account. Try **Austin, Travis County, Texas** to see the hand-checked source packs and official forms. Add a `MUSE_API_KEY` and set `AI_PROVIDER=muse` to use Meta Muse.
+Open <http://localhost:3000>, create an account and answer the intake. Each account has one business, created through the app. Try **Austin, Travis County, Texas** to see the hand-checked source packs and official forms. Add a `MUSE_API_KEY` and set `AI_PROVIDER=muse` to use Meta Muse.
 
 | Variable | Purpose |
 |---|---|
