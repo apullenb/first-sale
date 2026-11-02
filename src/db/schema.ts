@@ -59,6 +59,7 @@ import type { WebSearchHit } from "@/lib/ai/types";
 import type { InsightFeedback, SavedInsights } from "@/lib/insights/types";
 import { LIBRARY_GROUPS } from "@/lib/brand/library";
 import type { PriceCheck } from "@/lib/rules/price-compare";
+import { PICTURE_VIEWS, WEARERS } from "@/lib/rules/picture-views";
 import { DESCRIPTION_AUTHORS, ITEM_KINDS, ITEM_ORIGINS, ITEM_STATUSES, type ItemOptions, type ProductPhotoRef } from "@/lib/rules/products";
 
 const id = () => text("id").primaryKey().$defaultFn(() => crypto.randomUUID());
@@ -374,6 +375,8 @@ export const products = pgTable(
     duration: text("duration").notNull().default(""),
     location: text("location").notNull().default(""),
     included: text("included").notNull().default(""),
+    // Who wears it, when the owner was asked for the in-use picture
+    wearer: text("wearer", { enum: WEARERS }),
     // Option groups and each combination's own price and stock
     options: jsonb("options").$type<ItemOptions>().notNull().default({ groups: [], variants: [] }),
     photoUrl: text("photo_url"),
@@ -393,6 +396,8 @@ export const productPictures = pgTable(
     productId: text("product_id")
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
+    // Main photo first, then the extra views made from the approved main
+    view: text("view", { enum: PICTURE_VIEWS }).notNull().default("main"),
     // The picture this one edited
     sourceId: text("source_id"),
     change: text("change"),

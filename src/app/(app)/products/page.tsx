@@ -128,6 +128,7 @@ async function Products() {
   const itemPictures: ItemPicture[] = pictures.map((picture) => ({
     id: picture.id,
     productId: picture.productId,
+    view: picture.view,
     change: picture.change,
     simulated: picture.simulated,
     approved: picture.approvedAt !== null,

@@ -2,6 +2,7 @@ import "server-only";
 import { and, asc, count, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { brandLibraryFiles, businesses, orderLines, productPhotos, productPhotoVersions, productPictures, productPriceChecks, products } from "@/db/schema";
+import type { PictureView, Wearer } from "@/lib/rules/picture-views";
 import type { PriceCheck } from "@/lib/rules/price-compare";
 import { PICTURES_PER_ITEM, type NewItemPicture } from "@/lib/products/picture";
 import { type DescriptionAuthor, type ItemKind, PRODUCT_LIMITS, type ProductPhotoRef, type ProductValues, readOptions } from "@/lib/rules/products";
@@ -10,6 +11,8 @@ import { type DescriptionAuthor, type ItemKind, PRODUCT_LIMITS, type ProductPhot
 
 export interface ProductRow extends ProductValues {
   id: string;
+  // Who wears it, when the owner answered
+  wearer: Wearer | null;
   createdAt: Date;
 }
 
@@ -28,6 +31,7 @@ const columns = {
   duration: products.duration,
   location: products.location,
   included: products.included,
+  wearer: products.wearer,
   options: products.options,
   photo: products.photo,
   createdAt: products.createdAt,
@@ -205,6 +209,7 @@ export async function deleteProductForOwner(db: Db, ownerId: string, productId: 
 export interface PictureSummary {
   id: string;
   productId: string;
+  view: PictureView;
   sourceId: string | null;
   change: string | null;
   simulated: boolean;
@@ -216,6 +221,7 @@ export interface PictureSummary {
 const pictureColumns = {
   id: productPictures.id,
   productId: productPictures.productId,
+  view: productPictures.view,
   sourceId: productPictures.sourceId,
   change: productPictures.change,
   simulated: productPictures.simulated,
@@ -234,7 +240,7 @@ export async function getPictureFileForOwner(db: Db, ownerId: string, pictureId:
   const businessId = await businessOf(db, ownerId);
   if (!businessId) return null;
   const [found] = await db
-    .select({ id: productPictures.id, productId: productPictures.productId, simulated: productPictures.simulated, mimeType: productPictures.mimeType, data: productPictures.data, name: products.name })
+    .select({ id: productPictures.id, productId: productPictures.productId, view: productPictures.view, approvedAt: productPictures.approvedAt, simulated: productPictures.simulated, mimeType: productPictures.mimeType, data: productPictures.data, name: products.name })
     .from(productPictures)
     .innerJoin(products, eq(products.id, productPictures.productId))
     .where(and(eq(productPictures.id, pictureId), eq(productPictures.businessId, businessId)));
@@ -271,34 +277,63 @@ export async function addPictureForOwner(db: Db, ownerId: string, productId: str
   });
 }
 
-// The owner's approval: the picture becomes the item's photo
+// The owner's approval: one picture per view; an approved main becomes the item's photo
 export async function approvePictureForOwner(db: Db, ownerId: string, productId: string, pictureId: string, now = new Date()): Promise<boolean> {
   return db.transaction(async (tx) => {
     const businessId = await businessOf(tx, ownerId, true);
     if (!businessId) return false;
     const [found] = await tx
-      .select({ id: productPictures.id })
+      .select({ id: productPictures.id, view: productPictures.view })
       .from(productPictures)
       .where(and(eq(productPictures.id, pictureId), eq(productPictures.productId, productId), eq(productPictures.businessId, businessId)));
     if (!found) return false;
+    await tx
+      .update(productPictures)
+      .set({ approvedAt: null })
+      .where(and(eq(productPictures.productId, productId), eq(productPictures.view, found.view), ne(productPictures.id, found.id)));
     await tx.update(productPictures).set({ approvedAt: sql`coalesce(${productPictures.approvedAt}, ${now})` }).where(eq(productPictures.id, found.id));
-    await tx.update(products).set({ photo: { source: "generated", pictureId: found.id } }).where(eq(products.id, productId));
+    if (found.view === "main") await tx.update(products).set({ photo: { source: "generated", pictureId: found.id } }).where(eq(products.id, productId));
     return true;
   });
 }
 
-// Pictures the owner didn't keep; approved ones still in use stay
+// One picture; a picture some item shows as its photo stays
+export async function deletePictureForOwner(db: Db, ownerId: string, pictureId: string): Promise<"deleted" | "in_use" | "not_found"> {
+  return db.transaction(async (tx) => {
+    const businessId = await businessOf(tx, ownerId, true);
+    if (!businessId) return "not_found";
+    const [found] = await tx.select({ id: productPictures.id }).from(productPictures).where(and(eq(productPictures.id, pictureId), eq(productPictures.businessId, businessId)));
+    if (!found) return "not_found";
+    const used = await tx.select({ photo: products.photo }).from(products).where(eq(products.businessId, businessId));
+    if (used.some(({ photo }) => photo?.source === "generated" && photo.pictureId === found.id)) return "in_use";
+    await tx.delete(productPictures).where(eq(productPictures.id, found.id));
+    return "deleted";
+  });
+}
+
+// Pictures the owner didn't approve; the gallery and any item's photo stay
 export async function deleteUnusedPicturesForOwner(db: Db, ownerId: string, productId: string): Promise<number> {
   return db.transaction(async (tx) => {
     const businessId = await businessOf(tx, ownerId, true);
     if (!businessId) return 0;
     const used = await tx.select({ photo: products.photo }).from(products).where(eq(products.businessId, businessId));
     const keep = used.flatMap(({ photo }) => (photo?.source === "generated" ? [photo.pictureId] : []));
-    const pictures = await tx.select({ id: productPictures.id }).from(productPictures).where(and(eq(productPictures.productId, productId), eq(productPictures.businessId, businessId)));
-    const remove = pictures.map((each) => each.id).filter((id) => !keep.includes(id));
+    const pictures = await tx
+      .select({ id: productPictures.id, approvedAt: productPictures.approvedAt })
+      .from(productPictures)
+      .where(and(eq(productPictures.productId, productId), eq(productPictures.businessId, businessId)));
+    const remove = pictures.filter((each) => !each.approvedAt && !keep.includes(each.id)).map((each) => each.id);
     if (remove.length) await tx.delete(productPictures).where(inArray(productPictures.id, remove));
     return remove.length;
   });
+}
+
+// The owner's answer to "Who wears it?"
+export async function setWearerForOwner(db: Db, ownerId: string, productId: string, wearer: Wearer): Promise<boolean> {
+  const businessId = await businessOf(db, ownerId);
+  if (!businessId) return false;
+  const updated = await db.update(products).set({ wearer }).where(and(eq(products.id, productId), eq(products.businessId, businessId))).returning();
+  return updated.length > 0;
 }
 
 // --- Price comparisons: the last search per item

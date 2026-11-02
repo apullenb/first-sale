@@ -13,13 +13,16 @@ import {
   addSuggestedItemsForOwner,
   approvePictureForOwner,
   createProductForOwner,
+  deletePictureForOwner,
   deleteProductForOwner,
   deleteUnusedPicturesForOwner,
   getPictureFileForOwner,
+  listPicturesForOwner,
   listPriceChecksForOwner,
   listProductsForOwner,
   savePriceCheckForOwner,
   setDescriptionForOwner,
+  setWearerForOwner,
   updateProductForOwner,
 } from "./products";
 
@@ -133,7 +136,7 @@ describe("suggested items", () => {
 });
 
 describe("pictures made from a description", () => {
-  const picture = (requestKey: string) => ({ sourceId: null, change: null, prompt: "p", model: "practice-preview", simulated: true, requestKey, mimeType: "image/svg+xml", data: new Uint8Array([1, 2, 3]), width: 1024, height: 1024 });
+  const picture = (requestKey: string, view: "main" | "angle" = "main") => ({ view, sourceId: null, change: null, prompt: "p", model: "practice-preview", simulated: true, requestKey, mimeType: "image/svg+xml", data: new Uint8Array([1, 2, 3]), width: 1024, height: 1024 });
 
   it("belong to the owner's item, and become its photo only once approved", async () => {
     const id = await create();
@@ -149,6 +152,28 @@ describe("pictures made from a description", () => {
     expect(unused.ok).toBe(true);
     expect(await deleteUnusedPicturesForOwner(db, "owner-a", id)).toBe(1);
     expect(await getPictureFileForOwner(db, "owner-a", added.id)).toMatchObject({ productId: id, simulated: true });
+  });
+
+  it("keep one approved picture per view; only a main becomes the photo, and the photo can't be removed", async () => {
+    const id = await create();
+    const add = async (key: string, view: "main" | "angle") => {
+      const made = await addPictureForOwner(db, "owner-a", id, picture(key, view));
+      if (!made.ok) throw new Error("setup");
+      return made.id;
+    };
+    const main = await add("m1", "main");
+    const [first, second] = [await add("a1", "angle"), await add("a2", "angle")];
+    await approvePictureForOwner(db, "owner-a", id, main);
+    await approvePictureForOwner(db, "owner-a", id, first);
+    await approvePictureForOwner(db, "owner-a", id, second);
+    const listed = await listPicturesForOwner(db, "owner-a");
+    expect(listed.filter((each) => each.approvedAt).map((each) => each.id)).toEqual([main, second]);
+    expect((await listProductsForOwner(db, "owner-a"))[0].photo).toEqual({ source: "generated", pictureId: main });
+    expect(await deletePictureForOwner(db, "owner-a", main)).toBe("in_use");
+    expect(await deletePictureForOwner(db, "owner-b", first)).toBe("not_found");
+    expect(await deletePictureForOwner(db, "owner-a", first)).toBe("deleted");
+    expect(await setWearerForOwner(db, "owner-a", id, "kids")).toBe(true);
+    expect((await listProductsForOwner(db, "owner-a"))[0].wearer).toBe("kids");
   });
 });
 
