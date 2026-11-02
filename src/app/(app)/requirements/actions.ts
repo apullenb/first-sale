@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -17,6 +19,7 @@ import { runWorkflow } from "@/lib/workflow-runner";
 // Searches for official pages (or reuses a search from the past week), reads them live, then replaces the saved requirements and the plan;
 // the last results stay if it fails. The page refreshes after the deeper look that always follows, so that look isn't started twice.
 export async function checkRequirementsAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const business = await getMyBusiness();
   if (!business?.profile) return { ok: false, message: "Answer the questions about your business first." };
   const profile = business.profile;
@@ -34,6 +37,7 @@ export async function checkRequirementsAction(): Promise<ActionResult> {
 // Runs right after a check: looks deeper into what no official page confirmed, on each office's own site,
 // and decides each one (applies or not needed) with a reason. Open questions get plain answers the same way.
 export async function followUpAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const outcome = await followUp();
   refresh();
   return outcome;
@@ -65,6 +69,7 @@ async function followUp(): Promise<ActionResult> {
 
 // After a decision like the business structure changes: rebuilds the plan from saved research, no new search
 export async function replanAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const [business, research] = await Promise.all([getMyBusiness(), getMyResearch()]);
   if (!business?.profile) return { ok: false, message: "Answer the questions about your business first." };
   // Changed answers can change which rules apply, so only a new check can plan from them
@@ -82,6 +87,7 @@ const answerSchema = z.object({ stepKey: z.string().max(60), condition: z.string
 
 // The owner's yes, no or not sure to "does this apply to you?"; null takes the answer back
 export async function answerConditionAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = answerSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Something was off with that answer. Reload the page and try again." };
   const outcome = await setMyConditionAnswer(parsed.data);

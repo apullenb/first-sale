@@ -2,6 +2,7 @@ import "server-only";
 import { getDb } from "@/db/client";
 import { getCurrentUser } from "@/lib/auth/server";
 import { practiceMode } from "@/lib/ai";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { takeAiRequest } from "@/lib/data/ai-quota";
 import { finishMyRun, lastMyRun, startMyRun } from "@/lib/data/my-business";
 import { OwnerFacingError } from "@/lib/errors";
@@ -16,6 +17,8 @@ export const ALREADY_RUNNING = "This is already running, maybe in another tab. T
 // and records how it ended so a reload can show it. Logs never include document text or the owner's answers.
 export async function runWorkflow<T>(workflow: WorkflowId, subjectId: string | null, job: () => Promise<T>): Promise<RunResult<T>> {
   const user = await getCurrentUser();
+  // The demo runs nothing, so it never reaches the AI service
+  if (user.demo) return DEMO_REFUSAL;
   const busy = { ok: false as const, message: ALREADY_RUNNING, busy: { workflow, subjectId } };
   // A copy already running isn't charged to the AI limit
   if ((await lastMyRun(workflow, subjectId))?.status === "running") return busy;

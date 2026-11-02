@@ -6,7 +6,8 @@ const runs = vi.hoisted(() => ({
   start: vi.fn(async (): Promise<{ ok: true; runId: string } | { ok: false; reason: string }> => ({ ok: true, runId: "run-1" })),
 }));
 vi.mock("@/db/client", () => ({ getDb: () => ({}) }));
-vi.mock("@/lib/auth/server", () => ({ getCurrentUser: async () => ({ id: "owner-1" }) }));
+const user = vi.hoisted(() => ({ id: "owner-1", demo: false }));
+vi.mock("@/lib/auth/server", () => ({ getCurrentUser: async () => user }));
 vi.mock("@/lib/data/ai-quota", () => ({ takeAiRequest }));
 vi.mock("@/lib/data/my-business", () => ({
   startMyRun: runs.start,
@@ -15,6 +16,7 @@ vi.mock("@/lib/data/my-business", () => ({
 }));
 
 const { ALREADY_RUNNING, runWorkflow } = await import("./workflow-runner");
+const { DEMO_REFUSAL } = await import("./demo");
 
 describe("runWorkflow and the AI limit", () => {
   beforeEach(() => {
@@ -35,6 +37,26 @@ describe("runWorkflow and the AI limit", () => {
     expect(await runWorkflow("research", null, job)).toMatchObject({ ok: false, message: expect.stringMatching(/a lot of AI requests/) });
     expect(takeAiRequest).toHaveBeenCalledOnce();
     expect(job).not.toHaveBeenCalled();
+  });
+});
+
+describe("runWorkflow in the demo", () => {
+  it("runs nothing, records nothing and never touches the AI limit", async () => {
+    vi.stubEnv("AI_PROVIDER", "muse");
+    vi.stubEnv("MUSE_API_KEY", "test-key");
+    user.demo = true;
+    takeAiRequest.mockClear();
+    runs.start.mockClear();
+    const job = vi.fn(async () => 1);
+    try {
+      expect(await runWorkflow("research", null, job)).toEqual(DEMO_REFUSAL);
+    } finally {
+      user.demo = false;
+      vi.unstubAllEnvs();
+    }
+    expect(job).not.toHaveBeenCalled();
+    expect(takeAiRequest).not.toHaveBeenCalled();
+    expect(runs.start).not.toHaveBeenCalled();
   });
 });
 
