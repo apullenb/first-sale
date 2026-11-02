@@ -128,7 +128,7 @@ function Progress({ paper }: { paper: MyPaperwork }) {
     <div className="-mt-2 flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
         <Chip tone="done" icon="check">
-          {progressLabel("launch", done, needed.length)} done before your first sale
+          {progressLabel("launch", done, needed.length)} done
         </Chip>
         {work.left.length ? (
           <Chip icon="clock">

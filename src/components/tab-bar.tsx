@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type Ref, useSyncExternalStore } from "react";
+import { type Ref, useEffect, useSyncExternalStore } from "react";
 import { Icon, type IconName } from "./icons";
 import { type NavStatus, placeOf, stepsOf } from "./nav-links";
 import type { SectionGroup } from "@/lib/sections";
@@ -126,17 +126,30 @@ function subscribe(onChange: () => void) {
 }
 
 // Once per browser, the first time the tabs show
+function dismissHint() {
+  try {
+    window.localStorage.setItem(HINT_KEY, "seen");
+  } catch {
+    // Private windows: it shows again next time
+  }
+  window.dispatchEvent(new Event(HINT_EVENT));
+}
+
 function TabsHint() {
   const seen = useSyncExternalStore(subscribe, hintSeen, () => true);
+  // Scrolling means they've seen it, and it never sits over the page for long
+  useEffect(() => {
+    // Only on phones, where the tip shows
+    if (seen || !window.matchMedia("(max-width: 767px)").matches) return;
+    const start = window.scrollY;
+    const onScroll = () => {
+      if (Math.abs(window.scrollY - start) > 120) dismissHint();
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [seen]);
   if (seen) return null;
-  function dismiss() {
-    try {
-      window.localStorage.setItem(HINT_KEY, "seen");
-    } catch {
-      // Private windows: it shows again next time
-    }
-    window.dispatchEvent(new Event(HINT_EVENT));
-  }
+  const dismiss = dismissHint;
   return (
     <div
       role="note"
