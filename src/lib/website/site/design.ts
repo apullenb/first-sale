@@ -101,8 +101,8 @@ export interface SiteProduct {
   id: string;
   name: string;
   description: string;
-  // Exactly as the owner typed it
-  priceCents: number;
+  // Exactly as the owner typed it; null when it has no plain price
+  priceCents: number | null;
 }
 
 // The site as it shows: the drafted words' items, then saved products that aren't already among them or turned off.

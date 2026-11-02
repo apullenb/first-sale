@@ -154,6 +154,12 @@ describe("sidebarStatus", () => {
     expect(sectionState(status, BRAND)).toBe("done");
   });
 
+  it("names the products step from the owner's answers, without changing when it's done", () => {
+    expect(sidebarStatus(facts())["/products"].title).toBeUndefined();
+    expect(sidebarStatus(facts({ productsTitle: "Add your services" }))["/products"]).toMatchObject({ state: "todo", title: "Add your services" });
+    expect(sidebarStatus(facts({ products: 1, productsTitle: "Manage your services" }))["/products"]).toMatchObject({ state: "done", title: "Manage your services" });
+  });
+
   it("counts the website done after the demo finish, a connected site or the already-have mark", () => {
     expect(sidebarStatus(facts())["/website"].state).toBe("todo");
     expect(sidebarStatus(facts({ websiteFinished: true }))["/website"].state).toBe("done");

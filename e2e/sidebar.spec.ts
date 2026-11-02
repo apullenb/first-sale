@@ -21,7 +21,7 @@ test.describe("sidebar and Today", () => {
     await markHave(page, "/brand", "I already have a brand");
     await markHave(page, "/logo", "I already have a logo");
     await expect(nav.getByRole("link", { name: "Build your brand 2 of 6 steps done" })).toBeVisible();
-    await markHave(page, "/products", "My products are already listed somewhere");
+    await markHave(page, "/products", "My services are already listed somewhere");
     await markHave(page, "/marketing", "I already have a marketing plan");
     await markHave(page, "/social", "I already have my social media set up");
 
@@ -33,7 +33,7 @@ test.describe("sidebar and Today", () => {
     // The last one finishes the section: a check, and the DONE stamp
     await expect(page.getByRole("status").filter({ hasText: /^Done: / })).toBeAttached();
     await expect(nav.getByRole("link", { name: /^Build your brand , all done/ })).toBeVisible();
-    for (const step of ["Build your brand", "Create your logo", "Create your website", "Add your products", "Create your marketing plan", "Set up social media"]) {
+    for (const step of ["Build your brand", "Create your logo", "Create your website", "Add your services", "Create your marketing plan", "Set up social media"]) {
       await expect(nav.getByRole("link", { name: new RegExp(`^${step} , done`) })).toBeVisible();
     }
 
