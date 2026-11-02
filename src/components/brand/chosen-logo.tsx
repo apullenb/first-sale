@@ -8,7 +8,7 @@ import { SECONDARY_LINK } from "@/components/styles";
 import { Card } from "@/components/ui";
 import { brandFileUrl } from "@/lib/brand/files";
 import type { AssetSummary } from "@/lib/data/brand";
-import { CheckNotes, MadeBy } from "./asset-view";
+import { MadeBy } from "./asset-view";
 import { EditPrompt } from "./controls";
 import { LogoUpload } from "./logo-upload";
 import { Reveal } from "./reveal";
@@ -111,7 +111,6 @@ export function ChosenLogo({ chosen, edits, before, hasPicks, practice, business
                 ) : (
                   <>
                     <MadeBy simulated={logo.simulated} model={logo.model} what={own ? "Edited by AI from your logo" : undefined} />
-                    <CheckNotes check={logo.check} simulated={logo.simulated} />
                   </>
                 )}
                 <ActionButton action={chooseLogoAction.bind(null, logo.id)} label={logo.id === before?.id ? "Go back to this one" : "Use this"} pendingLabel="Saving…" variant={logo.id === before?.id ? "secondary" : "primary"} confirm={switchNote} />

@@ -12,7 +12,7 @@ import { CHECKED_TEXT, type Export, type Guide, IMAGE_SPECS, LOGO_SPECS, PROFILE
 import { approvedExample, EXAMPLE_IMAGE, imageSlots, type Slot, versionSlots } from "@/lib/brand/slots";
 import { type AssetCheck, type BrandImageKind, type BrandPicks, CODE_MODEL, type ImageMedium, type VersionKind } from "@/lib/brand/types";
 import type { AssetSummary } from "@/lib/data/brand";
-import { CheckNotes, MadeBy } from "./asset-view";
+import { MadeBy } from "./asset-view";
 import { BrandRunButton, EditPrompt, type Intent, PlusTile } from "./controls";
 import { ExactDownload } from "./exact-download";
 import { GuidedImage } from "./guided-image";
@@ -131,7 +131,6 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
           />
           <MadeBy simulated={newest.simulated} model={newest.model} what={newest.change ? `Made by AI · you asked: “${newest.change}”` : "Made by AI from your logo"} />
           {newest.change && newest.simulated ? <p className="text-sm text-muted">You asked: “{newest.change}”</p> : null}
-          <CheckNotes check={newest.check} simulated={newest.simulated} checking={running} />
 
           {picked?.id === newest.id ? (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">

@@ -513,7 +513,7 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
         </div>
       </div>
 
-      <Working label={job.watching ? RUNNING_ELSEWHERE : "Redrawing your logo and checking the spelling… this can take a minute or two"} active={busy} />
+      <Working label={job.watching ? RUNNING_ELSEWHERE : "Redrawing your logo… this can take a minute or two"} active={busy} />
       <Messages error={error} note={note} />
     </div>
   );
