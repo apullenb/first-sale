@@ -4,14 +4,12 @@ import { expect, type Locator, test } from "@playwright/test";
 import { candles, groomer, tacos } from "./scenarios";
 import { approveBrand, choose, expectPracticeBanner, newOwner, open, openFold, PRACTICE_PREVIEW, sidebar } from "./support";
 
-const NOTHING_CHECKED = "Practice preview: no picture was drawn, so there’s nothing to check.";
 
 // Makes one logo version and checks its practice labels
 async function makeVersion(region: Locator, button: string) {
   await region.getByRole("button", { name: button }).click();
   await expect(region.getByRole("button", { name: "Use this" }).first()).toBeVisible({ timeout: 60_000 });
   await expect(region.getByText(PRACTICE_PREVIEW).first()).toBeVisible();
-  await expect(region.getByText(NOTHING_CHECKED)).toBeVisible();
 }
 
 test.describe("create your logo", () => {

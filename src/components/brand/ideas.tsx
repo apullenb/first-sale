@@ -10,7 +10,7 @@ import { applyDesign } from "@/lib/brand/refine";
 import type { BrandBrief } from "@/lib/brand/types";
 import type { ColorFamily } from "@/lib/brand/vibes";
 import type { AssetSummary, ConceptRow, RoundSummary } from "@/lib/data/brand";
-import { CheckNotes, MadeBy, PracticeTag } from "./asset-view";
+import { MadeBy, PracticeTag } from "./asset-view";
 import { BrandRunButton, EditPrompt, RefineLogo } from "./controls";
 
 interface Props {
@@ -198,7 +198,6 @@ function Draft({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt="" className="h-6 w-auto rounded border border-line bg-white" />
       </div>
-      <CheckNotes check={draft.check} simulated={draft.simulated} />
       <div className="flex flex-wrap items-start gap-2">
         {chosen ? (
           <Done>
@@ -219,7 +218,7 @@ function Draft({
         <EditPrompt
           target={{ kind: "logo", assetId: draft.id }}
           hint={practice ? "Practice mode: you’ll see a labeled sample." : ""}
-          working="Changing your logo and checking the spelling… this can take a minute or two"
+          working="Changing your logo… this can take a minute or two"
           done="Done. The changed logo is shown under this one, and this one is kept."
         />
       </div>
