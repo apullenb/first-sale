@@ -18,7 +18,7 @@ interface Tab {
 
 const TABS: Tab[] = [
   { key: "today", label: "Today", name: "Today", icon: "home", href: "/" },
-  { key: "start", label: "Start", name: "Start your business", icon: "flag", href: "/start", group: "Start your business" },
+  { key: "start", label: "Setup", name: "Start your business", icon: "clipboard", href: "/start", group: "Start your business" },
   { key: "brand", label: "Brand", name: "Build your brand", icon: "palette", href: "/build-your-brand", group: "Build your brand" },
   { key: "run", label: "Run", name: "Run your business", icon: "building", href: "/run", group: "Run your business" },
 ];
@@ -43,8 +43,6 @@ export function TabBar({
   const parts = status?.parts ?? {};
   const { group } = placeOf(pathname, status);
   const current = pathname === "/" ? "today" : (TABS.find((tab) => tab.group && tab.group === group)?.key ?? (pathname ? "more" : null));
-  // Brand and Run open once there's a business; until then they show, locked
-  const locked = status ? !status.scope : false;
   const waiting = (tab: Tab) => (tab.group ? stepsOf(tab.group, status).some((step) => (parts[step.href]?.count ?? 0) > 0) : false);
   const moreWaiting = (parts["/documents"]?.count ?? 0) > 0;
   return (
@@ -57,25 +55,20 @@ export function TabBar({
         <ul className="mx-auto flex max-w-xl items-stretch gap-1 px-2 py-1">
           {TABS.map((tab) => {
             const active = current === tab.key && !menuOpen;
-            const isLocked = locked && tab.key !== "today" && tab.key !== "start";
             return (
               <li key={tab.key} className="flex flex-1">
                 <Link href={tab.href} aria-current={active ? "page" : undefined} className={`${TAB} ${active ? "text-white" : "text-white/70 hover:bg-white/[0.06] hover:text-white"}`}>
                   {active ? <span aria-hidden="true" className="absolute inset-x-4 top-0 h-[3px] rounded-b-full bg-sky" /> : null}
                   <span className="relative">
                     <Icon name={tab.icon} className={active ? "text-sky" : ""} />
-                    {isLocked ? (
-                      <span aria-hidden="true" className="absolute -right-2 -bottom-1 grid size-[15px] place-items-center rounded-full bg-sidebar text-white/80 ring-1 ring-white/30">
-                        <Icon name="lock" size="xs" strokeWidth={2.4} />
-                      </span>
-                    ) : waiting(tab) ? (
+                    {waiting(tab) ? (
                       <span aria-hidden="true" className="absolute -top-0.5 -right-1 size-2.5 rounded-full bg-alert ring-2 ring-sidebar" />
                     ) : null}
                   </span>
                   <span>
                     <span aria-hidden="true">{tab.label}</span>
                     <span className="sr-only">{tab.name}</span>
-                    {isLocked ? <span className="sr-only">, locked until you tell us about your business</span> : waiting(tab) ? <span className="sr-only">, has steps waiting</span> : null}
+                    {waiting(tab) ? <span className="sr-only">, has steps waiting</span> : null}
                   </span>
                 </Link>
               </li>
