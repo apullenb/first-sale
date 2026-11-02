@@ -781,3 +781,58 @@ export async function cancelMyOrder(orderId: string) {
   const user = await writer();
   return cancelOrderForOwner(getDb(), user.id, orderId);
 }
+
+export async function getMySquareState() {
+  const user = await getCurrentUser();
+  return (await import("./square")).squareStateForOwner(getDb(), user.id);
+}
+
+export async function beginMySquareConnection() {
+  const user = await writer();
+  return (await import("./square")).beginSquareForOwner(getDb(), user.id);
+}
+
+export async function finishMySquareConnection(state: string, code: string) {
+  const user = await writer();
+  return (await import("./square")).finishSquareForOwner(getDb(), user.id, state, code);
+}
+
+export async function listMySquareItems() {
+  const user = await writer();
+  return (await import("./square")).listSquareItemsForOwner(getDb(), user.id);
+}
+
+export async function draftMySquareDescription(itemId: string, request: string) {
+  const user = await writer();
+  return (await import("./square")).draftSquareForOwner(getDb(), user.id, itemId, request);
+}
+
+export async function editMySquareDraft(draftId: string, description: string, cancel = false) {
+  const user = await writer();
+  return (await import("./square")).editSquareDraftForOwner(getDb(), user.id, draftId, description, cancel);
+}
+
+export async function approveMySquareDraft(draftId: string, description: string) {
+  const user = await writer();
+  return (await import("./square")).approveSquareDraftForOwner(getDb(), user.id, draftId, description);
+}
+
+export async function disconnectMySquare() {
+  const user = await writer();
+  return (await import("./square")).disconnectSquareForOwner(getDb(), user.id);
+}
+
+export async function getMyProductSync() {
+  const user = await getCurrentUser();
+  return (await import("./square-products")).productSyncForOwner(getDb(), user.id);
+}
+
+export async function pullMySquareProducts(productId?: string, expected?: string) {
+  const user = await writer();
+  return (await import("./square-products")).pullProductsForOwner(getDb(), user.id, productId, expected);
+}
+
+export async function pushMySquareProduct(productId: string, expected: string) {
+  const user = await writer();
+  return (await import("./square-products")).pushProductForOwner(getDb(), user.id, productId, expected);
+}

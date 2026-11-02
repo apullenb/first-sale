@@ -14,6 +14,8 @@ const wrappers = (await import("./my-business")) as unknown as Record<string, un
 
 // Every write wrapper; a new export must be listed here or in READS
 const WRITES = [
+  "beginMySquareConnection", "finishMySquareConnection", "listMySquareItems", "draftMySquareDescription", "editMySquareDraft",
+  "approveMySquareDraft", "disconnectMySquare", "pullMySquareProducts", "pushMySquareProduct",
   "saveMyFollowUp", "saveMyResearch", "setMyConditionAnswer", "setMyStepStatus", "saveMyDetails", "deleteMyDetail",
   "createMyDocument", "updateMyDocument", "deleteMyDocument", "startMyRun", "finishMyRun",
   "createMyPhoto", "updateMyPhoto", "deleteMyPhoto", "addMyPhotoVersion", "setMyPhotoVersionReview", "approveMyPhotoVersion",
@@ -29,6 +31,7 @@ const WRITES = [
 ];
 
 const READS = [
+  "getMySquareState", "getMyProductSync",
   "getMyBusiness", "getMyResearch", "myAiKey", "getMyPlan", "getMyResearchBasis", "listMyConditionAnswers", "paperworkContext",
   "getMyPaperwork", "getMyStep", "getMyDetails", "listMyDocuments", "getMyDocument", "getMyDocumentFile", "lastMyRun",
   "listMyPhotos", "getMyPhoto", "getMyPhotoFile", "getMyPhotoVersionFile", "findMyPhotoVersionByRequest", "myPhotoVersionRoom",
