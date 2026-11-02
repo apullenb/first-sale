@@ -612,5 +612,4 @@ The production address and each preview's URLs are trusted for sign-in automatic
 - **Product photo galleries** on the built website, straight from the owner's approved photos.
 - **Orders by option**, so a 12 oz candle or a large-dog groom is ordered and counted on its own.
 - **Password recovery and email verification.**
-- **More states and cities** with hand-checked sources and official forms, beyond Texas.
 - **Corporate bylaws**, alongside the LLC and partnership owners' agreements.
