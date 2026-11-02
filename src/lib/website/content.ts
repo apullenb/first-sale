@@ -61,7 +61,8 @@ export interface WebsiteFacts {
   // The owner's own answers from their business plan, when they wrote one
   planAnswers: Record<string, string>;
   // Saved products with the prices the site shows; never what they cost the owner
-  products: { name: string; description: string; priceCents: number }[];
+  // price: as customers see it (rules/products priceLabel); options: such as "Size: Small, Large"
+  products: { name: string; description: string; priceCents: number | null; price?: string; options?: string }[];
 }
 
 // Home pickup would put the owner's address on a public page
@@ -92,7 +93,12 @@ export function factsMessage(facts: WebsiteFacts): string {
     description: profile.description,
     whatTheySell: specifics.items.length ? specifics.items : profile.offeringKinds.map((kind) => OFFERING_KIND_LABELS[kind]),
     servicesOnly: profile.offeringKinds.every((kind) => kind === "services"),
-    products: facts.products.map((product) => ({ name: product.name, description: product.description, price: dollars(product.priceCents) })),
+    products: facts.products.map((product) => ({
+      name: product.name,
+      description: product.description,
+      price: product.price ?? (product.priceCents === null ? "" : dollars(product.priceCents)),
+      ...(product.options ? { options: product.options } : {}),
+    })),
     howTheySell: profile.channels.map((channel) => CHANNEL_LABELS[channel]),
     howCustomersGetIt: handoffWords(profile.handoff),
     shipsOrders: profile.shipsOrders,

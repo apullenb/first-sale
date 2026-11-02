@@ -1,5 +1,5 @@
 import "server-only";
-import { count, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { brandKits, businesses, documents, journeyMarks, marketingPlans, products, websitePlans } from "@/db/schema";
 import { readBrief } from "@/lib/brand/types";
@@ -17,6 +17,8 @@ export interface SidebarFacts {
   websiteFinished: boolean;
   websiteConnected: boolean;
   products: number;
+  // Kinds of the items the owner confirmed, for the step's name
+  confirmedKinds: ("product" | "service")[];
   marketingApproved: boolean;
   socialPlatforms: string[];
   // Accounts the owner said they already have
@@ -27,13 +29,14 @@ export interface SidebarFacts {
 export async function getSidebarFactsForOwner(db: Db, ownerId: string): Promise<SidebarFacts | null> {
   const [business] = await db.select({ id: businesses.id }).from(businesses).where(eq(businesses.ownerId, ownerId));
   if (!business) return null;
-  const [docs, [kit], [site], [marketing], [items], marks] = await Promise.all([
+  const [docs, [kit], [site], [marketing], [items], marks, kinds] = await Promise.all([
     db.select({ role: documents.role, answers: documents.answers, factsUsed: documents.factsUsed }).from(documents).where(eq(documents.businessId, business.id)),
     db.select({ chosenLogoId: brandKits.chosenLogoId, brief: brandKits.brief }).from(brandKits).where(eq(brandKits.businessId, business.id)),
     db.select({ finished: websitePlans.finished, approvedAt: websitePlans.contentApprovedAt, existingSite: websitePlans.existingSite }).from(websitePlans).where(eq(websitePlans.businessId, business.id)),
     db.select({ approvedAt: marketingPlans.approvedAt, intake: marketingPlans.intake }).from(marketingPlans).where(eq(marketingPlans.businessId, business.id)),
     db.select({ total: count() }).from(products).where(eq(products.businessId, business.id)),
     db.select({ key: journeyMarks.key }).from(journeyMarks).where(eq(journeyMarks.businessId, business.id)),
+    db.selectDistinct({ kind: products.kind }).from(products).where(and(eq(products.businessId, business.id), eq(products.status, "confirmed"))),
   ]);
   let intake: ReturnType<typeof readIntake> = null;
   try {
@@ -49,6 +52,7 @@ export async function getSidebarFactsForOwner(db: Db, ownerId: string): Promise<
     websiteFinished: Boolean(site?.finished && site.approvedAt),
     websiteConnected: Boolean(site?.existingSite),
     products: items?.total ?? 0,
+    confirmedKinds: kinds.map((row) => row.kind),
     marketingApproved: Boolean(marketing?.approvedAt),
     socialPlatforms: intake?.include ?? [],
     socialHave: intake?.have ?? [],

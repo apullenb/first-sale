@@ -293,7 +293,7 @@ export function SiteStudio(props: Props) {
               <fieldset className="flex flex-col gap-3 border-t border-line pt-5">
                 <legend className={`${LABEL} float-left mb-2.5 w-full`}>Your items</legend>
                 <p className="text-sm text-muted">
-                  Prices show only if you type them here or saved them on Add your products. A buy link opens your own payment page from a payment provider like Stripe or Square (see the steps below).
+                  Prices show only if you type them here or saved them with what you sell (Build your brand · Step 4). A buy link opens your own payment page from a payment provider like Stripe or Square (see the steps below).
                 </p>
                 {copy.offerings.map((offering, index) => {
                   const draft = drafts[offering.name] ?? { price: "", buyUrl: "", photo: "" };

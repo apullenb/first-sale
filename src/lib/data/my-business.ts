@@ -97,7 +97,27 @@ import {
   listLibraryFilesForOwner,
   type NewLibraryFile,
 } from "./brand-library";
-import { createProductForOwner, deleteProductForOwner, listProductsForOwner, updateProductForOwner } from "./products";
+import {
+  addPictureForOwner,
+  addSuggestedItemsForOwner,
+  approvePictureForOwner,
+  createProductForOwner,
+  deleteProductForOwner,
+  deleteUnusedPicturesForOwner,
+  findPictureByRequestForOwner,
+  getPictureFileForOwner,
+  getProductForOwner,
+  listPicturesForOwner,
+  listPriceChecksForOwner,
+  listProductsForOwner,
+  pictureRoomForOwner,
+  savePriceCheckForOwner,
+  setDescriptionForOwner,
+  updateProductForOwner,
+} from "./products";
+import type { NewItemPicture } from "@/lib/products/picture";
+import type { PriceCheck } from "@/lib/rules/price-compare";
+import type { DescriptionAuthor } from "@/lib/rules/products";
 import type { ProductValues } from "@/lib/rules/products";
 import { type ConditionAnswer, placeOf, structureOf } from "@/lib/research/applicability";
 import { choosesStructure, settleStructureChoice } from "@/lib/rules/plan";
@@ -521,9 +541,76 @@ export async function deleteMyLibraryFile(fileId: string) {
 
 // Products
 
+// Confirmed items only: for websites, marketing and plans
 export async function listMyProducts() {
   const user = await getCurrentUser();
-  return listProductsForOwner(getDb(), user.id);
+  return listProductsForOwner(getDb(), user.id, "confirmed");
+}
+
+// Suggestions too: for the products page
+export async function listMyItems() {
+  const user = await getCurrentUser();
+  return listProductsForOwner(getDb(), user.id, "all");
+}
+
+export async function getMyProduct(productId: string) {
+  const user = await getCurrentUser();
+  return getProductForOwner(getDb(), user.id, productId);
+}
+
+export async function addMySuggestedItems(items: Parameters<typeof addSuggestedItemsForOwner>[2]) {
+  const user = await getCurrentUser();
+  return addSuggestedItemsForOwner(getDb(), user.id, items);
+}
+
+export async function setMyItemDescription(productId: string, description: string, by: DescriptionAuthor) {
+  const user = await getCurrentUser();
+  return setDescriptionForOwner(getDb(), user.id, productId, description, by);
+}
+
+export async function listMyItemPictures() {
+  const user = await getCurrentUser();
+  return listPicturesForOwner(getDb(), user.id);
+}
+
+export async function getMyItemPictureFile(pictureId: string) {
+  const user = await getCurrentUser();
+  return getPictureFileForOwner(getDb(), user.id, pictureId);
+}
+
+export async function findMyItemPictureByRequest(requestKey: string) {
+  const user = await getCurrentUser();
+  return findPictureByRequestForOwner(getDb(), user.id, requestKey);
+}
+
+export async function myItemPictureRoom(productId: string) {
+  const user = await getCurrentUser();
+  return pictureRoomForOwner(getDb(), user.id, productId);
+}
+
+export async function addMyItemPicture(productId: string, picture: NewItemPicture) {
+  const user = await getCurrentUser();
+  return addPictureForOwner(getDb(), user.id, productId, picture);
+}
+
+export async function approveMyItemPicture(productId: string, pictureId: string) {
+  const user = await getCurrentUser();
+  return approvePictureForOwner(getDb(), user.id, productId, pictureId);
+}
+
+export async function deleteMyUnusedItemPictures(productId: string) {
+  const user = await getCurrentUser();
+  return deleteUnusedPicturesForOwner(getDb(), user.id, productId);
+}
+
+export async function listMyPriceChecks() {
+  const user = await getCurrentUser();
+  return listPriceChecksForOwner(getDb(), user.id);
+}
+
+export async function saveMyPriceCheck(productId: string, result: PriceCheck) {
+  const user = await getCurrentUser();
+  return savePriceCheckForOwner(getDb(), user.id, productId, result);
 }
 
 export async function createMyProduct(values: ProductValues) {
