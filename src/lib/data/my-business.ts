@@ -102,6 +102,7 @@ import {
   addSuggestedItemsForOwner,
   approvePictureForOwner,
   createProductForOwner,
+  deletePictureForOwner,
   deleteProductForOwner,
   deleteUnusedPicturesForOwner,
   findPictureByRequestForOwner,
@@ -113,9 +114,11 @@ import {
   pictureRoomForOwner,
   savePriceCheckForOwner,
   setDescriptionForOwner,
+  setWearerForOwner,
   updateProductForOwner,
 } from "./products";
 import type { NewItemPicture } from "@/lib/products/picture";
+import type { Wearer } from "@/lib/rules/picture-views";
 import type { PriceCheck } from "@/lib/rules/price-compare";
 import type { DescriptionAuthor } from "@/lib/rules/products";
 import type { ProductValues } from "@/lib/rules/products";
@@ -596,6 +599,16 @@ export async function addMyItemPicture(productId: string, picture: NewItemPictur
 export async function approveMyItemPicture(productId: string, pictureId: string) {
   const user = await getCurrentUser();
   return approvePictureForOwner(getDb(), user.id, productId, pictureId);
+}
+
+export async function deleteMyItemPicture(pictureId: string) {
+  const user = await getCurrentUser();
+  return deletePictureForOwner(getDb(), user.id, pictureId);
+}
+
+export async function setMyItemWearer(productId: string, wearer: Wearer) {
+  const user = await getCurrentUser();
+  return setWearerForOwner(getDb(), user.id, productId, wearer);
 }
 
 export async function deleteMyUnusedItemPictures(productId: string) {

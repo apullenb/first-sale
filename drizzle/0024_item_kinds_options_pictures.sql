@@ -2,6 +2,7 @@ CREATE TABLE "product_pictures" (
 	"id" text PRIMARY KEY NOT NULL,
 	"business_id" text NOT NULL,
 	"product_id" text NOT NULL,
+	"view" text DEFAULT 'main' NOT NULL,
 	"source_id" text,
 	"change" text,
 	"prompt" text NOT NULL,
@@ -33,6 +34,7 @@ ALTER TABLE "products" ADD COLUMN "price_text" text DEFAULT '' NOT NULL;--> stat
 ALTER TABLE "products" ADD COLUMN "duration" text DEFAULT '' NOT NULL;--> statement-breakpoint
 ALTER TABLE "products" ADD COLUMN "location" text DEFAULT '' NOT NULL;--> statement-breakpoint
 ALTER TABLE "products" ADD COLUMN "included" text DEFAULT '' NOT NULL;--> statement-breakpoint
+ALTER TABLE "products" ADD COLUMN "wearer" text;--> statement-breakpoint
 ALTER TABLE "products" ADD COLUMN "options" jsonb DEFAULT '{"groups":[],"variants":[]}'::jsonb NOT NULL;--> statement-breakpoint
 ALTER TABLE "product_pictures" ADD CONSTRAINT "product_pictures_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_pictures" ADD CONSTRAINT "product_pictures_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

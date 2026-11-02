@@ -123,22 +123,36 @@ test.describe("products and product photos", () => {
     await expect(confirmed).not.toContainText("Practice draft");
     await expect(page.getByRole("heading", { level: 1, name: "Manage your products" })).toBeVisible();
 
-    // A picture from the description: a labeled practice preview the owner approves
+    // Pictures: a main photo first, approved by the owner, then three views made from it; all labeled practice previews
     await confirmed.getByRole("button", { name: "Pictures of Hand-poured soy candles" }).click();
     const pictures = confirmed.getByRole("region", { name: "Pictures of Hand-poured soy candles" });
-    await pictures.getByRole("button", { name: "Make a picture from the description" }).click();
-    const newest = pictures.getByRole("figure", { name: "Newest picture of Hand-poured soy candles" });
+    await pictures.getByRole("button", { name: "Make a main photo from the description" }).click();
+    const newest = pictures.getByRole("figure", { name: "Newest main photo of Hand-poured soy candles" });
     await expect(newest).toContainText("Practice preview, not made by AI", { timeout: 60_000 });
-    await pictures.getByRole("textbox", { name: "Ask for a change to the newest picture" }).fill("Warmer light");
-    await pictures.getByRole("button", { name: "Make this change" }).click();
-    await expect(pictures.getByRole("figure", { name: "Newest picture of Hand-poured soy candles" })).toContainText("Change: Warmer light", { timeout: 60_000 });
-    const latest = pictures.getByRole("figure", { name: "Newest picture of Hand-poured soy candles" });
-    await latest.getByRole("button", { name: "Use this picture" }).click();
+    await expect(pictures.getByRole("button", { name: "Make 3 more views" })).toHaveCount(0);
+    await pictures.getByRole("textbox", { name: "Ask for a change to the newest main photo" }).fill("Warmer light");
+    await pictures.getByRole("button", { name: "Make this change (Main photo)" }).click();
+    await expect(pictures.getByRole("figure", { name: "Newest main photo of Hand-poured soy candles" })).toContainText("Change: Warmer light", { timeout: 60_000 });
+    const latest = pictures.getByRole("figure", { name: "Newest main photo of Hand-poured soy candles" });
+    await latest.getByRole("button", { name: "Use as main photo" }).click();
     await expect(latest.getByRole("alert")).toBeVisible();
     await latest.getByText("I understand this is only a practice preview").click();
-    await latest.getByRole("button", { name: "Use this picture" }).click();
-    await expect(confirmed.getByRole("img", { name: "Photo of Hand-poured soy candles" })).toBeVisible({ timeout: 30_000 });
+    await latest.getByRole("button", { name: "Use as main photo" }).click();
+    await expect(confirmed.getByRole("img", { name: "Photo of Hand-poured soy candles", exact: true })).toBeVisible({ timeout: 30_000 });
     await expect(confirmed).toContainText("Its photo is a practice preview.");
+
+    await pictures.getByRole("button", { name: "Make 3 more views" }).click();
+    for (const view of ["another angle", "close-up", "in use"]) {
+      await expect(pictures.getByRole("figure", { name: `Newest ${view} of Hand-poured soy candles` })).toContainText("Practice preview, not made by AI", { timeout: 60_000 });
+    }
+    const angle = pictures.getByRole("figure", { name: "Newest another angle of Hand-poured soy candles" });
+    await angle.getByText("I understand this is only a practice preview").click();
+    await angle.getByRole("button", { name: "Approve" }).click();
+    await expect(angle).toContainText("Approved, in the gallery", { timeout: 30_000 });
+    await pictures.getByRole("button", { name: "Make a new one (Close-up)" }).click();
+    await expect(pictures.getByRole("figure", { name: "Earlier close-up of Hand-poured soy candles" })).toBeVisible({ timeout: 60_000 });
+    await pictures.getByRole("figure", { name: "Earlier close-up of Hand-poured soy candles" }).getByRole("button", { name: "Remove this close-up" }).click();
+    await expect(pictures.getByRole("figure", { name: "Earlier close-up of Hand-poured soy candles" })).toHaveCount(0, { timeout: 30_000 });
 
     // A new item from a photo: a suggested name and description, the photo kept with it
     const fromPhoto = page.getByRole("region", { name: "Start from a photo" });

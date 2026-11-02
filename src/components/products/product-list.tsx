@@ -24,6 +24,7 @@ import {
   type VariantForm,
 } from "@/lib/rules/products";
 import { ItemPictures } from "./item-pictures";
+import type { PictureView, Wearer } from "@/lib/rules/picture-views";
 
 export interface PhotoChoice {
   key: string;
@@ -37,11 +38,13 @@ export interface PhotoChoice {
 
 export interface ListedProduct extends ProductValues {
   id: string;
+  wearer?: Wearer | null;
 }
 
 export interface ItemPicture {
   id: string;
   productId: string;
+  view: PictureView;
   change: string | null;
   simulated: boolean;
   approved: boolean;
@@ -259,7 +262,7 @@ function ProductRow({
           ) : null}
         </div>
       </div>
-      {showPictures ? <ItemPictures item={product} pictures={pictures} inUse={product.photo?.source === "generated" ? product.photo.pictureId : null} changeLimit={changeLimit} /> : null}
+      {showPictures ? <ItemPictures item={product} pictures={pictures} inUse={product.photo?.source === "generated" ? product.photo.pictureId : null} changeLimit={changeLimit} hasOwnPhoto={product.photo?.source === "original" || product.photo?.source === "version"} /> : null}
     </article>
   );
 }
