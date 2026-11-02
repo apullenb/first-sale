@@ -113,6 +113,8 @@ test.describe("business intake", () => {
     await page.getByRole("button", { name: /^(Back to summary|Back to your changes|Continue)$/ }).first().click();
     await expect(page.getByRole("heading", { level: 1, name: "Check your changes" })).toBeVisible();
     await page.getByRole("button", { name: "Confirm these changes" }).click();
+    // The save finishes before the page moves on
+    await page.waitForURL(/\/business$/);
     await expect(page.getByText("Sudsy Paws Grooming").first()).toBeVisible();
     await open(page, "/business");
     await expect(page.getByRole("heading", { level: 1, name: "Sudsy Paws Grooming" })).toBeVisible();

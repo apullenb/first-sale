@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
+import { MoveOn } from "@/components/move-on";
 import { StepGroup } from "@/components/plan/next-actions";
 import { GroupFacts } from "@/components/plan/paperwork";
 import { PracticeBanner } from "@/components/practice-banner";
@@ -42,6 +43,7 @@ export default function RequirementsPage() {
         title="What applies to you"
         lead={`SnapStart checks official government sites and works out every rule that fits your business. If something turns on your plans, it asks you. About ${formatMinutes(CHECK_MINUTES)}.`}
       />
+      <MoveOn from="Start your business" />
       <Suspense fallback={<p className="text-muted">Loading what applies to you…</p>}>
         <Requirements />
       </Suspense>

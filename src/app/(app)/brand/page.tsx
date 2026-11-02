@@ -6,6 +6,7 @@ import { Completed, Revisit } from "@/components/completed";
 import { LibraryUpload } from "@/components/brand/library-upload";
 import { Icon } from "@/components/icons";
 import { Kicker, SectionHead } from "@/components/marketing/pieces";
+import { MoveOn } from "@/components/move-on";
 import { PracticeBanner } from "@/components/practice-banner";
 import { PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Card, PageHead } from "@/components/ui";
@@ -28,6 +29,7 @@ export default function BrandPage() {
         title="Build your brand"
         lead="Say what you sell and how your business should feel, then approve a short description of your brand. It guides your logo in step 2 and every picture after it."
       />
+      <MoveOn from="Build your brand" />
       <Suspense fallback={<p className="text-muted">Loading your brand…</p>}>
         <Brand />
       </Suspense>

@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { AgreementCard } from "@/components/documents/agreement-card";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
+import { MoveOn } from "@/components/move-on";
 import { AlreadyDone } from "@/components/plan/already-done";
 import { FilingPaths, MissingDetails, usesPaths } from "@/components/plan/filing-paths";
 import { FilingLines, FilingSteps } from "@/components/plan/filing-steps";
@@ -336,7 +337,9 @@ async function StepDetail({ params }: { params: Params }) {
           {choosesStructure(step) ? <StructureDecision key={step.id} current={details.find((detail) => detail.key === "structure_choice")?.value ?? null} /> : progress}
           <NextUp next={next} back={back} />
         </section>
-      ) : locked ? (
+      ) : null}
+      {!step.retired && step.status === "done" ? <MoveOn from="Start your business" /> : null}
+      {step.retired || step.status === "done" ? null : locked ? (
         <section aria-labelledby="progress-heading" className={`scroll-mt-4 ${STATE_CARD} items-start bg-soft shadow-soft`}>
           <p className={`${KICKER} text-muted`}>
             <Icon name="lock" size="sm" />

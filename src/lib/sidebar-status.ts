@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { unstable_rethrow } from "next/navigation";
 import type { NavStatus } from "@/components/nav-links";
 import { getMyBusiness, getMyPaperwork, getMySidebarFacts, type MyBusiness } from "@/lib/data/my-business";
@@ -10,7 +11,10 @@ import { remainingWork } from "@/lib/rules/progress";
 import { menuGroups, sidebarStatus, startSteps } from "@/lib/rules/section-status";
 
 // Which menu steps are done, waiting, locked or left. The marks are extra: if they can't be read, the business card still shows.
-export async function getMySidebarStatus(): Promise<{ business: MyBusiness | null; status: NavStatus | null }> {
+// Once per request: the menu, the tab bar and "Move on" buttons share it
+export const getMySidebarStatus = cache(sidebarStatusNow);
+
+async function sidebarStatusNow(): Promise<{ business: MyBusiness | null; status: NavStatus | null }> {
   const business = await getMyBusiness();
   if (!business) {
     const parts = sidebarStatus({ ...NO_FACTS, business: false });
