@@ -5,7 +5,7 @@ import { STRUCTURE_LABELS } from "@/lib/details";
 import type { FactId } from "./facts";
 import { fitsOwners } from "./options";
 
-// A suggested starting point from the owner's confirmed answers: rules, not a legal determination.
+// A suggested starting point from the owner's confirmed answers: code, not a legal determination.
 // Every suggestion says what it rests on, what it assumes, and what would change it.
 
 export interface PathSuggestion {
@@ -131,7 +131,7 @@ export function suggestPath(p: BusinessProfile): PathSuggestion {
   if (p.hiringPlans === null || p.helpKinds.includes("unsure")) wouldChange.push("Hiring employees");
   if (owners === 1 && p.mayAddOwners !== "no") wouldChange.push("Adding a co-owner");
   if (owners > 1) wouldChange.push("One owner leaving, or a new one joining");
-  assumptions.push(`${STATE_NAMES[p.location.state]}’s rules and fees for each structure still need checking against official state pages.`);
+  assumptions.push(`${STATE_NAMES[p.location.state]}’s requirements and fees for each structure still need checking against official state pages.`);
 
   let option: BusinessStructure;
   let keepExisting = false;

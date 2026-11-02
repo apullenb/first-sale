@@ -81,13 +81,13 @@ const TITLES: Record<Exclude<StepId, "details">, string> = {
 };
 
 const WHY: Record<StepId, string> = {
-  sell: "What you sell decides which rules we look for, like food rules, product safety and sales tax. Pick the closest; you can add more.",
-  place: "Rules come from your state, county and city. We only use official government sites for the places you pick.",
+  sell: "What you sell decides which requirements we look for, like food safety laws, product safety and sales tax. Pick the closest; you can add more.",
+  place: "Requirements come from your state, county and city. We only use official government sites for the places you pick.",
   owners: "One owner or several changes which business structures fit, and which agreements are worth writing down.",
   name: "Selling under a name that isn’t your own legal name usually means registering it. No name yet is fine.",
   status: "So we can mark steps you’ve already done instead of repeating them.",
-  channels: "Markets, shops, delivery and shipping each come with their own rules.",
-  details: "These few questions decide which product rules we check for you.",
+  channels: "Markets, shops, delivery and shipping each come with their own requirements.",
+  details: "These few questions decide which product safety requirements we check for you.",
   premises: "Working from home can need zoning approval. A rented space has to be approved for your kind of business.",
   money: "Your budget and sales shape which costs come first and which structure fits. Rough answers are fine.",
   help: "Paying people adds employer steps, usually later on.",

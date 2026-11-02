@@ -23,7 +23,7 @@ export function AgreementCard({ name, owners, doc, outdated }: { name: string; o
       }
     >
       <p className="text-rule">
-        The owners’ own rules for the business: who owns what, who runs it, and how decisions and money are handled. It isn’t filed with the state.{" "}
+        The owners’ own terms for the business: who owns what, who runs it, and how decisions and money are handled. It isn’t filed with the state.{" "}
         {owners > 1 ? "Every owner signs it, and you keep it with your records." : "You sign it and keep it with your records."} Banks often ask for it when you open a
         business account.
       </p>

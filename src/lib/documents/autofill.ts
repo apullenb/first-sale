@@ -5,7 +5,7 @@ import { type Place, placeOf, type StructureDecision, structureOf } from "@/lib/
 import { type Fact, factsFor, mustFillYourself } from "./companion";
 import type { DocumentField, DraftAnswer, DraftAnswers } from "./types";
 
-// Fills a known official form from confirmed facts by fixed rules, never model output.
+// Fills a known official form from confirmed facts in code, never model output.
 // Each answer names the fact it came from, so a later change to that fact flags the draft as outdated.
 
 export interface AutofillContext {

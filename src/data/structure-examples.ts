@@ -89,7 +89,7 @@ export const STRUCTURE_EXAMPLES: readonly StructureExample[] = [
       "He forms an LLC with his state, and writes a short operating agreement on how money and decisions work.",
       "As an LLC member, he still pays self-employment tax.",
     ],
-    takeaway: "His state may ask for reports soon after he registers, so he checks its rules before filing.",
+    takeaway: "His state may ask for reports soon after he registers, so he checks its requirements before filing.",
     facts: ["llc_fit", "llc_articles", "operating_agreement", "llc_self_employment", "early_reports"],
   },
   {

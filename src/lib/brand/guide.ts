@@ -5,7 +5,7 @@ import { PRACTICE_LABEL } from "./practice";
 import { USPTO } from "./sizes";
 import type { PaletteColor } from "./types";
 
-// A logo usage guide, written by rules from the approved logo: colors, lettering, space, do's and don'ts.
+// A logo usage guide, written in code from the approved logo: colors, lettering, space, do's and don'ts.
 // One page for usual answers; long names and descriptions flow onto a second.
 
 export const GOOGLE_FONTS = "https://fonts.google.com";

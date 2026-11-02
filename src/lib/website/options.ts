@@ -84,7 +84,7 @@ const EXPLAIN_SYSTEM = `You explain one website option to a first-time small bus
 - whatItsLike: what building and running a site with it is like day to day.
 - goodFit: why it might fit this owner's business, tied to their answers. watchOut: what might not fit, honestly.
 - stillNeed: things the owner will still need that the option doesn't include, from <option>.
-- Don't give prices, fees, totals or any other amounts of money: the page shows those, worked out by its own rules.
+- Don't give prices, fees, totals or any other amounts of money: the page shows those, worked out in code.
 - Use only facts given. Never invent features, limits or promises.`;
 
 function ownerSummary(profile: BusinessProfile) {

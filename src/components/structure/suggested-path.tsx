@@ -11,7 +11,7 @@ export function SuggestedPath({ suggestion }: { suggestion: PathSuggestion }) {
   return (
     <RecommendedPanel eyebrow="Recommended for you" big>
       <p className="font-display text-xl leading-snug">{suggestion.headline}</p>
-      <p className="text-sm text-muted">Worked out from your answers by fixed rules, not a legal decision. You choose, and you can change it later.</p>
+      <p className="text-sm text-muted">Worked out by SnapStart from your answers, not a legal decision. You choose, and you can change it later.</p>
     </RecommendedPanel>
   );
 }

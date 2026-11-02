@@ -129,7 +129,7 @@ describe("planVersion and businessPlanPdf", () => {
     const spec = businessPlanPdf("Business plan for Rise & Shine Bakery", sections, new Date("2026-10-29T12:00:00Z"), true);
     expect(spec.title).toBe("Rise & Shine Bakery: Business Plan");
     expect(spec.subtitle).toBe("Prepared October 29, 2026");
-    expect(spec.notice).toBe("Introductory draft: describes the business and its plans. Not yet prepared for a lender.\nPractice draft: written by built-in rules, not by the AI service.");
+    expect(spec.notice).toBe("Introductory draft: describes the business and its plans. Not yet prepared for a lender.\nPractice draft: written from your answers by SnapStart, not by the AI service.");
     expect(spec.blocks).toEqual([
       { heading: "1. Executive Summary", paragraphs: ["First paragraph.", "Second paragraph."] },
       { heading: "2. Financial Plan", paragraphs: ["Budget under $1,000."] },

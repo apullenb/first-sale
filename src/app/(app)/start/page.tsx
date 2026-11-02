@@ -211,7 +211,7 @@ function CheckRow({ paper, answered }: { paper: MyPaperwork | null; answered: bo
   const done = Boolean(basis) && !stale && !open;
   const state: TaskState = !answered ? "locked" : done ? "done" : "ready";
   const summary = !basis
-    ? "SnapStart checks official government sites and works out the rules that fit your business."
+    ? "SnapStart checks official government sites and works out the requirements that fit your business."
     : stale
       ? "You changed your answers. Open this and SnapStart updates your steps."
       : open

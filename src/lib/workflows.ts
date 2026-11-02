@@ -28,7 +28,7 @@ export const WORKFLOWS = {
     offeredFor: [],
   },
   follow_up: {
-    title: "Settle the open rules",
+    title: "Settle the open questions",
     summary: "Searches each office’s own site, code and forms for what official pages didn’t settle, and decides what applies.",
     actor: "ai",
     usesAi: true,

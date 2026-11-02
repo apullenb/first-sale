@@ -696,7 +696,7 @@ function NotOnList({ standing }: { standing: Standing<PlanStep> }) {
     place: { text: standing.place[0] ?? "Whether this applies depends on where you are.", href: "/business/edit", action: "Confirm your place" },
     structure: { text: "This is for some business structures only. It shows up on your list once you choose one.", href: "/structure", action: "Go to Business structure" },
     optional: { text: "This one is your choice, so it isn’t on your list.", href: "/requirements", action: "See what applies to you" },
-    outside: { text: `SnapStart doesn’t research this kind of rule.${step.whoToCall ? ` It’s handled by ${step.whoToCall}.` : ""}`, href: "/requirements", action: "See what applies to you" },
+    outside: { text: `SnapStart doesn’t research this kind of requirement.${step.whoToCall ? ` It’s handled by ${step.whoToCall}.` : ""}`, href: "/requirements", action: "See what applies to you" },
     other_structure: { text: "This step isn’t for the business structure you chose.", href: "/requirements", action: "See what changes" },
   };
   const note = say[standing.inclusion];

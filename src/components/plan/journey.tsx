@@ -81,7 +81,7 @@ export function StartHere({
       {step?.simulated ? (
         <p className="flex items-start gap-2 text-sm font-semibold text-check">
           <Icon name="info" size="sm" className="mt-0.5" />
-          Practice mode: built-in rules suggested this step, not real research.
+          Practice mode: this is a sample step, not real research.
         </p>
       ) : null}
       <div className="flex flex-wrap gap-2.5">

@@ -148,12 +148,12 @@ export function PlaceStep({
       ) : null}
       {match?.noCityGovernment ? (
         <p className="rounded-xl border border-line bg-soft px-4 py-3 text-[15px] text-rule">
-          The Census Bureau lists {match.name} as a community with no city government of its own. If that’s where you are, the county’s rules are the
+          The Census Bureau lists {match.name} as a community with no city government of its own. If that’s where you are, the county’s requirements are the
           ones to check. If your address is inside a nearby city, say so below.
         </p>
       ) : null}
       <p id={hintId} className="text-[14.5px] text-muted">
-        {options?.source ?? "Type your county and city, or leave them for later. Rules can come from each one."}
+        {options?.source ?? "Type your county and city, or leave them for later. Requirements can come from each one."}
       </p>
     </div>
   );

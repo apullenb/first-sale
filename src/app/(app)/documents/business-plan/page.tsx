@@ -138,7 +138,7 @@ function privacyNote(): string {
   const ai = !model
     ? "SnapStart’s AI service isn’t set up right now, so nothing is sent to one."
     : model.simulated || !model.dataHandling
-      ? "In practice mode nothing is sent to an AI service; built-in rules write the draft."
+      ? "In practice mode nothing is sent to an AI service; SnapStart writes a plain draft from your answers."
       : `To write it, they are sent to ${serviceRecipient(model)}. ${serviceNotes(model).join(" ")}`;
   return `Your plan is stored in your SnapStart account. ${ai} Nothing is published or submitted to government offices.`;
 }

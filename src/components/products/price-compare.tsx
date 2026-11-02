@@ -21,7 +21,7 @@ interface ComparedItem {
 
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
-// "Compare prices near you": prices found by search, each with its source; low, typical and high worked out by rules
+// "Compare prices near you": prices found by search, each with its source; low, typical and high worked out in code
 export function PriceCompare({ items, checks, noun }: { items: ComparedItem[]; checks: Record<string, PriceCheck>; noun: string }) {
   const uid = useId();
   const [chosen, setChosen] = useState(items[0]?.id ?? "all");

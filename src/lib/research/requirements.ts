@@ -309,13 +309,13 @@ export function placeQuestions(profile: BusinessProfile, gaps: readonly SearchGa
   const questions: OpenQuestion[] = [];
   if (!county.trim()) {
     questions.push({
-      question: "Which county is your business in? County rules can apply, so add it to your answers.",
+      question: "Which county is your business in? County requirements can apply, so add it to your answers.",
       whoToCall: "your county’s property tax office (your tax bill also names the county)",
     });
   }
   if (city.trim() && insideCityLimits !== "yes" && insideCityLimits !== "no") {
     questions.push({
-      question: `Is your address inside the city limits of ${city.trim()}? A mailing address can name a city you’re not actually in, and city rules apply only inside its limits.`,
+      question: `Is your address inside the city limits of ${city.trim()}? A mailing address can name a city you’re not actually in, and city requirements apply only inside its limits.`,
       whoToCall: `the ${county.trim() ? `${county.trim()} County` : "county"} property or planning office`,
     });
   }
@@ -326,7 +326,7 @@ export function placeQuestions(profile: BusinessProfile, gaps: readonly SearchGa
       ? `We haven’t searched official sites about ${gap.about} yet.`
       : gap.failed
         ? `Our search for official pages about ${gap.about} didn’t finish. Re-check later, or ask.`
-        : `We couldn’t find an official page about ${gap.about}. That doesn’t mean there are no rules, so ask.`;
+        : `We couldn’t find an official page about ${gap.about}. That doesn’t mean nothing applies, so ask.`;
     questions.push({ question, whoToCall: officeFor(gap.level) });
   }
   return questions;

@@ -96,7 +96,7 @@ export function PlanMoney({ form, onChange, hasDraft }: { form: MoneyForm; onCha
       action={result ? <Chip tone={result.level === "lender" ? "accent" : "gray"}>{PLAN_LEVEL_LABELS[result.level]}</Chip> : null}
     >
       <p className="text-rule">
-        Add your own figures and SnapStart works out margins, break-even and cash needs with fixed rules. The AI service that drafts the plan doesn’t get these
+        Add your own figures and SnapStart works out margins, break-even and cash needs itself. The AI service that drafts the plan doesn’t get these
         figures and never writes them. Skip any of it, and the plan says it isn’t estimated yet.
       </p>
 

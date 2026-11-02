@@ -1,6 +1,6 @@
 import type { InsightReplyItem, InsightsReply } from "./types";
 
-// Practice mode: sample insights from fixed rules over the same facts the model would read. Labeled on the page.
+// Practice mode: sample insights from code over the same facts the model would read. Labeled on the page.
 
 interface SampleFacts {
   businessName?: string;
@@ -46,7 +46,7 @@ export function samplesFromMessage(message: string): InsightsReply {
       item("You’re making real progress", `You’ve finished ${plan.stepsBeforeSellingDone} of ${plan.stepsBeforeSelling} steps before your first sale. Every one counts.`, "", "checklist"),
     );
   } else if (checked) {
-    strengths.push(item("You looked up the rules early", "You already know what applies where you are, so there are fewer surprises later.", "", "requirements"));
+    strengths.push(item("You looked up your requirements early", "You already know what applies where you are, so there are fewer surprises later.", "", "requirements"));
   } else {
     strengths.push(item("You’re asking the right questions early", "Answering SnapStart’s questions before you spend money is a smart way to start.", "", "business"));
   }
@@ -55,8 +55,8 @@ export function samplesFromMessage(message: string): InsightsReply {
   if (!checked) {
     watch.push(
       item(
-        "See which rules apply to you",
-        "Every place has its own rules for new businesses. SnapStart reads the official pages for where you are and works out what applies.",
+        "See which requirements apply to you",
+        "Every place has its own requirements for new businesses. SnapStart reads the official pages for where you are and works out what applies.",
         "Open What applies to you, and SnapStart starts checking.",
         "requirements",
       ),

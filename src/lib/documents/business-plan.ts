@@ -135,7 +135,7 @@ export function businessPlanPdf(title: string, sections: readonly PlanSection[],
   return {
     title: name ? `${name}: Business Plan` : "Business Plan",
     subtitle: `Prepared ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
-    notice: simulated ? `${level}\nPractice draft: written by built-in rules, not by the AI service.` : level,
+    notice: simulated ? `${level}\nPractice draft: written from your answers by SnapStart, not by the AI service.` : level,
     blocks: sections.map((section, index) => ({ heading: `${index + 1}. ${section.heading}`, paragraphs: section.body.split(/\n\s*\n/).filter((part) => part.trim()) })),
     footer: "Business plan prepared with SnapStart",
   };

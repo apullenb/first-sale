@@ -459,7 +459,7 @@ const parseChoices = (text: string) => {
 
 const OPTION_EXAMPLES: Record<ItemKind, string> = { product: "Size, Color, Scent or Flavor", service: "Package, Size, Session length or Add-on" };
 
-// Option groups and the price and stock of each combination; totals are worked out by rules on save
+// Option groups and the price and stock of each combination; totals are worked out in code on save
 function OptionsEditor({
   uid,
   kind,

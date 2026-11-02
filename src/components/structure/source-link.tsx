@@ -34,7 +34,7 @@ export function StateRule({ state, found }: { state: string; found: boolean }) {
         href="#state-rules"
         className="relative z-10 ml-1.5 inline-flex min-h-6 items-center whitespace-nowrap rounded-md border border-accent-ring bg-accent-tint px-1.5 align-middle text-xs font-bold text-accent-ink underline-offset-2 hover:underline"
       >
-        See {state}’s rules below
+        See {state}’s requirements below
       </a>
     );
   }

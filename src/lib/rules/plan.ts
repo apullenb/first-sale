@@ -232,7 +232,7 @@ function askByOffice(drafts: PlanTaskDraft[], requirements: readonly CheckedRequ
     asks.set(members[0].key, {
       ...members[0],
       key,
-      title: `Ask ${name} about ${members.length} rules`,
+      title: `Ask ${name} about ${members.length} requirements`,
       why: `SnapStart searched ${name}’s official site and couldn’t settle ${LIST.format(members.map((member) => member.title.replace(/^./, (first) => first.toLowerCase())))}. One message to ${name} covers ${members.length === 2 ? "both" : "all of them"}.`,
       agency: office.name,
       links,
@@ -245,7 +245,7 @@ function askByOffice(drafts: PlanTaskDraft[], requirements: readonly CheckedRequ
       uncertainty: [],
       whoToCall: office.name,
       whatToAsk: members.flatMap((member) => member.whatToAsk.slice(0, 2)).slice(0, 6),
-      doneWhen: `${name.replace(/^./, (first) => first.toUpperCase())} answered about each rule. If one applies, check your requirements again so it becomes a step.`,
+      doneWhen: `${name.replace(/^./, (first) => first.toUpperCase())} answered about each requirement. If one applies, check your requirements again so it becomes a step.`,
       prerequisites: [],
       timing: members.some((member) => member.timing === "before_selling") ? "before_selling" : "later",
       renewal: null,

@@ -79,7 +79,7 @@ export const SECTIONS: Section[] = [
     step: 3,
     milestone: 3,
     summary:
-      "SnapStart checks official government sites for the rules that fit your business, then asks a few quick questions about the ones that depend on you.",
+      "SnapStart checks official government sites for the requirements that fit your business, then asks a few quick questions about the ones that depend on you.",
   },
   {
     href: "/build-your-brand",

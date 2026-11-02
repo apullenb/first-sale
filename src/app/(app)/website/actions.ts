@@ -235,7 +235,7 @@ async function websitePdf(content: WebsiteContent, platformName: string, now: Da
   return writePdf({
     title: "Your website words",
     subtitle: `Approved ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })} · for ${platformName}`,
-    notice: content.simulated ? "Practice draft: written by built-in rules, not by the AI service." : undefined,
+    notice: content.simulated ? "Practice draft: written from your answers by SnapStart, not by the AI service." : undefined,
     blocks: [
       { heading: "Home page", paragraphs: [content.headline, content.subheadline, content.intro] },
       { heading: "About", paragraphs: [content.about] },

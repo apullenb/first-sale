@@ -111,7 +111,7 @@ describe("placeQuestions", () => {
     const place = testProfile({ location: { county: "Franklin", city: "Columbus", insideCityLimits: "yes" } });
     expect(placeQuestions(place, gaps, true)).toEqual([
       {
-        question: "We couldn’t find an official page about registering a business name in Ohio. That doesn’t mean there are no rules, so ask.",
+        question: "We couldn’t find an official page about registering a business name in Ohio. That doesn’t mean nothing applies, so ask.",
         whoToCall: "Ohio’s state government",
       },
       {
@@ -119,7 +119,7 @@ describe("placeQuestions", () => {
         whoToCall: "Franklin County offices",
       },
       {
-        question: "We couldn’t find an official page about business licenses in Columbus. That doesn’t mean there are no rules, so ask.",
+        question: "We couldn’t find an official page about business licenses in Columbus. That doesn’t mean nothing applies, so ask.",
         whoToCall: "Columbus city hall",
       },
     ]);
@@ -350,7 +350,7 @@ describe("researchRequirements", () => {
     // Code's questions first: city limits, then topics search found nothing for, then the model's own
     expect(result.openQuestions[0].question).toMatch(/city limits/);
     expect(result.openQuestions[1].question).toBe(
-      "We couldn’t find an official page about forming an LLC or other business entity in Ohio. That doesn’t mean there are no rules, so ask.",
+      "We couldn’t find an official page about forming an LLC or other business entity in Ohio. That doesn’t mean nothing applies, so ask.",
     );
     expect(result.openQuestions.at(-1)).toEqual({ question: "Do you need a vendor license?", whoToCall: "Columbus city hall" });
     expect(result.openQuestions.some((q) => q.question.includes("registering a business name in Ohio"))).toBe(false);

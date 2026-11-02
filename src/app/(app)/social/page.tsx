@@ -200,7 +200,7 @@ async function SocialView() {
           <AiProgressButton action={draftSocialBiosAction.bind(null, { platform: null })} label="Draft my bios" {...BIO_PROGRESS} />
         </NextUp>
       ) : null}
-      {practice ? <PracticeBanner what="Bios marked “Practice draft” were written from your answers by built-in rules." /> : null}
+      {practice ? <PracticeBanner what="Bios marked “Practice draft” were written from your answers by SnapStart." /> : null}
 
       {accounts.map((account) => (
         <AccountCard
@@ -495,7 +495,7 @@ function Sources({ facts, account }: { facts: SocialProfileFacts | null; account
         {sources.length ? ". " : ""}
         {data.checked && account.id === "email_list" ? (
           <>
-            The postal address and opt-out rule is from the FTC’s guide, checked on <LocalDate iso={day(data.checked)} />.
+            The postal address and opt-out requirement is from the FTC’s guide, checked on <LocalDate iso={day(data.checked)} />.
           </>
         ) : data.checked ? (
           <>

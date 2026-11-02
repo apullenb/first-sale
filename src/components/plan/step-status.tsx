@@ -24,7 +24,7 @@ const WORDS: Record<StepKind, { confirm: string; placeholder: string; button: st
   filing: { confirm: "I submitted this myself.", placeholder: "For example: filed online on May 3, confirmation emailed", button: "I submitted it" },
   contact: { confirm: "I sent the question to the office myself.", placeholder: "For example: emailed the planning office on May 3", button: "I sent it" },
   training: { confirm: "I completed it.", placeholder: "For example: finished the course on May 3", button: "I’ve done this" },
-  compliance: { confirm: "I’ve checked this and my business follows it.", placeholder: "For example: checked the rules on May 3", button: "I’ve done this" },
+  compliance: { confirm: "I’ve checked this and my business follows it.", placeholder: "For example: checked the requirements on May 3", button: "I’ve done this" },
   decision: { confirm: "I’ve made this decision.", placeholder: "", button: "Got it" },
 };
 

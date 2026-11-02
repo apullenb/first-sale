@@ -14,7 +14,7 @@ export const CATEGORY_LABELS: Record<ResearchCategory, string> = {
   licenses: "Business and industry licenses",
   zoning: "Zoning and working from home",
   food: "Making and selling food",
-  activity: "Other rules for what you make",
+  activity: "Other requirements for what you make",
 };
 
 export const COVERAGE_STATES = [

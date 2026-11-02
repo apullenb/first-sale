@@ -267,7 +267,7 @@ export const PLATFORM_DATA: Record<MarketingPlatformId, MarketingPlatform> = {
     home: null,
     setupTitle: "Start your email list",
     tidyTitle: "Get your email list ready",
-    help: { label: "The FTC’s email rules for businesses", url: FTC_EMAIL },
+    help: { label: "The FTC’s email law guide for businesses", url: FTC_EMAIL },
     walkthrough: [
       "Pick an email tool. Many website builders include one, so customers stay in one place.",
       "Make a sign-up form, and add it to your website and your social profiles.",

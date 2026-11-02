@@ -67,7 +67,7 @@ export function NextStep({
         ) : null}
       </div>
       {step.simulated ? (
-        <p className="border-t border-line pt-3 text-sm font-semibold text-check">Practice mode: built-in rules suggested this step, not real research.</p>
+        <p className="border-t border-line pt-3 text-sm font-semibold text-check">Practice mode: this is a sample step, not real research.</p>
       ) : null}
     </section>
   );

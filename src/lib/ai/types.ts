@@ -83,7 +83,7 @@ export interface ModelProvider {
   readonly name: string;
   readonly model: string;
   readonly capabilities: ModelCapabilities;
-  // Practice mode: built-in rules, not a real model. Results must be labeled as such.
+  // Practice mode: built-in code, not a real model. Results must be labeled as such.
   readonly simulated: boolean;
   // Owner-facing: who receives what's sent, and what that service says it does with it
   readonly dataHandling?: { recipient: string; notes: string[] };

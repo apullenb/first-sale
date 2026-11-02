@@ -1,7 +1,7 @@
 import { comparePlan, feeText, needsUpgrade, usd } from "./costs";
 import type { PlatformInfo } from "./platforms";
 
-// The pieces of an online presence, and how each package covers them on the plan it's priced on. Decided by rules
+// The pieces of an online presence, and how each package covers them on the plan it's priced on. Decided in code
 // from the platform data.
 
 export const TERMS = ["domain", "hosting", "builder", "checkout", "email"] as const;

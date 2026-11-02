@@ -18,11 +18,11 @@ npm run dev
 
 Open http://localhost:3000, create an account and answer the intake questions. There are no built-in sample businesses: create each demo business through the intake like any other, one per account.
 
-Without an AI key the app runs in **practice mode**: built-in rules stand in for the model, nothing is searched, and photos and scans can't be read. Every result made this way carries a "Practice mode" label, so it's never mistaken for real research.
+Without an AI key the app runs in **practice mode**: built-in code stands in for the model, nothing is searched, and photos and scans can't be read. Every result made this way carries a "Practice mode" label, so it's never mistaken for real research.
 
 AI requests (intake suggestions, research, reading and explaining forms, drafting answers, business plans and marketing plans, business insights, product photos, logos and brand pictures, and website words and explanations) are limited to 30 an hour and 150 a day per owner, and 2,000 a day across everyone (`AI_DAILY_LIMIT`), to cap cost.
 
-The local database is PGlite in `.pglite/`, and only one process can use it at a time. Stop `npm run dev` before running `db:migrate`. If `db:migrate` fails with "already exists", or with "is duplicated" (an account made more than one business before the one-per-owner rule), your local `.pglite/` predates the current migrations: delete it and run `db:migrate` again.
+The local database is PGlite in `.pglite/`, and only one process can use it at a time. Stop `npm run dev` before running `db:migrate`. If `db:migrate` fails with "already exists", or with "is duplicated" (an account made more than one business before the one-business-per-owner limit), your local `.pglite/` predates the current migrations: delete it and run `db:migrate` again.
 
 Sign-in only accepts requests from `BETTER_AUTH_URL`, so run the app on that address (port 3000 by default).
 
@@ -72,20 +72,20 @@ Encouraging feedback on the owner's idea, under "Start your business" in the men
   - discouraging wording ("bad idea", "will fail", "saturated", "risky", "struggle", "reconsider"…) drops the item
   - a concern without a next step is dropped, there are at most 3, and never more than there are strengths
   - money or percentages the owner didn't give drop the item, including amounts in words ("fifty dollars"). Other numbers must be the owner's own or SnapStart's counts (steps done, days to launch). Made-up statistics ("8 in 10 shoppers", "half of customers") drop it too.
-  - anything about laws, permits, taxes, registration or structure may only point to a checked page. It links to Requirements, the plan or Structure, and it's dropped if it says what a rule requires, allows, exempts or protects, or gives a deadline. A point about one of the owner's plan steps may say the step is needed. Platform and market fees count as business facts, not legal ones.
+  - anything about laws, permits, taxes, registration or structure may only point to a checked page. It links to Requirements, the plan or Structure, and it's dropped if it says what a law requires, allows, exempts or protects, or gives a deadline. A point about one of the owner's plan steps may say the step is needed. Platform and market fees count as business facts, not legal ones.
   - word lists can't catch every wording, so they lean toward leaving a point out
   - if nothing encouraging is left, nothing is saved and the owner is asked to try again
 - **Saved** with the date and a hash of each part it read, so the page says what changed since ("You've updated your website…") and offers a refresh.
 - **Useful or dismiss:** marks are kept across refreshes. Dismissed points are hidden (and can be brought back), and a refresh is told not to repeat them.
 - While it runs, a progress screen ticks off each step (`src/components/step-progress.tsx`, reusable for other AI requests). The last steps tick only once the reply has passed the checks.
-- **Practice mode:** sample insights from fixed rules over the same facts, labeled as samples, and checked the same way.
+- **Practice mode:** sample insights written in code from the same facts, labeled as samples, and checked the same way.
 
 ## Structure and path
 
 /structure explains four separate things: ownership structure, business name registration (DBA), tax treatment, and licenses and permits. A DBA is never shown as an alternative to an LLC, and no structure is assumed.
 
 - Each applicable structure shows what it means, why people choose it, setup, ongoing obligations and tradeoffs. Every line about an obligation links to the IRS or SBA page it comes from (quotes in `src/lib/structure/facts.ts`, re-checked by `facts.test.ts` against saved page text) or is marked "Needs confirming for {state}". State fees and filings come only from the owner's requirements research.
-- A suggested starting point is worked out by fixed rules (`src/lib/structure/suggest.ts`) and lists the answers it rests on, what it assumes, other reasonable options, answers that would change it, and questions to take to a professional. It's labeled as a suggestion, not a legal decision.
+- A suggested starting point is worked out in code (`src/lib/structure/suggest.ts`) and lists the answers it rests on, what it assumes, other reasonable options, answers that would change it, and questions to take to a professional. It's labeled as a suggestion, not a legal decision.
 - "Try a what-if" (add a co-owner, sign a lease, hire, customers at home) compares suggestions without touching the saved answers.
 - The owner records their decision (structure, name plan, tax plan) only after a confirm step that shows what will be saved and what it's based on. Each change is kept with a date and the answers behind it; if answers change later, the page says the decision was made with older answers.
 
@@ -97,7 +97,7 @@ Encouraging feedback on the owner's idea, under "Start your business" in the men
    - Results are kept for 7 days in `search_cache`, shared by every owner, so the same question for the same place isn't paid for twice. They're kept only when they include an official page for that place, so a search that found none runs again. The pages themselves are still fetched fresh on every check.
    - Only pages on domains in CISA's official .gov registry count, and only when the registry says the site belongs to the owner's own state, county or city. Code decides this, not the model.
    - The registry snapshot is `src/data/dotgov/domains.json`. Refresh it with `node scripts/update-dotgov.mjs`.
-   - Some real government sites aren't on .gov (Florida's business registry, for one). Their rules show as "Needs verification" until the owner confirms them in writing.
+   - Some real government sites aren't on .gov (Florida's business registry, for one). Their requirements show as "Needs verification" until the owner confirms them in writing.
 3. Fetches every page itself (HTML or PDF), following redirects only within the same site.
 4. Asks the model which requirements apply. The pages are evidence: instructions inside them are ignored.
 5. Checks every requirement in code:
@@ -107,14 +107,14 @@ Encouraging feedback on the owner's idea, under "Start your business" in the men
 
 6. Decides, in code, whether each one applies (`classify` in `src/lib/research/applicability.ts`), from the owner's answers and decisions:
    - **Applies to you:** an official page confirms it, and it fits the answers.
-   - **Depends on something:** it applies only if something is true, and the card says what. For example, a city rule while the owner hasn't confirmed they're inside city limits, or an LLC step while the structure is undecided. "Not sure" and unanswered are treated as unknown, never as "no".
+   - **Depends on something:** it applies only if something is true, and the card says what. For example, a city requirement while the owner hasn't confirmed they're inside city limits, or an LLC step while the structure is undecided. "Not sure" and unanswered are treated as unknown, never as "no".
    - **Your choice:** optional, such as an EIN for a sole proprietor with no employees.
    - **To confirm:** no official page confirmed it yet.
-   - **Outside what we check:** rules SnapStart doesn't research, such as children's product safety, with who does.
+   - **Outside what we check:** requirements SnapStart doesn't research, such as children's product safety, with who does.
 
    A step for a structure the owner ruled out stays on record but leaves the plan.
 
-The page shows where the rules come from (state, county, and whether the address is inside city limits; never guessed from a ZIP code). It also shows what changed in the owner's answers since the check, and a "What we checked" list for each research category and level of government. A gap there says "not searched", "no official page found" or "the site didn't let SnapStart read it", never "no rule". Where official pages disagree, both are shown.
+The page shows where the requirements come from (state, county, and whether the address is inside city limits; never guessed from a ZIP code). It also shows what changed in the owner's answers since the check, and a "What we checked" list for each research category and level of government. A gap there says "not searched", "no official page found" or "the site didn't let SnapStart read it", never "nothing applies". Where official pages disagree, both are shown.
 
 Calling an office is never a required step. Anything unconfirmed has a prepared written question to copy into the office's contact form or email, with the best official link. Results are saved, and "Re-check sources" runs it again. Changing a decision such as the structure re-plans from the saved research instead, and the owner reviews the changes first. Reading the pages needs an internet connection, even in practice mode.
 
@@ -122,7 +122,7 @@ Calling an office is never a required step. Anything unconfirmed has a prepared 
 - the Secretary of State's Form 205 (LLC certificate of formation, $300) and Form 503 (assumed name for an LLC or corporation, $25)
 - the Travis County Clerk's assumed name page ($23 for a sole proprietor or partnership)
 - the Comptroller's sales and use tax permit (no fee), franchise tax (report due May 15) and bakery-item tax pages
-- DSHS cottage food rules (what Texas requires of a home kitchen, and what it doesn't)
+- DSHS cottage food requirements (what Texas requires of a home kitchen, and what it doesn't)
 - Austin's home-business page
 
 The server can't read the Texas statutes site, so agency pages are the sources. Other places rely on search, and anything these pages don't cover stays "To confirm" with a written question.
@@ -148,17 +148,17 @@ Forms SnapStart knows by hand are in `src/data/official-forms/`, each with word-
 - **IRS Form SS-4 (EIN), from irs.gov:**
   - "Get the official form" downloads it and checks that it's from the IRS's own site and the exact revision SnapStart checked (Rev. December 2025).
   - The original is kept unchanged.
-  - Fixed rules fill the blanks the owner's confirmed details answer, such as line 6, "Travis County, Texas". SSN, EIN and signature blanks always stay empty.
-  - A newer revision is flagged and isn't filled by these rules.
+  - Code fills the blanks the owner's confirmed details answer, such as line 6, "Travis County, Texas". SSN, EIN and signature blanks always stay empty.
+  - A newer revision is flagged and isn't filled in.
   - The online EIN application gets an answer guide instead.
 - **Texas Forms 205 (LLC certificate of formation) and 503 (assumed name certificate), from sos.texas.gov:** downloaded and checked (Revised 09/26).
-  - Form 205: rules fill the LLC's name, who runs it and the franchise-tax mailing address.
-  - Form 503: rules fill the assumed name, entity type and principal office.
+  - Form 205: code fills the LLC's name, who runs it and the franchise-tax mailing address.
+  - Form 503: code fills the assumed name, entity type and principal office.
   - The registered agent, organizer and signatures are left for the owner.
 - **Texas Form 401-A (registered agent's consent), from sos.texas.gov:** downloaded and checked (Revised 12/09).
   - Texas requires the agent's written consent before Form 205 names them. The form is signed and kept, not filed, and it doesn't count as the step's filed form.
-  - When the agent is one of the owners, rules fill the business name and the agent's name. The part for an agent company is left blank.
-- **Travis County assumed name certificate, from traviscountytx.gov:** for a sole proprietor or partnership. It's downloaded and checked, and rules fill the name, address and owners. It's signed before a notary to mail, or filed in person with every owner's ID.
+  - When the agent is one of the owners, code fills the business name and the agent's name. The part for an agent company is left blank.
+- **Travis County assumed name certificate, from traviscountytx.gov:** for a sole proprietor or partnership. It's downloaded and checked, and code fills the name, address and owners. It's signed before a notary to mail, or filed in person with every owner's ID.
 - **Texas Form AP-201 (sales and use tax permit), from comptroller.texas.gov:** downloaded and checked (Rev.7-26/31). Its 231 blanks aren't mapped by hand, so the paper form is drafted by matching, and the online application gets an answer guide.
 
 A step offers the forms that fit the owner's county and structure. An LLC gets Form 503, and a sole proprietor or partnership in Travis County gets the county's form.
@@ -169,10 +169,10 @@ The owner reviews every answer and saves a reviewed copy (a filled PDF or an ans
 
 ## Owners' agreement
 
-An LLC's or partnership's own rules: who owns what, who runs it, and how decisions and money are handled. In Texas an LLC's is called a company agreement. It isn't filed with the state, but banks commonly ask for it, and without one Texas law decides how profits are split.
+An LLC's or partnership's own terms: who owns what, who runs it, and how decisions and money are handled. In Texas an LLC's is called a company agreement. It isn't filed with the state, but banks commonly ask for it, and without one Texas law decides how profits are split.
 
 - **Where:** on the step that forms the business (or the structure step, for a partnership) and on the Documents page, once an LLC or partnership is recorded.
-- **Filled by rules, not AI.** Fixed wording is filled from the saved name, owners, who runs it, purpose, address and state. The owner adds each owner's share (they must add up to 100%), what each puts in, how owners decide, and the manager's name if there is one.
+- **Filled in code, not AI.** Fixed wording is filled from the saved name, owners, who runs it, purpose, address and state. The owner adds each owner's share (they must add up to 100%), what each puts in, how owners decide, and the manager's name if there is one.
 - **Approve, then sign.** Approving makes a PDF with Schedule A (the owners' shares) and a signature line for each owner. It says it's a starting point, not legal advice.
 - **Outdated.** If a detail it used changes, it's flagged and can't be approved until it's prepared again. Preparing again removes the old PDF.
 - **Not covered:** buyouts, death or disability, deadlocks, competing businesses and pay. The page lists these for a lawyer.
@@ -217,12 +217,12 @@ It also drafts a business plan from the owner's answers. Numbers the owner didn'
    - Dollar amounts they didn’t give are flagged.
 
    The owner approves it, which saves a PDF to My Business Library. If their answers change, the plan says so until it’s written again, and anything naming a platform they’ve since ruled out is hidden.
-3. **Steps.** Approving makes the steps, in order, by rules (`buildMarketingSteps`): a profile picture, setting up each platform the plan uses now (or tidying one they already have), photos, two weeks of posts, search words for their website if they chose one, then the plan’s first actions. How much help a step gets follows the owner’s answer for its area:
+3. **Steps.** Approving makes the steps, in order, in code (`buildMarketingSteps`): a profile picture, setting up each platform the plan uses now (or tidying one they already have), photos, two weeks of posts, search words for their website if they chose one, then the plan’s first actions. How much help a step gets follows the owner’s answer for its area:
    - New to it: every step, open, with a "Take me there" link.
    - A little: a short checklist, with the step-by-step one tap away.
    - Confident: a short checklist.
 
-   Setup steps follow each platform’s own help page, with the date checked (`src/data/marketing-platforms.ts`). TikTok’s page couldn’t be read, so its steps say they’re general. The email list step quotes the FTC’s rule that marketing emails need a postal address and a way to opt out. The owner ticks steps off. Writing the plan again keeps the current steps until the new plan is approved, and ticks carry over to steps that stay.
+   Setup steps follow each platform’s own help page, with the date checked (`src/data/marketing-platforms.ts`). TikTok’s page couldn’t be read, so its steps say they’re general. The email list step quotes the FTC’s requirement that marketing emails need a postal address and a way to opt out. The owner ticks steps off. Writing the plan again keeps the current steps until the new plan is approved, and ticks carry over to steps that stay.
 
 **Stored:** `marketing_plans` holds the answers, the plan, when it was approved, the steps and which are done. Saved plans carry a `version` and are read leniently, so new sections can be added later without breaking them.
 
@@ -238,7 +238,7 @@ On the Product photos page, owners upload an ordinary phone photo of something t
    - When there are several things in the photo, the owner ticks what they're selling. The rest is removed so it doesn't look included.
    - It asks one short question only when it can't tell something essential.
 3. **Edit.**
-   - Code builds the instruction from the look, the shape, the kind of product (clothing, handmade, food or other, each with its own rules) and the details to keep.
+   - Code builds the instruction from the look, the shape, the kind of product (clothing, handmade, food or other, each with its own instructions) and the details to keep.
    - It sends that to Muse Image's `/v1/images/edits` with the owner's original photo as the product reference.
    - Muse Image's own web and image search are turned off, so it can't swap in a similar product found online.
 4. **Refine.** The owner asks for changes in plain words ("Make the background ivory"). Every refinement sends the original again as image 1, plus the draft being changed as image 2.
@@ -273,8 +273,8 @@ On the Branding page, owners get a logo made for their business, its versions, t
    - the kinds of logo they'd like to see (wordmark, monogram, badge, drawn symbol, abstract shape, letter and symbol), or a mix
    More options hold colors to avoid, a symbol idea, anything to avoid, and what they like about logos they've seen.
 3. **Brand picture.** Muse Spark turns the picks into a 2–3 sentence scene ("Rise Bakery is a porch swing on an old wooden back porch…"). The owner chooses "This feels like my business", "Try again with different adjectives" or "Revise this description" (an editable text box). Logo ideas wait until they approve one, and it then guides every idea, drawing and picture.
-4. **Ideas.** Muse Spark acts as a creative director, working from the brand picture. It writes 5 concepts that are genuinely different from each other, each with a kind (wordmark, monogram, badge, drawn symbol, abstract, or a letter and symbol), a specific idea, a lettering direction, a 1–3 color palette (hex) and a plain-words rationale. When the owner picked kinds of logo, the reply's schema allows only those kinds (plus the liked idea's kind for "more like this"), so the model can't drift. Logos the owner likes are passed as taste hints only, with a rule never to copy, imitate or name them, and they never reach Muse Image.
-5. **Drawing.** Code builds each Muse Image instruction from the concept plus fixed quality rules:
+4. **Ideas.** Muse Spark acts as a creative director, working from the brand picture. It writes 5 concepts that are genuinely different from each other, each with a kind (wordmark, monogram, badge, drawn symbol, abstract, or a letter and symbol), a specific idea, a lettering direction, a 1–3 color palette (hex) and a plain-words rationale. When the owner picked kinds of logo, the reply's schema allows only those kinds (plus the liked idea's kind for "more like this"), so the model can't drift. Logos the owner likes are passed as taste hints only, with an instruction never to copy, imitate or name them, and they never reach Muse Image.
+5. **Drawing.** Code builds each Muse Image instruction from the concept plus fixed quality checks:
    - the business name, spelled exactly and letter by letter, and no other words
    - recognizable at 32 pixels
    - flat and vector-like, 1–3 colors, works in one color
@@ -293,12 +293,12 @@ On the Branding page, owners get a logo made for their business, its versions, t
    - different lettering: one of 8 styles
    - add, change or remove the tagline
    Each records what it changed (`brand_assets.design`), so the spelling check, the versions, the brand kit's colors and the logo guide follow the logo as drawn rather than the original idea. The owner can also describe a change in their own words, or ask for 3 more ideas like one they liked.
-8. **Versions.** From the chosen logo, `/v1/images/edits` makes a stacked version, a profile-picture version (the symbol only, padded for a circle crop) and a one-color version. The chosen logo is image 1 every time. Muse Spark compares each version with the logo, and code adds its own rules: the name must never appear in the profile picture, and the stacked and one-color versions must spell the name exactly. The owner approves the three together.
+8. **Versions.** From the chosen logo, `/v1/images/edits` makes a stacked version, a profile-picture version (the symbol only, padded for a circle crop) and a one-color version. The chosen logo is image 1 every time. Muse Spark compares each version with the logo, and code adds its own checks: the name must never appear in the profile picture, and the stacked and one-color versions must spell the name exactly. The owner approves the three together.
 9. **Brand pictures.** Pictures for a Facebook cover, a YouTube banner, a website header and a link preview are made from the approved logo in its colors and style. They're flat artwork, never photos of products the owner may not sell. Guides show what each site crops or covers, and exact-size downloads are made in the browser, because Muse Image only sets the shape.
 10. **Brand kit.** The chosen logo, approved versions, palette and approved pictures. Other sections read it through `getMyBrand()`.
     - **Colors** with hex and RGB codes, and how readable each is on white, worked out from WCAG contrast.
     - **Logo files**, made in the browser from the approved files, one at a time or as a .zip with a note on which file to use where (`src/lib/brand/kit-files.ts`): main and stacked logos on white and see-through; the icon at 1024 × 1024; one-color dark and white see-through files, and white on the logo's darkest color (near-black, said on the page, when every color is light); favicon.ico (16, 32, 48, 96), home-screen icons (180, 192, 512); and profile pictures (Facebook 320 × 320, and an 800 × 800 square SnapStart picked). Sizes a platform asks for cite its own page with the date checked. File names drop characters that make folders or that some systems refuse. See-through files remove the plain background (`src/lib/brand/pixels.ts`), un-mixing soft edges from the logo's own nearby color; white inside the logo becomes see-through too, and a picture without one plain background gets no see-through file.
-    - **Logo guide**: a printable page (a second when the answers are long) saved to Documents (`logo_guide`, replaced when saved again) with the logos, colors, the logo's lettering and free Google Fonts that suit it, clear space, minimum size, and do's and don'ts, all filled in by rules (`src/lib/brand/guide.ts`).
+    - **Logo guide**: a printable page (a second when the answers are long) saved to Documents (`logo_guide`, replaced when saved again) with the logos, colors, the logo's lettering and free Google Fonts that suit it, clear space, minimum size, and do's and don'ts, all filled in by code (`src/lib/brand/guide.ts`).
 
 **Stored:** every file is saved byte for byte as Muse returned it, with its pixel size read from the file. A failed drawing saves nothing.
 
@@ -335,11 +335,11 @@ On the Website page, owners learn the five pieces of being online, compare four 
    - **Square, Wix and Shopify**, priced from each company's own pages.
 
    Every card has the same parts:
-   - the five terms, each marked Included, Extra cost or Not included with a short note (`src/lib/website/terms.ts`, rules over structured platform data);
+   - the five terms, each marked Included, Extra cost or Not included with a short note (`src/lib/website/terms.ts`, code over structured platform data);
    - folding sections: what you get, what you do yourself, things to know;
    - a cost summary (`src/lib/website/costs.ts`). Every package is priced for the same need: the cheapest plan with the owner's own web address and card payments (Square Plus, Wix Core, Shopify Basic), with that plan's own card fee. It lists the plan with its billing ("$29 a month, billed yearly ($348)", plus month-to-month as its own line where the vendor gives it), each extra as a line, then a monthly and first-year total. Each line says whether it's in the total. Card fees, prices that aren't checked and prices without a stated period (Square's web address) are left out and named, never guessed.
 
-   Fixed rules (`src/lib/website/recommend.ts`) recommend one package, with "Explain why":
+   Code (`src/lib/website/recommend.ts`) recommends one package, with "Explain why":
    - Services only: the SnapStart site.
    - In person or at markets: Square.
    - Mostly online with a budget: Shopify.
@@ -364,7 +364,7 @@ On the Website page, owners learn the five pieces of being online, compare four 
    - Prices show only when the owner types them or saved them as a product.
    - Buy links must be https. Links that aren't Stripe or Square get a "make sure it's yours" note.
    - Choices are saved as the plan's `design`.
-9. **Finish (demo).** Rules in `src/lib/website/site/ready.ts` must pass: the words are approved, written for this site and have no [bracketed] notes; buy links are valid; there's a way to get in touch. Practice logos and photos are noted, since nothing goes online. The server checks the site is still the version on screen (`siteSignature`), then records `finished`. The page says "Your site is ready (demo, not published online)". Nothing is uploaded or deployed. Drafting, changing or unapproving the words, or saving a changed design, clears the finish (`src/lib/website/site/finish.ts`), and the sidebar counts it only while the words are approved.
+9. **Finish (demo).** Checks in `src/lib/website/site/ready.ts` must pass: the words are approved, written for this site and have no [bracketed] notes; buy links are valid; there's a way to get in touch. Practice logos and photos are noted, since nothing goes online. The server checks the site is still the version on screen (`siteSignature`), then records `finished`. The page says "Your site is ready (demo, not published online)". Nothing is uploaded or deployed. Drafting, changing or unapproving the words, or saving a changed design, clears the finish (`src/lib/website/site/finish.ts`), and the sidebar counts it only while the words are approved.
 10. **What only the owner can do.** Each platform's steps (checked in each vendor's help on 2026-10-28) have:
     - where to click, with menus and buttons named as the help names them;
     - a "Take me there" link to that page of the dashboard;

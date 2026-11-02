@@ -202,7 +202,7 @@ async function planPdf(plan: MarketingPlan, now: Date) {
   return writePdf({
     title: "Your marketing plan",
     subtitle: `Approved ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
-    notice: plan.simulated ? "Practice draft: written by built-in rules, not by the AI service." : undefined,
+    notice: plan.simulated ? "Practice draft: written from your answers by SnapStart, not by the AI service." : undefined,
     // Sections the checks emptied are left out
     blocks: blocks.filter((block) => (block.paragraphs ?? []).some((text) => text.trim()) || (block.entries ?? []).length > 0),
     footer: "Marketing plan made with SnapStart",

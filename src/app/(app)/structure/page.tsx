@@ -424,7 +424,7 @@ function StateRules({ state, research, rules }: { state: string; research: Resea
         </ul>
       ) : (
         <Note>
-          Your last check didn’t find {state}’s official pages on forming a business or registering a name. That doesn’t mean there are no rules.{" "}
+          Your last check didn’t find {state}’s official pages on forming a business or registering a name. That doesn’t mean nothing applies.{" "}
           <Link href="/requirements" className="font-bold underline underline-offset-4">
             Open What applies to you
           </Link>

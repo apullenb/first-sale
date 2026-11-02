@@ -1,7 +1,7 @@
 import type { BusinessProfile, BusinessStructure, RequirementDraft } from "@/lib/domain";
 import { STATE_NAMES } from "@/lib/intake/options";
 
-// Offline stand-in for the research model: fixed rules over the profile, quoting the pages it was given.
+// Offline stand-in for the research model: fixed logic over the profile, quoting the pages it was given.
 // Real research comes from the configured model; results from this are labeled as practice.
 
 type Fixed = "sourceIds" | "evidence" | "feeUsd" | "deadline";
@@ -258,7 +258,7 @@ export function mockResearch(
       ...cottage,
       key: "cottage-food",
       ownerAction: "compliance",
-      title: "Check that your foods fit Texas cottage food rules",
+      title: "Check that your foods fit Texas cottage food law",
       whyItApplies: "You make food at home to sell. In Texas that’s a cottage food operation: no health department permit, inspection or fee, but limits on what you sell and how you label it.",
       whatToAsk: ["Are all the foods I plan to sell allowed as cottage foods?", "Does my yearly income stay under the cottage food limit?"],
       gather: ["A list of the foods you’ll sell"],
@@ -303,7 +303,7 @@ export function mockResearch(
     gap({
       key: "cottage-food",
       ownerAction: "compliance",
-      title: "Home food business (“cottage food”) rules",
+      title: "Home food business (“cottage food”) requirements",
       topic: "license_permit",
       level: "county",
       agency: "Your county health department",
@@ -370,26 +370,26 @@ export function mockResearch(
     gap({
       key: "childrens-products",
       ownerAction: "compliance",
-      title: "Safety rules for children’s products",
+      title: "Safety requirements for children’s products",
       topic: "other",
       level: "federal",
       agency: "U.S. Consumer Product Safety Commission",
       applicability: "outside_coverage",
-      whyItApplies: `${profile.makesForKids === "yes" ? "You make things for children." : "You weren’t sure whether you make things for children."} Federal safety rules for children’s products can require testing and labels. SnapStart doesn’t research product safety rules.`,
+      whyItApplies: `${profile.makesForKids === "yes" ? "You make things for children." : "You weren’t sure whether you make things for children."} Federal safety laws for children’s products can require testing and labels. SnapStart doesn’t research product safety rules.`,
       whoToCall: "the U.S. Consumer Product Safety Commission",
-      whatToAsk: ["Which children’s product rules apply to what I make?", "Do small makers need third-party testing?"],
+      whatToAsk: ["Which children’s product requirements apply to what I make?", "Do small makers need third-party testing?"],
     });
   }
   if (profile.foodContact === "yes" || profile.foodContact === "unsure") {
     gap({
       key: "food-contact",
       ownerAction: "compliance",
-      title: "Rules for items that touch food",
+      title: "Requirements for items that touch food",
       topic: "other",
       level: "federal",
       agency: "U.S. Food and Drug Administration",
       applicability: "outside_coverage",
-      whyItApplies: `${profile.foodContact === "yes" ? "Some of what you make will touch food, like cutting boards or bowls." : "You weren’t sure whether what you make will touch food."} Finishes and materials for food-contact items have federal rules SnapStart doesn’t research.`,
+      whyItApplies: `${profile.foodContact === "yes" ? "Some of what you make will touch food, like cutting boards or bowls." : "You weren’t sure whether what you make will touch food."} Finishes and materials for food-contact items have federal requirements SnapStart doesn’t research.`,
       whoToCall: "the U.S. Food and Drug Administration",
       whatToAsk: ["Which finishes are allowed on items that touch food?"],
     });
@@ -452,8 +452,8 @@ export function mockResearch(
       level: "city",
       agency: "Your city’s planning or zoning office",
       whyItApplies: profile.handoff.includes("pickup_home")
-        ? "Customers will pick up at your home, and zoning rules decide what a home business may do, including customer visits."
-        : "You’ll work from home, and zoning rules decide what a home business may do.",
+        ? "Customers will pick up at your home, and zoning decides what a home business may do, including customer visits."
+        : "You’ll work from home, and zoning decides what a home business may do.",
       whoToCall: "your city’s planning or zoning office",
       whatToAsk: ["Is a home-based business allowed at my address?", "Can customers pick up orders at my home?"],
     });

@@ -30,7 +30,7 @@ export interface EditorField {
 interface Props {
   // Drafted in practice mode by word matching
   practice?: boolean;
-  // A checked official form: its blanks are filled by fixed rules, not the AI
+  // A checked official form: its blanks are filled by code, not the AI
   rules?: boolean;
   documentId: string;
   fields: EditorField[];

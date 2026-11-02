@@ -141,7 +141,7 @@ export function nextMove(input: JourneyInput): NextMove {
   if (!input.researched) {
     return move(
       "Find out what applies to you",
-      "SnapStart checks official government sites and works out the rules that fit your business.",
+      "SnapStart checks official government sites and works out the requirements that fit your business.",
       "/requirements",
       "Find what applies to me",
     );

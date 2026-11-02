@@ -34,7 +34,7 @@ test.describe("products and product photos", () => {
     await open(page, "/photos");
     await expect(page.getByRole("region", { name: "Your product library" }).getByRole("img").first()).toBeVisible({ timeout: 30_000 });
 
-    // Products: price, cost and stock; what's left from each sale is worked out by rules
+    // Products: price, cost and stock; what's left from each sale is worked out in code
     await open(page, "/products");
     await expect(page.getByRole("heading", { level: 1, name: "Add your products" })).toBeVisible();
     await expectPracticeBanner(page);
@@ -213,7 +213,7 @@ test.describe("products and product photos", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Manage your services" })).toBeVisible();
     await expect(sidebar(page).getByRole("link", { name: /^Manage your services , done/ })).toBeVisible();
 
-    // Prices per option replace the owner's words with a range worked out by rules
+    // Prices per option replace the owner's words with a range worked out in code
     await groom.getByRole("button", { name: `Edit ${first.name}` }).click();
     const editor = page.getByRole("region", { name: `Edit ${first.name}` });
     await editor.getByRole("textbox", { name: "Price for Small" }).fill("75");
