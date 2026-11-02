@@ -30,6 +30,7 @@ import { finishStands } from "@/lib/website/site/finish";
 import { claimRecords } from "@/lib/website/site/check";
 import { loadSite } from "./site-data";
 import { runWorkflow } from "@/lib/workflow-runner";
+import { optionsSummary, priceLabel } from "@/lib/rules/products";
 
 const NO_BUSINESS = "Tell us about your business first.";
 
@@ -116,7 +117,13 @@ async function planAnswers(): Promise<Record<string, string>> {
 
 // Selling prices only; what each product costs the owner stays out
 async function siteProducts() {
-  return (await listMyProducts()).map((product) => ({ name: product.name, description: product.description, priceCents: product.priceCents }));
+  return (await listMyProducts()).map((product) => ({
+    name: product.name,
+    description: product.description,
+    priceCents: product.priceCents,
+    price: priceLabel(product),
+    options: optionsSummary(product.options),
+  }));
 }
 
 export async function draftWebsiteAction(): Promise<ActionResult> {

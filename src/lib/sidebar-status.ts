@@ -8,6 +8,7 @@ import { profileKey } from "@/lib/research/requirements";
 import { contactStatus } from "@/lib/rules/contact-setup";
 import { choosesStructure } from "@/lib/rules/plan";
 import { remainingWork } from "@/lib/rules/progress";
+import { itemsStepTitle, sellsWhat } from "@/lib/products/autofill";
 import { menuGroups, sidebarStatus, startSteps } from "@/lib/rules/section-status";
 
 // Which menu steps are done, waiting, locked or left. The marks are extra: if they can't be read, the business card still shows.
@@ -74,6 +75,7 @@ async function statusFor(business: MyBusiness): Promise<NavStatus> {
     websiteFinished: saved?.websiteFinished ?? false,
     websiteConnected: saved?.websiteConnected ?? false,
     products: saved?.products ?? 0,
+    productsTitle: profile ? itemsStepTitle(sellsWhat(profile, (saved?.confirmedKinds ?? []).map((kind) => ({ kind }))), (saved?.confirmedKinds.length ?? 0) > 0) : undefined,
     marketingApproved: saved?.marketingApproved ?? false,
     socialPlatforms: saved?.socialPlatforms ?? [],
     socialHave: saved?.socialHave ?? [],

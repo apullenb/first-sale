@@ -38,8 +38,9 @@ interface NavStep extends StartStep {
   number: number;
 }
 
+// A step's menu name can change with progress, like "Manage your products"
 export function stepsOf(group: SectionGroup, status?: NavStatus): NavStep[] {
-  return sectionSteps(group, status?.start).map((step, index) => ({ ...step, number: index + 1 }));
+  return sectionSteps(group, status?.start).map((step, index) => ({ ...step, title: status?.parts[step.href]?.title ?? step.title, number: index + 1 }));
 }
 
 const countedHrefs = (group: SectionGroup, status?: NavStatus) => countedSteps(group, status?.start);

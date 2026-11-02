@@ -11,6 +11,7 @@ import {
   listLibraryFilesForOwner,
   type NewLibraryFile,
 } from "./brand-library";
+import { productValues } from "@/lib/products/test-values";
 import { createProductForOwner, listProductsForOwner } from "./products";
 
 let db: Awaited<ReturnType<typeof createTestDb>>;
@@ -54,7 +55,7 @@ describe("the Brand Library", () => {
 
   it("deletes only the owner's own uploads, and products showing one go back to no photo", async () => {
     const id = await add();
-    const made = await createProductForOwner(db, "owner-a", { name: "Loaf", description: "", priceCents: 900, unitCostCents: null, quantity: null, photo: { source: "library", fileId: id } });
+    const made = await createProductForOwner(db, "owner-a", productValues({ name: "Loaf", photo: { source: "library", fileId: id } }));
     expect(made.ok).toBe(true);
     expect(await deleteLibraryFileForOwner(db, "owner-b", id)).toBe(false);
     expect(await deleteLibraryFileForOwner(db, "owner-a", id)).toBe(true);
