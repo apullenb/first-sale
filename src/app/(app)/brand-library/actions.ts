@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -16,6 +18,7 @@ const UPLOAD_MESSAGES = {
 
 // A picture the owner adds, kept exactly as uploaded
 export async function uploadLibraryFileAction(form: FormData): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const file = form.get("file");
   const name = form.get("name");
   const group = z.enum(LIBRARY_GROUPS).safeParse(form.get("group"));
@@ -34,6 +37,7 @@ export async function uploadLibraryFileAction(form: FormData): Promise<ActionRes
 
 // Only the owner's own uploads can be deleted; generated files and product photos are managed on their own pages
 export async function deleteLibraryFileAction(fileId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = z.string().min(1).max(60).safeParse(fileId);
   if (!parsed.success || !(await deleteMyLibraryFile(parsed.data))) return { ok: false, message: "That picture wasn’t found. It may have been deleted already." };
   refresh();

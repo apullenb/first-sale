@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -59,6 +61,7 @@ function createFailure(outcome: Exclude<CreateOutcome, { ok: true }>): ActionRes
 const stepField = z.string().max(60).optional().transform((value) => value || null);
 
 export async function uploadDocumentAction(form: FormData): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const file = form.get("file");
   const stepId = stepField.safeParse(form.get("stepId") ?? undefined);
   if (!(file instanceof File) || !stepId.success) return { ok: false, message: "Choose a file to upload." };
@@ -87,6 +90,7 @@ export async function uploadDocumentAction(form: FormData): Promise<ActionResult
 const pasteSchema = z.object({ title: z.string().max(120), text: z.string().max(MAX_PASTE_CHARS), stepId: stepField });
 
 export async function pasteDocumentAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = pasteSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: `Paste up to ${MAX_PASTE_CHARS.toLocaleString("en-US")} characters.` };
   const text = parsed.data.text.trim();
@@ -111,6 +115,7 @@ const officialSchema = z.object({ url: z.string().max(2000), stepId: stepField }
 
 // Only PDFs on sites in the official .gov registry; the app fetches the form itself
 export async function officialFormAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = officialSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Paste the link to the form." };
   const government = governmentFor(parsed.data.url.trim());
@@ -152,6 +157,7 @@ function fileNameOf(url: string): string {
 }
 
 export async function readAgainAction(documentId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const doc = await load(documentId);
   if (!doc || doc.origin === "generated") return { ok: false, message: NOT_FOUND };
   if (doc.origin === "paste") {
@@ -180,6 +186,7 @@ function readable(doc: StoredDocument): boolean {
 }
 
 export async function explainDocumentAction(documentId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const doc = await load(documentId);
   if (!doc || doc.origin === "generated") return { ok: false, message: NOT_FOUND };
   if (!readable(doc)) return { ok: false, message: "We don’t have this form’s text yet. Read it again, or paste its text instead." };
@@ -201,6 +208,7 @@ export async function explainDocumentAction(documentId: unknown): Promise<Action
 
 // A letter or record the owner already has: read only now that they asked, then explained
 export async function explainReceivedAction(documentId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const doc = await load(documentId);
   if (!doc || !isKept(doc)) return { ok: false, message: NOT_FOUND };
   const [file, plan] = await Promise.all([readable(doc) ? null : getMyDocumentFile(doc.id), getMyPlan()]);
@@ -230,6 +238,7 @@ export async function explainReceivedAction(documentId: unknown): Promise<Action
 const askSchema = z.object({ documentId: id, question: z.string().max(MAX_QUESTION), fieldId: z.string().max(200).nullable() });
 
 export async function askDocumentAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = askSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: `Keep your question under ${MAX_QUESTION} characters.` };
   const question = parsed.data.question.trim();
@@ -260,6 +269,7 @@ export async function askDocumentAction(input: unknown): Promise<ActionResult> {
 // --- Draft answers
 
 export async function draftAnswersAction(documentId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const doc = await load(documentId);
   if (!doc || doc.origin === "generated") return { ok: false, message: NOT_FOUND };
   if (!doc.content.fields.length) return { ok: false, message: "We didn’t find any blanks to fill in on this form." };
@@ -296,6 +306,7 @@ const saveAnswersSchema = z.object({
 
 // The owner's review: typed values become theirs, ticked ones are confirmed
 export async function saveAnswersAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = saveAnswersSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Keep each answer under 1,000 characters." };
   const doc = await load(parsed.data.documentId);
@@ -365,6 +376,7 @@ function usedBy(doc: StoredDocument): Record<string, string> | null {
 }
 
 export async function fillCopyAction(documentId: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const doc = await load(documentId);
   if (!doc || doc.origin === "generated") return { ok: false, message: NOT_FOUND };
   const file = doc.mimeType === "application/pdf" ? await getMyDocumentFile(doc.id) : null;
@@ -400,6 +412,7 @@ export async function fillCopyAction(documentId: unknown): Promise<ActionResult<
 }
 
 export async function answerSheetAction(documentId: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const doc = await load(documentId);
   if (!doc || doc.origin === "generated") return { ok: false, message: NOT_FOUND };
   if (!doc.content.fields.length) return { ok: false, message: "We didn’t find any blanks on this form to list." };
@@ -435,6 +448,7 @@ export async function answerSheetAction(documentId: unknown): Promise<ActionResu
 const linkSchema = z.object({ documentId: id, stepId: z.string().max(60).nullable() });
 
 export async function linkStepAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = linkSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: NOT_FOUND };
   if (!(await updateMyDocument(parsed.data.documentId, { taskId: parsed.data.stepId }))) {
@@ -447,6 +461,7 @@ export async function linkStepAction(input: unknown): Promise<ActionResult> {
 const renameSchema = z.object({ documentId: id, title: z.string().max(120) });
 
 export async function renameDocumentAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = renameSchema.safeParse(input);
   const title = parsed.success ? cleanTitle(parsed.data.title) : "";
   if (!parsed.success || !parsed.data.title.trim()) return { ok: false, message: "Enter a name for the document." };
@@ -456,6 +471,7 @@ export async function renameDocumentAction(input: unknown): Promise<ActionResult
 }
 
 export async function deleteDocumentAction(documentId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(documentId);
   if (!parsed.success || !(await deleteMyDocument(parsed.data))) return { ok: false, message: NOT_FOUND };
   refresh();
@@ -481,6 +497,7 @@ async function currentBusinessPlan(): Promise<StoredDocument | null> {
 
 // Drafts the plan from what SnapStart knows, the owner's edits to it and their answers. Facts are read again here, never taken from the page.
 export async function draftBusinessPlanAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = planInputSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Keep each answer shorter, then try again." };
   const sources = await myPlanSources();
@@ -552,6 +569,7 @@ const moneyLabels = (money: MoneyInputs) => [...money.items.map((item) => item.n
 
 // Rewrites the plan's Financial Estimates section from new estimates, in code; the rest of the plan stays as edited
 export async function updatePlanEstimatesAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = z.object({ money: moneyInputsSchema }).safeParse(input);
   if (!parsed.success) return { ok: false, message: "Check the amounts: whole numbers of units and months, and dollar amounts like 12.50." };
   const money = cleanMoney(parsed.data.money);
@@ -576,6 +594,7 @@ const saveSchema = z.object({
 
 // Saves the owner's edits as they go; with `pdf`, also writes the PDF kept in Documents
 export async function saveBusinessPlanAction(input: unknown): Promise<ActionResult<{ version: string; savedAt: string | null }>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = saveSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Keep each section under 8,000 characters." };
   if (parsed.data.sections.some((section) => looksLikeIdNumber(`${section.heading} ${section.body}`))) return { ok: false, message: ID_NUMBERS };

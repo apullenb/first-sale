@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -41,6 +43,7 @@ async function stepAndForm(stepId: string, formKey: string) {
 }
 
 export async function getOfficialFormAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = formInput.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
   const found = await stepAndForm(parsed.data.stepId, parsed.data.formKey);
@@ -68,6 +71,7 @@ export async function getOfficialFormAction(input: unknown): Promise<ActionResul
 }
 
 export async function prepareAnswerGuideAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = formInput.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
   const found = await stepAndForm(parsed.data.stepId, parsed.data.formKey);
@@ -84,6 +88,7 @@ export async function prepareAnswerGuideAction(input: unknown): Promise<ActionRe
 
 // Drafts the answers again from current details: changed ones are redrafted, new details fill blanks, confirmed answers on unchanged details stay
 export async function refreshDraftAction(documentId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(documentId);
   const [doc, business, details] = await Promise.all([parsed.success ? getMyDocument(parsed.data) : null, getMyBusiness(), getMyDetails()]);
   if (!doc || doc.origin === "generated") return { ok: false, message: "That document wasn’t found. It may have been deleted." };
@@ -105,6 +110,7 @@ const requestField = z.string().min(8).max(80).nullable().catch(null);
 
 // Letters, receipts, approvals and other papers the owner has, for a step or not: saved as uploaded, not sent to the AI service
 export async function uploadRecordAction(form: FormData): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const file = form.get("file");
   const stepId = id.nullable().safeParse(form.get("stepId") || null);
   const role = roleField.safeParse(form.get("role"));
@@ -132,6 +138,7 @@ export async function uploadRecordAction(form: FormData): Promise<ActionResult<s
 
 // A new version of an uploaded file; the earlier one stays in its history
 export async function replaceDocumentAction(form: FormData): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const file = form.get("file");
   const documentId = id.safeParse(form.get("documentId"));
   const requestKey = requestField.parse(form.get("requestKey"));

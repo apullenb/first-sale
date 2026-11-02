@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -23,6 +25,7 @@ const statusSchema = z.object({
 });
 
 export async function setStepStatusAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = statusSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Keep the note under 500 characters." };
   const { stepId, status, confirmed } = parsed.data;
@@ -61,6 +64,7 @@ async function kindRefuses(stepId: string, status: "submitted" | "done"): Promis
 
 // A printable copy of the steps that apply, as they stand, saved to the document library
 export async function savePlanPdfAction(): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const paper = await getMyPaperwork();
   const steps = (paper?.view.tasks ?? []).map((task) => ({ ...task.step, requirementStatus: task.requirementStatus, conditions: task.conditions }));
   if (!paper || steps.length === 0) return { ok: false, message: "Find what applies to you first, so there are steps to save." };

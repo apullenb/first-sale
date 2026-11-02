@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -15,6 +17,7 @@ const UPLOAD_MESSAGES = {
 
 // The owner's own logo: kept byte for byte and chosen at once. The browser's key makes a retry return the same file.
 export async function uploadLogoAction(form: FormData): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const file = form.get("file");
   const words = form.get("words");
   const key = z.uuid().safeParse(form.get("requestKey"));
@@ -44,6 +47,7 @@ const MISSING = "That logo wasn’t found. Reload the page and try again.";
 
 // Removes the owner's upload, or an edit of it, with everything made from it; drawn ideas aren't removed here
 export async function removeUploadedLogoAction(assetId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = z.string().min(1).max(60).safeParse(assetId);
   if (!parsed.success || !(await deleteMyOwnLogo(parsed.data))) return { ok: false, message: MISSING };
   refresh();
@@ -52,6 +56,7 @@ export async function removeUploadedLogoAction(assetId: unknown): Promise<Action
 
 // The chosen logo: the owner's own is removed; a drawn one stops being used and stays with the ideas
 export async function removeChosenLogoAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const state = await getMyBrandState();
   const chosen = state?.assets.find((asset) => asset.id === state.chosenLogoId && asset.kind === "logo");
   if (!chosen) return { ok: false, message: MISSING };

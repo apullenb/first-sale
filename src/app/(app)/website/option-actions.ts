@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -15,6 +17,7 @@ const NO_BUSINESS = "Tell us about your business first.";
 
 // Muse searches the web for other builders, only when the owner asks
 export async function findMoreOptionsAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const business = await getMyBusiness();
   if (!business?.profile) return { ok: false, message: NO_BUSINESS };
   // Practice mode can't search, so it says so without using up an AI request
