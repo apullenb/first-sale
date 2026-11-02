@@ -15,6 +15,8 @@ export interface PartStatus {
   waitsOn?: string[];
   // What the count counts; only steps add up to Today's total, like Today's own count
   unit?: "step" | "question" | "decision";
+  // The step's name when it depends on the owner's answers, such as "Manage your services"
+  title?: string;
 }
 
 // A paperwork group as the menu shows it
@@ -52,6 +54,8 @@ export interface JourneyFacts {
   websiteFinished: boolean;
   websiteConnected: boolean;
   products: number;
+  // The products step's name, from the owner's answers and confirmed items
+  productsTitle?: string;
   marketingApproved: boolean;
   // Accounts the owner picked in their marketing plan, and the ones they already have
   socialPlatforms: readonly string[];
@@ -185,7 +189,7 @@ export function sidebarStatus(facts: JourneyFacts): SidebarStatus {
     "/brand": either(facts.brandDescribed || marked("brand")),
     "/logo": either(facts.logoChosen || marked("logo")),
     "/website": either(facts.websiteFinished || facts.websiteConnected || marked("website")),
-    "/products": either(facts.products > 0 || marked("products")),
+    "/products": { ...either(facts.products > 0 || marked("products")), ...(facts.productsTitle ? { title: facts.productsTitle } : {}) },
     "/marketing": either(facts.marketingApproved || marked("marketing")),
     "/social": either(
       marked("social") ||

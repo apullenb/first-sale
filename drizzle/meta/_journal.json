@@ -169,6 +169,13 @@
       "when": 1793570328691,
       "tag": "0023_luxuriant_fenris",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793578517440,
+      "tag": "0024_item_kinds_options_pictures",
+      "breakpoints": true
     }
   ]
 }

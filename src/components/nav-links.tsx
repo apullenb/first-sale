@@ -45,7 +45,7 @@ function stepsOf(group: SectionGroup, status?: NavStatus): NavStep[] {
   const steps =
     group === "Start your business"
       ? (status?.start ?? startSteps([]))
-      : SECTIONS.filter((section) => section.group === group && section.step !== null).map((section) => ({ href: section.href, title: section.title, later: false }));
+      : SECTIONS.filter((section) => section.group === group && section.step !== null).map((section) => ({ href: section.href, title: status?.parts[section.href]?.title ?? section.title, later: false }));
   return steps.map((step, index) => ({ ...step, number: index + 1 }));
 }
 

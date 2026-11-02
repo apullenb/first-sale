@@ -58,7 +58,8 @@ import type { DecisionBasis } from "@/lib/structure/types";
 import type { WebSearchHit } from "@/lib/ai/types";
 import type { InsightFeedback, SavedInsights } from "@/lib/insights/types";
 import { LIBRARY_GROUPS } from "@/lib/brand/library";
-import type { ProductPhotoRef } from "@/lib/rules/products";
+import type { PriceCheck } from "@/lib/rules/price-compare";
+import { DESCRIPTION_AUTHORS, ITEM_KINDS, ITEM_ORIGINS, ITEM_STATUSES, type ItemOptions, type ProductPhotoRef } from "@/lib/rules/products";
 
 const id = () => text("id").primaryKey().$defaultFn(() => crypto.randomUUID());
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -355,21 +356,74 @@ export const products = pgTable(
   {
     id: id(),
     businessId: businessId(),
+    kind: text("kind", { enum: ITEM_KINDS }).notNull().default("product"),
+    // Suggested items stay out of public copy until the owner confirms them
+    status: text("status", { enum: ITEM_STATUSES }).notNull().default("confirmed"),
+    origin: text("origin", { enum: ITEM_ORIGINS }).notNull().default("owner"),
     name: text("name").notNull(),
     description: text("description").notNull().default(""),
+    descriptionBy: text("description_by", { enum: DESCRIPTION_AUTHORS }).notNull().default("owner"),
     materials: text("materials").notNull().default(""),
-    // Exactly what the owner typed, in cents
-    priceCents: integer("price_cents").notNull(),
+    // Exactly what the owner typed, in cents; null until they type one
+    priceCents: integer("price_cents"),
+    // Services: the price in the owner's words, such as "$40 an hour"
+    priceText: text("price_text").notNull().default(""),
     unitCostCents: integer("unit_cost_cents"),
-    // Null when the owner doesn't track stock
+    // Null when the owner doesn't track stock; the options' total when they're counted
     quantity: integer("quantity"),
+    duration: text("duration").notNull().default(""),
+    location: text("location").notNull().default(""),
+    included: text("included").notNull().default(""),
+    // Option groups and each combination's own price and stock
+    options: jsonb("options").$type<ItemOptions>().notNull().default({ groups: [], variants: [] }),
     photoUrl: text("photo_url"),
-    // A product photo, an approved edit or a Brand Library picture
+    // A product photo, an approved edit, a Brand Library picture or an approved generated picture
     photo: jsonb("photo").$type<ProductPhotoRef>(),
     createdAt: createdAt(),
   },
   (table) => [index("products_business_id_idx").on(table.businessId)],
 );
+
+// Pictures made from an item's description, byte for byte as returned; used only once approved
+export const productPictures = pgTable(
+  "product_pictures",
+  {
+    id: id(),
+    businessId: businessId(),
+    productId: text("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    // The picture this one edited
+    sourceId: text("source_id"),
+    change: text("change"),
+    prompt: text("prompt").notNull(),
+    model: text("model").notNull(),
+    // Practice preview, not made by the image service
+    simulated: boolean("simulated").notNull(),
+    requestKey: text("request_key").notNull(),
+    mimeType: text("mime_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+    data: bytea("data").notNull(),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    uniqueIndex("product_pictures_business_request_idx").on(table.businessId, table.requestKey),
+    index("product_pictures_product_idx").on(table.productId),
+  ],
+);
+
+// The last "Compare prices near you" search per item, so it doesn't re-run on every visit
+export const productPriceChecks = pgTable("product_price_checks", {
+  productId: text("product_id")
+    .primaryKey()
+    .references(() => products.id, { onDelete: "cascade" }),
+  businessId: businessId(),
+  result: jsonb("result").$type<PriceCheck>().notNull(),
+  checkedAt: timestamp("checked_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 // AI drafts stay drafts until the owner approves them
 export const drafts = pgTable(

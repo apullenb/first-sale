@@ -36,6 +36,8 @@ test.describe("products and product photos", () => {
 
     // Products: price, cost and stock; what's left from each sale is worked out by rules
     await open(page, "/products");
+    await expect(page.getByRole("heading", { level: 1, name: "Add your products" })).toBeVisible();
+    await expectPracticeBanner(page);
     const form = page.getByRole("region", { name: "Add a product" });
     for (const [index, product] of candles.products.entries()) {
       // After the first, the form folds away behind “Add a product”
@@ -53,7 +55,24 @@ test.describe("products and product photos", () => {
     const cedar = list.getByRole("article", { name: "Cedar & Smoke candle" });
     await expect(cedar).toContainText("Costs you $7.50, so $16.50 is left from each sale (69%)");
     await expect(cedar).toContainText("40 in stock");
-    await expect(sidebar(page).getByRole("link", { name: /^Add your products , done/ })).toBeVisible();
+    // Once something is confirmed, the step is about managing them
+    await expect(page.getByRole("heading", { level: 1, name: "Manage your products" })).toBeVisible();
+    await expect(sidebar(page).getByRole("link", { name: /^Manage your products , done/ })).toBeVisible();
+
+    // Options: each size with its own price and stock; the range and total come from rules
+    await cedar.getByRole("button", { name: "Edit Cedar & Smoke candle" }).click();
+    const editor = page.getByRole("region", { name: "Edit Cedar & Smoke candle" });
+    await editor.getByRole("button", { name: "Add an option" }).click();
+    await editor.getByRole("textbox", { name: "Option 1 name" }).fill("Size");
+    await editor.getByRole("textbox", { name: "Option 1 choices, separated by commas" }).fill("8 oz, 12 oz");
+    await editor.getByRole("textbox", { name: "Price for 12 oz" }).fill("32");
+    await editor.getByRole("textbox", { name: "Stock for 8 oz" }).fill("25");
+    await editor.getByRole("textbox", { name: "Stock for 12 oz" }).fill("10");
+    await editor.getByRole("button", { name: "Save changes" }).click();
+    await expect(cedar).toContainText("$24–$32", { timeout: 30_000 });
+    await expect(cedar).toContainText("Size: 8 oz, 12 oz");
+    await expect(cedar).toContainText("35 in stock");
+    await expect(cedar.getByRole("list", { name: "Options for Cedar & Smoke candle" })).toContainText("12 oz · $32 · 10 in stock");
 
     // The approved photo can go with a product
     await list.getByRole("button", { name: "Edit Wildflower tin" }).click();
@@ -73,20 +92,131 @@ test.describe("products and product photos", () => {
     await expect(list.getByRole("article", { name: "Wildflower tin" })).toHaveCount(0);
   });
 
-  test("groomer: services without stock, and “My products are already listed somewhere”", async ({ browser }) => {
+  test("candles: suggestions from answers, a description from a photo, a picture from a description, and prices nearby", async ({ browser }) => {
+    const { page } = await newOwner(browser, candles, "candles-ai");
+    await open(page, "/products");
+    await expectPracticeBanner(page);
+
+    // Suggested from intake: names only, a labeled practice draft, no price
+    const suggest = page.getByRole("region", { name: "Start from your answers" });
+    await expect(suggest.getByRole("list", { name: "Suggested from your answers" })).toContainText("Hand-poured soy candles");
+    await suggest.getByRole("button", { name: "Add these suggestions" }).click();
+    const list = page.getByRole("region", { name: "Your products" });
+    const suggested = list.getByRole("article", { name: "Hand-poured soy candles" });
+    await expect(suggested).toContainText("Suggested", { timeout: 30_000 });
+    await expect(suggested).toContainText("Practice draft, not written by AI");
+    await expect(suggested).toContainText("No price yet");
+    // Not confirmed yet, so the step isn't about managing yet
+    await expect(page.getByRole("heading", { level: 1, name: "Add your products" })).toBeVisible();
+
+    // Confirming needs a price
+    await suggested.getByRole("button", { name: "Review and confirm Hand-poured soy candles" }).click();
+    const review = page.getByRole("region", { name: "Review Hand-poured soy candles" });
+    await review.getByRole("textbox", { name: "Short description (optional)" }).fill("Soy candles poured by hand in small batches");
+    await review.getByRole("button", { name: "Confirm" }).click();
+    await expect(review.getByRole("alert")).toBeVisible();
+    await review.getByRole("textbox", { name: "Price" }).fill("22");
+    await review.getByRole("button", { name: "Confirm" }).click();
+    const confirmed = list.getByRole("article", { name: "Hand-poured soy candles" });
+    await expect(confirmed).toContainText("$22", { timeout: 30_000 });
+    await expect(confirmed).not.toContainText("Suggested");
+    await expect(confirmed).not.toContainText("Practice draft");
+    await expect(page.getByRole("heading", { level: 1, name: "Manage your products" })).toBeVisible();
+
+    // A picture from the description: a labeled practice preview the owner approves
+    await confirmed.getByRole("button", { name: "Pictures of Hand-poured soy candles" }).click();
+    const pictures = confirmed.getByRole("region", { name: "Pictures of Hand-poured soy candles" });
+    await pictures.getByRole("button", { name: "Make a picture from the description" }).click();
+    const newest = pictures.getByRole("figure", { name: "Newest picture of Hand-poured soy candles" });
+    await expect(newest).toContainText("Practice preview, not made by AI", { timeout: 60_000 });
+    await pictures.getByRole("textbox", { name: "Ask for a change to the newest picture" }).fill("Warmer light");
+    await pictures.getByRole("button", { name: "Make this change" }).click();
+    await expect(pictures.getByRole("figure", { name: "Newest picture of Hand-poured soy candles" })).toContainText("Change: Warmer light", { timeout: 60_000 });
+    const latest = pictures.getByRole("figure", { name: "Newest picture of Hand-poured soy candles" });
+    await latest.getByRole("button", { name: "Use this picture" }).click();
+    await expect(latest.getByRole("alert")).toBeVisible();
+    await latest.getByText("I understand this is only a practice preview").click();
+    await latest.getByRole("button", { name: "Use this picture" }).click();
+    await expect(confirmed.getByRole("img", { name: "Photo of Hand-poured soy candles" })).toBeVisible({ timeout: 30_000 });
+    await expect(confirmed).toContainText("Its photo is a practice preview.");
+
+    // A new item from a photo: a suggested name and description, the photo kept with it
+    const fromPhoto = page.getByRole("region", { name: "Start from a photo" });
+    await fromPhoto.locator("input[type=file]").first().setInputFiles({ name: "pillar.png", mimeType: "image/png", buffer: pngBuffer(600, [240, 210, 160]) });
+    await fromPhoto.getByRole("textbox", { name: "What is it? (optional)" }).fill("Beeswax pillar");
+    await fromPhoto.getByRole("button", { name: "Draft a name and description" }).click();
+    const pillar = list.getByRole("article", { name: "Beeswax pillar" });
+    await expect(pillar).toContainText("Suggested", { timeout: 60_000 });
+    await expect(pillar).toContainText("Practice draft, not written by AI");
+    await expect(pillar.getByRole("img", { name: "Photo of Beeswax pillar" })).toBeVisible();
+
+    // Prices nearby: practice samples, labeled, with low, typical and high from rules
+    const compare = page.getByRole("region", { name: "Compare prices near you" });
+    await compare.getByRole("combobox", { name: "What to compare" }).selectOption({ label: "Hand-poured soy candles" });
+    await compare.getByRole("button", { name: "Compare prices" }).click();
+    const results = compare.getByRole("region", { name: /Prices for Hand-poured soy candles/ });
+    await expect(results).toContainText("Practice sample, not a real search. These sellers aren’t real.", { timeout: 60_000 });
+    const summary = results.getByRole("definition");
+    await expect(summary).toHaveText(["$15", "$25", "$35", "$22"]);
+    await expect(results.getByRole("list", { name: "Prices found for Hand-poured soy candles" }).getByRole("listitem")).toHaveCount(4);
+    await expect(results.getByRole("link", { name: /See this item/ }).first()).toHaveAttribute("target", "_blank");
+    await expect(results).toContainText("Prices change, so check each link.");
+    // Kept, so it doesn't run again on the next visit
+    await open(page, "/products");
+    await expect(page.getByRole("region", { name: /Prices for Hand-poured soy candles/ })).toContainText("Practice sample");
+  });
+
+  test("groomer: services with options, and “My services are already listed somewhere”", async ({ browser }) => {
     const { page } = await newOwner(browser, groomer);
     await open(page, "/products");
-    const form = page.getByRole("region", { name: "Add a product" });
-    // A price is needed
-    await form.getByRole("textbox", { name: "Name" }).fill(groomer.products[0].name);
-    await form.getByRole("button", { name: "Add product" }).click();
-    await expect(form.getByRole("alert").first()).toBeVisible();
-    await form.getByRole("textbox", { name: "Price" }).fill(groomer.products[0].price);
-    await form.getByRole("button", { name: "Add product" }).click();
-    await expect(page.getByRole("region", { name: "Your products" }).getByText(groomer.products[0].name).first()).toBeVisible({ timeout: 30_000 });
+    // A services business is asked about services, not products
+    await expect(page.getByRole("heading", { level: 1, name: "Add your services" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Your products" })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Start from your answers" })).toContainText("Mobile dog grooming from a van");
+    await expect(sidebar(page).getByRole("link", { name: /^Add your services/ })).toBeVisible();
 
-    await page.getByRole("button", { name: "My products are already listed somewhere" }).click();
-    const listed = page.getByRole("region", { name: "My products are already listed somewhere" });
+    const form = page.getByRole("region", { name: "Add a service" });
+    const [first] = groomer.products;
+    await form.getByRole("textbox", { name: "Name" }).fill(first.name);
+    await form.getByRole("textbox", { name: "Short description (optional)" }).fill(first.description);
+    await form.getByRole("textbox", { name: "How you price it (optional)" }).fill("From $85 a visit");
+    await form.getByRole("textbox", { name: "How long it takes (optional)" }).fill("About 2 hours");
+    await form.getByRole("textbox", { name: "Where it happens (optional)" }).fill("In our van at your home");
+    await form.getByRole("textbox", { name: "What’s included (optional)" }).fill("Bath, haircut, nails and ears");
+    // Services can have options too, with their own prices and no stock
+    await form.getByRole("button", { name: "Add an option" }).click();
+    await form.getByRole("textbox", { name: "Option 1 name" }).fill("Dog size");
+    await form.getByRole("textbox", { name: "Option 1 choices, separated by commas" }).fill("Small, Large");
+    await expect(form.getByRole("textbox", { name: "Stock for Small" })).toHaveCount(0);
+    await form.getByRole("button", { name: "Add service" }).click();
+    const list = page.getByRole("region", { name: "Your services" });
+    const groom = list.getByRole("article", { name: first.name });
+    await expect(groom).toContainText("From $85 a visit", { timeout: 30_000 });
+    await expect(groom).toContainText("Takes About 2 hours");
+    await expect(groom).toContainText("Where: In our van at your home");
+    await expect(groom).toContainText("Dog size: Small, Large");
+    await expect(groom).not.toContainText("in stock");
+    await expect(page.getByRole("heading", { level: 1, name: "Manage your services" })).toBeVisible();
+    await expect(sidebar(page).getByRole("link", { name: /^Manage your services , done/ })).toBeVisible();
+
+    // Prices per option replace the owner's words with a range worked out by rules
+    await groom.getByRole("button", { name: `Edit ${first.name}` }).click();
+    const editor = page.getByRole("region", { name: `Edit ${first.name}` });
+    await editor.getByRole("textbox", { name: "Price for Small" }).fill("75");
+    await editor.getByRole("textbox", { name: "Price for Large" }).fill("95");
+    await editor.getByRole("button", { name: "Save changes" }).click();
+    await expect(groom).toContainText("$75–$95", { timeout: 30_000 });
+
+    // A photo of the owner's work becomes a suggested service
+    const fromPhoto = page.getByRole("region", { name: "Start from a photo" });
+    await expect(fromPhoto).toContainText("Upload a photo of your work");
+    await fromPhoto.locator("input[type=file]").first().setInputFiles({ name: "groomed.png", mimeType: "image/png", buffer: pngBuffer(600, [200, 180, 150]) });
+    await fromPhoto.getByRole("textbox", { name: "What is it? (optional)" }).fill("Puppy trim");
+    await fromPhoto.getByRole("button", { name: "Draft a name and description" }).click();
+    await expect(list.getByRole("article", { name: "Puppy trim" })).toContainText("Suggested", { timeout: 60_000 });
+
+    await page.getByRole("button", { name: "My services are already listed somewhere" }).click();
+    const listed = page.getByRole("region", { name: "My services are already listed somewhere" });
     await listed.getByRole("textbox", { name: "Your shop’s address (optional)" }).fill("https://sudsypaws.example/services");
     await listed.getByRole("button", { name: "Mark as done" }).click();
     await expect(page.getByText("You already have this.")).toBeVisible();

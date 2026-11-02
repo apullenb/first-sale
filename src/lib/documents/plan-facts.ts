@@ -20,7 +20,8 @@ export interface PlanSources {
   profile: BusinessProfile;
   // The decided structure's name, and where the decision was made
   structure: { name: string; from: "decision" | "registered" } | null;
-  products: { name: string; priceCents: number; unitCostCents?: number | null }[];
+  // price: as customers see it, from rules/products priceLabel
+  products: { name: string; priceCents: number | null; price?: string; unitCostCents?: number | null }[];
   brand: { customers: string; tagline: string; story: string } | null;
   // An approved marketing plan
   marketing: { summary: string; audience: string } | null;
@@ -171,7 +172,10 @@ function feesText(fees: NonNullable<PlanSources["fees"]>): string {
 }
 
 function productsText(products: PlanSources["products"]): string {
-  const shown = products.slice(0, 8).map((product) => `${product.name}, ${money(product.priceCents)}`);
+  const shown = products.slice(0, 8).map((product) => {
+    const price = product.price ?? (product.priceCents === null ? "" : money(product.priceCents));
+    return price ? `${product.name}, ${price}` : product.name;
+  });
   const more = products.length - shown.length;
   return `${shown.join("; ")}${more > 0 ? `; and ${more} more` : ""}`;
 }
