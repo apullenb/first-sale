@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -25,6 +27,7 @@ const draftSchema = z.object({
 });
 
 export async function draftSocialBiosAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = draftSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
   const { platform, typed } = parsed.data;
@@ -75,6 +78,7 @@ const profileSchema = z.object({
 
 // Saves the owner's name, handle and bio; approving checks each against the platform's limits first
 export async function saveSocialProfileAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = profileSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Something is too long. Shorten it and try again." };
   const { platform, name, handle, bio, approve } = parsed.data;
@@ -124,6 +128,7 @@ const pickSchema = z.object({
 
 // Before the marketing questions are answered, the owner can pick accounts here; they're saved with those answers
 export async function pickSocialAccountsAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = pickSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Pick at least one account." };
   let answered = false;

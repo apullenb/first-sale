@@ -1,7 +1,7 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = new Set(["/login", "/signup"]);
+const PUBLIC_PATHS = new Set(["/login", "/signup", "/demo", "/demo/unavailable"]);
 
 // Quick cookie-only check that sends signed-out visitors to log in.
 // Pages still verify the session itself (getCurrentUser), since a cookie can be stale.

@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -15,6 +17,7 @@ const NO_BUSINESS = "Tell us about your business first.";
 
 // The owner's look, parts shown, and each item's price, photo and buy link
 export async function saveSiteDesignAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = siteDesignSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Something in your design didn’t save. Check the prices and links, then try again." };
   const design = parsed.data;
@@ -48,6 +51,7 @@ const finishSchema = z.object({ signature: z.string().max(64) });
 
 // The demo finish: checks the site is ready and records it. Nothing is published or sent anywhere.
 export async function finishSiteAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = finishSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
   const site = await loadSite();
@@ -67,6 +71,7 @@ const connectSchema = z.object({ platform: z.enum(EXISTING_PLATFORMS), url: z.st
 
 // A demo connection to a site the owner already has: only the platform and address, never a password or key
 export async function connectExistingSiteAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = connectSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Pick where your site is built." };
   const url = siteAddress(parsed.data.url);
@@ -79,6 +84,7 @@ export async function connectExistingSiteAction(input: unknown): Promise<ActionR
 }
 
 export async function disconnectExistingSiteAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const saved = await updateMyWebsitePlan((plan) => (plan?.existingSite ? { existingSite: null } : null));
   if (saved === "no_business") return { ok: false, message: NO_BUSINESS };
   refresh();

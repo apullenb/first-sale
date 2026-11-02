@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -73,6 +75,7 @@ const NOT_FOUND = SAVE_MESSAGES.not_found;
 
 // Adds or changes one item; prices are kept exactly as the owner typed them
 export async function saveProductAction(input: unknown): Promise<ActionResult<string> & { field?: string }> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = formSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Some answers are too long. Shorten them and try again." };
   const { id: itemId, confirm, ...form } = parsed.data;
@@ -99,6 +102,7 @@ export async function saveProductAction(input: unknown): Promise<ActionResult<st
 }
 
 export async function deleteProductAction(productId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(productId);
   const result = parsed.success ? await deleteMyProduct(parsed.data) : "not_found";
   if (result === "on_orders") return { ok: false, message: "This item is on an order, so it stays in your list to keep the order complete." };
@@ -117,6 +121,7 @@ async function facts(): Promise<BusinessFacts | null> {
 // --- Suggestions from the owner's answers
 
 export async function suggestItemsAction(): Promise<ActionResult<number>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const [business, items] = await Promise.all([getMyBusiness(), listMyItems()]);
   if (!business?.profile) return { ok: false, message: SAVE_MESSAGES.no_business };
   const suggestions = suggestedItems(business.profile, items);
@@ -134,6 +139,7 @@ export async function suggestItemsAction(): Promise<ActionResult<number>> {
 }
 
 export async function describeItemAction(productId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(productId);
   const item = parsed.success ? await getMyProduct(parsed.data) : null;
   if (!item) return { ok: false, message: NOT_FOUND };
@@ -149,6 +155,7 @@ export async function describeItemAction(productId: unknown): Promise<ActionResu
 // --- A new item from a photo: the photo is kept as the item's photo
 
 export async function itemFromPhotoAction(form: FormData): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const file = form.get("file");
   const hint = form.get("hint");
   const kind = z.enum(ITEM_KINDS).safeParse(form.get("kind"));
@@ -244,6 +251,7 @@ const pictureSchema = z.object({
 
 // One picture: a new main, a fresh copy of one view, or a change to a picture
 export async function makePictureAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = pictureSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Say what you’d like changed, in a few words." };
   const { productId, requestKey, view, baseId, change } = parsed.data;
@@ -284,6 +292,7 @@ const viewsSchema = z.object({ productId: id, requestKey: z.uuid(), wearer: z.en
 
 // The three extra views, made from the approved main; the ones already made are kept
 export async function makeViewsAction(input: unknown): Promise<ActionResult<number>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = viewsSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: NOT_FOUND };
   const { productId, requestKey } = parsed.data;
@@ -314,6 +323,7 @@ export async function makeViewsAction(input: unknown): Promise<ActionResult<numb
 }
 
 export async function approvePictureAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = z.object({ productId: id, pictureId: id, confirmed: z.literal(true) }).safeParse(input);
   if (!parsed.success) return { ok: false, message: "Tick the box once you’ve checked the picture." };
   const ok = await approveMyItemPicture(parsed.data.productId, parsed.data.pictureId);
@@ -323,6 +333,7 @@ export async function approvePictureAction(input: unknown): Promise<ActionResult
 }
 
 export async function deletePictureAction(pictureId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(pictureId);
   const result = parsed.success ? await deleteMyItemPicture(parsed.data) : "not_found";
   if (result === "in_use") return { ok: false, message: "This is the item’s main photo. Approve another main photo first, then remove this one." };
@@ -332,6 +343,7 @@ export async function deletePictureAction(pictureId: unknown): Promise<ActionRes
 }
 
 export async function clearPicturesAction(productId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(productId);
   if (!parsed.success) return { ok: false, message: NOT_FOUND };
   await deleteMyUnusedItemPictures(parsed.data);
@@ -344,6 +356,7 @@ export async function clearPicturesAction(productId: unknown): Promise<ActionRes
 const MAX_COMPARED = 5;
 
 export async function comparePricesAction(input: unknown): Promise<ActionResult<number>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = z.union([id, z.literal("all")]).safeParse(input);
   if (!parsed.success) return { ok: false, message: NOT_FOUND };
   const [business, items] = await Promise.all([getMyBusiness(), listMyItems()]);

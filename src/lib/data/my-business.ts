@@ -3,6 +3,7 @@ import { listOperationSetupsForOwner, saveOperationSetupForOwner, pauseOperation
 import { createHash } from "node:crypto";
 import { getDb } from "@/db/client";
 import { getCurrentUser } from "@/lib/auth/server";
+import { assertCanWrite } from "@/lib/demo";
 import type { StructureAdvice } from "@/lib/structure/advise";
 import type { DetailKey } from "@/lib/details";
 import { businessProfileSchema, type BusinessProfile, type TaskStatus } from "@/lib/domain";
@@ -129,6 +130,13 @@ import type { PlanStep, PlanView } from "./plan";
 
 // What pages, actions and route handlers call: the owner always comes from the verified session.
 
+// Every write starts here, so a demo session can't change anything
+async function writer() {
+  const user = await getCurrentUser();
+  assertCanWrite(user);
+  return user;
+}
+
 export interface MyBusiness {
   id: string;
   isDemo: boolean;
@@ -157,12 +165,12 @@ export async function getMyResearch(): Promise<ResearchSnapshot | null> {
 
 // Saved with the answers it ran on, so the page can tell when they've changed since
 export async function saveMyFollowUp(checkedAt: Date, result: FollowUpResult, profile: BusinessProfile, details: readonly { key: string; value: string }[]) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return saveFollowUpForOwner(getDb(), user.id, checkedAt, result, profile, details);
 }
 
 export async function saveMyResearch(research: ResearchResult, profile: BusinessProfile) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return saveResearchForOwner(getDb(), user.id, research, profileKey(profile));
 }
 
@@ -198,7 +206,7 @@ export async function listMyConditionAnswers() {
 }
 
 export async function setMyConditionAnswer(input: { stepKey: string; condition: string; answer: ConditionAnswer | null }) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return setConditionAnswerForOwner(getDb(), user.id, input);
 }
 
@@ -241,7 +249,7 @@ export async function getMyStep(stepId: string) {
 }
 
 export async function setMyStepStatus(input: { stepId: string; status: TaskStatus; note: string | null }) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return setStepStatusForOwner(getDb(), user.id, input);
 }
 
@@ -254,12 +262,12 @@ export async function saveMyDetails(
   values: { key: DetailKey; value: string }[],
   origin: { source: "owner" | "document"; documentId: string | null } = { source: "owner", documentId: null },
 ) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return saveDetailsForOwner(getDb(), user.id, values, origin);
 }
 
 export async function deleteMyDetail(key: DetailKey) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return deleteDetailForOwner(getDb(), user.id, key);
 }
 
@@ -279,26 +287,27 @@ export async function getMyDocumentFile(id: string) {
 }
 
 export async function createMyDocument(input: NewDocument) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return createDocumentForOwner(getDb(), user.id, input);
 }
 
 export async function updateMyDocument(id: string, patch: DocumentPatch, when?: Parameters<typeof updateDocumentForOwner>[5]) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return updateDocumentForOwner(getDb(), user.id, id, patch, new Date(), when);
 }
 
 export async function deleteMyDocument(id: string) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return deleteDocumentForOwner(getDb(), user.id, id);
 }
 
 export async function startMyRun(workflow: WorkflowId, subjectId: string | null) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return startRunForOwner(getDb(), user.id, workflow, subjectId);
 }
 
 export async function finishMyRun(runId: string, status: "succeeded" | "failed", message: string | null) {
+  await writer();
   return finishRun(getDb(), runId, status, message);
 }
 
@@ -328,17 +337,17 @@ export async function getMyPhotoVersionFile(photoId: string, versionId: string) 
 }
 
 export async function createMyPhoto(input: NewPhoto) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return createPhotoForOwner(getDb(), user.id, input);
 }
 
 export async function updateMyPhoto(photoId: string, patch: PhotoPatch) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return updatePhotoForOwner(getDb(), user.id, photoId, patch);
 }
 
 export async function deleteMyPhoto(photoId: string) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return deletePhotoForOwner(getDb(), user.id, photoId);
 }
 
@@ -353,17 +362,17 @@ export async function myPhotoVersionRoom(photoId: string) {
 }
 
 export async function addMyPhotoVersion(photoId: string, input: NewPhotoVersion) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return addPhotoVersionForOwner(getDb(), user.id, photoId, input);
 }
 
 export async function setMyPhotoVersionReview(versionId: string, review: PhotoReview) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return setPhotoVersionReviewForOwner(getDb(), user.id, versionId, review);
 }
 
 export async function approveMyPhotoVersion(versionId: string, approved: boolean) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return approvePhotoVersionForOwner(getDb(), user.id, versionId, approved);
 }
 
@@ -378,12 +387,12 @@ export async function getMyWebsitePlan() {
 }
 
 export async function saveMyWebsitePlan(patch: WebsitePatch) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return saveWebsitePlanForOwner(getDb(), user.id, patch);
 }
 
 export async function updateMyWebsitePlan(update: (plan: WebsitePlan | null) => WebsitePatch | null) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return updateWebsitePlanForOwner(getDb(), user.id, update);
 }
 
@@ -395,7 +404,7 @@ export async function getMyMarketing() {
 }
 
 export async function updateMyMarketing(update: (current: MarketingRecord | null) => MarketingPatch | null) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return updateMarketingForOwner(getDb(), user.id, update);
 }
 
@@ -413,12 +422,12 @@ export async function getMyBrand(): Promise<BrandKit | null> {
 }
 
 export async function saveMyBrandBrief(brief: BrandBrief) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return saveBriefForOwner(getDb(), user.id, brief);
 }
 
 export async function createMyBrandRound(input: NewRound) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return createRoundForOwner(getDb(), user.id, input);
 }
 
@@ -448,12 +457,12 @@ export async function myBrandAssetRoom(adding: number) {
 }
 
 export async function addMyBrandAsset(input: NewBrandAsset) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return addAssetForOwner(getDb(), user.id, input);
 }
 
 export async function setMyBrandAssetCheck(assetId: string, check: AssetCheck) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return setAssetCheckForOwner(getDb(), user.id, assetId, check);
 }
 
@@ -468,50 +477,50 @@ export async function getMyBrandAssetFile(assetId: string) {
 }
 
 export async function chooseMyLogo(assetId: string) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return chooseLogoForOwner(getDb(), user.id, assetId);
 }
 
 export async function unchooseMyLogo() {
-  const user = await getCurrentUser();
+  const user = await writer();
   return unchooseLogoForOwner(getDb(), user.id);
 }
 
 // One version or brand image to use, made from the chosen logo
 export async function pickMyBrandFile(assetId: string) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return pickFileForOwner(getDb(), user.id, assetId);
 }
 
 export async function setMyImageMedium(medium: ImageMedium) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return setImageMediumForOwner(getDb(), user.id, medium);
 }
 
 export async function unpickMyBrandFile(kind: VersionKind | BrandImageKind) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return unpickFileForOwner(getDb(), user.id, kind);
 }
 
 export async function clearMyBrandIdeas() {
-  const user = await getCurrentUser();
+  const user = await writer();
   return clearIdeasForOwner(getDb(), user.id);
 }
 
 // The owner's own logo, stored byte for byte and chosen at once
 export async function addMyUploadedLogo(input: NewUploadedLogo) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return addUploadedLogoForOwner(getDb(), user.id, input);
 }
 
 export async function setMyOwnLogoColors(assetId: string, palette: PaletteColor[]) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return setOwnLogoColorsForOwner(getDb(), user.id, assetId, palette);
 }
 
 // The owner's upload, or an edit of it, with everything made from it
 export async function deleteMyOwnLogo(assetId: string) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return deleteOwnLogoForOwner(getDb(), user.id, assetId);
 }
 
@@ -533,12 +542,12 @@ export async function myLibraryUsage() {
 }
 
 export async function addMyLibraryFile(input: NewLibraryFile) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return addLibraryFileForOwner(getDb(), user.id, input);
 }
 
 export async function deleteMyLibraryFile(fileId: string) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return deleteLibraryFileForOwner(getDb(), user.id, fileId);
 }
 
@@ -562,12 +571,12 @@ export async function getMyProduct(productId: string) {
 }
 
 export async function addMySuggestedItems(items: Parameters<typeof addSuggestedItemsForOwner>[2]) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return addSuggestedItemsForOwner(getDb(), user.id, items);
 }
 
 export async function setMyItemDescription(productId: string, description: string, by: DescriptionAuthor) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return setDescriptionForOwner(getDb(), user.id, productId, description, by);
 }
 
@@ -592,27 +601,27 @@ export async function myItemPictureRoom(productId: string) {
 }
 
 export async function addMyItemPicture(productId: string, picture: NewItemPicture) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return addPictureForOwner(getDb(), user.id, productId, picture);
 }
 
 export async function approveMyItemPicture(productId: string, pictureId: string) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return approvePictureForOwner(getDb(), user.id, productId, pictureId);
 }
 
 export async function deleteMyItemPicture(pictureId: string) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return deletePictureForOwner(getDb(), user.id, pictureId);
 }
 
 export async function setMyItemWearer(productId: string, wearer: Wearer) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return setWearerForOwner(getDb(), user.id, productId, wearer);
 }
 
 export async function deleteMyUnusedItemPictures(productId: string) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return deleteUnusedPicturesForOwner(getDb(), user.id, productId);
 }
 
@@ -622,22 +631,22 @@ export async function listMyPriceChecks() {
 }
 
 export async function saveMyPriceCheck(productId: string, result: PriceCheck) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return savePriceCheckForOwner(getDb(), user.id, productId, result);
 }
 
 export async function createMyProduct(values: ProductValues) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return createProductForOwner(getDb(), user.id, values);
 }
 
 export async function updateMyProduct(productId: string, values: ProductValues) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return updateProductForOwner(getDb(), user.id, productId, values);
 }
 
 export async function deleteMyProduct(productId: string) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return deleteProductForOwner(getDb(), user.id, productId);
 }
 
@@ -649,29 +658,29 @@ export async function getMyIntakeDraft() {
 }
 
 export async function saveMyIntakeDraft(draft: IntakeDraftInput) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return saveIntakeDraftForOwner(getDb(), user.id, draft);
 }
 
 export async function deleteMyIntakeDraft() {
-  const user = await getCurrentUser();
+  const user = await writer();
   return deleteIntakeDraftForOwner(getDb(), user.id);
 }
 
 // Null when the owner already has a business
 export async function createMyBusinessFromIntake(profile: BusinessProfile) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return createBusinessWithHistoryForOwner(getDb(), user.id, profile);
 }
 
 export async function updateMyProfileWithHistory(profile: BusinessProfile, summary: string[]) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return updateProfileWithHistoryForOwner(getDb(), user.id, profile, summary);
 }
 
 // Owner-confirmed decisions, with what they saw when deciding
 export async function recordMyDecisions(values: { key: DetailKey; value: string }[], basis: DecisionBasis, reconfirm = false) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return saveDetailsForOwner(getDb(), user.id, values, { source: "owner", documentId: null }, new Date(), basis, reconfirm);
 }
 
@@ -684,7 +693,7 @@ export async function listMyHistory(filter: { kind?: BusinessEvent["kind"]; limi
 
 // Rebuilds the plan from saved research after a decision changes, applied straight away
 export async function replanMyPlan(profile: BusinessProfile, details: readonly { key: string; value: string }[]) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return replanForOwner(getDb(), user.id, profile, details);
 }
 
@@ -696,7 +705,7 @@ export async function getMyStructureAdvice() {
 }
 
 export async function saveMyStructureAdvice(advice: StructureAdvice) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return saveStructureAdviceForOwner(getDb(), user.id, advice);
 }
 
@@ -708,12 +717,12 @@ export async function getMyInsights() {
 }
 
 export async function saveMyInsights(insights: SavedInsights) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return saveInsightsForOwner(getDb(), user.id, insights);
 }
 
 export async function markMyInsight(key: string, mark: InsightMark | null) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return markInsightForOwner(getDb(), user.id, key, mark);
 }
 
@@ -725,12 +734,12 @@ export async function listMyJourneyMarks() {
 }
 
 export async function setMyJourneyMark(mark: { key: string; url: string | null; note: string | null }) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return setJourneyMarkForOwner(getDb(), user.id, mark);
 }
 
 export async function clearMyJourneyMark(key: string) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return clearJourneyMarkForOwner(getDb(), user.id, key);
 }
 
@@ -746,11 +755,11 @@ export async function listMyOperationSetups() {
 }
 
 export async function saveMyOperationSetup(input: import("@/lib/rules/operations").OperationSetup) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return saveOperationSetupForOwner(getDb(), user.id, input);
 }
 
 export async function pauseMyOperationSetup(kind: import("@/lib/operations/catalog").OperationKind, paused: boolean) {
-  const user = await getCurrentUser();
+  const user = await writer();
   return pauseOperationSetupForOwner(getDb(), user.id, kind, paused);
 }

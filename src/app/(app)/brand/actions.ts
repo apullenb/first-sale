@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -113,6 +115,7 @@ async function brandAnswers(input: unknown): Promise<{ ok: true; brief: BrandBri
 }
 
 export async function saveBrandAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const checked = await brandAnswers(input);
   if (!checked.ok) return checked;
   if (!(await saveMyBrandBrief(checked.brief))) return { ok: false, message: NO_BUSINESS };
@@ -122,6 +125,7 @@ export async function saveBrandAction(input: unknown): Promise<ActionResult> {
 
 // Written from the picks, not yet approved; the value is the description and whether it's a practice stand-in
 export async function describeBrandAction(input: unknown): Promise<ActionResult<{ story: string; simulated: boolean }>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const checked = await brandAnswers({ ...(typeof input === "object" && input ? input : {}), story: "", storyByOwner: false, storyApproved: false });
   if (!checked.ok) return checked;
   const result = await runWorkflow("brand_story", null, async () => {
@@ -146,6 +150,7 @@ const taglineSchema = z.object({ name: z.string().max(200) });
 
 // A few taglines from the brand, cleaned by code; the owner picks or edits one
 export async function suggestTaglinesAction(input: unknown): Promise<ActionResult<{ taglines: string[]; simulated: boolean }>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = taglineSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
   const saved = await savedBrief();
@@ -188,6 +193,7 @@ const ideasSchema = z.object({ requestKey: z.uuid(), choices: z.unknown() });
 
 // Saves the logo choices with the approved brand description, then writes the first round of ideas; the page draws them next
 export async function getIdeasAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = ideasSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
   const choices = choicesSchema.safeParse(parsed.data.choices);
@@ -212,6 +218,7 @@ export async function getIdeasAction(input: unknown): Promise<ActionResult<strin
 const moreSchema = z.object({ conceptId: id, requestKey: z.uuid() });
 
 export async function moreLikeThisAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = moreSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: NOT_FOUND };
   const existing = await findMyBrandRoundByRequest(parsed.data.requestKey);
@@ -237,6 +244,7 @@ function batchResult(result: { ok: true; value: BatchResult } | { ok: false; mes
 
 // Draws every idea in a round that hasn't been drawn yet; the value says if some didn't come back
 export async function drawRoundAction(roundId: unknown): Promise<ActionResult<string | null>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(roundId);
   const image = imageModel();
   if (!image?.generate) return { ok: false, message: OFF };
@@ -283,6 +291,7 @@ const refineSchema = z.union([
 
 // Every change is a new file; the logo it starts from never changes
 export async function refineLogoAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = refineSchema.safeParse(input);
   if (!parsed.success) {
     const oneClick = typeof input === "object" && input !== null && "refinement" in input;
@@ -313,6 +322,7 @@ export async function refineLogoAction(input: unknown): Promise<ActionResult<str
 }
 
 export async function chooseLogoAction(assetId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(assetId);
   const image = imageModel();
   const asset = parsed.success ? await getMyBrandAsset(parsed.data) : null;
@@ -341,6 +351,7 @@ const slotSubject = (logoId: string, kinds: readonly string[]) => (kinds.length 
 const versionsSchema = z.object({ requestKey: z.uuid(), logoId: id, kinds: z.array(z.enum(VERSION_KINDS)).min(1).max(3), redraw: z.boolean().optional() });
 
 export async function makeVersionsAction(input: unknown): Promise<ActionResult<string | null>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = versionsSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
   const image = imageModel();
@@ -366,6 +377,7 @@ const imagesSchema = z.object({
 });
 
 export async function makeImagesAction(input: unknown): Promise<ActionResult<string | null>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = imagesSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: `Describe the change in up to ${MAX_CHANGE} characters.` };
   const image = imageModel();
@@ -392,6 +404,7 @@ const mediumSchema = z.object({ logoId: id, medium: z.enum(IMAGE_MEDIUMS) });
 
 // The owner's Photo / Illustration switch. remake: an example exists in the other style, so a new one is needed.
 export async function setImageMediumAction(input: unknown): Promise<ActionResult<{ remake: boolean }>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = mediumSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
   const state = await getMyBrandState();
@@ -412,6 +425,7 @@ const PICTURE_KINDS: readonly string[] = [...VERSION_KINDS, ...IMAGE_KINDS];
 
 // A new copy of a version or brand image, changed in the owner's words; the one it starts from is kept
 export async function editPictureAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = editSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: `Describe the change in up to ${MAX_CHANGE} characters.` };
   const change = ownerText(parsed.data.change, MAX_CHANGE);
@@ -443,6 +457,7 @@ export async function editPictureAction(input: unknown): Promise<ActionResult<st
 
 // Using one version or brand image; files made from another logo are refused
 export async function pickFileAction(assetId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(assetId);
   if (!parsed.success || !(await pickMyBrandFile(parsed.data))) return { ok: false, message: NOT_FOUND };
   refresh();
@@ -450,6 +465,7 @@ export async function pickFileAction(assetId: unknown): Promise<ActionResult> {
 }
 
 export async function unpickFileAction(kind: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = z.enum([...VERSION_KINDS, ...IMAGE_KINDS]).safeParse(kind);
   if (!parsed.success || !(await unpickMyBrandFile(parsed.data))) return { ok: false, message: NOT_FOUND };
   refresh();
@@ -457,6 +473,7 @@ export async function unpickFileAction(kind: unknown): Promise<ActionResult> {
 }
 
 export async function clearIdeasAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   await clearMyBrandIdeas();
   refresh();
   return { ok: true, value: null };
@@ -468,6 +485,7 @@ const colorsSchema = z.object({ assetId: id, hexes: z.array(z.string().regex(HEX
 
 // The owner's own picks, named by code; the file itself never changes
 export async function setLogoColorsAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = colorsSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Pick up to 3 colors." };
   const hexes = [...new Set(parsed.data.hexes.map((hex) => hex.toUpperCase()))];
@@ -480,6 +498,7 @@ export async function setLogoColorsAction(input: unknown): Promise<ActionResult>
 
 // One page from the chosen logo and picked versions, kept in Documents and replaced when saved again
 export async function saveLogoGuideAction(): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const [kit, state] = await Promise.all([getMyBrand(), getMyBrandState()]);
   if (!kit || !state?.chosenLogoId) return { ok: false, message: "Choose a logo first." };
   const sources: [string, string | null | undefined][] = [

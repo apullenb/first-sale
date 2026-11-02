@@ -21,6 +21,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Nothing is filed, published or sent without owner approval. Sample orders are labeled DEMO.
 - US only for now (federal, state, county, city).
 - Each owner has one business and sees only their own. Pages, actions and route handlers read data through `src/lib/data/my-business.ts`, which takes the owner from `getCurrentUser()`; the `*ForOwner` functions are for those wrappers and tests. A layout's session check doesn't protect its pages, so every data read must go through these wrappers.
+- The live demo (`/demo`, `src/lib/demo.ts`) is read-only: write wrappers in `my-business.ts` start with `writer()`, `runWorkflow` refuses demo sessions, and every server action starts with `if (await isDemoSession()) return DEMO_REFUSAL;` unless it only reads.
 - After sign-in, sign-up or log-out, do a full page load (`window.location`), not a client route change: Cache Components keeps old screens mounted with their state.
 - Anything that reads the session must sit inside a `<Suspense>` boundary (Cache Components is on).
 - Schema changes need a migration: `npm run db:generate`, then commit the file in `drizzle/`.
