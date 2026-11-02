@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useLayoutEffect, useState } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { formatMinutes } from "@/lib/rules/progress";
-import { type PartStatus, sectionState, type SidebarStatus, type StartStep, startSteps, stepsLeft } from "@/lib/rules/section-status";
+import { type PartStatus, sectionState, type SidebarStatus, type StartStep, stepsLeft } from "@/lib/rules/section-status";
+import { countedSteps, JOURNEY, sectionSteps } from "@/lib/section-steps";
 import { progressLabel, SECTION_MEASURES } from "@/lib/progress-labels";
 import { HOME, overviewOf, SECTION_GROUPS, SECTIONS, type SectionGroup } from "@/lib/sections";
 import { celebrate, onCelebrate } from "./celebrate";
@@ -33,24 +34,15 @@ const GROUP_ICONS: Record<SectionGroup, IconName> = {
   "Run your business": "building",
 };
 
-// Sections that are steps to finish, in order
-const JOURNEY: SectionGroup[] = ["Start your business", "Build your brand"];
-
 interface NavStep extends StartStep {
   number: number;
 }
 
-// Start your business comes from the owner's paperwork; the other sections' steps are fixed
-function stepsOf(group: SectionGroup, status?: NavStatus): NavStep[] {
-  const steps =
-    group === "Start your business"
-      ? (status?.start ?? startSteps([]))
-      : SECTIONS.filter((section) => section.group === group && section.step !== null).map((section) => ({ href: section.href, title: section.title, later: false }));
-  return steps.map((step, index) => ({ ...step, number: index + 1 }));
+export function stepsOf(group: SectionGroup, status?: NavStatus): NavStep[] {
+  return sectionSteps(group, status?.start).map((step, index) => ({ ...step, number: index + 1 }));
 }
 
-// Steps that hold a section open: everything but what comes after the first sale
-const countedHrefs = (group: SectionGroup, status?: NavStatus) => stepsOf(group, status).filter((step) => !step.later).map((step) => step.href);
+const countedHrefs = (group: SectionGroup, status?: NavStatus) => countedSteps(group, status?.start);
 
 // Sub-pages like /business/new highlight their section
 function isActive(href: string, activeHref: string | null): boolean {
@@ -58,15 +50,20 @@ function isActive(href: string, activeHref: string | null): boolean {
   return activeHref === href || (href !== "/" && activeHref.startsWith(`${href}/`));
 }
 
-export function NavLinks({ activeHref, status }: { activeHref: string | null; status?: NavStatus }) {
-  const parts = status?.parts ?? {};
+// The page's section, and the menu item it highlights
+export function placeOf(activeHref: string | null, status?: NavStatus): { group: SectionGroup | null; highlighted: string | null } {
   const page = SECTIONS.find((section) => isActive(section.href, activeHref)) ?? null;
   // A task's page, or a group's other part, highlights the group's menu step
   const onTask = Boolean(activeHref?.startsWith("/checklist/"));
   const startHrefs = stepsOf("Start your business", status).map((step) => step.href);
   const startStep = activeHref && startHrefs.includes(activeHref) ? activeHref : activeHref ? (status?.groupOf?.[activeHref] ?? null) : null;
-  const pageGroup: SectionGroup | null = startStep || onTask ? "Start your business" : (page?.group ?? null);
-  const highlighted = startStep ?? page?.under ?? page?.href ?? null;
+  const group: SectionGroup | null = startStep || onTask ? "Start your business" : (page?.group ?? null);
+  return { group, highlighted: startStep ?? page?.under ?? page?.href ?? null };
+}
+
+export function NavLinks({ activeHref, status }: { activeHref: string | null; status?: NavStatus }) {
+  const parts = status?.parts ?? {};
+  const { group: pageGroup, highlighted } = placeOf(activeHref, status);
   // Open where the owner is working: this page's section, or the first with something left
   const working = pageGroup ?? JOURNEY.find((group) => sectionState(parts, countedHrefs(group, status)) === "todo") ?? null;
   // Opened or closed by hand, until the owner moves to another section

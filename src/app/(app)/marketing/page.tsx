@@ -10,6 +10,7 @@ import { MarketingAnswers, MarketingIntakeForm } from "@/components/marketing/in
 import { PlanView } from "@/components/marketing/plan-view";
 import { ActionFacts, Kicker, NextUp } from "@/components/marketing/pieces";
 import { MarketingStepList, type ShownStep } from "@/components/marketing/step-list";
+import { MoveOn } from "@/components/move-on";
 import { PracticeBanner } from "@/components/practice-banner";
 import { RunStatus } from "@/components/run-status";
 import { PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
@@ -39,6 +40,7 @@ export default function MarketingPage() {
         title="Create your marketing plan"
         lead="Answer a few questions, get a plan made for your business, then follow it one step at a time."
       />
+      <MoveOn from="Build your brand" />
       <Suspense fallback={<p className="text-muted">Loading your marketing plan…</p>}>
         <MarketingView />
       </Suspense>

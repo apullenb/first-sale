@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ContactQuestion } from "@/components/contact/contact-question";
 import { Icon } from "@/components/icons";
+import { MoveOn } from "@/components/move-on";
 import { DashboardWidgets, LaunchCard } from "@/components/plan/dashboard-widgets";
 import { JourneyStages, StartHere } from "@/components/plan/journey";
 import { LaunchSchedule, TodayHead } from "@/components/plan/launch-countdown";
@@ -134,6 +135,8 @@ async function Overview() {
         />
         {profile ? <LaunchCard date={profile.launchDate} /> : null}
       </div>
+
+      {profile ? <MoveOn from="Start your business" /> : null}
 
       {/* Asked once for owners who finished intake before it was asked; then a step if they put it off */}
       {profile ? <ContactQuestion /> : null}

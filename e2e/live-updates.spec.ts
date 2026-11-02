@@ -35,7 +35,7 @@ test.describe("two tabs", () => {
     await other.bringToFront();
     await other.evaluate(() => window.dispatchEvent(new Event("focus")));
     await expect(otherNav.getByRole("link", { name: /^Create your marketing plan , done/ })).toBeVisible();
-    await expect(otherNav.getByRole("button", { name: "Build your brand 1 of 6 steps done" })).toBeVisible();
+    await expect(otherNav.getByRole("link", { name: "Build your brand 1 of 6 steps done" })).toBeVisible();
   });
 });
 
