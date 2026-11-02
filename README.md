@@ -201,7 +201,7 @@ Four packages (a site built by SnapStart, Square, Wix and Shopify) are compared 
 
 <img src="docs/media/nav/manage-your-products.webp" alt="Menu link: Manage your products" width="201" height="32">
 
-Products get a price, a cost and stock. Options like size or scent each carry their own price and stock, and SnapStart works out the price range, totals and how much is left from each sale. "Compare prices near you" uses **Muse web search** to show what similar items sell for nearby, with a link to each.
+Products get a price, a cost and stock. Options like size or scent each carry their own price and stock, and SnapStart works out the price range, totals and how much is left from each sale. Each option, like a 12 oz candle or a large-dog groom, is ordered and counted on its own. "Compare prices near you" uses **Muse web search** to show what similar items sell for nearby, with a link to each.
 
 <p align="center"><img src="docs/media/products.webp" alt="Recording of Add your products: a candle with 8 oz and 12 oz options, each with its own price and stock, shown as $24 to $32 with 35 in stock, a second product with its margin worked out, then a comparison of prices nearby" width="900"></p>
 
@@ -241,7 +241,7 @@ Everything the brand is made of lives in one place: the chosen logo and its vers
 
 <img src="docs/media/nav/run-your-business.webp" alt="Menu link: Run your business" width="225" height="32"> <img src="docs/media/nav/connect-your-email.webp" alt="Menu link: Connect your email" width="201" height="32"> <img src="docs/media/nav/orders-and-requests.webp" alt="Menu link: Orders & requests" width="201" height="32">
 
-Guided setup for the daily work an owner can't hire for yet: an email assistant that keeps customer messages together and drafts replies for review, and order and customer-request tracking with reminders to follow up. Each walks through choices and preferences, then lets the owner try it with a sample.
+Guided setup for the daily work an owner can't hire for yet: an email assistant that keeps customer messages together and drafts replies for review, and order and customer-request tracking with reminders to follow up. Owners can enter orders themselves, each line naming the exact option, priced from it and taken from its stock. Each walks through choices and preferences, then lets the owner try it with a sample.
 
 <p align="center"><img src="docs/media/run.webp" alt="The Run your business page: Connect your email and Track orders and customer requests, each ready to set up" width="900"></p>
 
@@ -610,6 +610,5 @@ The production address and each preview's URLs are trusted for sign-in automatic
 - **Live email and order connections**, so the email assistant and order tracking work right from the owner's inbox and sales channels.
 - **Publishing the website SnapStart builds**, with hosting, a custom web address and payments built in.
 - **Product photo galleries** on the built website, straight from the owner's approved photos.
-- **Orders by option**, so a 12 oz candle or a large-dog groom is ordered and counted on its own.
 - **Password recovery and email verification.**
 - **Corporate bylaws**, alongside the LLC and partnership owners' agreements.

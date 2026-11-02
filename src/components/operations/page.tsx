@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { OrdersPanel } from "@/components/operations/orders";
 import { OperationSetupPanel } from "@/components/operations/setup";
 import { Icon } from "@/components/icons";
 import { PRIMARY_LINK } from "@/components/styles";
 import { Card, PageHead } from "@/components/ui";
-import { getMyBusiness, listMyOperationSetups } from "@/lib/data/my-business";
+import { getMyBusiness, listMyOperationSetups, listMyOrders, listMyProducts } from "@/lib/data/my-business";
 import { OPERATIONS, type OperationKind } from "@/lib/operations/catalog";
+import { sampleRequestItem } from "@/lib/rules/operations";
 
 export function OperationPage({ kind }: { kind: OperationKind }) {
   const definition = OPERATIONS[kind];
@@ -24,8 +26,19 @@ export function OperationPage({ kind }: { kind: OperationKind }) {
 }
 
 async function Setup({ kind }: { kind: OperationKind }) {
-  const [business, setups] = await Promise.all([getMyBusiness(), listMyOperationSetups()]);
+  const [business, setups, items, orders] = await Promise.all([
+    getMyBusiness(),
+    listMyOperationSetups(),
+    kind === "requests" ? listMyProducts() : [],
+    kind === "requests" ? listMyOrders() : [],
+  ]);
   if (!business) return <Card title="Tell us about your business first" id="business-first"><p>Then choose how you want help with your daily work.</p><Link href="/business/new" className={PRIMARY_LINK}>Tell us about your business</Link></Card>;
   const saved = setups.find((setup) => setup.kind === kind) ?? null;
-  return <OperationSetupPanel key={`${business.id}:${kind}`} kind={kind} initial={saved ? { config: saved.config, paused: saved.paused } : null} />;
+  const orderable = items.map(({ id, name, kind: itemKind, priceCents, priceText, quantity, options }) => ({ id, name, kind: itemKind, priceCents, priceText, quantity, options }));
+  return (
+    <>
+      <OperationSetupPanel key={`${business.id}:${kind}`} kind={kind} initial={saved ? { config: saved.config, paused: saved.paused } : null} sampleItem={kind === "requests" ? sampleRequestItem(items) : null} />
+      {kind === "requests" ? <OrdersPanel items={orderable} orders={orders.map((order) => ({ ...order, createdAt: order.createdAt.toISOString() }))} /> : null}
+    </>
+  );
 }

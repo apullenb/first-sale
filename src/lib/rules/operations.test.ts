@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultOperation, demoOperation, operationSetupSchema } from "./operations";
+import { defaultOperation, demoOperation, operationSetupSchema, sampleRequestItem } from "./operations";
 
 const email = () => ({ ...defaultOperation("email"), email: "hello@example.com" });
 
@@ -30,5 +30,15 @@ describe("daily workflow setup", () => {
     expect(sample.title).toContain("DEMO");
     expect(sample.result).toContain("stock is unchanged");
     expect(sample.reminder).toContain("1 day,");
+  });
+
+  it("names an exact option of the owner's own item in the sample request", () => {
+    const options = { groups: [{ name: "Size", values: ["12 oz"] }], variants: [{ values: ["12 oz"], priceCents: 1800, quantity: 4 }] };
+    const item = sampleRequestItem([{ name: "Loaf", priceCents: 950, quantity: null, options: { groups: [], variants: [] } }, { name: "Candle", priceCents: 1200, quantity: 4, options }]);
+    expect(item).toEqual({ name: "Candle", values: ["12 oz"], priceCents: 1800, quantity: 4 });
+    const sample = demoOperation({ ...defaultOperation("requests"), source: "Enter requests myself" }, item);
+    expect(sample.message).toBe("Hi! Could I order 2 of your Candle (12 oz)?");
+    expect(sample.result).toContain("That option is $18 each, with 4 in stock. No order was placed and stock is unchanged.");
+    expect(sampleRequestItem([])).toBeNull();
   });
 });

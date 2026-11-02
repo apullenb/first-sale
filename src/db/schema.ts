@@ -474,10 +474,15 @@ export const orderLines = pgTable(
     productId: text("product_id")
       .notNull()
       .references(() => products.id),
+    // The exact option combination ordered, as saved when ordered; empty for items without options
+    optionValues: jsonb("option_values").$type<string[]>().notNull().default([]),
+    variantKey: text("variant_key").notNull().default(""),
     quantity: integer("quantity").notNull(),
+    // Each one's price when ordered, as the owner typed it; null when no dollar price was set
+    unitPriceCents: integer("unit_price_cents"),
   },
   (table) => [
-    uniqueIndex("order_lines_order_product").on(table.orderId, table.productId),
+    uniqueIndex("order_lines_order_product_variant").on(table.orderId, table.productId, table.variantKey),
     index("order_lines_product_id_idx").on(table.productId),
   ],
 );
@@ -490,6 +495,8 @@ export const stockMovements = pgTable(
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
     orderId: text("order_id").references(() => orders.id, { onDelete: "set null" }),
+    // The option whose stock moved; empty when the item's own count moved
+    optionValues: jsonb("option_values").$type<string[]>().notNull().default([]),
     delta: integer("delta").notNull(),
     reason: text("reason").notNull(),
     createdAt: createdAt(),
