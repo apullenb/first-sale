@@ -73,3 +73,31 @@ export function isItemPage(url: string): boolean {
   if (!path || SEARCH_PATH.test(path)) return false;
   return ![...parsed.searchParams.keys()].some((key) => SEARCH_QUERY.test(key));
 }
+
+// What a price is for, read from its own words: "per hour", "a visit", "/month"; "" for a one-off price
+const UNITS: [string, RegExp][] = [
+  ["hour", /(?:per|an?|\/|each)\s*(?:hour|hr)s?\b|\/\s*h\b|hourly/i],
+  ["visit", /(?:per|a|\/|each)\s*(?:visit|groom|cleaning|clean|appointment|service|job|mow|walk|trip)s?\b/i],
+  ["session", /(?:per|a|\/|each)\s*(?:session|lesson|class)(?:es|s)?\b/i],
+  ["day", /(?:per|a|\/|each)\s*day\b|daily/i],
+  ["week", /(?:per|a|\/|each)\s*(?:week|wk)\b|weekly/i],
+  ["month", /(?:per|a|\/|each)\s*(?:month|mo)\b|monthly/i],
+];
+
+export function priceUnit(text: string): string {
+  return UNITS.find(([, pattern]) => pattern.test(text))?.[0] ?? "";
+}
+
+export const UNIT_WORDS: Record<string, string> = { hour: "per hour", visit: "per visit", session: "per session", day: "per day", week: "per week", month: "per month", "": "" };
+
+// Low, typical and high only across prices for the same unit: the owner's own unit when found, else the most common
+export function comparableStats(prices: readonly Pick<FoundPrice, "price" | "cents">[], ownPrice = ""): { unit: string; stats: PriceStats } | null {
+  if (!prices.length) return null;
+  const units = prices.map((price) => priceUnit(price.price));
+  const counts = new Map<string, number>();
+  for (const unit of units) counts.set(unit, (counts.get(unit) ?? 0) + 1);
+  const own = ownPrice ? priceUnit(ownPrice) : null;
+  const unit = own !== null && counts.has(own) ? own : [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  const stats = priceStats(prices.filter((_, index) => units[index] === unit).map((price) => price.cents));
+  return stats ? { unit, stats } : null;
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dollarAmounts, isItemPage, priceStats, sourceContainsPrice } from "./price-compare";
+import { comparableStats, dollarAmounts, isItemPage, priceStats, priceUnit, sourceContainsPrice } from "./price-compare";
 
 describe("low, typical and high", () => {
   it("are the lowest, the median and the highest found price", () => {
@@ -27,6 +27,30 @@ describe("a price the source contains", () => {
     expect(sourceContainsPrice("$20–$30", "Candles $20 and up")).toBe(false);
     expect(sourceContainsPrice("about twenty dollars", "Candles $20")).toBe(false);
     expect(sourceContainsPrice("$24", "24 candles in stock")).toBe(false);
+  });
+});
+
+describe("comparable units", () => {
+  it("read what a price is for from its own words", () => {
+    expect(priceUnit("$40/hour")).toBe("hour");
+    expect(priceUnit("$45 an hour")).toBe("hour");
+    expect(priceUnit("From $65 per visit")).toBe("visit");
+    expect(priceUnit("$30 a lesson")).toBe("session");
+    expect(priceUnit("$120 monthly")).toBe("month");
+    expect(priceUnit("$24.00")).toBe("");
+  });
+
+  it("compare only prices for the same unit, the owner's own when found", () => {
+    const prices = [
+      { price: "$60 per visit", cents: 6000 },
+      { price: "$80 per visit", cents: 8000 },
+      { price: "$70 a visit", cents: 7000 },
+      { price: "$35/hour", cents: 3500 },
+    ];
+    expect(comparableStats(prices)).toEqual({ unit: "visit", stats: { count: 3, lowCents: 6000, typicalCents: 7000, highCents: 8000, enough: true } });
+    expect(comparableStats(prices, "$40 an hour")).toMatchObject({ unit: "hour", stats: { count: 1, enough: false } });
+    expect(comparableStats(prices, "$75")).toMatchObject({ unit: "visit" });
+    expect(comparableStats([])).toBeNull();
   });
 });
 

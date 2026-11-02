@@ -76,8 +76,14 @@ function about(item: PictureItem): string[] {
 
 const MAIN_SCENE: Record<ItemKind, string> = {
   product: "The product alone, centered on a plain, clean white or light neutral background, with even, soft light and a natural contact shadow. No props, no hands, no text.",
-  service: "A clean, uncluttered scene showing the finished result of the work, as a customer would see it. No text.",
+  service: "A clean, professional photo of the finished result of the work, or of the place where the service happens, as a customer would see it. Not an object on a plain background. No text.",
 };
+
+// Products keep the product photo rules; a service keeps the work shown in image 1
+const keepLines = (kind: ItemKind) =>
+  kind === "product"
+    ? KEEP_PRODUCT.map((rule) => `- ${rule}`)
+    : ["- Keep the work shown in image 1 the same: its result, materials, colors and setting. Don’t invent a different result or make it look better than it is."];
 
 const WEARER_WORDS: Record<Wearer, string> = { women: "a woman", men: "a man", kids: "a child", anyone: "an adult" };
 
@@ -86,8 +92,8 @@ export function viewScene(kind: ItemKind, view: Exclude<PictureView, "main">, we
   if (kind === "service") {
     return {
       angle: "The same service in progress: hands doing the work in the same setting, natural and tasteful.",
-      detail: "A close-up of one detail of the finished work, such as its texture, finish or neatness.",
-      in_use: "A customer enjoying the finished result in a natural setting, tasteful and not posed.",
+      detail: "A close-up of a detail of the finished result, or a before-and-after side by side, showing the care in the work.",
+      in_use: "The person doing the work with a customer, natural and not posed. Show people generically: no particular gender, age or look unless the description says.",
     }[view];
   }
   return {
@@ -116,8 +122,8 @@ export function mainPrompt(item: PictureItem, style: ImageStyle, brief: BrandBri
 // A main photo from the owner's own photo (image 1), with the product rules from product photos
 export function mainFromPhotoPrompt(item: PictureItem, style: ImageStyle): string {
   return [
-    `Image 1 is the owner’s own photo of “${clean(item.name, 80)}”, which their small US business sells. Make its main store photo.`,
-    ...KEEP_PRODUCT.map((rule) => `- ${rule}`),
+    item.kind === "service" ? `Image 1 is the owner’s own photo of their work for “${clean(item.name, 80)}”, a service their small US business offers. Make its main listing photo from it.` : `Image 1 is the owner’s own photo of “${clean(item.name, 80)}”, which their small US business sells. Make its main store photo.`,
+    ...keepLines(item.kind),
     MAIN_SCENE[item.kind],
     ...styleLines(style),
     NO_TEXT,
@@ -128,7 +134,7 @@ export function mainFromPhotoPrompt(item: PictureItem, style: ImageStyle): strin
 export function viewPrompt(item: PictureItem, view: Exclude<PictureView, "main">, style: ImageStyle, wearer: Wearer | null): string {
   return [
     `Image 1 is the approved main photo of “${clean(item.name, 80)}”, sold by a small US business. Make a new picture of the very same ${item.kind === "service" ? "work" : "product"}: ${VIEW_LABELS[item.kind][view].toLowerCase()}.`,
-    ...KEEP_PRODUCT.map((rule) => `- ${rule}`),
+    ...keepLines(item.kind),
     ...about(item),
     viewScene(item.kind, view, wearer),
     ...styleLines(style),

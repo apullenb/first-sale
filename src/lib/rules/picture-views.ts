@@ -12,7 +12,7 @@ export const WEARER_LABELS: Record<Wearer, string> = { women: "Women", men: "Men
 
 export const VIEW_LABELS: Record<ItemKind, Record<PictureView, string>> = {
   product: { main: "Main photo", angle: "Another angle", detail: "Close-up", in_use: "In use" },
-  service: { main: "Main photo", angle: "In progress", detail: "Close-up of the work", in_use: "The result, enjoyed" },
+  service: { main: "Main photo", angle: "In progress", detail: "Detail of the result", in_use: "At work with a customer" },
 };
 
 interface Described {

@@ -207,6 +207,7 @@ async function Products() {
 
       <PriceCompare
         items={confirmed.map((item) => ({ id: item.id, name: item.name, kind: item.kind, priceCents: item.priceCents, priceText: item.priceText, options: item.options }))}
+        noun={noun}
         checks={Object.fromEntries(checks.map((check) => [check.productId, check.result]))}
       />
 
