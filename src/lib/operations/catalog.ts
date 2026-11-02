@@ -25,8 +25,8 @@ export const OPERATIONS = {
     choices: ["Email", "Website", "Enter requests myself"],
     sourceLabel: "Where do your requests come from?",
     goals: ["Track orders", "Track questions and custom requests"],
-    worksNow: "Choose what to track, save where requests come from and when to follow up, and try a sample with a made-up customer request.",
+    worksNow: "Enter orders yourself, with each option priced and counted on its own. Choose what to track, save where requests come from and when to follow up, and try a sample with a made-up customer request.",
     needsConnection: "Pulling in real orders from your email or website, and real reminders. Connecting them isn’t available yet.",
-    afterSetup: "Your preferences are saved, so when connecting is available tracking starts the way you chose. Until then, no orders, stock or money change.",
+    afterSetup: "Your preferences are saved, so when connecting is available tracking starts the way you chose. Until then, only orders you enter change your stock.",
   },
 } as const;

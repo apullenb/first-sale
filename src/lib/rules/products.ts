@@ -103,7 +103,7 @@ const tidy = (text: string, max: number) =>
     .trim()
     .slice(0, max);
 
-const variantKey = (values: readonly string[]) => values.map((value) => value.toLowerCase()).join("\u0001");
+export const variantKey = (values: readonly string[]) => values.map((value) => value.toLowerCase()).join("\u0001");
 
 function wholeNumber(text: string): number | null | "bad" {
   const clean = text.trim().replace(/,/g, "");

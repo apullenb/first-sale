@@ -25,7 +25,7 @@ const WRITES = [
   "setMyItemWearer", "deleteMyUnusedItemPictures", "saveMyPriceCheck", "createMyProduct", "updateMyProduct", "deleteMyProduct",
   "saveMyIntakeDraft", "deleteMyIntakeDraft", "createMyBusinessFromIntake", "updateMyProfileWithHistory", "recordMyDecisions",
   "replanMyPlan", "saveMyStructureAdvice", "saveMyInsights", "markMyInsight", "setMyJourneyMark", "clearMyJourneyMark",
-  "saveMyOperationSetup", "pauseMyOperationSetup",
+  "saveMyOperationSetup", "pauseMyOperationSetup", "recordMyOrder", "cancelMyOrder",
 ];
 
 const READS = [
@@ -37,6 +37,7 @@ const READS = [
   "listMyLibraryFiles", "getMyLibraryFile", "myLibraryUsage", "listMyProducts", "listMyItems", "getMyProduct", "listMyItemPictures",
   "getMyItemPictureFile", "findMyItemPictureByRequest", "myItemPictureRoom", "listMyPriceChecks", "getMyIntakeDraft",
   "listMyHistory", "getMyStructureAdvice", "getMyInsights", "listMyJourneyMarks", "getMySidebarFacts", "listMyOperationSetups",
+  "listMyOrders",
 ];
 
 type Call = (...args: unknown[]) => Promise<unknown>;

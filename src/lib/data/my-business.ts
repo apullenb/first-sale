@@ -1,5 +1,6 @@
 import "server-only";
 import { listOperationSetupsForOwner, saveOperationSetupForOwner, pauseOperationSetupForOwner } from "./operations";
+import { cancelOrderForOwner, listOrdersForOwner, type NewOrder, recordOrderForOwner } from "./orders";
 import { createHash } from "node:crypto";
 import { getDb } from "@/db/client";
 import { getCurrentUser } from "@/lib/auth/server";
@@ -762,4 +763,21 @@ export async function saveMyOperationSetup(input: import("@/lib/rules/operations
 export async function pauseMyOperationSetup(kind: import("@/lib/operations/catalog").OperationKind, paused: boolean) {
   const user = await writer();
   return pauseOperationSetupForOwner(getDb(), user.id, kind, paused);
+}
+
+// Orders
+
+export async function listMyOrders() {
+  const user = await getCurrentUser();
+  return listOrdersForOwner(getDb(), user.id);
+}
+
+export async function recordMyOrder(order: NewOrder) {
+  const user = await writer();
+  return recordOrderForOwner(getDb(), user.id, order);
+}
+
+export async function cancelMyOrder(orderId: string) {
+  const user = await writer();
+  return cancelOrderForOwner(getDb(), user.id, orderId);
 }

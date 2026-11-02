@@ -6,11 +6,11 @@ import { PracticeBanner } from "@/components/practice-banner";
 import { PRIMARY, INPUT, SECONDARY } from "@/components/styles";
 import { Card, Chip } from "@/components/ui";
 import { OPERATIONS, type OperationKind } from "@/lib/operations/catalog";
-import { defaultOperation, demoOperation, operationSetupSchema, type OperationSetup } from "@/lib/rules/operations";
+import { defaultOperation, demoOperation, operationSetupSchema, type OperationSetup, type SampleItem } from "@/lib/rules/operations";
 
 type Saved = { config: OperationSetup; paused: boolean };
 
-export function OperationSetupPanel({ kind, initial }: { kind: OperationKind; initial: Saved | null }) {
+export function OperationSetupPanel({ kind, initial, sampleItem = null }: { kind: OperationKind; initial: Saved | null; sampleItem?: SampleItem | null }) {
   const definition = OPERATIONS[kind];
   const [saved, setSaved] = useState(initial);
   const [config, setConfig] = useState(() => initial?.config ?? defaultOperation(kind));
@@ -76,7 +76,7 @@ export function OperationSetupPanel({ kind, initial }: { kind: OperationKind; in
         <dl className="grid gap-3 text-rule"><div><dt className="font-semibold">Source</dt><dd>{config.source}{config.email ? ` · ${config.email}` : ""}</dd></div><div><dt className="font-semibold">Help with</dt><dd>{config.goals.join("; ")}</dd></div><div><dt className="font-semibold">Follow-up preference</dt><dd>After {config.reminder} day{config.reminder === "1" ? "" : "s"} without a response</dd></div></dl>
         <div className="rounded-xl bg-wash p-4"><p className="font-semibold">When connected, the intended workflow is:</p><p className="mt-2 text-muted">{definition.trigger}</p><ol className="mt-3 list-decimal space-y-2 pl-5">{(kind === "email" && !config.goals.includes("Draft customer replies") ? ["Read messages from your chosen inbox", "Flag customer messages for your attention", "Wait for you to review and respond"] : definition.steps).map((step) => <li key={step}>{step}</li>)}</ol></div>
         <p className="text-muted">You review every reply before sending it. You confirm order changes; stock and money are never changed by a drafted reply.</p>
-        <div className="flex flex-wrap gap-3">{stage === "review" ? <><button className={SECONDARY} disabled={pending} onClick={() => setStage("configure")}>Back</button><button className={PRIMARY} disabled={pending} onClick={save}>{pending ? "Saving…" : "Approve & save demo setup"}</button></> : <><button className={PRIMARY} disabled={pending || saved?.paused} onClick={() => { setSample(demoOperation(config)); setMessage(""); }}>Try a demo</button><button className={SECONDARY} disabled={pending} onClick={() => { setSample(null); setMessage(""); setStage("choose"); }}>Edit setup</button><button className={SECONDARY} disabled={pending} onClick={togglePaused}>{saved?.paused ? "Resume demo" : "Pause demo"}</button></>}</div>
+        <div className="flex flex-wrap gap-3">{stage === "review" ? <><button className={SECONDARY} disabled={pending} onClick={() => setStage("configure")}>Back</button><button className={PRIMARY} disabled={pending} onClick={save}>{pending ? "Saving…" : "Approve & save demo setup"}</button></> : <><button className={PRIMARY} disabled={pending || saved?.paused} onClick={() => { setSample(demoOperation(config, sampleItem)); setMessage(""); }}>Try a demo</button><button className={SECONDARY} disabled={pending} onClick={() => { setSample(null); setMessage(""); setStage("choose"); }}>Edit setup</button><button className={SECONDARY} disabled={pending} onClick={togglePaused}>{saved?.paused ? "Resume demo" : "Pause demo"}</button></>}</div>
       </Card> : null}
       <p role="status" aria-live="polite" className="text-sm text-accent">{message}</p>
       {sample ? <Card title={sample.title} id="demo-result" tone="warn"><PracticeBanner what="This is a built-in sample workflow, using a fictional customer message." /><p className="rounded-lg bg-wash p-3">“{sample.message}”</p><p>{sample.result}</p><p className="text-muted">{sample.reminder} This demo does not schedule a notification.</p>{kind === "email" && config.goals.includes("Draft customer replies") ? <div className="rounded-lg border border-line p-4"><p className="font-semibold">Sample reply · Not sent</p><p>Thanks for getting in touch! What would you like to order, and when would you need it? I’ll confirm the details with you before accepting your order.</p></div> : null}</Card> : null}
