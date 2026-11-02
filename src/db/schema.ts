@@ -842,3 +842,44 @@ export const operationSetups = pgTable("operation_setups", {
   paused: boolean("paused").notNull().default(false),
   updatedAt: updatedAt(),
 }, (table) => [primaryKey({ columns: [table.businessId, table.kind] })]);
+
+export const squareConnections = pgTable("square_connections", {
+  businessId: businessId().primaryKey(),
+  environment: text("environment").notNull(),
+  merchantId: text("merchant_id"),
+  credentials: text("credentials"),
+  oauthStateHash: text("oauth_state_hash"),
+  oauthExpiresAt: timestamp("oauth_expires_at", { withTimezone: true }),
+  generation: text("generation").notNull(),
+  updatedAt: updatedAt(),
+});
+
+export const squareDescriptionDrafts = pgTable("square_description_drafts", {
+  id: id(),
+  businessId: businessId(),
+  connectionGeneration: text("connection_generation").notNull(),
+  itemId: text("item_id").notNull(),
+  name: text("name").notNull(),
+  original: jsonb("original").$type<import("@/lib/square/client").SquareItem>().notNull(),
+  description: text("description").notNull(),
+  simulated: boolean("simulated").notNull(),
+  status: text("status", { enum: ["pending", "approved", "succeeded", "cancelled", "conflict"] }).notNull().default("pending"),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: createdAt(),
+}, (table) => [index("square_drafts_business_idx").on(table.businessId)]);
+
+export const squareProductLinks = pgTable("square_product_links", {
+  productId: text("product_id").primaryKey().references(() => products.id, { onDelete: "cascade" }),
+  businessId: businessId(),
+  merchantId: text("merchant_id").notNull(),
+  environment: text("environment").notNull(),
+  remoteId: text("remote_id"),
+  origin: text("origin", { enum: ["imported", "published"] }).notNull(),
+  remote: jsonb("remote").$type<import("@/lib/square/client").SquareItem>(),
+  fingerprint: text("fingerprint"),
+  importedAt: timestamp("imported_at", { withTimezone: true }),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  pushedAt: timestamp("pushed_at", { withTimezone: true }),
+  pending: jsonb("pending").$type<{ key: string; fingerprint: string; object: import("@/lib/square/client").SquareItem }>(),
+}, (table) => [uniqueIndex("square_product_remote_idx").on(table.businessId, table.environment, table.merchantId, table.remoteId)]);

@@ -19,6 +19,14 @@ export interface Workflow {
 const MINUTE = 60_000;
 
 export const WORKFLOWS = {
+  square_description: {
+    title: "Draft a Square description",
+    summary: "Rewrites a product description for you to review before updating Square.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 2 * MINUTE,
+    offeredFor: [],
+  },
   research: {
     title: "Find my requirements",
     summary: "Searches official government sites for your place, reads them, and lists the licenses and registrations you need.",
