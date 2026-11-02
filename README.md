@@ -565,7 +565,7 @@ Open <http://localhost:3000>, create an account and answer the intake. Each acco
    MUSE_IMAGE_MODEL=muse-image-1.0
    ```
 
-3. Restart `npm run dev`. Requirement research, form reading, logos, brand photos, product photos, website words and price comparisons now run on Muse Spark and Muse Image.
+3. Restart `npm run dev`. Requirement research, form reading, logos, brand photos, product photos, website words and price comparisons all run on Muse Spark and Muse Image with your key.
 
 To use a different OpenAI-compatible model instead, set `AI_PROVIDER=openai-compatible` with `AI_BASE_URL`, `AI_API_KEY` and `AI_MODEL`. No keys are committed to this repo; `.env.example` lists every setting with an empty value.
 
