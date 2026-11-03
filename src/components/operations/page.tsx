@@ -1,28 +1,15 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { OrdersPanel } from "@/components/operations/orders";
 import { CustomerInbox } from "@/components/operations/inbox";
 import { inboundAddress, inboundAvailable } from "@/lib/email/inbound";
-import { workDefault } from "@/lib/rules/order-tracking";
 import { Icon } from "@/components/icons";
 import { PRIMARY_LINK } from "@/components/styles";
 import { Card, PageHead } from "@/components/ui";
-import {
-  getMyBusiness,
-  getMyEmailState,
-  lastMyRun,
-  listMyOrders,
-  listMyProducts,
-} from "@/lib/data/my-business";
+import { getMyBusiness, getMyEmailState, lastMyRun } from "@/lib/data/my-business";
 import { OPERATIONS, type OperationKind } from "@/lib/operations/catalog";
 
-export function OperationPage({
-  kind,
-  selectedOrder,
-}: {
-  kind: OperationKind;
-  selectedOrder?: Promise<{ order?: string }>;
-}) {
+// Orders & jobs has its own pages under /orders
+export function OperationPage({ kind }: { kind: Exclude<OperationKind, "requests"> }) {
   const definition = OPERATIONS[kind];
   return (
     <div className="flex max-w-6xl flex-col gap-6">
@@ -39,29 +26,18 @@ export function OperationPage({
         lead={definition.description}
       />
       <Suspense fallback={<p className="text-muted">Loading your setup…</p>}>
-        <Setup kind={kind} selectedOrder={selectedOrder} />
+        <Setup />
       </Suspense>
     </div>
   );
 }
 
-async function Setup({
-  kind,
-  selectedOrder,
-}: {
-  kind: OperationKind;
-  selectedOrder?: Promise<{ order?: string }>;
-}) {
-  const [business, importRun, items, orders, email, selection] = await Promise.all(
-    [
-      getMyBusiness(),
-      kind === "email" ? lastMyRun("email_import", null) : null,
-      kind === "requests" ? listMyProducts() : [],
-      kind === "requests" ? listMyOrders() : [],
-      getMyEmailState(),
-      selectedOrder ?? Promise.resolve({ order: undefined }),
-    ],
-  );
+async function Setup() {
+  const [business, importRun, email] = await Promise.all([
+    getMyBusiness(),
+    lastMyRun("email_import", null),
+    getMyEmailState(),
+  ]);
   if (!business)
     return (
       <Card title="Tell us about your business first" id="business-first">
@@ -71,7 +47,6 @@ async function Setup({
         </Link>
       </Card>
     );
-  const now = new Date();
   const messages = email.messages.map(
     ({
       id,
@@ -111,58 +86,18 @@ async function Setup({
       createdAt: createdAt.toISOString(),
     }),
   );
-  const orderable = items.map(
-    ({
-      id,
-      name,
-      kind: itemKind,
-      priceCents,
-      priceText,
-      quantity,
-      options,
-    }) => ({
-      id,
-      name,
-      kind: itemKind,
-      priceCents,
-      priceText,
-      quantity,
-      options,
-    }),
-  );
   return (
-    <>
-      {kind === "requests" ? (
-        <OrdersPanel
-          key={`${business.id}:${selection.order ?? ""}`}
-          items={orderable}
-          orders={orders.map((order) => ({
-            ...order,
-            createdAt: order.createdAt.toISOString(),
-            events: order.events.map((event) => ({
-              ...event,
-              createdAt: event.createdAt.toISOString(),
-            })),
-          }))}
-          workType={workDefault(business.profile, items)}
-          messages={messages}
-          today={now.toISOString().slice(0, 10)}
-          initialOrder={selection.order}
-        />
-      ) : (
-        <CustomerInbox
-          messages={messages}
-          forwarding={{
-            available: inboundAvailable(),
-            address: email.inbox ? inboundAddress(email.inbox.token) : null,
-            confirmation: email.inbox?.confirmation ?? null,
-            firstFrom: email.inbox?.firstFrom ?? null,
-            firstAt: email.inbox?.firstAt?.toISOString() ?? null,
-            waiting: email.waiting,
-            reading: importRun?.status === "running",
-          }}
-        />
-      )}
-    </>
+    <CustomerInbox
+      messages={messages}
+      forwarding={{
+        available: inboundAvailable(),
+        address: email.inbox ? inboundAddress(email.inbox.token) : null,
+        confirmation: email.inbox?.confirmation ?? null,
+        firstFrom: email.inbox?.firstFrom ?? null,
+        firstAt: email.inbox?.firstAt?.toISOString() ?? null,
+        waiting: email.waiting,
+        reading: importRun?.status === "running",
+      }}
+    />
   );
 }
