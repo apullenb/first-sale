@@ -147,7 +147,7 @@ SnapStart finds the official government websites for the owner's city, county an
 
 <img src="docs/media/nav/register-your-business.webp" alt="Menu link: Register your business" width="177" height="32">
 
-Each step comes with numbered instructions, and every fee and method links to the official page with the date it was checked. For known forms (IRS SS-4, Texas Forms 205, 401-A, 503 and AP-201, and the Travis County assumed name certificate), SnapStart downloads the real PDF from the agency's own site, confirms it's the right revision, and fills in the blanks from the owner's saved details. "What to do with this form" then explains how to sign it, where to send it and how to record it. Each part of the paperwork (registering the business, tax IDs, where you work, licenses and permits) has its own menu entry with the time it takes.
+Each step comes with numbered instructions, and every fee and method links to the official page with the date it was checked. "What to do with this form" then explains how to sign it, where to send it and how to record it. Each part of the paperwork (registering the business, tax IDs, where you work, licenses and permits) has its own menu entry with the time it takes.
 
 <p align="center"><img src="docs/media/paperwork.webp" alt="Recording of the Texas Form 205 step: choose 'Fill in Form 205 here', the form is downloaded from sos.texas.gov and checked as the official form, the LLC's name is filled in from saved business details, then the 'What to do with this form' steps: check, download, sign, mail to the Secretary of State, mark it submitted" width="900"></p>
 
