@@ -454,13 +454,23 @@ export const orders = pgTable(
     businessId: businessId(),
     isDemo: boolean("is_demo").notNull().default(false),
     customerName: text("customer_name").notNull(),
+    customerEmail: text("customer_email").notNull().default(""),
+    customerPhone: text("customer_phone").notNull().default(""),
+    title: text("title").notNull().default(""),
+    workType: text("work_type", { enum: ["products", "made_to_order", "services"] }).notNull().default("products"),
+    jobTime: text("job_time").notNull().default(""),
+    location: text("location").notNull().default(""),
+    totalCents: integer("total_cents"),
+    source: text("source", { enum: ["manual", "email", "invoice"] }).notNull().default("manual"),
+    requestKey: text("request_key"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     fulfillment: text("fulfillment", { enum: FULFILLMENT_METHODS }).notNull(),
     requestedDate: date("requested_date"),
     notes: text("notes").notNull().default(""),
     status: text("status", { enum: ORDER_STATUSES }).notNull().default("new"),
     createdAt: createdAt(),
   },
-  (table) => [index("orders_business_id_idx").on(table.businessId)],
+  (table) => [index("orders_business_id_idx").on(table.businessId), uniqueIndex("orders_request_key_idx").on(table.businessId, table.requestKey)],
 );
 
 // Serial id + unique index: drizzle-kit mis-diffs composite primary keys
@@ -474,6 +484,7 @@ export const orderLines = pgTable(
     productId: text("product_id")
       .notNull()
       .references(() => products.id),
+    nameSnapshot: text("name_snapshot"),
     // The exact option combination ordered, as saved when ordered; empty for items without options
     optionValues: jsonb("option_values").$type<string[]>().notNull().default([]),
     variantKey: text("variant_key").notNull().default(""),
@@ -842,3 +853,87 @@ export const operationSetups = pgTable("operation_setups", {
   paused: boolean("paused").notNull().default(false),
   updatedAt: updatedAt(),
 }, (table) => [primaryKey({ columns: [table.businessId, table.kind] })]);
+
+export const squareConnections = pgTable("square_connections", {
+  businessId: businessId().primaryKey(),
+  environment: text("environment").notNull(),
+  merchantId: text("merchant_id"),
+  credentials: text("credentials"),
+  oauthStateHash: text("oauth_state_hash"),
+  oauthExpiresAt: timestamp("oauth_expires_at", { withTimezone: true }),
+  generation: text("generation").notNull(),
+  updatedAt: updatedAt(),
+});
+
+export const squareDescriptionDrafts = pgTable("square_description_drafts", {
+  id: id(),
+  businessId: businessId(),
+  connectionGeneration: text("connection_generation").notNull(),
+  itemId: text("item_id").notNull(),
+  name: text("name").notNull(),
+  original: jsonb("original").$type<import("@/lib/square/client").SquareItem>().notNull(),
+  description: text("description").notNull(),
+  simulated: boolean("simulated").notNull(),
+  status: text("status", { enum: ["pending", "approved", "succeeded", "cancelled", "conflict"] }).notNull().default("pending"),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: createdAt(),
+}, (table) => [index("square_drafts_business_idx").on(table.businessId)]);
+
+export const squareProductLinks = pgTable("square_product_links", {
+  productId: text("product_id").primaryKey().references(() => products.id, { onDelete: "cascade" }),
+  businessId: businessId(),
+  merchantId: text("merchant_id").notNull(),
+  environment: text("environment").notNull(),
+  remoteId: text("remote_id"),
+  origin: text("origin", { enum: ["imported", "published"] }).notNull(),
+  remote: jsonb("remote").$type<import("@/lib/square/client").SquareItem>(),
+  fingerprint: text("fingerprint"),
+  importedAt: timestamp("imported_at", { withTimezone: true }),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  pushedAt: timestamp("pushed_at", { withTimezone: true }),
+  pending: jsonb("pending").$type<{ key: string; fingerprint: string; object: import("@/lib/square/client").SquareItem }>(),
+}, (table) => [uniqueIndex("square_product_remote_idx").on(table.businessId, table.environment, table.merchantId, table.remoteId)]);
+
+export const orderPayments = pgTable("order_payments", {
+  id: id(),
+  orderId: text("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
+  kind: text("kind", { enum: ["payment", "refund"] }).notNull(),
+  amountCents: integer("amount_cents").notNull(),
+  paidOn: date("paid_on").notNull(),
+  note: text("note").notNull().default(""),
+  requestKey: text("request_key").notNull(),
+  createdAt: createdAt(),
+}, (table) => [uniqueIndex("order_payment_request_idx").on(table.orderId, table.requestKey)]);
+
+export const emailConnections = pgTable("email_connections", {
+  id: id(), businessId: businessId(),
+  grantId: text("grant_id").notNull().unique(),
+  email: text("email").notNull(),
+  status: text("status", { enum: ["connected", "reconnect"] }).notNull().default("connected"),
+  // When the last import started; null until the first one
+  importedAt: timestamp("imported_at", { withTimezone: true }),
+  createdAt: createdAt(),
+}, (table) => [uniqueIndex("email_business_idx").on(table.businessId)]);
+
+export const customerMessages = pgTable("customer_messages", {
+  id: id(), businessId: businessId(),
+  connectionId: text("connection_id").references(() => emailConnections.id, { onDelete: "set null" }),
+  sourceKey: text("source_key").notNull(),
+  source: text("source", { enum: ["email", "invoice"] }).notNull(),
+  providerMessageId: text("provider_message_id"),
+  threadId: text("thread_id"),
+  sender: text("sender").notNull().default(""),
+  subject: text("subject").notNull(),
+  body: text("body").notNull().default(""),
+  documentId: text("document_id").references(() => documents.id, { onDelete: "set null" }),
+  orderId: text("order_id").references(() => orders.id, { onDelete: "set null" }),
+  state: text("state", { enum: ["pending", "processing", "ready", "failed", "dismissed"] }).notNull().default("pending"),
+  extraction: jsonb("extraction").$type<import("@/lib/orders/extract").ExtractedRequest>(),
+  simulated: boolean("simulated").notNull().default(false),
+  issue: text("issue"),
+  reply: text("reply").notNull().default(""),
+  sendState: text("send_state", { enum: ["draft", "sending", "sent", "uncertain"] }).notNull().default("draft"),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  createdAt: createdAt(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("customer_message_source_idx").on(table.businessId, table.sourceKey)]);

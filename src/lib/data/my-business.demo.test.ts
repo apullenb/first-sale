@@ -14,6 +14,8 @@ const wrappers = (await import("./my-business")) as unknown as Record<string, un
 
 // Every write wrapper; a new export must be listed here or in READS
 const WRITES = [
+  "beginMySquareConnection", "finishMySquareConnection", "listMySquareItems", "draftMySquareDescription", "editMySquareDraft",
+  "approveMySquareDraft", "disconnectMySquare", "pullMySquareProducts", "pushMySquareProduct",
   "saveMyFollowUp", "saveMyResearch", "setMyConditionAnswer", "setMyStepStatus", "saveMyDetails", "deleteMyDetail",
   "createMyDocument", "updateMyDocument", "deleteMyDocument", "startMyRun", "finishMyRun",
   "createMyPhoto", "updateMyPhoto", "deleteMyPhoto", "addMyPhotoVersion", "setMyPhotoVersionReview", "approveMyPhotoVersion",
@@ -25,10 +27,12 @@ const WRITES = [
   "setMyItemWearer", "deleteMyUnusedItemPictures", "saveMyPriceCheck", "createMyProduct", "updateMyProduct", "deleteMyProduct",
   "saveMyIntakeDraft", "deleteMyIntakeDraft", "createMyBusinessFromIntake", "updateMyProfileWithHistory", "recordMyDecisions",
   "replanMyPlan", "saveMyStructureAdvice", "saveMyInsights", "markMyInsight", "setMyJourneyMark", "clearMyJourneyMark",
+  "setMyOrderTotal", "progressMyOrder", "recordMyPayment", "scheduleMyOrder", "addMyCustomerMessage", "processMyCustomerMessage", "retryMyCustomerMessage", "dismissMyCustomerMessage", "beginMyEmailConnection", "finishMyEmailConnection", "importMyEmail", "disconnectMyEmail", "sendMyCustomerReply",
   "saveMyOperationSetup", "pauseMyOperationSetup", "recordMyOrder", "cancelMyOrder",
 ];
 
 const READS = [
+  "getMySquareState", "getMyProductSync",
   "getMyBusiness", "getMyResearch", "myAiKey", "getMyPlan", "getMyResearchBasis", "listMyConditionAnswers", "paperworkContext",
   "getMyPaperwork", "getMyStep", "getMyDetails", "listMyDocuments", "getMyDocument", "getMyDocumentFile", "lastMyRun",
   "listMyPhotos", "getMyPhoto", "getMyPhotoFile", "getMyPhotoVersionFile", "findMyPhotoVersionByRequest", "myPhotoVersionRoom",
@@ -37,7 +41,7 @@ const READS = [
   "listMyLibraryFiles", "getMyLibraryFile", "myLibraryUsage", "listMyProducts", "listMyItems", "getMyProduct", "listMyItemPictures",
   "getMyItemPictureFile", "findMyItemPictureByRequest", "myItemPictureRoom", "listMyPriceChecks", "getMyIntakeDraft",
   "listMyHistory", "getMyStructureAdvice", "getMyInsights", "listMyJourneyMarks", "getMySidebarFacts", "listMyOperationSetups",
-  "listMyOrders",
+  "listMyOrders", "getMyEmailState",
 ];
 
 type Call = (...args: unknown[]) => Promise<unknown>;

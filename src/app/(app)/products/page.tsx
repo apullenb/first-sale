@@ -6,6 +6,7 @@ import { AlreadyHave } from "@/components/already-have";
 import { Icon } from "@/components/icons";
 import { Kicker } from "@/components/marketing/pieces";
 import { PracticeBanner } from "@/components/practice-banner";
+import { SquareLibraryControls } from "@/components/products/square-sync";
 import { FromPhoto } from "@/components/products/from-photo";
 import { PriceCompare } from "@/components/products/price-compare";
 import { type ItemPicture, type ListedProduct, type PhotoChoice, ProductList } from "@/components/products/product-list";
@@ -15,6 +16,7 @@ import { practiceMode } from "@/lib/ai";
 import { LIBRARY_GROUP_TEXT, libraryFileUrl } from "@/lib/brand/library";
 import {
   getMyBusiness,
+  getMyProductSync,
   listMyItemPictures,
   listMyItems,
   listMyJourneyMarks,
@@ -69,7 +71,7 @@ async function Products() {
     );
   }
   const profile = business.profile;
-  const [items, approved, originals, uploads, marks, pictures, checks] = await Promise.all([
+  const [items, approved, originals, uploads, marks, pictures, checks, squareSync] = await Promise.all([
     listMyItems(),
     listMyPhotoLibrary(),
     listMyPhotos(),
@@ -77,6 +79,7 @@ async function Products() {
     listMyJourneyMarks(),
     listMyItemPictures(),
     listMyPriceChecks(),
+    getMyProductSync(),
   ]);
   const mark = marks.find((each) => each.key === "products") ?? null;
   const practice = practiceMode();
@@ -124,7 +127,7 @@ async function Products() {
         practice: false,
       })),
   ];
-  const listed: ListedProduct[] = items;
+  const listed: ListedProduct[] = items.map((item) => ({ ...item, squareSync: squareSync.products[item.id] }));
   const itemPictures: ItemPicture[] = pictures.map((picture) => ({
     id: picture.id,
     productId: picture.productId,
@@ -142,6 +145,7 @@ async function Products() {
       pictures={itemPictures.filter((picture) => listed.some((item) => item.id === picture.productId && item.kind === kind))}
       changeLimit={MAX_PICTURE_CHANGE}
       total={items.length}
+      squareConnected={squareSync.connected}
     />
   );
 
@@ -159,6 +163,8 @@ async function Products() {
         }
       />
       {practice ? <PracticeBanner what="Drafted descriptions, pictures and price comparisons on this page are practice samples." /> : null}
+
+      <SquareLibraryControls connected={squareSync.connected} />
 
       <AlreadyHave
         markKey="products"

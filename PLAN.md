@@ -159,16 +159,14 @@ Decided 2026-10-26: a **guided workspace**, direction A in the clickable prototy
   - AI drafts a listing and a social post from those facts only. Claims like "gluten-free" are flagged for the owner to confirm, never added.
   - Drafts are cross-checked against the owner's own requirements, such as a home-kitchen label requirement.
   - Nothing is exported until the owner approves it.
-- **Daily workflow setup (`/run`, `/email`, `/orders`)**
-  - Two owner-selected workflows: customer email assistance and order/customer-request tracking.
-  - Guided choices → source and reminder preferences → owner review → saved setup, with pause/resume and a built-in sample run.
-  - Preferences are owner-scoped. Everything is explicitly a demo: no OAuth connection, background monitoring, scheduled notification, live request capture or sending is implemented yet.
-  - Live operation needs provider authorization, incoming-event integrations and a durable worker; order and stock changes must continue through the tested code.
-- **Order → customer reply (`/orders`)**
-  - Sample orders are labeled DEMO.
-  - `applyOrder` checks and updates stock all at once or not at all; it never comes from the model.
-  - AI drafts the reply from the owner's pickup and shipping settings and flags missing details.
-  - Each order's history labels every step: code, AI or owner.
+- **Customer operations (`/run`, `/email`, `/orders`)**
+  - Adaptive product, made-to-order and service-job workspaces, with list, board and dated schedule views.
+  - Manual work, uploaded invoices and customer emails enter the same tracker. Imported work needs owner confirmation before stock changes.
+  - Nylas hosted authorization; the owner presses Import new emails to bring in and read new mail through `runWorkflow`. Setup in `docs/CUSTOMER-OPERATIONS.md`.
+  - Invoice/email facts keep exact source excerpts. Unsupported facts are omitted; invoices never establish payment. Practice results are labeled and cannot change stock or send replies.
+  - Payments and refunds use an append-only ledger; code calculates paid amounts and balances independently of fulfillment. Overdue work is flagged in the tracker.
+  - Replies are conservative code-built drafts from checked extracted facts, editable by the owner, and require explicit approval before sending. Uncertain sends cannot retry automatically.
+  - Catalog orders snapshot names and prices and update stock transactionally. Custom work has an owner-confirmed total; completed or shipped work cannot restore stock through cancellation.
 
 ## Architecture
 

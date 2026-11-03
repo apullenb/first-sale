@@ -781,3 +781,167 @@ export async function cancelMyOrder(orderId: string) {
   const user = await writer();
   return cancelOrderForOwner(getDb(), user.id, orderId);
 }
+
+export async function getMySquareState() {
+  const user = await getCurrentUser();
+  return (await import("./square")).squareStateForOwner(getDb(), user.id);
+}
+
+export async function beginMySquareConnection() {
+  const user = await writer();
+  return (await import("./square")).beginSquareForOwner(getDb(), user.id);
+}
+
+export async function finishMySquareConnection(state: string, code: string) {
+  const user = await writer();
+  return (await import("./square")).finishSquareForOwner(getDb(), user.id, state, code);
+}
+
+export async function listMySquareItems() {
+  const user = await writer();
+  return (await import("./square")).listSquareItemsForOwner(getDb(), user.id);
+}
+
+export async function draftMySquareDescription(itemId: string, request: string) {
+  const user = await writer();
+  return (await import("./square")).draftSquareForOwner(getDb(), user.id, itemId, request);
+}
+
+export async function editMySquareDraft(draftId: string, description: string, cancel = false) {
+  const user = await writer();
+  return (await import("./square")).editSquareDraftForOwner(getDb(), user.id, draftId, description, cancel);
+}
+
+export async function approveMySquareDraft(draftId: string, description: string) {
+  const user = await writer();
+  return (await import("./square")).approveSquareDraftForOwner(getDb(), user.id, draftId, description);
+}
+
+export async function disconnectMySquare() {
+  const user = await writer();
+  return (await import("./square")).disconnectSquareForOwner(getDb(), user.id);
+}
+
+export async function getMyProductSync() {
+  const user = await getCurrentUser();
+  return (await import("./square-products")).productSyncForOwner(getDb(), user.id);
+}
+
+export async function pullMySquareProducts(productId?: string, expected?: string) {
+  const user = await writer();
+  return (await import("./square-products")).pullProductsForOwner(getDb(), user.id, productId, expected);
+}
+
+export async function pushMySquareProduct(productId: string, expected: string) {
+  const user = await writer();
+  return (await import("./square-products")).pushProductForOwner(getDb(), user.id, productId, expected);
+}
+
+export async function progressMyOrder(id: string, status: import("@/lib/rules/order-tracking").TrackingStatus) {
+  const user = await writer();
+  return (await import("./orders")).progressOrderForOwner(getDb(), user.id, id, status);
+}
+export async function recordMyPayment(input: Parameters<typeof import("./orders").paymentForOwner>[2]) {
+  const user = await writer();
+  return (await import("./orders")).paymentForOwner(getDb(), user.id, input);
+}
+export async function scheduleMyOrder(input: Parameters<typeof import("./orders").scheduleOrderForOwner>[2]) {
+  const user = await writer();
+  return (await import("./orders")).scheduleOrderForOwner(getDb(), user.id, input);
+}
+
+export async function getMyEmailState() {
+  const user = await getCurrentUser();
+  return (await import("./customer-messages")).emailStateForOwner(getDb(), user.id);
+}
+export async function addMyCustomerMessage(input: Parameters<typeof import("./customer-messages").addMessageForOwner>[2]) {
+  const user = await writer();
+  return (await import("./customer-messages")).addMessageForOwner(getDb(), user.id, input);
+}
+export async function processMyCustomerMessage(id: string) {
+  const user = await writer();
+  const { runWorkflow } = await import("@/lib/workflow-runner");
+  return runWorkflow("customer_intake", id, () => import("@/lib/orders/process").then((module) => module.processCustomerMessage(user.id, id)));
+}
+export async function retryMyCustomerMessage(id: string) {
+  const user = await writer();
+  return (await import("./customer-messages")).retryMessageForOwner(getDb(), user.id, id);
+}
+export async function dismissMyCustomerMessage(id: string) {
+  const user = await writer();
+  return (await import("./customer-messages")).dismissMessageForOwner(getDb(), user.id, id);
+}
+export async function beginMyEmailConnection() {
+  const user = await writer();
+  const { randomBytes } = await import("node:crypto");
+  const config = (await import("@/lib/email/client")).emailConfig();
+  const state = randomBytes(32).toString("hex"), binding = createHash("sha256").update(user.id).digest("hex");
+  const url = new URL(`${config.base}/v3/connect/auth`);
+  url.search = new URLSearchParams({ client_id: config.clientId, redirect_uri: config.redirectUri, response_type: "code", access_type: "offline", state }).toString();
+  return { url: url.toString(), state, binding };
+}
+export async function finishMyEmailConnection(code: string, binding: string) {
+  const user = await writer();
+  if (createHash("sha256").update(user.id).digest("hex") !== binding) throw new Error("Account changed during connection");
+  const { emailApi, emailConfig } = await import("@/lib/email/client");
+  const config = emailConfig();
+  const raw = await emailApi("/connect/token", { method: "POST", body: JSON.stringify({ client_id: config.clientId, client_secret: config.apiKey, grant_type: "authorization_code", code, redirect_uri: config.redirectUri }) });
+  const { z } = await import("zod");
+  const grant = z.object({ grant_id: z.string().min(1).max(500), email: z.email() }).parse(raw);
+  const data = await import("./customer-messages");
+  const previous = await data.connectionForOwner(getDb(), user.id);
+  const connected = await data.connectEmailForOwner(getDb(), user.id, grant.grant_id, grant.email);
+  // The old grant goes only once the new one is saved
+  if (connected && previous && previous.grantId !== grant.grant_id) await deleteGrant(previous.grantId);
+  return connected;
+}
+// Brings in new mail from the owner's inbox and reads it, as one job
+export async function importMyEmail() {
+  const user = await writer();
+  const { runWorkflow } = await import("@/lib/workflow-runner");
+  const { practiceMode } = await import("@/lib/ai");
+  const { takeAiRequest } = await import("./ai-quota");
+  const { importEmailForOwner } = await import("@/lib/email/import");
+  return runWorkflow("email_import", null, () =>
+    importEmailForOwner(user.id, async () => practiceMode() || (await takeAiRequest(getDb(), user.id)) === "ok"),
+  );
+}
+export async function disconnectMyEmail() {
+  const user = await writer();
+  const data = await import("./customer-messages");
+  const connection = await data.connectionForOwner(getDb(), user.id);
+  if (connection) await deleteGrant(connection.grantId);
+  await data.removeEmailForOwner(getDb(), user.id);
+}
+
+// A grant already gone at the provider (revoked or expired) counts as deleted
+async function deleteGrant(grantId: string) {
+  const { EmailApiError, emailApi } = await import("@/lib/email/client");
+  try {
+    await emailApi(`/grants/${encodeURIComponent(grantId)}`, { method: "DELETE" });
+  } catch (error) {
+    if (!(error instanceof EmailApiError && error.status === 404)) throw error;
+  }
+}
+export async function sendMyCustomerReply(id: string, reply: string) {
+  const user = await writer();
+  const data = await import("./customer-messages");
+  const reserved = await data.reserveReplyForOwner(getDb(), user.id, id, reply);
+  if (!reserved) return { ok: false, message: "This reply cannot be sent. Check for a newer message, a disconnected inbox or an earlier send." };
+  try {
+    const { z } = await import("zod");
+    if (!z.email().safeParse(reserved.message.sender).success) throw new Error("Missing recipient");
+    const escaped = reply.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\n", "<br>");
+    await (await import("@/lib/email/client")).emailApi(`/grants/${encodeURIComponent(reserved.connection.grantId)}/messages/send`, { method: "POST", body: JSON.stringify({ subject: `Re: ${reserved.message.subject}`, body: escaped, to: [{ email: reserved.message.sender }], reply_to_message_id: reserved.message.providerMessageId }) });
+    await data.finishReplyForOwner(getDb(), user.id, id, "sent");
+    return { ok: true, message: "Reply sent." };
+  } catch {
+    await data.finishReplyForOwner(getDb(), user.id, id, "uncertain");
+    return { ok: false, message: "Sending could not be confirmed. Check Sent mail before replying again; automatic retry is blocked." };
+  }
+}
+
+export async function setMyOrderTotal(id: string, totalCents: number) {
+  const user = await writer();
+  return (await import("./orders")).setOrderTotalForOwner(getDb(), user.id, id, totalCents);
+}

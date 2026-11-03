@@ -23,6 +23,8 @@ import {
   variantRows,
   type VariantForm,
 } from "@/lib/rules/products";
+import { SquareProductSync } from "./square-sync";
+import type { ProductSyncStatus } from "@/lib/rules/square-products";
 import { ItemPictures } from "./item-pictures";
 import type { PictureView, Wearer } from "@/lib/rules/picture-views";
 import { failedMessage } from "@/lib/failure";
@@ -38,6 +40,7 @@ export interface PhotoChoice {
 }
 
 export interface ListedProduct extends ProductValues {
+  squareSync?: ProductSyncStatus;
   id: string;
   wearer?: Wearer | null;
 }
@@ -77,6 +80,7 @@ export function ProductList({
   pictures,
   changeLimit,
   total,
+  squareConnected = false,
 }: {
   kind: ItemKind;
   products: ListedProduct[];
@@ -85,19 +89,24 @@ export function ProductList({
   changeLimit: number;
   // Products and services together, for the limit
   total: number;
+  squareConnected?: boolean;
 }) {
   const [editing, setEditing] = useState<string | null>(null);
   // With nothing listed yet, the form is always open
   const [adding, setAdding] = useState(false);
   const byKey = new Map(choices.map((choice) => [choice.key, choice]));
   const noun = NOUN[kind];
+  const group = (product: ListedProduct) => product.squareSync?.origin === "imported" ? 0 : product.squareSync?.linked ? 1 : product.squareSync?.pending ? 2 : 3;
+  const grouped = products.toSorted((a, b) => group(a) - group(b));
+  const labels = ["Pulled from Square", "Published from your library to Square", "Awaiting Square publication confirmation", "Only in your product library"];
 
   return (
     <div className="@container flex flex-col gap-4">
       {products.length ? (
         <ul className="flex flex-col gap-3" aria-label={`Your ${noun.many}`}>
-          {products.map((product) => (
+          {grouped.map((product, index) => (
             <li key={product.id}>
+              {index === 0 || group(grouped[index - 1]) !== group(product) ? <h3 className="mb-3 font-semibold text-accent">{labels[group(product)]}</h3> : null}
               {editing === product.id ? (
                 <ProductEditor
                   key={product.id}
@@ -110,6 +119,7 @@ export function ProductList({
               ) : (
                 <ProductRow
                   product={product}
+                  squareConnected={squareConnected}
                   photo={byKey.get(photoKey(product.photo)) ?? null}
                   missingPhoto={product.photo !== null && !byKey.has(photoKey(product.photo))}
                   pictures={pictures.filter((picture) => picture.productId === product.id)}
@@ -143,6 +153,7 @@ function ProductRow({
   pictures,
   changeLimit,
   onEdit,
+  squareConnected,
 }: {
   product: ListedProduct;
   photo: PhotoChoice | null;
@@ -150,6 +161,7 @@ function ProductRow({
   pictures: ItemPicture[];
   changeLimit: number;
   onEdit: () => void;
+  squareConnected: boolean;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -163,7 +175,7 @@ function ProductRow({
   const priced = product.options.variants.filter((variant) => variant.priceCents !== null || variant.quantity !== null);
 
   async function remove() {
-    if (!window.confirm(`Remove “${product.name}”?`)) return;
+    if (!window.confirm(product.squareSync?.linked ? `Remove “${product.name}” from your library? Its Square item will remain in Square.` : `Remove “${product.name}”?`)) return;
     setPending(true);
     setError(null);
     try {
@@ -248,6 +260,7 @@ function ProductRow({
               <span className="sr-only"> {product.name}</span>
             </button>
           </div>
+          <SquareProductSync product={product} sync={product.squareSync} connected={squareConnected} />
           <ActionButton
             action={() => describeItemAction(product.id)}
             label={product.description ? `Write a new description for ${product.name}` : `Draft a description for ${product.name}`}
