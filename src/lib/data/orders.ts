@@ -10,19 +10,24 @@ import {
   products,
   stockMovements,
 } from "@/db/schema";
-import type { FULFILLMENT_METHODS, ORDER_STATUSES } from "@/lib/domain";
+import type { FulfillmentMethod, ORDER_STATUSES } from "@/lib/domain";
 import {
   type ItemStock,
+  netTaken,
   type OptionMovement,
   type OrderItem,
   type PlaceOrderIssue,
+  type PlacedLine,
   placeOrder,
   type RequestedLine,
   restoreStock,
+  sumMovements,
 } from "@/lib/rules/inventory";
+import { type CustomLineInput, type LineInput, linesTotals, MAX_LINE_CENTS } from "@/lib/rules/order-lines";
 import {
   canProgressSample,
   canTransition,
+  fulfillmentFits,
   paymentSummary,
   validPayment,
   type TrackingInput,
@@ -38,10 +43,11 @@ type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 export interface NewOrder {
   customerName: string;
-  fulfillment: (typeof FULFILLMENT_METHODS)[number];
+  fulfillment: FulfillmentMethod;
   requestedDate: string | null;
   notes: string;
-  lines: RequestedLine[];
+  // Saved items without a kind are read as kind "item"
+  lines: (LineInput | RequestedLine)[];
   id?: string;
   requestKey?: string;
   customerEmail?: string;
@@ -51,11 +57,13 @@ export interface NewOrder {
   jobTime?: string;
   location?: string;
   totalCents?: number | null;
+  // A payment already received, recorded with the order
+  deposit?: { amountCents: number; paidOn: string; note: string } | null;
 }
 
 export type RecordOrderResult =
   | { ok: true; id: string }
-  | { ok: false; reason: "no_business" | "not_editable" }
+  | { ok: false; reason: "no_business" | "not_editable" | "bad_deposit" | "too_large" }
   | {
       ok: false;
       reason: "needs_review";
@@ -84,15 +92,17 @@ export interface OrderView {
   // A DEMO order from the email demo; only its progress can change
   emailSample: boolean;
   customerName: string;
-  fulfillment: (typeof FULFILLMENT_METHODS)[number];
+  fulfillment: FulfillmentMethod;
   requestedDate: string | null;
   notes: string;
   status: (typeof ORDER_STATUSES)[number];
   createdAt: Date;
   lines: {
-    productId: string;
+    id: number;
+    // Null on a custom line
+    productId: string | null;
     name: string;
-    kind: "product" | "service";
+    kind: "product" | "service" | null;
     priceText: string;
     values: string[];
     quantity: number;
@@ -167,6 +177,67 @@ async function saveStock(
 const count = (movements: readonly OptionMovement[]) =>
   movements.reduce((sum, movement) => sum + Math.abs(movement.delta), 0);
 
+const asLine = (line: LineInput | RequestedLine): LineInput =>
+  "kind" in line ? line : { kind: "item", ...line };
+
+const fitsMoney = (cents: number | null) =>
+  cents === null || (Number.isSafeInteger(cents) && cents >= 0 && cents <= MAX_LINE_CENTS);
+
+const NO_ITEMS = {
+  status: "confirmed" as const,
+  lines: [] as PlacedLine[],
+  totalCents: null,
+  movements: [] as OptionMovement[],
+  stock: [] as ItemStock[],
+};
+
+// Rows in the order typed; repeats of one option merge into its first line
+function lineRows(
+  orderId: string,
+  entered: readonly LineInput[],
+  placed: readonly PlacedLine[],
+  names: ReadonlyMap<string, string>,
+): (typeof orderLines.$inferInsert)[] {
+  const used = new Set<PlacedLine>();
+  return entered.flatMap((line): (typeof orderLines.$inferInsert)[] => {
+    if (line.kind === "custom")
+      return [
+        {
+          orderId,
+          productId: null,
+          nameSnapshot: line.description,
+          optionValues: [],
+          variantKey: "",
+          quantity: line.quantity,
+          unitPriceCents: line.unitPriceCents,
+        },
+      ];
+    const match = placed.find(
+      (each) =>
+        each.productId === line.productId &&
+        variantKey(each.values) === variantKey(line.values),
+    );
+    if (!match || used.has(match)) return [];
+    used.add(match);
+    return [
+      {
+        orderId,
+        productId: match.productId,
+        nameSnapshot: names.get(match.productId) ?? null,
+        optionValues: match.values,
+        variantKey: variantKey(match.values),
+        quantity: match.quantity,
+        unitPriceCents: match.unitPriceCents,
+      },
+    ];
+  });
+}
+
+const customOnly = (lines: readonly LineInput[]) =>
+  lines.filter((line): line is CustomLineInput => line.kind === "custom");
+const itemsOnly = (lines: readonly LineInput[]) =>
+  lines.flatMap((line) => (line.kind === "item" ? [line] : []));
+
 export async function recordOrderForOwner(
   db: Db,
   ownerId: string,
@@ -176,10 +247,12 @@ export async function recordOrderForOwner(
     const businessId = await businessOf(tx, ownerId, true);
     if (!businessId)
       return { ok: false as const, reason: "no_business" as const };
+    const entered = order.lines.map(asLine);
+    const itemLines = itemsOnly(entered);
     const items = await lockedItems(
       tx,
       businessId,
-      [...new Set(order.lines.map((line) => line.productId))],
+      [...new Set(itemLines.map((line) => line.productId))],
       true,
     );
     if (order.requestKey) {
@@ -207,16 +280,7 @@ export async function recordOrderForOwner(
       )
         return { ok: false as const, reason: "not_editable" as const };
     }
-    const placed =
-      !order.lines.length && order.title
-        ? {
-            status: "confirmed" as const,
-            lines: [],
-            totalCents: order.totalCents ?? null,
-            movements: [],
-            stock: [],
-          }
-        : placeOrder(items, order.lines);
+    const placed = itemLines.length ? placeOrder(items, itemLines) : NO_ITEMS;
     if (placed.status === "needs_review") {
       return {
         ok: false as const,
@@ -225,13 +289,18 @@ export async function recordOrderForOwner(
         names: Object.fromEntries(items.map((item) => [item.id, item.name])),
       };
     }
-    if (
-      placed.totalCents !== null &&
-      (!Number.isSafeInteger(placed.totalCents) ||
-        placed.totalCents < 0 ||
-        placed.totalCents > 100_000_000)
-    )
-      return { ok: false as const, reason: "not_editable" as const };
+    // With lines, the total is theirs (none until every line has a price); without, the agreed total
+    const totals = linesTotals([...placed.lines, ...customOnly(entered)]);
+    const totalCents = entered.length
+      ? totals.totalCents
+      : (order.totalCents ?? null);
+    if (!fitsMoney(totalCents) || !fitsMoney(totals.subtotalCents))
+      return { ok: false as const, reason: "too_large" as const };
+    const deposit = order.deposit
+      ? { kind: "payment" as const, ...order.deposit }
+      : null;
+    if (deposit && !validPayment(totalCents, [], deposit))
+      return { ok: false as const, reason: "bad_deposit" as const };
     const values = {
       customerName: order.customerName,
       customerEmail: order.customerEmail ?? "",
@@ -240,7 +309,7 @@ export async function recordOrderForOwner(
       title: order.title ?? "",
       jobTime: order.jobTime ?? "",
       location: order.location ?? "",
-      totalCents: placed.totalCents,
+      totalCents,
       fulfillment: order.fulfillment,
       requestedDate: order.requestedDate,
       notes: order.notes,
@@ -260,33 +329,25 @@ export async function recordOrderForOwner(
           .insert(orders)
           .values({ ...values, businessId })
           .returning();
-    if (placed.lines.length)
-      await tx
-        .insert(orderLines)
-        .values(
-          placed.lines.map((line) => ({
-            orderId: row.id,
-            productId: line.productId,
-            nameSnapshot: items.find((item) => item.id === line.productId)
-              ?.name,
-            optionValues: line.values,
-            variantKey: variantKey(line.values),
-            quantity: line.quantity,
-            unitPriceCents: line.unitPriceCents,
-          })),
-        );
+    if (order.id)
+      await tx.delete(orderLines).where(eq(orderLines.orderId, row.id));
+    const rows = lineRows(
+      row.id,
+      entered,
+      placed.lines,
+      new Map(items.map((item) => [item.id, item.name])),
+    );
+    if (rows.length) await tx.insert(orderLines).values(rows);
     if (placed.movements.length) {
-      await tx
-        .insert(stockMovements)
-        .values(
-          placed.movements.map((movement) => ({
-            productId: movement.productId,
-            orderId: row.id,
-            optionValues: movement.values,
-            delta: movement.delta,
-            reason: "order",
-          })),
-        );
+      await tx.insert(stockMovements).values(
+        placed.movements.map((movement) => ({
+          productId: movement.productId,
+          orderId: row.id,
+          optionValues: movement.values,
+          delta: movement.delta,
+          reason: "order",
+        })),
+      );
       await saveStock(tx, businessId, placed.stock);
     }
     const taken = count(placed.movements);
@@ -300,38 +361,55 @@ export async function recordOrderForOwner(
           : "No counted stock on this order",
       },
     ]);
+    if (deposit) {
+      await tx
+        .insert(orderPayments)
+        .values({ orderId: row.id, requestKey: `deposit:${row.id}`, ...deposit });
+      await tx.insert(orderEvents).values({
+        orderId: row.id,
+        actor: "owner" as const,
+        summary: `Deposit recorded; ${paymentSummary(totalCents, [deposit]).status.toLowerCase()}`,
+      });
+    }
     return { ok: true as const, id: row.id };
   });
 }
 
-// Newest first
+// Newest first; one order when an id is given
 export async function listOrdersForOwner(
   db: Db,
   ownerId: string,
+  onlyId?: string,
 ): Promise<OrderView[]> {
   const businessId = await businessOf(db, ownerId);
   if (!businessId) return [];
   const rows = await db
     .select()
     .from(orders)
-    .where(eq(orders.businessId, businessId))
+    .where(
+      and(
+        eq(orders.businessId, businessId),
+        onlyId ? eq(orders.id, onlyId) : undefined,
+      ),
+    )
     .orderBy(desc(orders.createdAt), desc(orders.id));
   if (!rows.length) return [];
   const ids = rows.map((row) => row.id);
   const [lines, events, payments] = await Promise.all([
     db
       .select({
+        id: orderLines.id,
         orderId: orderLines.orderId,
         productId: orderLines.productId,
-        name: sql<string>`coalesce(${orderLines.nameSnapshot}, ${products.name})`,
+        name: sql<string>`coalesce(${orderLines.nameSnapshot}, ${products.name}, '')`,
         kind: products.kind,
-        priceText: products.priceText,
+        priceText: sql<string>`coalesce(${products.priceText}, '')`,
         values: orderLines.optionValues,
         quantity: orderLines.quantity,
         unitPriceCents: orderLines.unitPriceCents,
       })
       .from(orderLines)
-      .innerJoin(products, eq(products.id, orderLines.productId))
+      .leftJoin(products, eq(products.id, orderLines.productId))
       .where(inArray(orderLines.orderId, ids))
       .orderBy(asc(orderLines.id)),
     db
@@ -374,32 +452,34 @@ export async function listOrdersForOwner(
     createdAt: row.createdAt,
     lines: lines
       .filter((line) => line.orderId === row.id)
-      .map(
-        ({
-          productId,
-          name,
-          kind,
-          priceText,
-          values,
-          quantity,
-          unitPriceCents,
-        }) => ({
-          productId,
-          name,
-          kind,
-          priceText,
-          values,
-          quantity,
-          unitPriceCents,
-        }),
-      ),
+      .map(({ id, productId, name, kind, priceText, values, quantity, unitPriceCents }) => ({ id, productId, name, kind, priceText, values, quantity, unitPriceCents })),
     events: events
       .filter((event) => event.orderId === row.id)
       .map(({ actor, summary, createdAt }) => ({ actor, summary, createdAt })),
   }));
 }
 
-// Puts back what the order took, to the same options
+export async function getOrderForOwner(
+  db: Db,
+  ownerId: string,
+  id: string,
+): Promise<OrderView | null> {
+  const [order] = await listOrdersForOwner(db, ownerId, id);
+  return order ?? null;
+}
+
+async function orderMoves(tx: Tx, orderId: string): Promise<OptionMovement[]> {
+  return tx
+    .select({
+      productId: stockMovements.productId,
+      values: stockMovements.optionValues,
+      delta: stockMovements.delta,
+    })
+    .from(stockMovements)
+    .where(eq(stockMovements.orderId, orderId));
+}
+
+// Puts back what the order still holds, to the same options
 export async function cancelOrderForOwner(
   db: Db,
   ownerId: string,
@@ -421,33 +501,24 @@ export async function cancelOrderForOwner(
       order.status === "shipped"
     )
       return "completed";
-    const moves = await tx
-      .select({
-        productId: stockMovements.productId,
-        values: stockMovements.optionValues,
-        delta: stockMovements.delta,
-      })
-      .from(stockMovements)
-      .where(eq(stockMovements.orderId, order.id));
+    const held = netTaken(await orderMoves(tx, order.id));
     const items = await lockedItems(
       tx,
       businessId,
-      [...new Set(moves.map((move) => move.productId))],
+      [...new Set(held.map((move) => move.productId))],
       false,
     );
-    const restored = restoreStock(items, moves);
+    const restored = restoreStock(items, held);
     if (restored.movements.length) {
-      await tx
-        .insert(stockMovements)
-        .values(
-          restored.movements.map((movement) => ({
-            productId: movement.productId,
-            orderId: order.id,
-            optionValues: movement.values,
-            delta: movement.delta,
-            reason: "cancelled",
-          })),
-        );
+      await tx.insert(stockMovements).values(
+        restored.movements.map((movement) => ({
+          productId: movement.productId,
+          orderId: order.id,
+          optionValues: movement.values,
+          delta: movement.delta,
+          reason: "cancelled",
+        })),
+      );
       await saveStock(tx, businessId, restored.stock);
     }
     await tx
@@ -455,25 +526,184 @@ export async function cancelOrderForOwner(
       .set({ status: "cancelled" })
       .where(eq(orders.id, order.id));
     const back = count(restored.movements);
-    await tx
-      .insert(orderEvents)
-      .values([
-        {
-          orderId: order.id,
-          actor: "owner" as const,
-          summary: "Order cancelled",
-        },
-        ...(back || restored.skipped.length
-          ? [
-              {
-                orderId: order.id,
-                actor: "rule" as const,
-                summary: `${back} put back in stock${restored.skipped.length ? `; ${count(restored.skipped)} not put back because that option is no longer counted` : ""}`,
-              },
-            ]
-          : []),
-      ]);
+    await tx.insert(orderEvents).values([
+      {
+        orderId: order.id,
+        actor: "owner" as const,
+        summary: "Order cancelled",
+      },
+      ...(back || restored.skipped.length
+        ? [
+            {
+              orderId: order.id,
+              actor: "rule" as const,
+              summary: `${back} put back in stock${restored.skipped.length ? `; ${count(restored.skipped)} not put back because that option is no longer counted` : ""}`,
+            },
+          ]
+        : []),
+    ]);
     return "cancelled";
+  });
+}
+
+export type ReplaceLinesResult =
+  | { ok: true }
+  | { ok: false; reason: "not_found" | "not_editable" | "empty" | "too_large" | "below_paid" | "unpriced_paid" }
+  | { ok: false; reason: "needs_review"; issues: PlaceOrderIssue[]; names: Record<string, string> };
+
+// Gives back what the order held, then takes for the new lines; all or nothing
+export async function replaceOrderLinesForOwner(
+  db: Db,
+  ownerId: string,
+  orderId: string,
+  input: readonly LineInput[],
+): Promise<ReplaceLinesResult> {
+  if (!input.length) return { ok: false, reason: "empty" };
+  return db.transaction(async (tx) => {
+    const businessId = await businessOf(tx, ownerId, true);
+    if (!businessId) return { ok: false as const, reason: "not_found" as const };
+    const [row] = await tx
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, orderId), eq(orders.businessId, businessId)))
+      .for("update");
+    if (!row) return { ok: false as const, reason: "not_found" as const };
+    if (row.isDemo || !["confirmed", "in_progress", "ready"].includes(row.status))
+      return { ok: false as const, reason: "not_editable" as const };
+    const held = netTaken(await orderMoves(tx, row.id));
+    const itemLines = itemsOnly(input);
+    const before = await lockedItems(
+      tx,
+      businessId,
+      [...new Set([...held, ...itemLines].map((line) => line.productId))],
+      false,
+    );
+    const restored = restoreStock(before, held);
+    const back = new Map(restored.stock.map((stock) => [stock.productId, stock]));
+    const items = before.map((item) => {
+      const stock = back.get(item.id);
+      return stock ? { ...item, quantity: stock.quantity, options: stock.options } : item;
+    });
+    const confirmed = await lockedItems(
+      tx,
+      businessId,
+      [...new Set(itemLines.map((line) => line.productId))],
+      true,
+    );
+    const orderable = items.filter((item) => confirmed.some((each) => each.id === item.id));
+    const placed = itemLines.length ? placeOrder(orderable, itemLines) : NO_ITEMS;
+    if (placed.status === "needs_review")
+      return {
+        ok: false as const,
+        reason: "needs_review" as const,
+        issues: placed.issues,
+        names: Object.fromEntries(items.map((item) => [item.id, item.name])),
+      };
+    const totals = linesTotals([...placed.lines, ...customOnly(input)]);
+    if (!fitsMoney(totals.totalCents) || !fitsMoney(totals.subtotalCents))
+      return { ok: false as const, reason: "too_large" as const };
+    const payments = await tx
+      .select()
+      .from(orderPayments)
+      .where(eq(orderPayments.orderId, row.id));
+    const paid = paymentSummary(row.totalCents, payments).paid;
+    if (totals.totalCents === null && paid > 0)
+      return { ok: false as const, reason: "unpriced_paid" as const };
+    if (totals.totalCents !== null && totals.totalCents < paid)
+      return { ok: false as const, reason: "below_paid" as const };
+    await tx.delete(orderLines).where(eq(orderLines.orderId, row.id));
+    await tx
+      .insert(orderLines)
+      .values(lineRows(row.id, input, placed.lines, new Map(items.map((item) => [item.id, item.name]))));
+    const net = sumMovements([...restored.movements, ...placed.movements]);
+    if (net.length) {
+      await tx.insert(stockMovements).values(
+        net.map((movement) => ({
+          productId: movement.productId,
+          orderId: row.id,
+          optionValues: movement.values,
+          delta: movement.delta,
+          reason: "order edited",
+        })),
+      );
+      const final = new Map(restored.stock.map((stock) => [stock.productId, stock]));
+      for (const stock of placed.stock) final.set(stock.productId, stock);
+      await saveStock(tx, businessId, [...final.values()]);
+    }
+    await tx
+      .update(orders)
+      .set({ totalCents: totals.totalCents, updatedAt: new Date() })
+      .where(eq(orders.id, row.id));
+    const given = net.filter((move) => move.delta > 0);
+    const took = net.filter((move) => move.delta < 0);
+    await tx.insert(orderEvents).values([
+      { orderId: row.id, actor: "owner" as const, summary: "Items changed" },
+      {
+        orderId: row.id,
+        actor: "rule" as const,
+        summary: net.length
+          ? [took.length ? `${count(took)} taken from stock` : "", given.length ? `${count(given)} put back in stock` : ""].filter(Boolean).join("; ")
+          : "Stock unchanged",
+      },
+    ]);
+    return { ok: true as const };
+  });
+}
+
+export interface DetailsPatch {
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  notes?: string;
+  fulfillment?: FulfillmentMethod;
+  requestedDate?: string | null;
+  jobTime?: string;
+  location?: string;
+}
+
+// Contact and notes change any time; schedule and handover only while work is open
+export async function updateOrderDetailsForOwner(
+  db: Db,
+  ownerId: string,
+  id: string,
+  patch: DetailsPatch,
+): Promise<"saved" | "not_found" | "not_editable" | "fulfillment"> {
+  return db.transaction(async (tx) => {
+    const businessId = await businessOf(tx, ownerId, true);
+    if (!businessId) return "not_found";
+    const [row] = await tx
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, id), eq(orders.businessId, businessId)))
+      .for("update");
+    if (!row) return "not_found";
+    if (row.isDemo) return "not_editable";
+    const schedule = ["fulfillment", "requestedDate", "jobTime", "location"].some(
+      (key) => key in patch,
+    );
+    if (schedule && ["cancelled", "fulfilled"].includes(row.status))
+      return "not_editable";
+    if (
+      patch.fulfillment &&
+      patch.fulfillment !== row.fulfillment &&
+      !fulfillmentFits(row.status, row.workType, patch.fulfillment)
+    )
+      return "fulfillment";
+    await tx
+      .update(orders)
+      .set({ ...patch, updatedAt: new Date() })
+      .where(eq(orders.id, row.id));
+    const changed = [
+      "customerName" in patch || "customerEmail" in patch || "customerPhone" in patch ? "Customer details" : "",
+      "notes" in patch ? "Notes" : "",
+      schedule ? "Schedule" : "",
+    ].filter(Boolean);
+    await tx.insert(orderEvents).values({
+      orderId: row.id,
+      actor: "owner",
+      summary: `${changed.join(", ") || "Details"} updated`,
+    });
+    return "saved";
   });
 }
 
@@ -507,13 +737,11 @@ export async function progressOrderForOwner(
       .update(orders)
       .set({ status, updatedAt: new Date() })
       .where(eq(orders.id, row.id));
-    await tx
-      .insert(orderEvents)
-      .values({
-        orderId: id,
-        actor: "owner",
-        summary: `Progress: ${status.replaceAll("_", " ")}`,
-      });
+    await tx.insert(orderEvents).values({
+      orderId: id,
+      actor: "owner",
+      summary: `Progress: ${status.replaceAll("_", " ")}`,
+    });
     return true;
   });
 }
@@ -552,13 +780,11 @@ export async function paymentForOwner(
     if (!validPayment(row.totalCents, entries, input)) return false;
     await tx.insert(orderPayments).values(input);
     const summary = paymentSummary(row.totalCents, [...entries, input]);
-    await tx
-      .insert(orderEvents)
-      .values({
-        orderId: row.id,
-        actor: "owner",
-        summary: `${input.kind === "refund" ? "Refund" : "Payment"} recorded; ${summary.status.toLowerCase()}`,
-      });
+    await tx.insert(orderEvents).values({
+      orderId: row.id,
+      actor: "owner",
+      summary: `${input.kind === "refund" ? "Refund" : "Payment"} recorded; ${summary.status.toLowerCase()}`,
+    });
     await tx
       .update(orders)
       .set({ updatedAt: new Date() })
@@ -574,30 +800,13 @@ export async function scheduleOrderForOwner(
     id: string;
   },
 ) {
-  return db.transaction(async (tx) => {
-    const businessId = await businessOf(tx, ownerId, true);
-    if (!businessId) return false;
-    const [row] = await tx
-      .select()
-      .from(orders)
-      .where(and(eq(orders.id, input.id), eq(orders.businessId, businessId)))
-      .for("update");
-    if (!row || row.isDemo || ["cancelled", "fulfilled"].includes(row.status))
-      return false;
-    await tx
-      .update(orders)
-      .set({
-        requestedDate: input.requestedDate || null,
-        jobTime: input.jobTime,
-        location: input.location,
-        updatedAt: new Date(),
-      })
-      .where(eq(orders.id, row.id));
-    await tx
-      .insert(orderEvents)
-      .values({ orderId: row.id, actor: "owner", summary: "Schedule updated" });
-    return true;
-  });
+  return (
+    (await updateOrderDetailsForOwner(db, ownerId, input.id, {
+      requestedDate: input.requestedDate || null,
+      jobTime: input.jobTime,
+      location: input.location,
+    })) === "saved"
+  );
 }
 
 export async function setOrderTotalForOwner(
@@ -640,13 +849,11 @@ export async function setOrderTotalForOwner(
       .update(orders)
       .set({ totalCents, updatedAt: new Date() })
       .where(eq(orders.id, row.id));
-    await tx
-      .insert(orderEvents)
-      .values({
-        orderId: row.id,
-        actor: "owner",
-        summary: "Agreed total updated",
-      });
+    await tx.insert(orderEvents).values({
+      orderId: row.id,
+      actor: "owner",
+      summary: "Agreed total updated",
+    });
     return true;
   });
 }

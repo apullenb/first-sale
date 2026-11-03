@@ -9,13 +9,15 @@ test("email demo: links land there, confirmed samples become DEMO orders, start 
   await completeIntake(page, groomer);
 
   // A real job, which starting the demo over must leave alone
+  await open(page, "/orders/new");
+  await page.getByRole("region", { name: "Customer", exact: true }).getByLabel("Name", { exact: true }).fill("Jo");
+  const items = page.getByRole("region", { name: "Items", exact: true });
+  await items.getByRole("button", { name: "Add custom line" }).click();
+  await items.getByLabel("Description for line 1").fill("Groom Bailey");
+  await page.getByRole("button", { name: "Save job" }).click();
+  await page.waitForURL(/\/orders\/(?!new)[^/?]+$/);
   await open(page, "/orders");
-  await page.getByRole("button", { name: "Add job", exact: true }).click();
-  const entry = page.getByRole("region", { name: "New service job" });
-  await entry.getByLabel("Customer name", { exact: true }).fill("Jo");
-  await entry.getByLabel("What is the job?").fill("Groom Bailey");
-  await entry.getByRole("button", { name: "Save order or job" }).click();
-  const real = page.getByRole("button").filter({ hasText: "Groom Bailey" });
+  const real = page.getByRole("row").filter({ hasText: "Groom Bailey" });
   await expect(real).toBeVisible();
 
   await open(page, "/run");
@@ -73,18 +75,33 @@ test("email demo: links land there, confirmed samples become DEMO orders, start 
 
   await order.getByRole("link", { name: "Open Orders & jobs" }).click();
   await page.waitForURL("**/orders");
-  const cookies = page.getByRole("button").filter({ hasText: "2 dozen chocolate chip cookies" });
-  const favors = page.getByRole("button").filter({ hasText: "150 wedding favor cookies" });
+  const cookies = page.getByRole("row").filter({ hasText: "Dana Whitfield" });
+  const favors = page.getByRole("row").filter({ hasText: "Alicia & Ben" });
   await expect(cookies).toContainText("DEMO");
-  await expect(cookies).toContainText("From email");
+  await expect(cookies).toContainText("2 × Chocolate chip cookies (dozen)");
+  await expect(cookies).toContainText(/Sat, \w{3} \d{1,2}/);
+  await expect(cookies.getByTitle("From email")).toBeVisible();
   await expect(favors).toContainText("DEMO");
-  await expect(favors).toContainText("Needs review");
-  await cookies.click();
-  const detail = page.getByRole("region", { name: "2 dozen chocolate chip cookies", exact: true });
-  await expect(detail).toContainText("When: Pickup Saturday, about 10 am");
-  await expect(detail.getByText("Record payment or refund")).toHaveCount(0);
-  await detail.getByRole("button", { name: "Mark making" }).click();
-  await expect(cookies).toContainText("Making");
+  await expect(favors).toContainText("150 × Decorated sugar cookies");
+  await expect(favors).toContainText(/\w{3}, Jun 6/);
+  await page.getByRole("tab", { name: /Needs review/ }).click();
+  await expect(favors.getByRole("combobox")).toHaveValue("needs_review");
+  await expect(cookies).toHaveCount(0);
+  await page.getByRole("tab", { name: /All active/ }).click();
+  await cookies.getByRole("link", { name: "Dana Whitfield" }).click();
+  await page.waitForURL(/\/orders\/(?!new)[^/?]+$/);
+  await page.waitForLoadState("networkidle");
+  const detailItems = page.getByRole("region", { name: "Items", exact: true });
+  await expect(detailItems.getByRole("row").filter({ hasText: "Chocolate chip cookies (dozen)" })).toContainText("2");
+  await expect(page.getByRole("region", { name: "When and where" })).toContainText(/Sat, \w{3} \d{1,2}/);
+  await expect(page.getByRole("region", { name: "Notes", exact: true })).toContainText("Timing as written: Pickup Saturday, about 10 am");
+  await expect(page.getByRole("button", { name: "Record payment" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Edit items" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Start making" }).click();
+  await expect(page.getByTestId("order-head")).toContainText("Making");
+  await page.getByRole("link", { name: "All orders" }).click();
+  await page.waitForURL("**/orders");
+  await expect(cookies.getByRole("combobox")).toHaveValue("in_progress");
 
   await open(page, "/email/demo");
   await inbox.getByRole("button", { name: "Read new emails" }).click();

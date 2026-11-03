@@ -1,100 +1,150 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { candles, groomer } from "./scenarios";
 import { newOwner, open } from "./support";
 
-test("catalog orders count exact options, record a deposit and restore stock once", async ({
-  browser,
-}) => {
+const customerCard = (page: Page) => page.getByRole("region", { name: "Customer", exact: true });
+
+test("an order with saved items, an option and a custom line: totals, detail, progress, payment, customers and stock", async ({ browser }) => {
   const { page } = await newOwner(browser, candles);
   await open(page, "/products");
   const product = page.getByRole("region", { name: "Add a product" });
-  await product
-    .getByRole("textbox", { name: "Name", exact: true })
-    .fill("Cedar candle");
+  await product.getByRole("textbox", { name: "Name", exact: true }).fill("Cedar candle");
   await product.getByRole("textbox", { name: "Price", exact: true }).fill("24");
   await product.getByRole("button", { name: "Add an option" }).click();
   await product.getByRole("textbox", { name: "Option 1 name" }).fill("Size");
-  await product
-    .getByRole("textbox", { name: "Option 1 choices, separated by commas" })
-    .fill("8 oz, 12 oz");
+  await product.getByRole("textbox", { name: "Option 1 choices, separated by commas" }).fill("8 oz, 12 oz");
   await product.getByRole("textbox", { name: "Price for 12 oz" }).fill("32");
   await product.getByRole("textbox", { name: "Stock for 8 oz" }).fill("25");
   await product.getByRole("textbox", { name: "Stock for 12 oz" }).fill("10");
   await product.getByRole("button", { name: "Add product" }).click();
   const options = page.getByRole("list", { name: "Options for Cedar candle" });
-  await expect(options).toContainText("12 oz · $32 · 10 in stock", {
-    timeout: 30_000,
-  });
+  await expect(options).toContainText("12 oz · $32 · 10 in stock", { timeout: 30_000 });
+  await page.getByRole("button", { name: "Add a product" }).click();
+  await product.getByRole("textbox", { name: "Name", exact: true }).fill("Wildflower tin");
+  await product.getByRole("textbox", { name: "Price", exact: true }).fill("12");
+  await product.getByRole("button", { name: "Add product" }).click();
+  await expect(page.getByText("Wildflower tin").first()).toBeVisible({ timeout: 30_000 });
+
   await open(page, "/orders");
-  await page.getByRole("button", { name: "Add order", exact: true }).click();
-  const entry = page.getByRole("region", { name: "New order", exact: true });
-  await entry.getByLabel("Customer name", { exact: true }).fill("Sam Rivera");
-  await entry.getByLabel("Order description").fill("Three candles");
-  await entry
-    .getByLabel("Item", { exact: true })
-    .selectOption({ label: "Cedar candle · $24" });
-  await entry
-    .getByLabel("Option", { exact: true })
-    .selectOption({ label: "12 oz · 10 in stock" });
-  await entry.getByLabel("Quantity").fill("3");
-  await entry.getByRole("button", { name: "Add item", exact: true }).click();
-  await entry.getByRole("button", { name: "Save order or job" }).click();
-  const tile = page.getByRole("button").filter({ hasText: "Sam Rivera" });
-  await expect(tile).toContainText("$96 owed");
-  // Saving the order takes the stock, so cancelling it later has something to give back
+  await expect(page.getByText("No orders yet.")).toBeVisible();
+  await page.getByRole("link", { name: "New order" }).click();
+  await page.waitForURL("**/orders/new");
+  await page.waitForLoadState("networkidle");
+  await customerCard(page).getByLabel("Name", { exact: true }).fill("Sam Rivera");
+  await customerCard(page).getByLabel("Email (optional)").fill("sam@example.test");
+  await customerCard(page).getByLabel("Phone (optional)").fill("614-555-0100");
+  const items = page.getByRole("region", { name: "Items", exact: true });
+  await items.getByLabel("Add a saved item").selectOption({ label: "Cedar candle · $24" });
+  await items.getByLabel("Option for line 1").selectOption({ label: "12 oz · $32 · 10 in stock" });
+  await items.getByLabel("Quantity for line 1").fill("2");
+  await items.getByLabel("Add a saved item").selectOption({ label: "Wildflower tin · $12" });
+  await items.getByLabel("Quantity for line 2").fill("3");
+  await items.getByRole("button", { name: "Add custom line" }).click();
+  await items.getByLabel("Description for line 3").fill("Gift wrap");
+  await expect(items.getByTestId("order-total")).toHaveText("No total yet");
+  await items.getByLabel("Unit price for line 3").fill("5");
+  await expect(items.getByTestId("order-total")).toHaveText("$105");
+  const when = page.getByRole("region", { name: "When and where" });
+  await when.getByLabel("Due date").fill("2026-12-05");
+  await when.getByLabel("Time (optional)").fill("10:00");
+  await when.getByLabel("How it’s handed over").selectOption("delivery");
+  await when.getByLabel("Delivery address").fill("12 Oak St, Denver");
+  await when.getByLabel("Kind of work").selectOption("made_to_order");
+  await page.getByRole("region", { name: "Notes and payment" }).getByLabel("Notes (optional)").fill("Ribbon in green");
+  await page.getByRole("button", { name: "Save order" }).click();
+  await page.waitForURL(/\/orders\/(?!new)[^/?]+$/);
+  await page.waitForLoadState("networkidle");
+
+  await expect(page.getByRole("heading", { name: "Sam Rivera", level: 1 })).toBeVisible();
+  const detailItems = page.getByRole("region", { name: "Items", exact: true });
+  await expect(detailItems.getByRole("row").filter({ hasText: "Cedar candle (12 oz)" })).toContainText("$64");
+  await expect(detailItems.getByRole("row").filter({ hasText: "Wildflower tin" })).toContainText("$36");
+  await expect(detailItems.getByRole("row").filter({ hasText: "Gift wrap" })).toContainText("$5");
+  await expect(detailItems).toContainText("$105");
+  await expect(customerCard(page).getByRole("link", { name: "sam@example.test" })).toHaveAttribute("href", "mailto:sam@example.test");
+  await expect(customerCard(page).getByRole("link", { name: "614-555-0100" })).toHaveAttribute("href", "tel:6145550100");
+  await expect(page.getByRole("region", { name: "When and where" })).toContainText("Sat, Dec 5 · 10 am");
+  await expect(page.getByRole("region", { name: "When and where" })).toContainText("12 Oak St, Denver");
+  await expect(page.getByRole("region", { name: "Notes", exact: true }).getByLabel("Notes")).toHaveValue("Ribbon in green");
+
+  await page.getByRole("button", { name: "Start making" }).click();
+  await expect(page.getByRole("button", { name: "Mark ready" })).toBeVisible();
+  await expect(page.getByTestId("order-head")).toContainText("Making");
+  const payments = page.getByRole("region", { name: "Payments" });
+  await payments.getByLabel("Amount ($)").fill("50");
+  await payments.getByRole("button", { name: "Record payment" }).click();
+  await expect(payments.getByTestId("order-balance")).toHaveText("$55");
+
+  await page.getByRole("link", { name: "All orders" }).click();
+  await page.waitForURL("**/orders");
+  const row = page.getByRole("row").filter({ hasText: "Sam Rivera" });
+  await expect(row).toContainText("2 × Cedar candle (12 oz) +2 more");
+  await expect(row).toContainText("Sat, Dec 5");
+  await expect(row).toContainText("$105");
+  await expect(row).toContainText("$55");
+  await page.getByRole("tab", { name: /In progress/ }).click();
+  await expect(row).toBeVisible();
+  await page.getByRole("tab", { name: /To do/ }).click();
+  await expect(row).toHaveCount(0);
+
+  await page.getByRole("link", { name: "Customers" }).click();
+  await page.waitForURL("**/orders/customers");
+  const customer = page.getByRole("row").filter({ hasText: "Sam Rivera" });
+  await expect(customer).toContainText("sam@example.test");
+  await expect(customer).toContainText("$50");
+  await expect(customer).toContainText("$55");
+  await customer.getByRole("button", { name: "Sam Rivera" }).click();
+  await expect(page.getByRole("list", { name: "Orders for Sam Rivera" })).toContainText("2 × Cedar candle (12 oz) +2 more");
+  await expect(page.getByRole("link", { name: "New order for Sam Rivera" })).toBeVisible();
+
+  // The order took 2 of the 12 oz; cancelling gives them back once
   await open(page, "/products");
-  await expect(options).toContainText("12 oz · $32 · 7 in stock");
-  await open(page, "/orders");
-  await tile.click();
-  const detail = page.getByRole("region", {
-    name: "Three candles",
-    exact: true,
-  });
-  await detail.getByText("Record payment or refund", { exact: true }).click();
-  await detail.getByLabel("Amount ($)", { exact: true }).fill("20");
-  await detail.getByRole("button", { name: "Save payment record" }).click();
-  await expect(tile).toContainText("$20 paid · $76 owed");
-  await detail.getByText("Cancel this order", { exact: true }).click();
-  await detail.getByRole("button", { name: "Confirm cancellation" }).click();
-  await expect(detail).toContainText("Cancelled");
-  await expect(
-    detail.getByRole("button", { name: "Confirm cancellation" }),
-  ).toHaveCount(0);
+  await expect(options).toContainText("12 oz · $32 · 8 in stock");
+  await open(page, "/orders?tab=in_progress");
+  await page.getByRole("link", { name: "Sam Rivera" }).click();
+  await page.waitForURL(/\/orders\/[^/]+\?back=/);
+  await page.getByText("More", { exact: true }).click();
+  await page.getByRole("button", { name: "Cancel order…" }).click();
+  await page.getByRole("button", { name: "Confirm cancellation" }).click();
+  await expect(page.getByTestId("order-head")).toContainText("Cancelled");
+  await page.getByRole("link", { name: "All orders" }).click();
+  await page.waitForURL("**/orders?tab=in_progress");
   await open(page, "/products");
   await expect(options).toContainText("12 oz · $32 · 10 in stock");
 });
 
-test("service jobs tailor their fields, keep balances after completion and support rescheduling", async ({
-  browser,
-}) => {
+test("service jobs: custom line, payments kept after completion, tabs kept in the address", async ({ browser }) => {
   const { page } = await newOwner(browser, groomer);
-  await open(page, "/orders");
-  await page.getByRole("button", { name: "Add job", exact: true }).click();
-  const entry = page.getByRole("region", { name: "New service job" });
-  await entry.getByLabel("Customer name", { exact: true }).fill("Jo");
-  await entry.getByLabel("What is the job?").fill("Groom Bailey");
-  await entry.getByLabel("Agreed total ($, optional)").fill("80");
-  await entry.getByLabel("Job date", { exact: true }).fill("2026-12-05");
-  await entry.getByLabel("Job time (local to the business)").fill("10:00");
-  await expect(entry.getByLabel("Fulfillment", { exact: true })).toHaveCount(0);
-  await entry.getByRole("button", { name: "Save order or job" }).click();
-  const tile = page.getByRole("button").filter({ hasText: "Groom Bailey" });
-  await expect(tile).toContainText("Scheduled");
-  await tile.click();
-  const detail = page.getByRole("region", {
-    name: "Groom Bailey",
-    exact: true,
-  });
-  await detail.getByText("Record payment or refund", { exact: true }).click();
-  await detail.getByLabel("Amount ($)", { exact: true }).fill("25");
-  await detail.getByRole("button", { name: "Save payment record" }).click();
-  await expect(tile).toContainText("$25 paid · $55 owed");
-  await detail.getByRole("button", { name: "Mark completed" }).click();
-  await expect(detail).toContainText("Completed");
-  await expect(detail).toContainText("$55");
-  await page.getByLabel("Show", { exact: true }).selectOption("closed");
-  await expect(tile).toBeVisible();
+  await open(page, "/orders/new");
+  await customerCard(page).getByLabel("Name", { exact: true }).fill("Jo");
+  const items = page.getByRole("region", { name: "Items", exact: true });
+  await items.getByRole("button", { name: "Add custom line" }).click();
+  await items.getByLabel("Description for line 1").fill("Groom Bailey");
+  await items.getByLabel("Unit price for line 1").fill("80");
+  const when = page.getByRole("region", { name: "When and where" });
+  await when.getByLabel("Due date").fill("2026-12-05");
+  await when.getByLabel("Time (optional)").fill("10:00");
+  await page.getByRole("button", { name: "Save job" }).click();
+  await page.waitForURL(/\/orders\/(?!new)[^/?]+$/);
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByTestId("order-head")).toContainText("Scheduled");
+  const payments = page.getByRole("region", { name: "Payments" });
+  await payments.getByLabel("Amount ($)").fill("25");
+  await payments.getByRole("button", { name: "Record payment" }).click();
+  await expect(payments.getByTestId("order-balance")).toHaveText("$55");
+  await page.getByRole("button", { name: "Start work" }).click();
+  await page.getByRole("button", { name: "Mark completed" }).click();
+  await expect(page.getByTestId("order-head")).toContainText("Completed");
+  await expect(payments.getByTestId("order-balance")).toHaveText("$55");
+
+  await page.getByRole("link", { name: "All orders" }).click();
+  await page.waitForURL("**/orders");
+  const row = page.getByRole("row").filter({ hasText: "Groom Bailey" });
+  await expect(row).toHaveCount(0);
+  await page.getByRole("tab", { name: /Done/ }).click();
+  await expect(row).toContainText("$55");
+  await expect(page).toHaveURL(/tab=done/);
   await page.reload();
-  await page.getByLabel("Show", { exact: true }).selectOption("closed");
-  await expect(tile).toContainText("$25 paid · $55 owed");
+  await expect(row).toContainText("$80");
+  await expect(row).toContainText("$55");
 });

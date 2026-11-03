@@ -9,48 +9,11 @@ import {
   createMyDocument,
   processMyCustomerMessage,
   progressMyOrder,
-  recordMyOrder,
   recordMyPayment,
-  scheduleMyOrder,
 } from "@/lib/data/my-business";
-import {
-  trackingInputSchema,
-  TRACKING_STATUSES,
-  centsSchema,
-} from "@/lib/rules/order-tracking";
-import { orderIssueText } from "@/lib/rules/inventory";
+import { TRACKING_STATUSES, centsSchema } from "@/lib/rules/order-tracking";
 import { checkUpload } from "@/lib/documents/upload";
 
-export async function saveTrackedOrder(input: unknown) {
-  if (await isDemoSession()) return DEMO_REFUSAL;
-  const parsed = trackingInputSchema.safeParse(input);
-  if (!parsed.success)
-    return {
-      ok: false,
-      message: parsed.error.issues[0]?.message ?? "Check the details.",
-    };
-  const result = await recordMyOrder({
-    ...parsed.data,
-    requestedDate: parsed.data.requestedDate || null,
-  });
-  if (!result.ok)
-    return {
-      ok: false,
-      message:
-        result.reason === "needs_review"
-          ? result.issues
-              .map((issue) =>
-                orderIssueText(issue, (id) => result.names[id] ?? "Item"),
-              )
-              .join(" ")
-          : "This record cannot be confirmed. Reload and check its status.",
-    };
-  refresh();
-  return {
-    ok: true,
-    message: "Saved. You can now record payments and track progress.",
-  };
-}
 export async function progressTrackedOrder(input: unknown) {
   if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = z
@@ -90,21 +53,6 @@ export async function recordTrackedPayment(input: unknown) {
     message: ok
       ? "Payment record saved. No money was charged or moved."
       : "Check the balance and amount. Confirm this order and its total before recording a payment.",
-  };
-}
-export async function scheduleTrackedOrder(input: unknown) {
-  if (await isDemoSession()) return DEMO_REFUSAL;
-  const parsed = trackingInputSchema
-    .pick({ requestedDate: true, jobTime: true, location: true })
-    .extend({ id: z.string().min(1).max(60) })
-    .safeParse(input);
-  if (!parsed.success)
-    return { ok: false, message: "Check the date, time and location." };
-  const ok = await scheduleMyOrder(parsed.data);
-  refresh();
-  return {
-    ok,
-    message: ok ? "Schedule saved." : "This record cannot be rescheduled.",
   };
 }
 export async function importCustomerRequest(form: FormData) {
