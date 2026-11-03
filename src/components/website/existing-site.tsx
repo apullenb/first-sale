@@ -71,7 +71,7 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
               <span className="sr-only"> (opens in a new tab)</span>
             </a>
           </span>
-          <button type="button" disabled={pending} onClick={() => run(disconnectExistingSiteAction)} className={`ml-auto min-h-11 ${TEXT_LINK} disabled:opacity-60`}>
+          <button type="button" data-writes disabled={pending} onClick={() => run(disconnectExistingSiteAction)} className={`ml-auto min-h-11 ${TEXT_LINK} disabled:opacity-60`}>
             Disconnect
           </button>
         </div>
@@ -97,7 +97,7 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
             <button type="button" onClick={() => setOpen(true)} className={`min-h-11 ${TEXT_LINK}`}>
               Connect it
             </button>
-            <button type="button" disabled={pending} onClick={() => run(() => clearAlreadyHaveAction("website"))} className={`min-h-11 ${TEXT_LINK} disabled:opacity-60`}>
+            <button type="button" data-writes disabled={pending} onClick={() => run(() => clearAlreadyHaveAction("website"))} className={`min-h-11 ${TEXT_LINK} disabled:opacity-60`}>
               Undo
             </button>
           </span>
@@ -162,11 +162,11 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
       </label>
       {alert}
       <div className="flex flex-wrap gap-2">
-        <button type="button" disabled={pending} onClick={connect} className={PRIMARY}>
+        <button type="button" data-writes disabled={pending} onClick={connect} className={PRIMARY}>
           <Icon name="link" size="sm" />
           {pending ? "Saving…" : `Connect ${platform && platform !== "other" ? EXISTING_LABELS[platform] : "my site"} (demo)`}
         </button>
-        <button type="button" disabled={pending} onClick={skip} className={SECONDARY}>
+        <button type="button" data-writes disabled={pending} onClick={skip} className={SECONDARY}>
           I don’t want to connect it
         </button>
       </div>

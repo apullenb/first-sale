@@ -43,7 +43,7 @@ export function FormButton({ action, stepId, formKey, label, pendingLabel, pendi
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <button type="button" onClick={run} disabled={pending || job.watching} className={primary ? PRIMARY : SECONDARY}>
+      <button data-writes type="button" onClick={run} disabled={pending || job.watching} className={primary ? PRIMARY : SECONDARY}>
         {pending || job.watching ? pendingLabel : label}
       </button>
       {job.watching ? (

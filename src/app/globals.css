@@ -151,3 +151,18 @@ body {
     animation: fade 2.3s both;
   }
 }
+
+/* Demo sessions: a button that would save shows why it's off instead of its label */
+[data-demo-off] {
+  cursor: not-allowed;
+}
+button[data-demo-off] {
+  font-size: 0;
+}
+button[data-demo-off] > * {
+  display: none;
+}
+button[data-demo-off]::after {
+  content: "Not available in the demo";
+  font-size: 15px;
+}

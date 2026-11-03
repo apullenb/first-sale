@@ -64,7 +64,7 @@ export function ChoosePlatformButton({
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <button type="button" disabled={pending} onClick={start} className={chosen || !primary ? SECONDARY : PRIMARY}>
+      <button type="button" data-writes={payment && !chosen ? undefined : ""} disabled={pending} onClick={start} className={chosen || !primary ? SECONDARY : PRIMARY}>
         {chosen ? <Icon name="back" size="sm" /> : <Icon name="check" size="sm" />}
         {pending && !open ? "Saving…" : chosen ? "Undo my choice" : `Choose ${name}`}
       </button>
@@ -113,7 +113,7 @@ export function ChoosePlatformButton({
               </p>
             ) : null}
             <div className="flex flex-wrap gap-2">
-              <button type="button" disabled={pending} onClick={choose} className={PRIMARY}>
+              <button type="button" data-writes disabled={pending} onClick={choose} className={PRIMARY}>
                 <Icon name="arrow" size="sm" />
                 {pending ? "Saving…" : "Continue (demo)"}
               </button>

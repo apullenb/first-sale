@@ -257,7 +257,7 @@ export function BrandForm({ initial, practice }: { initial: BrandBrief; practice
             {textField("avoid", "Things your brand shouldn’t look like (optional)", "Such as “no cupcakes” or “nothing that looks like a coffee chain”.", BRIEF_LIMITS.avoid)}
           </div>
           <div className="flex flex-col gap-2 border-t border-line pt-5">
-            <button type="button" onClick={describe} disabled={busy} className={`${AI_BUTTON} w-fit`}>
+            <button type="button" data-writes onClick={describe} disabled={busy} className={`${AI_BUTTON} w-fit`}>
               <Icon name="sparkles" size="sm" />
               {phase === "describing" || job.watching ? "Describing…" : brief.story ? "Describe my brand again" : "Describe my brand"}
             </button>
@@ -301,7 +301,7 @@ export function BrandForm({ initial, practice }: { initial: BrandBrief; practice
                   className={`${INPUT} min-h-32 text-lg`}
                 />
                 <div className="flex flex-wrap gap-3">
-                  <button type="button" onClick={() => approve(draft)} disabled={busy} className={PRIMARY}>
+                  <button type="button" data-writes onClick={() => approve(draft)} disabled={busy} className={PRIMARY}>
                     {phase === "saving" ? "Saving…" : "Save: this feels like my business"}
                   </button>
                   <button
@@ -346,7 +346,7 @@ export function BrandForm({ initial, practice }: { initial: BrandBrief; practice
               </div>
             ) : (
               <div className="flex flex-wrap gap-3">
-                <button type="button" onClick={() => approve(brief.story)} disabled={busy} className={PRIMARY}>
+                <button type="button" data-writes onClick={() => approve(brief.story)} disabled={busy} className={PRIMARY}>
                   <Icon name="check" size="sm" />
                   {phase === "saving" ? "Saving…" : "This feels like my business"}
                 </button>

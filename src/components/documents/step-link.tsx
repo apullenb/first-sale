@@ -45,6 +45,7 @@ export function StepLink({ documentId, stepId, steps }: Props) {
         Plan step this is for
       </label>
       <select
+        data-writes
         id={`${uid}-step`}
         value={value}
         disabled={pending}

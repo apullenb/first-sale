@@ -39,7 +39,7 @@ export function ExplainOption({ optionKey, name, explanation, firstYear }: { opt
 
   return (
     <div className="flex flex-col gap-2">
-      <button type="button" onClick={toggle} disabled={pending || job.watching} aria-expanded={open} className={`${SECONDARY} w-fit`}>
+      <button type="button" data-writes={open || explanation ? undefined : true} onClick={toggle} disabled={pending || job.watching} aria-expanded={open} className={`${SECONDARY} w-fit`}>
         <Icon name={open ? "close" : "lightbulb"} size="sm" />
         {pending || job.watching ? "Explaining…" : open ? "Hide the explanation" : `Explain ${name} more`}
       </button>

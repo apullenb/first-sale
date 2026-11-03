@@ -82,7 +82,7 @@ export function AlreadyHave({ markKey, label, help, done, linkLabel, children }:
             <button ref={button} type="button" onClick={() => toggle(true)} className={`min-h-11 ${TEXT_LINK}`}>
               Change
             </button>
-            <button type="button" disabled={pending} onClick={() => run(() => clearAlreadyHaveAction(markKey))} className={`min-h-11 ${TEXT_LINK} disabled:opacity-60`}>
+            <button type="button" data-writes disabled={pending} onClick={() => run(() => clearAlreadyHaveAction(markKey))} className={`min-h-11 ${TEXT_LINK} disabled:opacity-60`}>
               Undo
             </button>
           </span>
@@ -129,7 +129,7 @@ export function AlreadyHave({ markKey, label, help, done, linkLabel, children }:
         <input value={note} onChange={(event) => setNote(event.target.value)} maxLength={500} className={INPUT} />
       </label>
       {alert}
-      <button type="button" disabled={pending} onClick={() => run(() => setAlreadyHaveAction({ key: markKey, url: linkLabel ? url : "", note }))} className={`${PRIMARY} w-fit`}>
+      <button type="button" data-writes disabled={pending} onClick={() => run(() => setAlreadyHaveAction({ key: markKey, url: linkLabel ? url : "", note }))} className={`${PRIMARY} w-fit`}>
         <Icon name="check" size="sm" />
         {pending ? "Saving…" : "Mark as done"}
       </button>

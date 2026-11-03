@@ -106,12 +106,12 @@ export function DomainFinder({ ideas, checks, chosen }: Props) {
                   </Chip>
                 ) : null}
                 {!check || check.status === "unknown" ? (
-                  <button type="button" disabled={pending !== null} onClick={() => run(domain, () => checkDomainAction(domain))} className={SECONDARY}>
+                  <button data-writes type="button" disabled={pending !== null} onClick={() => run(domain, () => checkDomainAction(domain))} className={SECONDARY}>
                     {pending === domain ? "Checking…" : "Check"}
                   </button>
                 ) : null}
                 {check?.status === "available" && chosen !== domain ? (
-                  <button type="button" disabled={pending !== null} onClick={() => run(`choose-${domain}`, () => chooseDomainAction(domain))} className={PRIMARY}>
+                  <button data-writes type="button" disabled={pending !== null} onClick={() => run(`choose-${domain}`, () => chooseDomainAction(domain))} className={PRIMARY}>
                     Use this one
                   </button>
                 ) : null}

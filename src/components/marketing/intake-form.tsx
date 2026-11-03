@@ -148,6 +148,7 @@ export function MarketingIntakeForm({ initial, hasPlan, known, onDone }: Props) 
 
   return (
     <form
+      data-demo-ok
       className="flex flex-col gap-7"
       onSubmit={(event) => {
         event.preventDefault();
@@ -330,12 +331,12 @@ export function MarketingIntakeForm({ initial, hasPlan, known, onDone }: Props) 
             Back
           </button>
         ) : null}
-        <button type="submit" className={last ? AI_BUTTON : PRIMARY} disabled={phase !== "form"}>
+        <button type="submit" data-writes={last ? "" : undefined} className={last ? AI_BUTTON : PRIMARY} disabled={phase !== "form"}>
           {last ? (hasPlan ? "Save and write my plan again" : "Save and write my plan") : "Next"}
           {last ? <Icon name="sparkles" size="sm" /> : <Icon name="arrow" size="sm" />}
         </button>
         {last && hasPlan ? (
-          <button type="button" className={SECONDARY} disabled={phase !== "form"} onClick={() => (screenReady(2, answers) ? submit(false) : setError("Answer each question on this screen first."))}>
+          <button type="button" data-writes className={SECONDARY} disabled={phase !== "form"} onClick={() => (screenReady(2, answers) ? submit(false) : setError("Answer each question on this screen first."))}>
             {phase === "saving" ? "Saving…" : "Just save my answers"}
           </button>
         ) : null}

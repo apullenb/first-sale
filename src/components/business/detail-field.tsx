@@ -178,6 +178,7 @@ export function DetailField({ detailKey, value, origin }: Props) {
           </button>
           {value ? (
             <button
+              data-writes
               id={`${uid}-remove`}
               type="button"
               onClick={() => run("remove")}

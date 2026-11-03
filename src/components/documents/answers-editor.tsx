@@ -127,7 +127,7 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
         <p className="text-sm text-muted">{draftBlocked}</p>
       ) : (
         <div className="flex flex-col items-start gap-2">
-          <button type="button" onClick={draft} disabled={pending} className={rules ? SECONDARY : AI_BUTTON}>
+          <button data-writes type="button" onClick={draft} disabled={pending} className={rules ? SECONDARY : AI_BUTTON}>
             {rules ? null : <Icon name="sparkles" size="sm" />}
             {status === "drafting"
               ? "Drafting answers…"
@@ -178,7 +178,7 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
           >
             Confirm all filled answers
           </button>
-          <button type="button" onClick={save} disabled={pending} className={PRIMARY}>
+          <button data-writes type="button" onClick={save} disabled={pending} className={PRIMARY}>
             {status === "saving" ? "Saving…" : "Save answers"}
           </button>
         </div>

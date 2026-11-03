@@ -187,10 +187,10 @@ export function CopyEditor({ copy: saved, flags, approved, signature, records }:
         {approved && !dirty && status === "idle" ? "You approved these words. A printable copy is in your Documents." : ""}
       </p>
       <div className="flex flex-wrap gap-2.5 border-t border-line pt-4">
-        <button type="button" disabled={pending || !dirty} onClick={() => save(false)} className={SECONDARY}>
+        <button type="button" data-writes disabled={pending || !dirty} onClick={() => save(false)} className={SECONDARY}>
           {status === "saving" ? "Saving…" : "Save changes"}
         </button>
-        <button type="button" disabled={pending || conflicts.length > 0} onClick={() => save(true)} className={PRIMARY}>
+        <button type="button" data-writes disabled={pending || conflicts.length > 0} onClick={() => save(true)} className={PRIMARY}>
           <Icon name="check" size="sm" />
           {status === "approving" ? "Approving…" : "Approve these words"}
         </button>

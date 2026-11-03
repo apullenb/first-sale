@@ -370,7 +370,7 @@ export function IntakeWizard(props: Props) {
         {editing ? "You have changes you haven’t confirmed yet, from " : "Welcome back. We kept your answers from "}
         <LocalDate iso={resumed} />.
       </p>
-      <button type="button" onClick={startOver} disabled={busy} className={SECONDARY}>
+      <button data-writes type="button" onClick={startOver} disabled={busy} className={SECONDARY}>
         {editing ? "Discard my changes" : "Start over"}
       </button>
     </div>
@@ -418,7 +418,7 @@ export function IntakeWizard(props: Props) {
                   Back
                 </button>
               )}
-              <button type="button" onClick={save} disabled={saving || unchanged} className={PRIMARY}>
+              <button data-writes type="button" onClick={save} disabled={saving || unchanged} className={PRIMARY}>
                 {saving ? "Saving…" : editing ? "Confirm these changes" : "This is right. Continue"}
                 {saving ? null : <Icon name="arrow" size="sm" />}
               </button>

@@ -134,7 +134,7 @@ export function AiProgressButton({ action, label, title, steps, estimateMs, vari
   if (phase !== "idle") return <ProgressSteps title={title} steps={steps} estimateMs={estimateMs} finished={phase === "finished"} />;
   return (
     <div className="flex flex-col items-start gap-2">
-      <button type="button" onClick={run} className={variant === "ai" ? AI_BUTTON : SECONDARY}>
+      <button data-writes type="button" onClick={run} className={variant === "ai" ? AI_BUTTON : SECONDARY}>
         {variant === "ai" ? <Icon name="sparkles" size="sm" /> : <Icon name="refresh" size="sm" />}
         {label}
       </button>

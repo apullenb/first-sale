@@ -142,7 +142,7 @@ function MarkDone({
         <span>I finished this step myself, before or outside SnapStart.</span>
       </label>
       <div className="flex flex-wrap gap-2.5">
-        <button type="button" disabled={pending || !confirmed} onClick={save} className={PRIMARY}>
+        <button type="button" data-writes disabled={pending || !confirmed} onClick={save} className={PRIMARY}>
           <Icon name="check" size="sm" />
           {pending ? "Saving…" : "Mark it done"}
         </button>
