@@ -149,7 +149,7 @@ SnapStart finds the official government websites for the owner's city, county an
 
 Each step comes with numbered instructions, and every fee and method links to the official page with the date it was checked. "What to do with this form" then explains how to sign it, where to send it and how to record it. Each part of the paperwork (registering the business, tax IDs, where you work, licenses and permits) has its own menu entry with the time it takes.
 
-<p align="center"><img src="docs/media/paperwork.webp" alt="Recording of the Texas Form 205 step: choose 'Fill in Form 205 here', the form is downloaded from sos.texas.gov and checked as the official form, the LLC's name is filled in from saved business details, then the 'What to do with this form' steps: check, download, sign, mail to the Secretary of State, mark it submitted" width="900"></p>
+<p align="center"><img src="docs/media/paperwork.webp" alt="Recording of the official Texas Form 205: source and revision checks, the LLC name drafted from saved business details, and instructions for reviewing, signing and filing it yourself" width="900"></p>
 
 ### Owners' agreement
 
