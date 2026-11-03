@@ -9,6 +9,7 @@ import { ALERT, INPUT, PRIMARY, SECONDARY, SECONDARY_LINK } from "@/components/s
 import type { PlanSection } from "@/lib/documents/types";
 import { ESTIMATES_KEY } from "@/lib/rules/plan-money";
 import { countPlaceholders, fileHref } from "./labels";
+import { failedMessage } from "@/lib/failure";
 
 interface Props {
   documentId: string;
@@ -166,7 +167,7 @@ export function PlanEditor({ documentId, sections, version, savedAt, hasFile }: 
         setPdf((current) => ({ ...current, status: "idle" }));
       } else setPdf({ status: "idle", savedAt: result.value.savedAt });
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
       setPdf((current) => ({ ...current, status: "idle" }));
     }
   }
@@ -486,7 +487,7 @@ function SaveArea({
       ) : (
         <p className="text-[15px] text-muted">When it reads the way you want, save it. The PDF goes in Documents, replacing any earlier copy.</p>
       )}
-      <button type="button" onClick={onSave} disabled={pdf.status === "saving" || editing} className={`${PRIMARY} w-fit`}>
+      <button type="button" data-writes onClick={onSave} disabled={pdf.status === "saving" || editing} className={`${PRIMARY} w-fit`}>
         <Icon name="filecheck" size="sm" />
         {pdf.status === "saving" ? "Saving your business plan…" : "Save my business plan"}
       </button>

@@ -909,13 +909,10 @@ export const orderPayments = pgTable("order_payments", {
 export const emailConnections = pgTable("email_connections", {
   id: id(), businessId: businessId(),
   grantId: text("grant_id").notNull().unique(),
-  reminderDays: integer("reminder_days").notNull().default(2),
   email: text("email").notNull(),
-  paused: boolean("paused").notNull().default(false),
-  status: text("status").notNull().default("connected"),
-  syncSince: timestamp("sync_since", { withTimezone: true }).notNull().defaultNow(),
-  syncStarted: timestamp("sync_started", { withTimezone: true }),
-  syncCursor: text("sync_cursor"),
+  status: text("status", { enum: ["connected", "reconnect"] }).notNull().default("connected"),
+  // When the last import started; null until the first one
+  importedAt: timestamp("imported_at", { withTimezone: true }),
   createdAt: createdAt(),
 }, (table) => [uniqueIndex("email_business_idx").on(table.businessId)]);
 
@@ -932,8 +929,6 @@ export const customerMessages = pgTable("customer_messages", {
   documentId: text("document_id").references(() => documents.id, { onDelete: "set null" }),
   orderId: text("order_id").references(() => orders.id, { onDelete: "set null" }),
   state: text("state", { enum: ["pending", "processing", "ready", "failed", "dismissed"] }).notNull().default("pending"),
-  attempts: integer("attempts").notNull().default(0),
-  leaseUntil: timestamp("lease_until", { withTimezone: true }),
   extraction: jsonb("extraction").$type<import("@/lib/orders/extract").ExtractedRequest>(),
   simulated: boolean("simulated").notNull().default(false),
   issue: text("issue"),
@@ -941,4 +936,4 @@ export const customerMessages = pgTable("customer_messages", {
   sendState: text("send_state", { enum: ["draft", "sending", "sent", "uncertain"] }).notNull().default("draft"),
   sentAt: timestamp("sent_at", { withTimezone: true }),
   createdAt: createdAt(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [uniqueIndex("customer_message_source_idx").on(table.businessId, table.sourceKey), index("customer_message_queue_idx").on(table.state, table.leaseUntil)]);
+}, (table) => [uniqueIndex("customer_message_source_idx").on(table.businessId, table.sourceKey)]);

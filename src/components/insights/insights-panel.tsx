@@ -11,6 +11,7 @@ import { StepProgress, stepStatus, useStepTicker } from "@/components/step-progr
 import { AI_BUTTON, ALERT, EYEBROW, PRIMARY_LINK, SECONDARY, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
 import { Fold, IconTile } from "@/components/ui";
 import type { Insight, InsightMark, InsightSection } from "@/lib/insights/types";
+import { failedMessage } from "@/lib/failure";
 
 const STEPS = [
   "Reading your answers, plan, brand and website",
@@ -99,7 +100,7 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
     } catch {
       focusNext.current = "button";
       ticker.stop();
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     }
   }
 
@@ -112,7 +113,7 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
         const result = await markInsightAction({ key: item.key, mark: value });
         if (!result.ok) setError(result.message);
       } catch {
-        setError("Couldn’t reach SnapStart. Check your connection and try again.");
+        setError(failedMessage());
       }
     });
   }
@@ -132,7 +133,7 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
   ) : null;
 
   const refreshButton = (
-    <button type="button" ref={focusIf("button")} onClick={write} className={`${changed.length ? AI_BUTTON : SECONDARY} w-fit`}>
+    <button type="button" data-writes ref={focusIf("button")} onClick={write} className={`${changed.length ? AI_BUTTON : SECONDARY} w-fit`}>
       <Icon name="refresh" size="sm" />
       Refresh insights
     </button>
@@ -167,7 +168,7 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
             Practice mode: you’ll see sample insights made by SnapStart from your answers, not AI.
           </p>
         ) : null}
-        <button type="button" ref={focusIf("button")} onClick={write} className={`${AI_BUTTON} w-fit`}>
+        <button type="button" data-writes ref={focusIf("button")} onClick={write} className={`${AI_BUTTON} w-fit`}>
           <Icon name="sparkles" size="sm" />
           Get my insights
         </button>
@@ -337,7 +338,7 @@ function InsightSections({ items, marks, onMark }: { items: Insight[]; marks: Ma
             {dismissed.map((item) => (
               <li key={item.key} className="flex flex-wrap items-center justify-between gap-2 border-b border-line py-2.5 last:border-b-0">
                 <span className="text-rule">{item.title}</span>
-                <button type="button" onClick={() => onMark(item, null)} className={SECONDARY}>
+                <button type="button" data-writes onClick={() => onMark(item, null)} className={SECONDARY}>
                   Bring back<span className="sr-only">: {item.title}</span>
                 </button>
               </li>
@@ -371,6 +372,7 @@ function InsightCard({ item, mark, onMark }: { item: Insight; mark: InsightMark 
         <div className="ml-auto flex gap-2">
           <button
             type="button"
+            data-writes
             aria-pressed={useful}
             onClick={() => onMark(useful ? null : "useful")}
             className={`${MARK_BUTTON} ${useful ? "border-accent bg-accent-tint text-accent-ink" : "border-line-strong bg-surface text-ink hover:border-muted hover:bg-soft"}`}
@@ -379,7 +381,7 @@ function InsightCard({ item, mark, onMark }: { item: Insight; mark: InsightMark 
             Useful
             <span className="sr-only">: {item.title}</span>
           </button>
-          <button type="button" onClick={() => onMark("dismissed")} className={`${MARK_BUTTON} border-line-strong bg-surface text-muted hover:border-muted hover:bg-soft hover:text-ink`}>
+          <button type="button" data-writes onClick={() => onMark("dismissed")} className={`${MARK_BUTTON} border-line-strong bg-surface text-muted hover:border-muted hover:bg-soft hover:text-ink`}>
             <Icon name="close" size="sm" />
             Dismiss<span className="sr-only">: {item.title}</span>
           </button>

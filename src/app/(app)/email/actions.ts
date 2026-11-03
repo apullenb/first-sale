@@ -8,12 +8,13 @@ import {
   beginMyEmailConnection,
   disconnectMyEmail,
   dismissMyCustomerMessage,
-  pauseMyEmail,
+  importMyEmail,
   processMyCustomerMessage,
   retryMyCustomerMessage,
   sendMyCustomerReply,
 } from "@/lib/data/my-business";
 import { OwnerFacingError } from "@/lib/errors";
+import type { JobRef } from "@/lib/workflows";
 
 export async function connectCustomerEmail(): Promise<{
   ok: boolean;
@@ -50,19 +51,38 @@ export async function connectCustomerEmail(): Promise<{
     };
   }
 }
-export async function changeCustomerEmail(input: unknown) {
+export async function importCustomerEmail(): Promise<{
+  ok: boolean;
+  message: string;
+  busy?: JobRef;
+}> {
   if (await isDemoSession()) return DEMO_REFUSAL;
-  const parsed = z.enum(["pause", "resume", "disconnect"]).safeParse(input);
-  if (!parsed.success) return { ok: false, message: "Choose an action." };
+  const result = await importMyEmail();
+  refresh();
+  if (!result.ok) return result;
+  const { added, read, failed, remaining, more } = result.value;
+  const parts = [
+    added
+      ? `Imported ${added} new email${added === 1 ? "" : "s"}.`
+      : "No new emails.",
+  ];
+  if (more) parts.push("More arrived than one import brings in; the newest were imported.");
+  if (read) parts.push(`Read ${read}.`);
+  if (failed) parts.push(`${failed} need another look.`);
+  if (remaining)
+    parts.push(`${remaining} still waiting; import again to read them.`);
+  return { ok: true, message: parts.join(" ") };
+}
+export async function disconnectCustomerEmail() {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   try {
-    if (parsed.data === "disconnect") await disconnectMyEmail();
-    else await pauseMyEmail(parsed.data === "pause");
+    await disconnectMyEmail();
     refresh();
-    return { ok: true, message: "Email connection updated." };
+    return { ok: true, message: "Email disconnected." };
   } catch {
     return {
       ok: false,
-      message: "Could not update your connection. Try again.",
+      message: "Could not disconnect your inbox. Try again.",
     };
   }
 }
@@ -102,25 +122,4 @@ export async function sendCustomerReply(input: unknown) {
   const result = await sendMyCustomerReply(parsed.data.id, parsed.data.reply);
   refresh();
   return result;
-}
-
-export async function setEmailReminder(input: unknown) {
-  if (await isDemoSession()) return DEMO_REFUSAL;
-  const parsed = z
-    .number()
-    .int()
-    .refine((value) => [1, 2, 3, 7].includes(value))
-    .safeParse(input);
-  if (!parsed.success)
-    return { ok: false, message: "Choose a follow-up interval." };
-  const ok = await (
-    await import("@/lib/data/my-business")
-  ).setMyEmailReminder(parsed.data);
-  refresh();
-  return {
-    ok,
-    message: ok
-      ? "Follow-up preference saved. Reminders appear in your inbox."
-      : "Connect email first.",
-  };
 }

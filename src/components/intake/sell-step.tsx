@@ -178,7 +178,7 @@ export function SellStep({
           className={`${INPUT} resize-y`}
         />
         <div className="flex flex-wrap items-center gap-2.5">
-          <button type="button" onClick={onFill} disabled={aiPending || !answers.description.trim()} className={AI_BUTTON}>
+          <button type="button" data-writes onClick={onFill} disabled={aiPending || !answers.description.trim()} className={AI_BUTTON}>
             <Icon name="sparkles" size="sm" />
             {aiPending ? "Reading your description…" : "Suggest answers from this"}
           </button>

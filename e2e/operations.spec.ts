@@ -7,9 +7,17 @@ test("pasted email appears automatically in tracking, is labeled practice and ca
 }) => {
   const { page } = await newOwner(browser, candles);
   await open(page, "/email");
+  const connection = page.getByRole("region", { name: "Your customer email" });
+  await expect(connection).toContainText(
+    "Connecting an inbox isn’t set up on this site yet.",
+  );
+  await expect(connection).not.toContainText("available yet");
   await expect(
-    page.getByText("Live email needs administrator setup.", { exact: false }),
-  ).toBeVisible();
+    page.getByRole("button", { name: "Connect business email" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Import new emails" }),
+  ).toHaveCount(0);
   const importer = page.getByRole("region", {
     name: "Add a customer message or invoice",
   });

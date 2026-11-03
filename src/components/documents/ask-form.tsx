@@ -6,6 +6,7 @@ import { Icon } from "@/components/icons";
 import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { AI_BUTTON, ALERT, INPUT } from "@/components/styles";
 import { Working } from "@/components/working";
+import { failedMessage } from "@/lib/failure";
 
 interface Props {
   documentId: string;
@@ -30,7 +31,7 @@ export function AskForm({ documentId, maxQuestion }: Props) {
       else if (!result.ok) setError(result.message);
       else setQuestion("");
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }

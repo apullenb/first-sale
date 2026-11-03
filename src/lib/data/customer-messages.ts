@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lt, ne, or, sql } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import {
   businesses,
@@ -24,9 +24,8 @@ export async function emailStateForOwner(db: Db, ownerId: string) {
   const [connection] = await db
     .select({
       email: emailConnections.email,
-      reminderDays: emailConnections.reminderDays,
-      paused: emailConnections.paused,
       status: emailConnections.status,
+      importedAt: emailConnections.importedAt,
     })
     .from(emailConnections)
     .where(eq(emailConnections.businessId, mine.id));
@@ -117,7 +116,6 @@ export async function connectEmailForOwner(
       .update(customerMessages)
       .set({
         state: "failed",
-        attempts: 5,
         issue:
           "This message belongs to a disconnected inbox. Paste it again to review it.",
         connectionId: null,
@@ -141,24 +139,9 @@ export async function connectEmailForOwner(
         grantId,
         email,
         status: "connected",
-        paused: false,
       },
     });
   return true;
-}
-export async function changeEmailForOwner(
-  db: Db,
-  ownerId: string,
-  paused: boolean,
-) {
-  const mine = await business(db, ownerId);
-  if (!mine || mine.isDemo) return false;
-  const rows = await db
-    .update(emailConnections)
-    .set({ paused })
-    .where(eq(emailConnections.businessId, mine.id))
-    .returning();
-  return !!rows.length;
 }
 export async function connectionForOwner(db: Db, ownerId: string) {
   const mine = await business(db, ownerId);
@@ -176,7 +159,6 @@ export async function removeEmailForOwner(db: Db, ownerId: string) {
     .update(customerMessages)
     .set({
       state: "failed",
-      attempts: 5,
       issue: "Email disconnected. Paste this message again to review it.",
     })
     .where(
@@ -191,6 +173,9 @@ export async function removeEmailForOwner(db: Db, ownerId: string) {
     .where(eq(emailConnections.businessId, mine.id));
 }
 
+// A reading cut off by the server's time limit can be claimed again after this
+const STALE_MS = 10 * 60_000;
+
 export async function claimMessageForOwner(
   db: Db,
   ownerId: string,
@@ -201,28 +186,63 @@ export async function claimMessageForOwner(
   const now = new Date();
   const [row] = await db
     .update(customerMessages)
-    .set({
-      state: "processing",
-      attempts: sql`${customerMessages.attempts} + 1`,
-      leaseUntil: new Date(now.getTime() + 6 * 60_000),
-      updatedAt: now,
-    })
+    .set({ state: "processing", updatedAt: now })
     .where(
       and(
         eq(customerMessages.id, id),
         eq(customerMessages.businessId, mine.id),
-        lt(customerMessages.attempts, 5),
         or(
-          eq(customerMessages.state, "pending"),
+          inArray(customerMessages.state, ["pending", "failed"]),
           and(
-            inArray(customerMessages.state, ["failed", "processing"]),
-            lt(customerMessages.leaseUntil, now),
+            eq(customerMessages.state, "processing"),
+            lt(customerMessages.updatedAt, new Date(now.getTime() - STALE_MS)),
           ),
         ),
       ),
     )
     .returning();
   return row ?? null;
+}
+// Email waiting to be read from the owner's current inbox, oldest first
+export async function pendingEmailForOwner(
+  db: Db,
+  ownerId: string,
+  connectionId: string,
+  limit: number,
+) {
+  const mine = await business(db, ownerId);
+  if (!mine || mine.isDemo) return [];
+  const rows = await db
+    .select({ id: customerMessages.id })
+    .from(customerMessages)
+    .where(
+      and(
+        eq(customerMessages.businessId, mine.id),
+        eq(customerMessages.connectionId, connectionId),
+        eq(customerMessages.state, "pending"),
+      ),
+    )
+    .orderBy(asc(customerMessages.createdAt))
+    .limit(limit);
+  return rows.map((row) => row.id);
+}
+export async function importedForOwner(
+  db: Db,
+  ownerId: string,
+  connectionId: string,
+  values: { importedAt: Date } | { status: "reconnect" },
+) {
+  const mine = await business(db, ownerId);
+  if (!mine || mine.isDemo) return;
+  await db
+    .update(emailConnections)
+    .set(values)
+    .where(
+      and(
+        eq(emailConnections.id, connectionId),
+        eq(emailConnections.businessId, mine.id),
+      ),
+    );
 }
 export async function completeMessageForOwner(
   db: Db,
@@ -231,8 +251,7 @@ export async function completeMessageForOwner(
   extraction: ExtractedRequest,
   simulated: boolean,
   body: string,
-  attempt = 1,
-  lease?: Date,
+  claimedAt: Date,
 ) {
   return db.transaction(async (tx) => {
     const [mine] = await tx
@@ -254,8 +273,7 @@ export async function completeMessageForOwner(
     if (
       !message ||
       message.state !== "processing" ||
-      message.attempts !== attempt ||
-      (lease && message.leaseUntil?.getTime() !== lease.getTime())
+      message.updatedAt.getTime() !== claimedAt.getTime()
     )
       return null;
     let orderId = message.orderId;
@@ -306,7 +324,8 @@ export async function completeMessageForOwner(
           title: extraction.title || message.subject.slice(0, 160),
           workType:
             extraction.category === "job" ||
-            mine.profile.offeringKinds.every((kind) => kind === "services")
+            (mine.profile.offeringKinds.length > 0 &&
+              mine.profile.offeringKinds.every((kind) => kind === "services"))
               ? "services"
               : mine.profile.offeringKinds.includes("handmade") ||
                   mine.profile.offeringKinds.includes("food")
@@ -349,7 +368,6 @@ export async function completeMessageForOwner(
         reply,
         state: "ready",
         issue: null,
-        leaseUntil: null,
         updatedAt: new Date(),
       })
       .where(eq(customerMessages.id, id));
@@ -360,8 +378,7 @@ export async function failMessageForOwner(
   db: Db,
   ownerId: string,
   id: string,
-  attempt = 1,
-  lease?: Date,
+  claimedAt: Date,
 ) {
   const mine = await business(db, ownerId);
   if (!mine) return;
@@ -371,7 +388,6 @@ export async function failMessageForOwner(
       state: "failed",
       issue:
         "Could not read this request. Retry or enter the details manually.",
-      leaseUntil: new Date(Date.now() + 5 * 60_000),
       updatedAt: new Date(),
     })
     .where(
@@ -379,8 +395,7 @@ export async function failMessageForOwner(
         eq(customerMessages.id, id),
         eq(customerMessages.businessId, mine.id),
         eq(customerMessages.state, "processing"),
-        eq(customerMessages.attempts, attempt),
-        lease ? eq(customerMessages.leaseUntil, lease) : undefined,
+        eq(customerMessages.updatedAt, claimedAt),
       ),
     );
 }
@@ -393,12 +408,18 @@ export async function retryMessageForOwner(
   if (!mine || mine.isDemo) return false;
   const rows = await db
     .update(customerMessages)
-    .set({ state: "pending", attempts: 0, leaseUntil: null, issue: null })
+    .set({ state: "pending", issue: null })
     .where(
       and(
         eq(customerMessages.businessId, mine.id),
         eq(customerMessages.id, id),
         eq(customerMessages.state, "failed"),
+        // An email from a disconnected inbox has no text left to read again
+        or(
+          ne(customerMessages.source, "email"),
+          sql`${customerMessages.connectionId} is not null`,
+          ne(customerMessages.body, ""),
+        ),
       ),
     )
     .returning();
@@ -466,7 +487,7 @@ export async function reserveReplyForOwner(
           eq(emailConnections.businessId, mine.id),
         ),
       );
-    if (!connection || connection.paused || connection.status !== "connected")
+    if (!connection || connection.status !== "connected")
       return null;
     const [newer] = message.threadId
       ? await tx
@@ -533,34 +554,23 @@ export async function fetchedMessageForOwner(
     );
 }
 
-export async function reminderForOwner(db: Db, ownerId: string, days: number) {
-  const mine = await business(db, ownerId);
-  if (!mine || mine.isDemo || ![1, 2, 3, 7].includes(days)) return false;
-  const result = await db
-    .update(emailConnections)
-    .set({ reminderDays: days })
-    .where(eq(emailConnections.businessId, mine.id))
-    .returning();
-  return !!result.length;
-}
-
 export async function ignoreIncomingForOwner(
   db: Db,
   ownerId: string,
   id: string,
-  lease: Date,
+  claimedAt: Date,
 ) {
   const mine = await business(db, ownerId);
   if (!mine || mine.isDemo) return;
   await db
     .update(customerMessages)
-    .set({ state: "dismissed", leaseUntil: null, issue: null })
+    .set({ state: "dismissed", issue: null })
     .where(
       and(
         eq(customerMessages.businessId, mine.id),
         eq(customerMessages.id, id),
         eq(customerMessages.state, "processing"),
-        eq(customerMessages.leaseUntil, lease),
+        eq(customerMessages.updatedAt, claimedAt),
       ),
     );
 }

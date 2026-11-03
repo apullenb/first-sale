@@ -7,6 +7,7 @@ import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { ALERT, SECONDARY } from "@/components/styles";
 import { Working } from "@/components/working";
 import type { OptionExplanation } from "@/lib/website/options";
+import { failedMessage } from "@/lib/failure";
 
 // "Explain more": fetched once per option, then shown or hidden
 // firstYear: written by code from the cost summary, never by the model
@@ -31,7 +32,7 @@ export function ExplainOption({ optionKey, name, explanation, firstYear }: { opt
       else if (!result.ok) setError(result.message);
       else setOpen(true);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
@@ -39,7 +40,7 @@ export function ExplainOption({ optionKey, name, explanation, firstYear }: { opt
 
   return (
     <div className="flex flex-col gap-2">
-      <button type="button" onClick={toggle} disabled={pending || job.watching} aria-expanded={open} className={`${SECONDARY} w-fit`}>
+      <button type="button" data-writes={open || explanation ? undefined : true} onClick={toggle} disabled={pending || job.watching} aria-expanded={open} className={`${SECONDARY} w-fit`}>
         <Icon name={open ? "close" : "lightbulb"} size="sm" />
         {pending || job.watching ? "Explaining…" : open ? "Hide the explanation" : `Explain ${name} more`}
       </button>

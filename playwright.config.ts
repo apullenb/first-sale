@@ -39,8 +39,6 @@ export default defineConfig({
       NYLAS_API_KEY: "",
       NYLAS_CLIENT_ID: "",
       NYLAS_REDIRECT_URI: "",
-      NYLAS_WEBHOOK_SECRET: "",
-      CRON_SECRET: "",
       SQUARE_APPLICATION_ID: "",
       SQUARE_SANDBOX_ACCESS_TOKEN: "",
       SQUARE_APPLICATION_SECRET: "",

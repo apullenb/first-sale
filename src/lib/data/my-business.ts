@@ -890,25 +890,44 @@ export async function finishMyEmailConnection(code: string, binding: string) {
   const grant = z.object({ grant_id: z.string().min(1).max(500), email: z.email() }).parse(raw);
   const data = await import("./customer-messages");
   const previous = await data.connectionForOwner(getDb(), user.id);
-  if (previous && previous.grantId !== grant.grant_id) await emailApi(`/grants/${encodeURIComponent(previous.grantId)}`, { method: "DELETE" });
-  return data.connectEmailForOwner(getDb(), user.id, grant.grant_id, grant.email);
+  const connected = await data.connectEmailForOwner(getDb(), user.id, grant.grant_id, grant.email);
+  // The old grant goes only once the new one is saved
+  if (connected && previous && previous.grantId !== grant.grant_id) await deleteGrant(previous.grantId);
+  return connected;
 }
-export async function pauseMyEmail(paused: boolean) {
+// Brings in new mail from the owner's inbox and reads it, as one job
+export async function importMyEmail() {
   const user = await writer();
-  return (await import("./customer-messages")).changeEmailForOwner(getDb(), user.id, paused);
+  const { runWorkflow } = await import("@/lib/workflow-runner");
+  const { practiceMode } = await import("@/lib/ai");
+  const { takeAiRequest } = await import("./ai-quota");
+  const { importEmailForOwner } = await import("@/lib/email/import");
+  return runWorkflow("email_import", null, () =>
+    importEmailForOwner(user.id, async () => practiceMode() || (await takeAiRequest(getDb(), user.id)) === "ok"),
+  );
 }
 export async function disconnectMyEmail() {
   const user = await writer();
   const data = await import("./customer-messages");
   const connection = await data.connectionForOwner(getDb(), user.id);
-  if (connection) await (await import("@/lib/email/client")).emailApi(`/grants/${encodeURIComponent(connection.grantId)}`, { method: "DELETE" });
+  if (connection) await deleteGrant(connection.grantId);
   await data.removeEmailForOwner(getDb(), user.id);
+}
+
+// A grant already gone at the provider (revoked or expired) counts as deleted
+async function deleteGrant(grantId: string) {
+  const { EmailApiError, emailApi } = await import("@/lib/email/client");
+  try {
+    await emailApi(`/grants/${encodeURIComponent(grantId)}`, { method: "DELETE" });
+  } catch (error) {
+    if (!(error instanceof EmailApiError && error.status === 404)) throw error;
+  }
 }
 export async function sendMyCustomerReply(id: string, reply: string) {
   const user = await writer();
   const data = await import("./customer-messages");
   const reserved = await data.reserveReplyForOwner(getDb(), user.id, id, reply);
-  if (!reserved) return { ok: false, message: "This reply cannot be sent. Check for a newer message, a paused connection or an earlier send." };
+  if (!reserved) return { ok: false, message: "This reply cannot be sent. Check for a newer message, a disconnected inbox or an earlier send." };
   try {
     const { z } = await import("zod");
     if (!z.email().safeParse(reserved.message.sender).success) throw new Error("Missing recipient");
@@ -922,27 +941,9 @@ export async function sendMyCustomerReply(id: string, reply: string) {
   }
 }
 
-// Provider and worker entry points authenticate before looking up stored owner identities.
-export async function acceptCustomerEmailEvent(body: string, signature: string | null) {
-  const { validSignature } = await import("@/lib/email/client");
-  if (!validSignature(body, signature)) return false;
-  await (await import("@/lib/email/worker")).enqueueEmailEvent(JSON.parse(body));
-  return true;
-}
-export async function runScheduledCustomerWork(authorization: string | null, mode: "process" | "sync" = "process") {
-  if (!(await import("@/lib/email/client")).workerAuthorized(authorization)) return null;
-  const worker = await import("@/lib/email/worker");
-  if (mode === "sync") { await worker.pollCustomerEmail(); return { synced: true }; }
-  return worker.workCustomerMessages();
-}
 export async function setMyOrderTotal(id: string, totalCents: number) {
   const user = await writer();
   return (await import("./orders")).setOrderTotalForOwner(getDb(), user.id, id, totalCents);
-}
-
-export async function setMyEmailReminder(days: number) {
-  const user = await writer();
-  return (await import("./customer-messages")).reminderForOwner(getDb(), user.id, days);
 }
 
 export async function connectMySquareSandbox() {

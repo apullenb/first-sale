@@ -12,8 +12,6 @@ CREATE TABLE "customer_messages" (
 	"document_id" text,
 	"order_id" text,
 	"state" text DEFAULT 'pending' NOT NULL,
-	"attempts" integer DEFAULT 0 NOT NULL,
-	"lease_until" timestamp with time zone,
 	"extraction" jsonb,
 	"simulated" boolean DEFAULT false NOT NULL,
 	"issue" text,
@@ -29,11 +27,8 @@ CREATE TABLE "email_connections" (
 	"business_id" text NOT NULL,
 	"grant_id" text NOT NULL,
 	"email" text NOT NULL,
-	"paused" boolean DEFAULT false NOT NULL,
 	"status" text DEFAULT 'connected' NOT NULL,
-	"sync_since" timestamp with time zone DEFAULT now() NOT NULL,
-	"sync_started" timestamp with time zone,
-	"sync_cursor" text,
+	"imported_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "email_connections_grant_id_unique" UNIQUE("grant_id")
 );
@@ -67,7 +62,6 @@ ALTER TABLE "customer_messages" ADD CONSTRAINT "customer_messages_order_id_order
 ALTER TABLE "email_connections" ADD CONSTRAINT "email_connections_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "order_payments" ADD CONSTRAINT "order_payments_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "customer_message_source_idx" ON "customer_messages" USING btree ("business_id","source_key");--> statement-breakpoint
-CREATE INDEX "customer_message_queue_idx" ON "customer_messages" USING btree ("state","lease_until");--> statement-breakpoint
 CREATE UNIQUE INDEX "email_business_idx" ON "email_connections" USING btree ("business_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "order_payment_request_idx" ON "order_payments" USING btree ("order_id","request_key");--> statement-breakpoint
 CREATE UNIQUE INDEX "orders_request_key_idx" ON "orders" USING btree ("business_id","request_key");

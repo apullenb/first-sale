@@ -5,6 +5,7 @@ import { prepareAgreementAction } from "@/app/(app)/documents/agreement-actions"
 import { Icon } from "@/components/icons";
 import { ALERT, INPUT, PRIMARY } from "@/components/styles";
 import { type ChoicesInput, DECISION_LABELS, DECISION_RULES, MAX_CONTRIBUTION, MAX_MANAGER } from "@/lib/documents/owners-agreement";
+import { failedMessage } from "@/lib/failure";
 
 interface Props {
   owners: string[];
@@ -56,7 +57,7 @@ export function AgreementForm({ owners, who, hasManager, initial, basedOn, hasDr
         setStatus("idle");
       } else setStatus("done");
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
       setStatus("idle");
     }
   }

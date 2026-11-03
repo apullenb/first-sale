@@ -9,11 +9,11 @@ import {
   authErrorMessage,
   isValidEmail,
   NAME_MAX_LENGTH,
-  NETWORK_ERROR_MESSAGE,
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
 } from "@/lib/auth/rules";
 import { TextField } from "./text-field";
+import { failedMessage } from "@/lib/failure";
 
 const EMPTY = { name: "", email: "", password: "" };
 
@@ -67,7 +67,7 @@ export function SignUpForm() {
         return;
       }
     } catch {
-      showFormError(NETWORK_ERROR_MESSAGE);
+      showFormError(failedMessage());
       return;
     }
     // Full page load so no kept screen holds this form's state; replace keeps it out of Back

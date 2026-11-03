@@ -3,9 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useLayoutEffect, useState } from "react";
 import type { ActionResult } from "@/app/(app)/business/actions";
+import { DEMO_BUTTON } from "@/lib/demo";
+import { useDemo } from "./demo-mode";
 import { RUNNING_ELSEWHERE, useJobWatch } from "./job-watch";
 import { AI_BUTTON, DANGER, PRIMARY, SECONDARY } from "./styles";
 import { Working } from "./working";
+import { failedMessage } from "@/lib/failure";
 
 const STYLES = { primary: PRIMARY, secondary: SECONDARY, ai: AI_BUTTON, danger: DANGER };
 
@@ -31,6 +34,7 @@ export function ActionButton({ action, label, pendingLabel, pendingStatus, varia
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const job = useJobWatch();
+  const demo = useDemo();
 
   // Clear old errors when the page is hidden: kept-mounted screens keep their state
   useLayoutEffect(() => () => setError(null), []);
@@ -49,7 +53,7 @@ export function ActionButton({ action, label, pendingLabel, pendingStatus, varia
       if (openDocument && typeof result.value === "string") router.push(`/documents/${result.value}`);
       else if (doneHref) router.push(doneHref);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
@@ -57,8 +61,8 @@ export function ActionButton({ action, label, pendingLabel, pendingStatus, varia
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <button type="button" onClick={run} disabled={pending || job.watching} className={STYLES[variant]}>
-        {pending || job.watching ? pendingLabel : label}
+      <button type="button" onClick={run} disabled={demo || pending || job.watching} className={STYLES[variant]}>
+        {demo ? DEMO_BUTTON : pending || job.watching ? pendingLabel : label}
       </button>
       {job.watching ? (
         <Working label={RUNNING_ELSEWHERE} active />

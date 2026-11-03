@@ -6,6 +6,7 @@ import { Icon } from "@/components/icons";
 import { useRequestKey, Working } from "@/components/working";
 import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { MAX_LOGO_WORDS, SMALL_LOGO_SIDE } from "@/lib/brand/library";
+import { failedMessage } from "@/lib/failure";
 
 const PICKER = `${SECONDARY} w-fit cursor-pointer has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent`;
 const TYPES = ["image/png", "image/jpeg", "image/webp"];
@@ -66,7 +67,7 @@ export function LogoUpload({ businessName, maxBytes, replacing }: { businessName
       setChosen(null);
       setDone(true);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setBusy(false);
     }

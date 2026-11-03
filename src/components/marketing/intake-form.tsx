@@ -11,6 +11,7 @@ import { MARKETING_PLATFORMS, type MarketingPlatformId, PLATFORM_DATA } from "@/
 import { DONE_ALREADY, DONE_LABELS, type DoneAlready, MAX_DONE_NOTE, marketingIntakeSchema, SKILL_QUESTIONS, type StoredIntake } from "@/lib/marketing/intake";
 import { PlanProgress, useFinishAndRefresh } from "./ai-progress";
 import { InfoRows, PICKS, PickTile, Why } from "./pieces";
+import { failedMessage } from "@/lib/failure";
 
 const EMPTY: StoredIntake = { include: [], have: [], exclude: [], social: null, seo: null, content: null, done: [], doneNote: "" };
 const SCREENS = ["Where you want to show up", "What you already know", "What you’ve tried so far"] as const;
@@ -136,7 +137,7 @@ export function MarketingIntakeForm({ initial, hasPlan, known, onDone }: Props) 
       if (!written.ok) throw new Error(`Your answers are saved. ${written.message}`);
       finished();
     } catch (problem) {
-      setError(problem instanceof Error && problem.message !== "Failed to fetch" ? problem.message : "Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(problem instanceof Error && problem.message !== "Failed to fetch" ? problem.message : failedMessage());
       setPhase("form");
     }
   }
@@ -148,6 +149,7 @@ export function MarketingIntakeForm({ initial, hasPlan, known, onDone }: Props) 
 
   return (
     <form
+      data-demo-ok
       className="flex flex-col gap-7"
       onSubmit={(event) => {
         event.preventDefault();
@@ -330,12 +332,12 @@ export function MarketingIntakeForm({ initial, hasPlan, known, onDone }: Props) 
             Back
           </button>
         ) : null}
-        <button type="submit" className={last ? AI_BUTTON : PRIMARY} disabled={phase !== "form"}>
+        <button type="submit" data-writes={last ? "" : undefined} className={last ? AI_BUTTON : PRIMARY} disabled={phase !== "form"}>
           {last ? (hasPlan ? "Save and write my plan again" : "Save and write my plan") : "Next"}
           {last ? <Icon name="sparkles" size="sm" /> : <Icon name="arrow" size="sm" />}
         </button>
         {last && hasPlan ? (
-          <button type="button" className={SECONDARY} disabled={phase !== "form"} onClick={() => (screenReady(2, answers) ? submit(false) : setError("Answer each question on this screen first."))}>
+          <button type="button" data-writes className={SECONDARY} disabled={phase !== "form"} onClick={() => (screenReady(2, answers) ? submit(false) : setError("Answer each question on this screen first."))}>
             {phase === "saving" ? "Saving…" : "Just save my answers"}
           </button>
         ) : null}

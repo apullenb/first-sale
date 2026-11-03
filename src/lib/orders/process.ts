@@ -102,24 +102,21 @@ export async function processCustomerMessage(ownerId: string, id: string) {
       if (
         !connection ||
         connection.id !== message.connectionId ||
-        connection.paused
+        connection.status !== "connected"
       )
         throw new Error("connection unavailable");
       const result = await emailApi(
         `/grants/${encodeURIComponent(connection.grantId)}/messages/${encodeURIComponent(message.providerMessageId)}`,
       );
       const incoming = emailMessageSchema.parse(result.data);
+      // Only the owner's own mail is skipped; customers reach them by Cc, alias or forward too
       if (
-        !incoming.to.some(
-          (person) =>
-            person.email.toLowerCase() === connection.email.toLowerCase(),
-        ) ||
         incoming.from.some(
           (person) =>
             person.email.toLowerCase() === connection.email.toLowerCase(),
         )
       ) {
-        await ignoreIncomingForOwner(db, ownerId, id, message.leaseUntil!);
+        await ignoreIncomingForOwner(db, ownerId, id, message.updatedAt);
         return { orderId: null };
       }
       await fetchedMessageForOwner(db, ownerId, id, {
@@ -181,18 +178,11 @@ export async function processCustomerMessage(ownerId: string, id: string) {
         extraction,
         model.simulated,
         body,
-        message.attempts,
-        message.leaseUntil ?? undefined,
+        message.updatedAt,
       ),
     };
   } catch (error) {
-    await failMessageForOwner(
-      db,
-      ownerId,
-      id,
-      message.attempts,
-      message.leaseUntil ?? undefined,
-    );
+    await failMessageForOwner(db, ownerId, id, message.updatedAt);
     throw error;
   }
 }

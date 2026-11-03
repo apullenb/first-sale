@@ -8,6 +8,7 @@ import { ALERT, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import type { PasteValue } from "@/lib/website/paste";
 import { CopyButton } from "./copy-button";
 import { OutsideLink, ResourceLink } from "@/components/ui";
+import { failedMessage } from "@/lib/failure";
 
 export interface ChecklistStep {
   key: string;
@@ -125,7 +126,7 @@ export function SetupChecklist({ steps, done }: { steps: ChecklistStep[]; done: 
       const result = await setSetupStepAction({ key, done: checked });
       if (!result.ok) setError(result.message);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(null);
     }

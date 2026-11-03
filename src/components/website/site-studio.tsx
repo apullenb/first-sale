@@ -27,6 +27,7 @@ import {
 import { renderSite, type SiteImage } from "@/lib/website/site/render";
 import type { WebsiteCopy } from "@/lib/website/types";
 import { FullScreenPreview, SiteFrame } from "./site-frame";
+import { failedMessage } from "@/lib/failure";
 
 export interface LibraryChoice {
   versionId: string;
@@ -165,7 +166,7 @@ export function SiteStudio(props: Props) {
       if (!result.ok) setError({ at, message: result.message ?? "That didn’t work. Try again." });
       setStatus(result.ok && next === "saving" ? "saved" : "idle");
     } catch {
-      setError({ at, message: "Couldn’t reach SnapStart. Check your connection and try again." });
+      setError({ at, message: failedMessage() });
       setStatus("idle");
     }
   }
@@ -384,7 +385,7 @@ export function SiteStudio(props: Props) {
                 {status === "saved" && !dirty ? "Saved." : dirty ? "You have changes that aren’t saved yet." : ""}
               </p>
               <div className="flex flex-wrap gap-2">
-                <button type="button" disabled={pending || !dirty} onClick={save} className={PRIMARY}>
+                <button type="button" data-writes disabled={pending || !dirty} onClick={save} className={PRIMARY}>
                   <Icon name="check" size="sm" />
                   {status === "saving" ? "Saving…" : "Save design"}
                 </button>
@@ -518,7 +519,7 @@ function FinishControls({
       ) : null}
       {dirty ? <p className="text-sm text-check">Save your design changes first, so you finish what you see.</p> : null}
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" disabled={blocked || dirty || pending || Boolean(finished?.upToDate)} onClick={onFinish} className={PRIMARY}>
+        <button type="button" data-writes disabled={blocked || dirty || pending || Boolean(finished?.upToDate)} onClick={onFinish} className={PRIMARY}>
           <Icon name="flag" size="sm" />
           {finishing ? "Finishing…" : finished ? "Check again" : "Finish my site"}
         </button>

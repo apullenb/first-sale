@@ -1,10 +1,10 @@
+import { DEMO_BUTTON } from "../src/lib/demo";
 import { expect, test } from "@playwright/test";
 import { tacos } from "./scenarios";
 import { completeIntake, logOut, open, signUp } from "./support";
 
 // Matches DEMO_OWNER_EMAIL in playwright.config.ts
 const DEMO_EMAIL = "demo-owner@example.test";
-const NOTE = "This is the demo, so changes aren’t saved. Start your own to try it.";
 
 test.describe("live demo", () => {
   // One fixed demo account per server, so a retry can't sign it up again
@@ -32,12 +32,13 @@ test.describe("live demo", () => {
     await expect(banner).toBeVisible();
     await expect(page.getByText(tacos.businessName).first()).toBeVisible();
 
-    // Buttons still work as buttons, but a save comes back with the demo note
+    // Choices still open, but buttons that would save are off and say why
     const phone = page.getByRole("region", { name: "Do you have a business email and phone?" }).getByRole("region", { name: "Business phone" });
     await phone.getByRole("button", { name: "I have one" }).click();
     await phone.getByLabel("Your business phone").fill("(520) 555-0142");
-    await phone.getByRole("button", { name: "Save" }).click();
-    await expect(phone.getByRole("alert")).toHaveText(NOTE);
+    const save = phone.locator("button", { hasText: /^Save$/ });
+    await expect(save).toBeDisabled();
+    await expect(save).toHaveAttribute("title", DEMO_BUTTON);
 
     // Nothing changed
     await open(page, "/business");

@@ -4,6 +4,7 @@ import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { clearAlreadyHaveAction, setAlreadyHaveAction } from "@/app/(app)/already-have-actions";
 import { Icon } from "@/components/icons";
 import { ALERT, INPUT, PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles";
+import { failedMessage } from "@/lib/failure";
 
 export interface AlreadyHaveProps {
   // A mark key such as "logo", or "social:instagram"
@@ -53,7 +54,7 @@ export function AlreadyHave({ markKey, label, help, done, linkLabel, children }:
       if (!result.ok) setError(result.message ?? "Something went wrong. Try again.");
       else setOpen(false);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
@@ -82,7 +83,7 @@ export function AlreadyHave({ markKey, label, help, done, linkLabel, children }:
             <button ref={button} type="button" onClick={() => toggle(true)} className={`min-h-11 ${TEXT_LINK}`}>
               Change
             </button>
-            <button type="button" disabled={pending} onClick={() => run(() => clearAlreadyHaveAction(markKey))} className={`min-h-11 ${TEXT_LINK} disabled:opacity-60`}>
+            <button type="button" data-writes disabled={pending} onClick={() => run(() => clearAlreadyHaveAction(markKey))} className={`min-h-11 ${TEXT_LINK} disabled:opacity-60`}>
               Undo
             </button>
           </span>
@@ -129,7 +130,7 @@ export function AlreadyHave({ markKey, label, help, done, linkLabel, children }:
         <input value={note} onChange={(event) => setNote(event.target.value)} maxLength={500} className={INPUT} />
       </label>
       {alert}
-      <button type="button" disabled={pending} onClick={() => run(() => setAlreadyHaveAction({ key: markKey, url: linkLabel ? url : "", note }))} className={`${PRIMARY} w-fit`}>
+      <button type="button" data-writes disabled={pending} onClick={() => run(() => setAlreadyHaveAction({ key: markKey, url: linkLabel ? url : "", note }))} className={`${PRIMARY} w-fit`}>
         <Icon name="check" size="sm" />
         {pending ? "Saving…" : "Mark as done"}
       </button>

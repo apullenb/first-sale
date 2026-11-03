@@ -19,8 +19,9 @@ export default function RunPage() {
       </Suspense>
       <Card title="You stay in charge" id="in-charge">
         <p>
-          Incoming orders are added for review automatically. You confirm stock
-          changes, record payments and approve every reply before sending.
+          Imported emails become orders and requests for your review. You
+          confirm stock changes, record payments and approve every reply before
+          it’s sent.
         </p>
       </Card>
     </div>
@@ -38,19 +39,23 @@ async function Workflows() {
     <div className="grid gap-5 md:grid-cols-2">
       <Card title="Customer email" icon="file" id="workflow-email">
         <Chip
-          tone={email.connection && !email.connection.paused ? "done" : "gray"}
+          tone={
+            email.connection?.status === "connected"
+              ? "done"
+              : email.connection
+                ? "warn"
+                : "gray"
+          }
         >
           {email.connection
-            ? email.connection.paused
-              ? "Paused"
-              : email.connection.status === "connected"
-                ? "Connected"
-                : "Reconnect needed"
+            ? email.connection.status === "connected"
+              ? "Connected"
+              : "Reconnect needed"
             : "Connect your inbox"}
         </Chip>
         <p className="text-muted">
-          Keep conversations together, find incoming orders and jobs, and review
-          replies.
+          Connect your inbox, import new emails, turn them into orders or
+          requests, and reply.
         </p>
         <Link href="/email" className={PRIMARY_LINK}>
           Open customer email
@@ -63,8 +68,8 @@ async function Workflows() {
             : `${orders.filter((order) => !["fulfilled", "cancelled"].includes(order.status)).length} active`}
         </Chip>
         <p className="text-muted">
-          Track work, due dates, payments and balances. Add work manually,
-          upload invoices or receive it from email.
+          Track work, due dates, payments and balances. Add work yourself,
+          upload invoices or create it from imported email.
         </p>
         <Link href="/orders" className={PRIMARY_LINK}>
           Open orders & jobs

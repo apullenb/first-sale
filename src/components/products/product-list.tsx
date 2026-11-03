@@ -27,6 +27,7 @@ import { SquareProductSync } from "./square-sync";
 import type { ProductSyncStatus } from "@/lib/rules/square-products";
 import { ItemPictures } from "./item-pictures";
 import type { PictureView, Wearer } from "@/lib/rules/picture-views";
+import { failedMessage } from "@/lib/failure";
 
 export interface PhotoChoice {
   key: string;
@@ -65,7 +66,6 @@ export const photoKey = (ref: ProductPhotoRef | null) =>
           ? `generated:${ref.pictureId}`
           : `original:${ref.photoId}`;
 
-const OFFLINE = "Couldn’t reach SnapStart. Check your connection and try again.";
 const empty = (kind: ItemKind): ProductForm => ({ kind, name: "", description: "", price: "", unitCost: "", quantity: "", duration: "", location: "", included: "", groups: [], variants: [], photo: null });
 const NOUN: Record<ItemKind, { one: string; many: string; Title: string }> = {
   product: { one: "product", many: "products", Title: "Product" },
@@ -182,7 +182,7 @@ function ProductRow({
       const result = await deleteProductAction(product.id);
       if (!result.ok) setError(result.message);
     } catch {
-      setError(OFFLINE);
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
@@ -254,7 +254,7 @@ function ProductRow({
               <Icon name="image" size="sm" />
               Pictures<span className="sr-only"> of {product.name}</span>
             </button>
-            <button type="button" onClick={remove} disabled={pending} className={DANGER}>
+            <button data-writes type="button" onClick={remove} disabled={pending} className={DANGER}>
               <Icon name="trash" size="sm" />
               {pending ? "Removing…" : "Remove"}
               <span className="sr-only"> {product.name}</span>
@@ -320,7 +320,7 @@ function ProductEditor({
       if (!id) setForm(empty(form.kind));
       onDone();
     } catch {
-      setError({ message: OFFLINE });
+      setError({ message: failedMessage() });
     } finally {
       setPending(false);
     }
@@ -447,7 +447,7 @@ function ProductEditor({
             {pending ? "Saving…" : !id ? `Add ${noun.one}` : suggested ? "Confirm" : "Save changes"}
           </button>
           {suggested ? (
-            <button type="button" disabled={pending} onClick={() => void save(false)} className={SECONDARY}>
+            <button data-writes type="button" disabled={pending} onClick={() => void save(false)} className={SECONDARY}>
               Save as a suggestion
             </button>
           ) : null}

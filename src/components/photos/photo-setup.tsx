@@ -11,6 +11,7 @@ import { MAX_ANSWER } from "@/lib/photos/instructions";
 import { CATEGORIES, CROPS, LOOKS } from "@/lib/photos/looks";
 import { PHOTO_CATEGORIES, PHOTO_CROPS, PHOTO_LOOKS, type PhotoCategory, type PhotoCrop, type PhotoLook } from "@/lib/photos/types";
 import { useRequestKey, Working } from "@/components/working";
+import { failedMessage } from "@/lib/failure";
 
 const LEGEND = "mb-2 text-[17px] font-bold";
 
@@ -69,7 +70,7 @@ export function PhotoSetup({ photoId, objects, question, aiCategory, initial, se
       router.push(`/photos/${photoId}?v=${result.value}`);
     } catch {
       // Same key on the next try, so a photo already made isn't paid for twice
-      setError("Couldn’t reach SnapStart. Check your connection, then try again.");
+      setError(failedMessage());
     } finally {
       inFlight.current = false;
       setPending(false);

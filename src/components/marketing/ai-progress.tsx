@@ -8,6 +8,7 @@ import { ActionButton } from "@/components/action-button";
 import { Icon } from "@/components/icons";
 import { useJobWatch } from "@/components/job-watch";
 import { AI_BUTTON, ALERT, SECONDARY } from "@/components/styles";
+import { failedMessage } from "@/lib/failure";
 
 // A progress screen for one AI request. Steps tick off on a timer; the last one waits for the reply.
 
@@ -126,7 +127,7 @@ export function AiProgressButton({ action, label, title, steps, estimateMs, vari
       setPhase("finished");
       finish(idle);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
       idle();
     }
   }
@@ -134,7 +135,7 @@ export function AiProgressButton({ action, label, title, steps, estimateMs, vari
   if (phase !== "idle") return <ProgressSteps title={title} steps={steps} estimateMs={estimateMs} finished={phase === "finished"} />;
   return (
     <div className="flex flex-col items-start gap-2">
-      <button type="button" onClick={run} className={variant === "ai" ? AI_BUTTON : SECONDARY}>
+      <button data-writes type="button" onClick={run} className={variant === "ai" ? AI_BUTTON : SECONDARY}>
         {variant === "ai" ? <Icon name="sparkles" size="sm" /> : <Icon name="refresh" size="sm" />}
         {label}
       </button>

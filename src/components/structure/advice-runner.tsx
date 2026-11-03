@@ -5,6 +5,7 @@ import { adviseAction } from "@/app/(app)/structure/actions";
 import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { ALERT, SECONDARY } from "@/components/styles";
 import { Working } from "@/components/working";
+import { failedMessage } from "@/lib/failure";
 
 // Starts the recommendation as soon as the page opens; the page shows it once it's saved
 export function AdviceRunner() {
@@ -23,7 +24,7 @@ export function AdviceRunner() {
       if (!result.ok && result.busy) job.watch([result.busy]);
       else if (!result.ok) setError(result.message);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
@@ -48,7 +49,7 @@ export function AdviceRunner() {
           <p role="alert" className={ALERT}>
             {error}
           </p>
-          <button type="button" onClick={run} className={SECONDARY}>
+          <button type="button" data-writes onClick={run} className={SECONDARY}>
             Try again
           </button>
         </>

@@ -7,6 +7,7 @@ import { Icon } from "@/components/icons";
 import { ALERT, SECONDARY } from "@/components/styles";
 import { Working } from "@/components/working";
 import { SubFold } from "./parts";
+import { failedMessage } from "@/lib/failure";
 
 // Uploads a newer file as the next version; the one shown now stays in the history
 export function ReplaceFile({ documentId, accept }: { documentId: string; accept: string }) {
@@ -27,7 +28,7 @@ export function ReplaceFile({ documentId, accept }: { documentId: string; accept
       if (!result.ok) setError(result.message);
       else router.push(`/documents/${encodeURIComponent(result.value)}`);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }

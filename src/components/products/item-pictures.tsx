@@ -8,8 +8,8 @@ import { AI_BUTTON, ALERT, INPUT, SECONDARY } from "@/components/styles";
 import { useRequestKey, Working } from "@/components/working";
 import { EXTRA_VIEWS, type PictureView, VIEW_LABELS, type Wearer, WEARER_LABELS, WEARERS, wearerFor } from "@/lib/rules/picture-views";
 import type { ListedProduct } from "./product-list";
+import { failedMessage } from "@/lib/failure";
 
-const OFFLINE = "Couldn’t reach SnapStart. Check your connection, then try again.";
 
 export interface Picture {
   id: string;
@@ -40,7 +40,7 @@ function useRun() {
       if (!result.ok) return setError(result.message);
       after?.();
     } catch {
-      setError(OFFLINE);
+      setError(failedMessage());
     } finally {
       inFlight.current = false;
       setPending(null);
@@ -77,7 +77,7 @@ export function ItemPictures({ item, pictures, inUse, changeLimit, hasOwnPhoto }
       </div>
 
       <ViewGroup title={labels.main} pictures={of("main")} item={item} inUse={inUse} changeLimit={changeLimit} work={work} view="main">
-        <button type="button" onClick={() => void make("main")} disabled={work.busy} className={`${AI_BUTTON} self-start`}>
+        <button data-writes type="button" onClick={() => void make("main")} disabled={work.busy} className={`${AI_BUTTON} self-start`}>
           <Icon name="sparkles" size="sm" />
           {work.pending === "make:main" ? "Making the main photo…" : of("main").length ? "Make a new main photo" : hasOwnPhoto ? "Make a main photo from your photo" : "Make a main photo from the description"}
         </button>
@@ -102,6 +102,7 @@ export function ItemPictures({ item, pictures, inUse, changeLimit, hasOwnPhoto }
           ) : null}
           {anyViews ? null : (
             <button
+              data-writes
               type="button"
               disabled={work.busy}
               onClick={() => {
@@ -118,6 +119,7 @@ export function ItemPictures({ item, pictures, inUse, changeLimit, hasOwnPhoto }
             ? EXTRA_VIEWS.map((view) => (
                 <ViewGroup key={view} title={labels[view]} pictures={of(view)} item={item} inUse={inUse} changeLimit={changeLimit} work={work} view={view}>
                   <button
+                    data-writes
                     type="button"
                     disabled={work.busy}
                     onClick={() => {
@@ -148,11 +150,12 @@ export function ItemPictures({ item, pictures, inUse, changeLimit, hasOwnPhoto }
       ) : null}
       {pictures.some((picture) => !picture.approved && picture.id !== inUse) ? (
         <button
+          data-writes
           type="button"
           onClick={async () => {
             if (!window.confirm("Remove the pictures of this item you haven’t approved?")) return;
             const result = await clearPicturesAction(item.id).catch(() => null);
-            if (!result?.ok) work.setError(result?.message ?? OFFLINE);
+            if (!result?.ok) work.setError(result?.message ?? failedMessage());
           }}
           className="w-fit text-sm text-muted underline underline-offset-[3px] hover:text-accent"
         >
@@ -251,9 +254,9 @@ function PictureCard({ picture, productId, name, title, newest, inUse, main }: {
     setError(null);
     try {
       const result = await action();
-      if (!result.ok) setError(result.message ?? OFFLINE);
+      if (!result.ok) setError(result.message ?? failedMessage());
     } catch {
-      setError(OFFLINE);
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
@@ -276,6 +279,7 @@ function PictureCard({ picture, productId, name, title, newest, inUse, main }: {
             <span>{picture.simulated ? "I understand this is only a practice preview" : "I checked it shows what I sell accurately"}</span>
           </label>
           <button
+            data-writes
             type="button"
             disabled={pending}
             onClick={() => (confirmed ? void act(() => approvePictureAction({ productId, pictureId: picture.id, confirmed: true })) : setError("Tick the box once you’ve checked the picture."))}
@@ -287,7 +291,7 @@ function PictureCard({ picture, productId, name, title, newest, inUse, main }: {
         </div>
       )}
       {inUse ? null : (
-        <button type="button" disabled={pending} onClick={() => void act(() => deletePictureAction(picture.id))} className="w-fit text-sm text-muted underline underline-offset-[3px] hover:text-danger">
+        <button data-writes type="button" disabled={pending} onClick={() => void act(() => deletePictureAction(picture.id))} className="w-fit text-sm text-muted underline underline-offset-[3px] hover:text-danger">
           Remove<span className="sr-only"> this {title.toLowerCase()}</span>
         </button>
       )}
