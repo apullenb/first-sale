@@ -26,12 +26,13 @@ test("pasted email appears automatically in tracking, is labeled practice and ca
   await expect(inbox).toContainText("Practice mode.", { timeout: 60_000 });
   await expect(inbox).toContainText("this reply uses stand-in details");
   await inbox.getByRole("link", { name: "Open order or job" }).click();
-  const detail = page.getByRole("region", { name: "Two candles", exact: true });
-  await expect(detail).toContainText("Needs review");
-  await expect(
-    detail.getByRole("button", { name: "Confirm reviewed order or job" }),
-  ).toHaveCount(0);
-  await expect(detail).toContainText("cannot change real stock or payments");
+  await page.waitForURL(/\/orders\/(?!new)[^/?]+$/);
+  const head = page.getByTestId("order-head");
+  await expect(head).toContainText("Two candles");
+  await expect(head).toContainText("Needs review");
+  await expect(head).toContainText("DEMO");
+  await expect(page.getByRole("link", { name: "Review and confirm" })).toHaveCount(0);
+  await expect(page.getByText("cannot change real stock or payments")).toBeVisible();
   await open(page, "/email");
   await importer
     .getByLabel("Or paste a customer email or invoice")
@@ -83,9 +84,8 @@ test("an uploaded invoice keeps its original and adds a review record automatica
     inbox.getByRole("link", { name: "Download original invoice" }),
   ).toBeVisible({ timeout: 60_000 });
   await inbox.getByRole("link", { name: "Open order or job" }).click();
-  await expect(
-    page.getByRole("region", { name: "Custom candle order", exact: true }),
-  ).toContainText("Needs review");
+  await expect(page.getByTestId("order-head")).toContainText("Custom candle order");
+  await expect(page.getByTestId("order-head")).toContainText("Needs review");
 });
 
 test("a forwarded email reaches the owner's address, becomes an order and is answered from their own email", async ({
@@ -158,5 +158,6 @@ test("a forwarded email reaches the owner's address, becomes an order and is ans
   await expect(inbox.getByRole("article").filter({ hasText: "Candle order" })).toContainText("Sent from your email");
 
   await inbox.getByRole("article").filter({ hasText: "Candle order" }).getByRole("link", { name: "Open order or job" }).click();
-  await expect(page.getByRole("region", { name: "Three candles", exact: true })).toContainText("Needs review");
+  await expect(page.getByTestId("order-head")).toContainText("Three candles");
+  await expect(page.getByTestId("order-head")).toContainText("Needs review");
 });

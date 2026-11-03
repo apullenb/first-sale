@@ -29,11 +29,11 @@ const WRITES = [
   "saveMyIntakeDraft", "deleteMyIntakeDraft", "createMyBusinessFromIntake", "updateMyProfileWithHistory", "recordMyDecisions",
   "replanMyPlan", "saveMyStructureAdvice", "saveMyInsights", "markMyInsight", "setMyJourneyMark", "clearMyJourneyMark",
   "setMyOrderTotal", "progressMyOrder", "recordMyPayment", "scheduleMyOrder", "addMyCustomerMessage", "processMyCustomerMessage", "retryMyCustomerMessage", "dismissMyCustomerMessage", "getMyForwardingAddress", "newMyForwardingAddress", "clearMyForwardingConfirmation", "readMyNewEmail", "markMyReplySent",
-  "saveMyOperationSetup", "pauseMyOperationSetup", "recordMyOrder", "cancelMyOrder", "addMyEmailDemoOrder", "clearMyEmailDemoOrders",
+  "saveMyOperationSetup", "pauseMyOperationSetup", "recordMyOrder", "cancelMyOrder", "replaceMyOrderLines", "updateMyOrderDetails", "addMyEmailDemoOrder", "clearMyEmailDemoOrders",
 ];
 
 const READS = [
-  "getMySquareState", "getMyProductSync",
+  "getMySquareState", "getMyProductSync", "getMyOrder",
   "getMyBusiness", "getMyResearch", "myAiKey", "getMyPlan", "getMyResearchBasis", "listMyConditionAnswers", "paperworkContext",
   "getMyPaperwork", "getMyStep", "getMyDetails", "listMyDocuments", "getMyDocument", "getMyDocumentFile", "lastMyRun",
   "listMyPhotos", "getMyPhoto", "getMyPhotoFile", "getMyPhotoVersionFile", "findMyPhotoVersionByRequest", "myPhotoVersionRoom",

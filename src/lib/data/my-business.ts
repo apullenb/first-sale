@@ -772,6 +772,21 @@ export async function listMyOrders() {
   return listOrdersForOwner(getDb(), user.id);
 }
 
+export async function getMyOrder(id: string) {
+  const user = await getCurrentUser();
+  return (await import("./orders")).getOrderForOwner(getDb(), user.id, id);
+}
+
+export async function replaceMyOrderLines(id: string, lines: import("@/lib/rules/order-lines").LineInput[]) {
+  const user = await writer();
+  return (await import("./orders")).replaceOrderLinesForOwner(getDb(), user.id, id, lines);
+}
+
+export async function updateMyOrderDetails(id: string, patch: import("./orders").DetailsPatch) {
+  const user = await writer();
+  return (await import("./orders")).updateOrderDetailsForOwner(getDb(), user.id, id, patch);
+}
+
 export async function recordMyOrder(order: NewOrder) {
   const user = await writer();
   return recordOrderForOwner(getDb(), user.id, order);

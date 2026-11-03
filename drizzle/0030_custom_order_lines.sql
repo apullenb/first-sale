@@ -1,0 +1,1 @@
+ALTER TABLE "order_lines" ALTER COLUMN "product_id" DROP NOT NULL;

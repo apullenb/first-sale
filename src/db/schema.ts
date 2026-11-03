@@ -481,9 +481,8 @@ export const orderLines = pgTable(
     orderId: text("order_id")
       .notNull()
       .references(() => orders.id, { onDelete: "cascade" }),
-    productId: text("product_id")
-      .notNull()
-      .references(() => products.id),
+    // Null on a custom line, which name_snapshot describes
+    productId: text("product_id").references(() => products.id),
     nameSnapshot: text("name_snapshot"),
     // The exact option combination ordered, as saved when ordered; empty for items without options
     optionValues: jsonb("option_values").$type<string[]>().notNull().default([]),
