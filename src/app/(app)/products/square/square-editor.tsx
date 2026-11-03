@@ -4,11 +4,11 @@ import { useState, useTransition } from "react";
 import { Card } from "@/components/ui";
 import { INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { PracticeBanner } from "@/components/practice-banner";
-import { connectSquareAction, loadSquareItemsAction, draftSquareAction, editSquareAction, approveSquareAction, disconnectSquareAction } from "./actions";
+import { connectSquareSandboxAction, connectSquareAction, loadSquareItemsAction, draftSquareAction, editSquareAction, approveSquareAction, disconnectSquareAction } from "./actions";
 
 type Draft = { id: string; name: string; original: string; description: string; simulated: boolean; status: string };
-type State = { connection: { merchantId: string | null; environment: string } | null; drafts: Draft[] };
-export function SquareEditor({ state, connectionResult }: { state: State; connectionResult?: string }) {
+type State = { connection: { merchantId: string | null; environment: string; sandboxTokenTest?: boolean } | null; drafts: Draft[] };
+export function SquareEditor({ state, connectionResult, canConnect, sandboxTokenAvailable }: { state: State; connectionResult?: string; canConnect: boolean; sandboxTokenAvailable: boolean }) {
   const [pending, start] = useTransition();
   const [message, setMessage] = useState(connectionResult === "connected" ? "Square connected." : connectionResult === "failed" ? "Square sign-in did not complete. Connect again." : "");
   const [items, setItems] = useState<{ id: string; name: string }[]>([]);
@@ -25,7 +25,7 @@ export function SquareEditor({ state, connectionResult }: { state: State; connec
     <p role="status" aria-label="Square connection status" aria-live="polite">{pending ? "Working…" : message}</p>
     <Card title="Square account">
       {state.connection ? <>
-        <p>Connected merchant: {state.connection.merchantId}. {state.connection.environment === "sandbox" ? "Sandbox — changes affect test products only." : "Live account — approved changes update real Square products."}</p>
+        <p>Connected merchant: {state.connection.merchantId}. Approved changes update your connected Square catalog.</p>
         <p>Permissions: read and update your product catalog.</p>
         <div className="flex flex-wrap gap-3">
           <button disabled={pending} className={SECONDARY} onClick={() => run(async () => { const result = await loadSquareItemsAction(); if (result.ok) { setItems(result.value); setLoaded(true); } return result; }, "Products loaded.")}>Load Square products</button>
@@ -36,7 +36,7 @@ export function SquareEditor({ state, connectionResult }: { state: State; connec
           }, "Square disconnected.")}>Disconnect Square</button>
         </div>
       </> : <p>Connect the Square account that holds your products. SnapStart sends changes only after you approve them.</p>}
-      <button className={SECONDARY} disabled={pending} onClick={() => run(async () => { const result = await connectSquareAction(); if (result.ok) window.location.assign(result.value.url); return result; }, "Opening Square…")}>{state.connection ? "Reconnect Square" : "Connect Square"}</button>
+      {canConnect && sandboxTokenAvailable ? <button className={SECONDARY} disabled={pending} onClick={() => run(connectSquareSandboxAction, "Square account connected.")}>{state.connection ? "Reconnect Square" : "Connect Square"}</button> : canConnect ? <button className={SECONDARY} disabled={pending} onClick={() => run(async () => { const result = await connectSquareAction(); if (result.ok) window.location.assign(result.value.url); return result; }, "Opening Square…")}>{state.connection ? "Reconnect Square" : "Connect Square"}</button> : null}
     </Card>
     {state.connection && loaded ? <Card title="Draft a description change">
       {items.length ? <form className="flex flex-col gap-3" onSubmit={(event) => { event.preventDefault(); run(() => draftSquareAction({ itemId, request }), "Draft saved below. Review the words before approving."); }}>

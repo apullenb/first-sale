@@ -5,7 +5,7 @@ import { seedOwners } from "@/test/fixtures";
 import { getBusinessForOwner } from "./businesses";
 import { squareConnections, squareDescriptionDrafts } from "@/db/schema";
 import { encryptTokens, decryptTokens } from "@/lib/square/crypto";
-import { approveSquareDraftForOwner, beginSquareForOwner, editSquareDraftForOwner, finishSquareForOwner, squareStateForOwner, draftSquareForOwner, disconnectSquareForOwner } from "./square";
+import { approveSquareDraftForOwner, beginSquareForOwner, editSquareDraftForOwner, finishSquareForOwner, squareStateForOwner, draftSquareForOwner, disconnectSquareForOwner, connectSandboxTokenForOwner, listSquareItemsForOwner } from "./square";
 import * as ai from "@/lib/ai";
 import { createMockProvider } from "@/lib/ai/providers/mock";
 import type { SquareItem } from "@/lib/square/client";
@@ -121,6 +121,23 @@ describe("Square reviewed updates", () => {
     expect(await disconnectSquareForOwner(db, "owner-a")).toBe(false);
     expect((await squareStateForOwner(db, "owner-a")).connection).toBeNull();
     await expect(approveSquareDraftForOwner(db, "owner-a", draftId, proposal)).rejects.toThrow("Connect");
+  });
+  it("connects a provided sandbox token only in local development and keeps it owner-scoped", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("SQUARE_SANDBOX_ACCESS_TOKEN", "local-sandbox-token");
+    await expect(connectSandboxTokenForOwner(db, "owner-a")).rejects.toThrow("local development");
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("SQUARE_APPLICATION_SECRET", "");
+    vi.mocked(fetch).mockResolvedValue(Response.json({ merchant: { id: "M" } }));
+    await connectSandboxTokenForOwner(db, "owner-a");
+    expect((await squareStateForOwner(db, "owner-a")).connection).toMatchObject({ merchantId: "M", environment: "sandbox", sandboxTokenTest: true });
+    expect((await squareStateForOwner(db, "owner-b")).connection).toBeNull();
+    expect(JSON.stringify(await squareStateForOwner(db, "owner-a"))).not.toContain("local-sandbox-token");
+    vi.stubEnv("NODE_ENV", "production");
+    await expect(listSquareItemsForOwner(db, "owner-a")).rejects.toThrow("local development");
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("SQUARE_ENVIRONMENT", "production");
+    await expect(connectSandboxTokenForOwner(db, "owner-a")).rejects.toThrow("local development");
   });
   it("binds encrypted tokens to the business and never exposes them in page data", async () => {
     const encrypted = encryptTokens(tokens, businessId);

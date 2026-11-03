@@ -1,18 +1,17 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { draftWebsiteAction } from "@/app/(app)/website/actions";
+import { draftWebsiteAction, startWebsiteCopyAction } from "@/app/(app)/website/actions";
 import { findMoreOptionsAction } from "@/app/(app)/website/option-actions";
 import { ActionButton } from "@/components/action-button";
 import { Completed, Revisit } from "@/components/completed";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
-import { ActionFacts, Kicker, NextUp, SectionHead } from "@/components/marketing/pieces";
+import { Kicker, NextUp, SectionHead } from "@/components/marketing/pieces";
 import { MoveOn } from "@/components/move-on";
 import { PracticeBanner } from "@/components/practice-banner";
 import { RunStatus } from "@/components/run-status";
-import { PRIMARY_LINK, TEXT_LINK } from "@/components/styles";
+import { PRIMARY_LINK } from "@/components/styles";
 import { Card, Chip, Fold, Note, OutsideLink, PageHead } from "@/components/ui";
-import { BudgetFit } from "@/components/website/budget-fit";
 import { WebsiteBasics } from "@/components/website/basics";
 import { CopyEditor } from "@/components/website/copy-editor";
 import { DomainFinder } from "@/components/website/domain-finder";
@@ -51,7 +50,7 @@ export default function WebsitePage() {
       <PageHead
         kicker={<Kicker icon="globe">Build your brand · Step 3</Kicker>}
         title="Create your website"
-        lead="Compare the packages, pick one, and SnapStart helps you build it. With a SnapStart site, we build it from your choices; with Square, Wix or Shopify, you get steps with your words ready to paste."
+        lead="Build your site here, or connect a Square site you already have."
       />
       <MoveOn from="Build your brand" />
       <Suspense fallback={<p className="text-muted">Loading your website plan…</p>}>
@@ -83,7 +82,8 @@ async function WebsitePlanView() {
   }
 
   const { profile, plan, brand, name } = site;
-  const recommendation = recommendPlatform(profile);
+  const suggested = recommendPlatform(profile);
+  const recommendation = suggested.platform === "wix" || suggested.platform === "shopify" ? { platform: "square" as const, reasons: [] } : suggested;
   const chosen = plan?.platform ?? null;
   const ideas = domainIdeas(profile.name, profile.location.city);
   const content = site.content;
@@ -131,24 +131,17 @@ async function WebsitePlanView() {
     conflicts: content ? claimConflicts(copyOf(content), claimRecords(site)).length : 0,
   });
 
-  const existingPanel = <div className="flex flex-col gap-3"><ExistingSitePanel connected={existing} marked={mark ? { url: mark.url, note: mark.note } : null} /><Link href="/products/square" className={TEXT_LINK}>Connect Square to review and update product descriptions</Link></div>;
+  const existingPanel = <ExistingSitePanel connected={existing} marked={mark ? { url: mark.url, note: mark.note } : null} />;
   const steps = (
     <>
-      <Fold open={!chosen} icon="book" title="New to websites? Start here" summary="The five things you’ll need to be online">
+      <Fold icon="book" title="New to websites? Start here" summary="The five things you’ll need to be online">
         <WebsiteBasics exampleDomain={ideas[0] ?? "yourbusiness.com"} />
       </Fold>
 
       <section aria-labelledby="step-choose" className="flex flex-col gap-4">
         <SectionHead id="step-choose" number={1} title="Choose a package">
-          <p className="max-w-2xl text-muted">
-            We recommend <strong className="text-ink">{PLATFORM_DATA[recommendation.platform].name}</strong> for {name}, from your answers
-            about what you sell and how. Each package shows the same five things and a cost summary, so you can compare.{" "}
-            <Link href="/business/edit" className={TEXT_LINK}>
-              Change your answers
-            </Link>
-          </p>
+          <p className="text-muted">Two ways to get online. Choose what works for you.</p>
         </SectionHead>
-        <BudgetFit profile={profile} recommended={PLATFORM_DATA[recommendation.platform]} platforms={PLATFORM_ORDER.map((id) => PLATFORM_DATA[id])} />
         {chosen ? (
           <>
             <ChosenSummary platformId={chosen} />
@@ -184,9 +177,7 @@ async function WebsitePlanView() {
               id="step-address"
               number={2}
               title="Pick a web address"
-              lead={`Your web address is how people find you, so pick one that’s short and matches your business name. ${
-                builtHere ? "It’s optional while you build: the preview works without one." : "You’ll buy it when you set up your site."
-              }`}
+              lead="Choose an address that matches your business. You can decide later."
             />
             <Card>
               <DomainFinder ideas={ideas} checks={plan?.domainChecks ?? []} chosen={plan?.domain ?? null} />
@@ -208,6 +199,7 @@ async function WebsitePlanView() {
                   </p>
                 </Note>
               ) : null}
+              {!content ? <ActionButton action={startWebsiteCopyAction} label="Write my own words" pendingLabel="Opening editor…" /> : null}
               <ActionButton
                 action={draftWebsiteAction}
                 label={content ? "Draft my website again" : "Draft my website"}
@@ -286,7 +278,7 @@ async function WebsitePlanView() {
             ...(plan?.domain ? [{ label: "Web address", value: plan.domain }] : []),
           ]}
         >
-          {builtDemo ? <p className="text-[15px] text-rule">This is a demo: nothing is published online.</p> : null}
+          {builtDemo ? <p className="text-[15px] text-rule">Your site is ready to preview. It is not published online.</p> : null}
           {builtDemo ? null : existingPanel}
         </Completed>
         <Revisit label="Revisit your website" summary="Compare packages, change your words or design, or build a site here.">
@@ -300,7 +292,6 @@ async function WebsitePlanView() {
   return (
     <>
       <NextUp id="next-heading" icon="arrow" kicker="Up next" title={next.title}>
-        <ActionFacts why={next.why} cost={next.cost} needs={next.needs} />
         {next.href ? (
           <a href={next.href} className={`${PRIMARY_LINK} w-fit`}>
             {next.button}
@@ -346,7 +337,7 @@ const INCLUDED = "Nothing extra: it’s part of SnapStart.";
 // The one thing to do next on this page, by plain rules that match the step's done rule
 function nextStep(state: NextState): NextAction {
   const plain = { why: "", cost: "", needs: "", button: "", href: null };
-  if (state.chosen === "first_sale" && state.finished) return { ...plain, title: "Your site is ready (demo, not published online)", done: true };
+  if (state.chosen === "first_sale" && state.finished) return { ...plain, title: "Your site is ready to preview", done: true };
   if (state.existing) return { ...plain, title: "You already have a website", done: true };
   if (!state.chosen) {
     const platform = PLATFORM_DATA[state.recommended];
@@ -421,7 +412,7 @@ function ChosenSummary({ platformId }: { platformId: PlatformId }) {
         Your choice
       </Chip>
       <p className="font-display text-[22px] leading-tight">{platform.name}</p>
-      <p className="text-muted">{firstYearText(platform)}</p>
+      <p className="text-muted">{platformId === "first_sale" ? "Design and preview your site here." : "Set up your site in Square, then connect it here."}</p>
     </div>
   );
 }

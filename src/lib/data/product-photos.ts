@@ -170,7 +170,7 @@ async function bytesUsed(db: Db | Tx, businessId: string): Promise<number> {
 export type CreatePhotoOutcome = { ok: true; id: string } | { ok: false; reason: "no_business" | "too_many" | "too_large" };
 
 // Locked per business so parallel uploads can't pass the limits together
-export async function createPhotoForOwner(db: Db, ownerId: string, input: NewPhoto, now = new Date()): Promise<CreatePhotoOutcome> {
+export async function createPhotoForOwner(db: Db | Tx, ownerId: string, input: NewPhoto, now = new Date()): Promise<CreatePhotoOutcome> {
   return db.transaction(async (tx) => {
     const [business] = await tx.select({ id: businesses.id }).from(businesses).where(eq(businesses.ownerId, ownerId)).for("update");
     if (!business) return { ok: false, reason: "no_business" };

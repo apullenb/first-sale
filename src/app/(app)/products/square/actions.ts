@@ -5,8 +5,9 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import { isDemoSession } from "@/lib/auth/server";
 import { DEMO_REFUSAL } from "@/lib/demo";
-import { beginMySquareConnection, listMySquareItems, draftMySquareDescription, editMySquareDraft, approveMySquareDraft, disconnectMySquare } from "@/lib/data/my-business";
+import { getMyWebsitePlan, listMyJourneyMarks, beginMySquareConnection, listMySquareItems, draftMySquareDescription, editMySquareDraft, approveMySquareDraft, disconnectMySquare } from "@/lib/data/my-business";
 import { OwnerFacingError } from "@/lib/errors";
+import { hasSquareSite } from "@/lib/website/existing-site";
 import { runWorkflow } from "@/lib/workflow-runner";
 
 async function safely<T>(job: () => Promise<T>) {
@@ -17,6 +18,8 @@ async function safely<T>(job: () => Promise<T>) {
 export async function connectSquareAction() {
   if (await isDemoSession()) return DEMO_REFUSAL;
   return safely(async () => {
+    const [plan, marks] = await Promise.all([getMyWebsitePlan(), listMyJourneyMarks()]);
+    if (!hasSquareSite(plan?.existingSite, marks.find((mark) => mark.key === "website"))) throw new OwnerFacingError("Record your existing Square site on the Website page before connecting your account.");
     const connection = await beginMySquareConnection();
     (await cookies()).set("square_oauth_state", connection.state, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/api/square/callback", maxAge: 600 });
     return { url: connection.url };
@@ -78,4 +81,15 @@ export async function pushSquareProductAction(input: unknown) {
   const result = await safely(async () => (await import("@/lib/data/my-business")).pushMySquareProduct(parsed.data.productId, parsed.data.expected));
   refresh();
   return result;
+}
+
+export async function connectSquareSandboxAction() {
+  if (await isDemoSession()) return DEMO_REFUSAL;
+  return safely(async () => {
+    const [plan, marks] = await Promise.all([getMyWebsitePlan(), listMyJourneyMarks()]);
+    if (!hasSquareSite(plan?.existingSite, marks.find((mark) => mark.key === "website"))) throw new OwnerFacingError("Record your existing Square site on the Website page first.");
+    await (await import("@/lib/data/my-business")).connectMySquareSandbox();
+    refresh();
+    return null;
+  });
 }

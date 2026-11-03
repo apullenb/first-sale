@@ -40,6 +40,7 @@ export async function choosePlatformAction(platform: unknown): Promise<ActionRes
   if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = z.enum(PLATFORMS).nullable().safeParse(platform);
   if (!parsed.success) return { ok: false, message: "Pick one of the options." };
+  if (parsed.data === "wix" || parsed.data === "shopify") return { ok: false, message: "This option is coming soon. Choose SnapStart or Square." };
   // A demo finish belongs to the SnapStart site
   const patch = parsed.data === "first_sale" ? { platform: parsed.data } : { platform: parsed.data, finished: null };
   if (!(await saveMyWebsitePlan(patch))) return { ok: false, message: NO_BUSINESS };
@@ -147,6 +148,22 @@ export async function draftWebsiteAction(): Promise<ActionResult> {
   });
   refresh();
   return result.ok ? { ok: true, value: null } : result;
+}
+
+export async function startWebsiteCopyAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
+  const [business, plan] = await Promise.all([getMyBusiness(), getMyWebsitePlan()]);
+  if (!business?.profile || !plan?.platform) return { ok: false, message: "Choose a website option first." };
+  if (plan.content) return { ok: false, message: "Your words are already ready to edit below." };
+  const content: WebsiteContent = {
+    headline: (business.profile.name ?? "").slice(0, 80), subheadline: "", intro: "", about: "", offerings: [],
+    howToBuy: "", contact: "", faq: [], seoTitle: (business.profile.name ?? "").slice(0, 60), seoDescription: "",
+    flags: [], platform: plan.platform, generatedAt: new Date().toISOString(), simulated: false,
+  };
+  const saved = await updateMyWebsitePlan((current) => !current?.content && current?.platform === plan.platform ? { content, contentApprovedAt: null, finished: null } : null);
+  if (saved === "no_business") return { ok: false, message: NO_BUSINESS };
+  refresh();
+  return { ok: true, value: null };
 }
 
 // draftedAt: which draft the edits belong to, so a newer draft isn't overwritten

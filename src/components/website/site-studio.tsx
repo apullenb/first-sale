@@ -26,7 +26,7 @@ import {
 } from "@/lib/website/site/design";
 import { renderSite, type SiteImage } from "@/lib/website/site/render";
 import type { WebsiteCopy } from "@/lib/website/types";
-import { SiteFrame } from "./site-frame";
+import { FullScreenPreview, SiteFrame } from "./site-frame";
 
 export interface LibraryChoice {
   versionId: string;
@@ -95,6 +95,7 @@ function itemsFrom(drafts: Record<string, ItemDraft>, copy: WebsiteCopy, library
 export function SiteStudio(props: Props) {
   const { saved, library, finish, products } = props;
   const uid = useId();
+  const [fullPreview, setFullPreview] = useState(false);
   const [design, setDesign] = useState(saved);
   // The items to edit: the drafted words' items, then saved products that are turned on
   const copy = withProducts(props.copy, products, design).copy;
@@ -186,12 +187,13 @@ export function SiteStudio(props: Props) {
 
   return (
     <>
+      {fullPreview ? <FullScreenPreview html={preview} name={props.name} onClose={() => setFullPreview(false)} /> : null}
       <section aria-labelledby="step-design" className="@container flex flex-col gap-4">
         <SectionHead
           id="step-design"
           number={props.stepNumber}
           title="Design it and see it live"
-          lead="SnapStart builds your site from your approved words, brand and items. Make your choices and the preview updates as you go."
+          lead="Choose a template and make it yours. Open the full-screen preview to explore your site."
         />
         <div className="grid items-start gap-5 @4xl:grid-cols-[minmax(0,21rem)_minmax(0,1fr)]">
           <Card title="Your design" icon="palette" id="design-controls-heading" headingLevel={3} bodyClassName="gap-5">
@@ -404,6 +406,7 @@ export function SiteStudio(props: Props) {
 
           <div className="min-w-0 @4xl:sticky @4xl:top-4">
             <Card title="Live preview" icon="monitor" id="preview-heading" headingLevel={3}>
+              <button type="button" onClick={() => setFullPreview(true)} className={SECONDARY}><Icon name="monitor" size="sm" />View full-screen preview <span aria-hidden="true">↗</span></button>
               <figure className="flex min-w-0 flex-col gap-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <Segmented
@@ -438,7 +441,7 @@ export function SiteStudio(props: Props) {
           id="step-finish"
           number={props.stepNumber + 1}
           title="Finish your site"
-          lead="SnapStart checks your site is ready. This is a demo: nothing is published online."
+          lead="Check your site is ready. Your preview stays private until hosting is connected."
         />
         <Card bodyClassName="gap-4">
           <FinishControls finish={finish} dirty={dirty} pending={pending} finishing={status === "finishing"} error={error?.at === "finish" ? error.message : null} onFinish={finishNow} />
@@ -476,7 +479,7 @@ function FinishControls({
         <div role="status" className="flex flex-col gap-1.5 rounded-xl border border-accent-ring bg-accent-tint px-4 py-3.5 text-accent-ink">
           <p className="flex items-start gap-2.5 font-semibold">
             <Icon name="check" size="sm" className="mt-1" strokeWidth={2.4} />
-            <span>Your site is ready (demo, not published online).</span>
+            <span>Your site is ready. Not published online.</span>
           </p>
           <p className="text-sm">
             Finished <LocalDate iso={finished.at} />. This step counts as done.
@@ -517,7 +520,7 @@ function FinishControls({
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" disabled={blocked || dirty || pending || Boolean(finished?.upToDate)} onClick={onFinish} className={PRIMARY}>
           <Icon name="flag" size="sm" />
-          {finishing ? "Finishing…" : finished ? "Finish again (demo)" : "Finish my site (demo)"}
+          {finishing ? "Finishing…" : finished ? "Check again" : "Finish my site"}
         </button>
       </div>
       <p role="status" className="sr-only">

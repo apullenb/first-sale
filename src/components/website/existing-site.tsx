@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { clearAlreadyHaveAction, setAlreadyHaveAction } from "@/app/(app)/already-have-actions";
 import { connectExistingSiteAction, disconnectExistingSiteAction } from "@/app/(app)/website/site-actions";
@@ -7,7 +8,7 @@ import { Icon } from "@/components/icons";
 import { PickTile } from "@/components/marketing/pieces";
 import { ALERT, INPUT, PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles";
 import { Chip } from "@/components/ui";
-import { EXISTING_LABELS, siteAddress } from "@/lib/website/existing-site";
+import { EXISTING_LABELS, hasSquareSite, siteAddress } from "@/lib/website/existing-site";
 import { EXISTING_PLATFORMS, type ExistingPlatform, type ExistingSite } from "@/lib/website/types";
 
 const SMALL = `${SECONDARY} text-[15px]`;
@@ -51,6 +52,7 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
     void run(() => setAlreadyHaveAction({ key: "website", url: address, note: platform ? `Built with ${EXISTING_LABELS[platform]}` : "" }));
   }
 
+  const squareConnection = hasSquareSite(connected, marked) ? <Link href="/products/square" className={TEXT_LINK}>Connect Square to review and update product descriptions</Link> : null;
   const alert = error ? (
     <p role="alert" className={ALERT}>
       {error}
@@ -62,7 +64,7 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-done/25 bg-done-tint px-3.5 py-3 text-[15px] text-done">
           <Chip tone="done" icon="link">
-            Connected (demo)
+            Website saved
           </Chip>
           <span className="text-ink">
             Your {EXISTING_LABELS[connected.platform]} site{" "}
@@ -75,7 +77,8 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
             Disconnect
           </button>
         </div>
-        <p className="text-sm text-muted">In a real launch, products and pictures you make in SnapStart would update this site. In the demo, nothing is sent to it.</p>
+        <p className="text-sm text-muted">Connect your Square account to manage supported product details here. Page design and layout are managed in your website builder.</p>
+        {squareConnection}
         {alert}
       </div>
     );
@@ -102,6 +105,7 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
             </button>
           </span>
         </div>
+        {squareConnection}
         {alert}
       </div>
     );
@@ -134,7 +138,7 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
         </button>
       </div>
       <p className="text-[15px] text-rule">
-        Connecting lets you update your site with the products and pictures you make in SnapStart. You’ll never be asked for a password here.
+        Tell us where your site lives. For Square, you can connect your account after saving it.
       </p>
       <div className="flex flex-col gap-2">
         <p id={`${uid}-where`} className="font-semibold">
@@ -164,13 +168,13 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
       <div className="flex flex-wrap gap-2">
         <button type="button" disabled={pending} onClick={connect} className={PRIMARY}>
           <Icon name="link" size="sm" />
-          {pending ? "Saving…" : `Connect ${platform && platform !== "other" ? EXISTING_LABELS[platform] : "my site"} (demo)`}
+          {pending ? "Saving…" : `Save ${platform && platform !== "other" ? EXISTING_LABELS[platform] : "my site"} website`}
         </button>
         <button type="button" disabled={pending} onClick={skip} className={SECONDARY}>
           I don’t want to connect it
         </button>
       </div>
-      <p className="text-sm text-muted">Demo: connecting is shown here but doesn’t reach your site yet. Either choice marks this step done.</p>
+      <p className="text-sm text-muted">Saving your website records its platform and address. Connecting your Square account is a separate step.</p>
     </section>
   );
 }

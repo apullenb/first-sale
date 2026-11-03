@@ -1,3 +1,5 @@
+import { pngBytes } from "@/lib/photos/test-images";
+import { getPhotoFileForOwner } from "./product-photos";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { createTestDb } from "@/test/db";
@@ -32,6 +34,8 @@ describe("Square product library sync", () => {
     remote = new Map([[candle.id, structuredClone(candle)]]);
     writes = []; saved = new Map();
     vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).startsWith("https://items-images-staging.s3.us-west-2.amazonaws.com/")) return new Response(new Uint8Array(pngBytes(640, 480)));
+      if (String(url).endsWith("/v2/catalog/object/KEEP_IMAGE")) return Response.json({ object: { type: "IMAGE", image_data: { url: "https://items-images-staging.s3.us-west-2.amazonaws.com/candle.png" } } });
       if (url.includes("/v2/catalog/list")) return Response.json({ objects: [...remote.values()] });
       if (init?.method === "POST") {
         const body = JSON.parse(String(init.body));
@@ -48,6 +52,17 @@ describe("Square product library sync", () => {
     }));
   });
   afterEach(async () => { await db.$client.close(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+
+  it("imports Square photos into the owner library and keeps the selected photo on refresh", async () => {
+    await pullProductsForOwner(db, "owner-a");
+    const [product] = await listProductsForOwner(db, "owner-a");
+    expect(product.photo?.source).toBe("original");
+    if (product.photo?.source !== "original") throw new Error("Missing imported photo");
+    expect(await getPhotoFileForOwner(db, "owner-a", product.photo.photoId)).not.toBeNull();
+    expect(await getPhotoFileForOwner(db, "owner-b", product.photo.photoId)).toBeNull();
+    await pullProductsForOwner(db, "owner-a");
+    expect((await listProductsForOwner(db, "owner-a"))[0].photo).toEqual(product.photo);
+  });
   async function imported() {
     await pullProductsForOwner(db, "owner-a");
     return (await listProductsForOwner(db, "owner-a"))[0];
@@ -178,7 +193,7 @@ describe("Square product library sync", () => {
     await db.update(products).set({ descriptionBy: "owner" }).where(eq(products.id, product.id));
     current = (await listProductsForOwner(db, "owner-a"))[0];
     await db.update(squareConnections).set({ merchantId: "OTHER" });
-    await expect(pushProductForOwner(db, "owner-a", product.id, syncFingerprint(current))).rejects.toThrow("different");
+    await expect(pushProductForOwner(db, "owner-a", product.id, syncFingerprint(current))).rejects.toThrow("matching");
     expect(writes).toHaveLength(0);
   });
 });

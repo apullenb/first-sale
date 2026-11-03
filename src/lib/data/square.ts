@@ -4,9 +4,9 @@ import { and, desc, eq, getTableColumns } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { businesses, squareConnections, squareDescriptionDrafts, squareProductLinks, products } from "@/db/schema";
 import { OwnerFacingError } from "@/lib/errors";
-import { squareConfig } from "@/lib/square/config";
+import { sandboxTokenAvailable, squareApiConfig, squareConfig } from "@/lib/square/config";
 import { decryptTokens, encryptTokens } from "@/lib/square/crypto";
-import { descriptionMatches, listItems, obtainTokens, retrieveItem, squareRequest, tokenSchema, type SquareTokens } from "@/lib/square/client";
+import { descriptionMatches, listItems, obtainTokens, retrieveItem, squareRequest, storedTokenSchema, type StoredSquareTokens } from "@/lib/square/client";
 import { descriptionProblems, descriptionUpdate, originalDescription } from "@/lib/rules/square-description";
 import { draftSquareDescription } from "@/lib/square/draft";
 import { syncFingerprint } from "@/lib/rules/square-products";
@@ -21,11 +21,15 @@ async function business(db: Db, owner: string) {
 
 export async function squareStateForOwner(db: Db, owner: string) {
   const id = await business(db, owner);
-  const [connection] = await db.select({ merchantId: squareConnections.merchantId, environment: squareConnections.environment }).from(squareConnections).where(eq(squareConnections.businessId, id));
+  const [connection] = await db.select({ merchantId: squareConnections.merchantId, environment: squareConnections.environment, credentials: squareConnections.credentials }).from(squareConnections).where(eq(squareConnections.businessId, id));
   const drafts = await db.select({ id: squareDescriptionDrafts.id, name: squareDescriptionDrafts.name, description: squareDescriptionDrafts.description,
     original: squareDescriptionDrafts.original, status: squareDescriptionDrafts.status, simulated: squareDescriptionDrafts.simulated,
   }).from(squareDescriptionDrafts).where(eq(squareDescriptionDrafts.businessId, id)).orderBy(desc(squareDescriptionDrafts.createdAt)).limit(20);
-  return { connection: connection?.merchantId ? connection : null, drafts: drafts.map(({ original, ...draft }) => ({ ...draft, original: originalDescription(original) })) };
+  let sandboxTokenTest = false;
+  if (connection?.credentials) {
+    try { sandboxTokenTest = Object.hasOwn(storedTokenSchema.parse(decryptTokens(connection.credentials, id)), "kind"); } catch { /* Unreadable credentials require reconnecting. */ }
+  }
+  return { connection: connection?.merchantId ? { merchantId: connection.merchantId, environment: connection.environment, sandboxTokenTest } : null, drafts: drafts.map(({ original, ...draft }) => ({ ...draft, original: originalDescription(original) })) };
 }
 
 export async function beginSquareForOwner(db: Db, owner: string) {
@@ -53,17 +57,19 @@ export async function finishSquareForOwner(db: Db, owner: string, state: string,
   });
 }
 
-export async function withSquareConnectionForOwner<T>(db: Db, owner: string, job: (tokens: SquareTokens, connection: typeof squareConnections.$inferSelect, tx: Parameters<Parameters<Db["transaction"]>[0]>[0]) => Promise<T>) {
+export async function withSquareConnectionForOwner<T>(db: Db, owner: string, job: (tokens: StoredSquareTokens, connection: typeof squareConnections.$inferSelect, tx: Parameters<Parameters<Db["transaction"]>[0]>[0]) => Promise<T>) {
   const id = await business(db, owner);
   return db.transaction(async (tx) => {
     const [connection] = await tx.select().from(squareConnections).where(eq(squareConnections.businessId, id)).for("update");
-    if (!connection?.credentials || !connection.merchantId || connection.environment !== squareConfig().environment) throw new OwnerFacingError("Connect your Square account first.");
-    let tokens = tokenSchema.parse(decryptTokens(connection.credentials, id));
-    if (new Date(tokens.expires_at).getTime() < Date.now() + 24 * 60 * 60_000) {
+    if (!connection?.credentials || !connection.merchantId || connection.environment !== squareApiConfig().environment) throw new OwnerFacingError("Connect your Square account first.");
+    let tokens = storedTokenSchema.parse(decryptTokens(connection.credentials, id));
+    if ("kind" in tokens && (!sandboxTokenAvailable() || connection.environment !== "sandbox")) throw new OwnerFacingError("Sandbox token connections are only available in local development.");
+    if (!("kind" in tokens) && new Date(tokens.expires_at).getTime() < Date.now() + 24 * 60 * 60_000) {
       tokens = await obtainTokens({ refresh_token: tokens.refresh_token });
       if (tokens.merchant_id !== connection.merchantId) throw new OwnerFacingError("Reconnect your Square account.");
       await tx.update(squareConnections).set({ credentials: encryptTokens(tokens, id), updatedAt: new Date() }).where(eq(squareConnections.businessId, id));
     }
+    if (tokens.merchant_id !== connection.merchantId) throw new OwnerFacingError("Reconnect the matching Square account.");
     return job(tokens, connection, tx);
   });
 }
@@ -136,10 +142,14 @@ export async function disconnectSquareForOwner(db: Db, owner: string) {
   return db.transaction(async (tx) => {
     const [connection] = await tx.select().from(squareConnections).where(eq(squareConnections.businessId, id)).for("update");
     if (!connection) return true;
-    let revoked = !connection.merchantId;
+    let localSandboxToken = false;
+    if (connection.credentials) {
+      try { localSandboxToken = Object.hasOwn(storedTokenSchema.parse(decryptTokens(connection.credentials, id)), "kind"); } catch { /* Local credentials can still be removed. */ }
+    }
+    let revoked = !connection.merchantId || localSandboxToken;
     try {
       const config = squareConfig();
-      if (connection.merchantId && connection.environment === config.environment) {
+      if (!localSandboxToken && connection.merchantId && connection.environment === config.environment) {
         await squareRequest("/oauth2/revoke", config.applicationSecret, { client_id: config.applicationId, merchant_id: connection.merchantId, revoke_only_access_token: false }, true);
         revoked = true;
       }
@@ -149,4 +159,16 @@ export async function disconnectSquareForOwner(db: Db, owner: string) {
     await tx.delete(squareConnections).where(eq(squareConnections.businessId, id));
     return revoked;
   });
+}
+
+export async function connectSandboxTokenForOwner(db: Db, owner: string) {
+  if (!sandboxTokenAvailable()) throw new OwnerFacingError("Sandbox token testing is only available in local development.");
+  const id = await business(db, owner);
+  const token = process.env.SQUARE_SANDBOX_ACCESS_TOKEN!;
+  const response = await squareRequest("/v2/merchants/me", token) as { merchant?: { id?: string } };
+  const merchantId = response.merchant?.id;
+  if (!merchantId) throw new OwnerFacingError("Square did not identify the sandbox account.");
+  const credentials = encryptTokens({ kind: "sandbox_token", access_token: token, merchant_id: merchantId }, id);
+  await db.insert(squareConnections).values({ businessId: id, environment: "sandbox", merchantId, credentials, generation: crypto.randomUUID() })
+    .onConflictDoUpdate({ target: squareConnections.businessId, set: { environment: "sandbox", merchantId, credentials, generation: crypto.randomUUID(), oauthStateHash: null, oauthExpiresAt: null, updatedAt: new Date() } });
 }

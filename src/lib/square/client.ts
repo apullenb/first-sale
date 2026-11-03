@@ -2,17 +2,20 @@ import "server-only";
 import { parse } from "node-html-parser";
 import { z } from "zod";
 import { OwnerFacingError } from "@/lib/errors";
-import { squareConfig } from "./config";
+import { squareApiConfig, squareConfig } from "./config";
 
 export const tokenSchema = z.object({ access_token: z.string(), refresh_token: z.string(), expires_at: z.string().datetime(), merchant_id: z.string() });
 export type SquareTokens = z.infer<typeof tokenSchema>;
+export const sandboxTokenSchema = z.object({ kind: z.literal("sandbox_token"), access_token: z.string().min(1), merchant_id: z.string().min(1) });
+export const storedTokenSchema = z.union([sandboxTokenSchema, tokenSchema]);
+export type StoredSquareTokens = z.infer<typeof storedTokenSchema>;
 export const itemSchema = z.object({ id: z.string(), type: z.literal("ITEM"), version: z.number().int().safe(), is_deleted: z.boolean().optional(),
   item_data: z.object({ name: z.string(), description: z.string().optional(), description_html: z.string().optional(), description_plaintext: z.string().optional(), is_archived: z.boolean().optional() }).passthrough(),
 }).passthrough();
 export type SquareItem = z.infer<typeof itemSchema>;
 
 export async function squareRequest(path: string, token: string | null, body?: unknown, clientAuth = false): Promise<unknown> {
-  const config = squareConfig();
+  const config = squareApiConfig();
   let response: Response;
   try {
     response = await fetch(`${config.baseUrl}${path}`, { method: body === undefined ? "GET" : "POST", cache: "no-store",

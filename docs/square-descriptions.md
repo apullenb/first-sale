@@ -50,3 +50,13 @@ The database/API tests use a migrated, isolated in-memory database and a simulat
 - Approved description updates also refresh a linked library product when it has no competing local edits, and update its remote baseline.
 
 Additional tests: `npx vitest run src/lib/data/square-products.test.ts` and `npx playwright test e2e/square.spec.ts`.
+
+## Local sandbox token test
+
+For a developer test without an OAuth application secret, set `SQUARE_ENVIRONMENT=sandbox` and a server-only `SQUARE_SANDBOX_ACCESS_TOKEN` in `.env.local`. Keep the encryption key configured. This option is enabled only with `NODE_ENV=development`; production refuses both creating and using these connections.
+
+Record the owner's Square website, then open `/products/square` and choose **Connect Square sandbox test account**. The app identifies the merchant using the actual Square API and stores the token encrypted for that owner. The screen explicitly labels this as a token test, which does not verify OAuth sign-in. The normal production OAuth flow still requires the application secret.
+
+The optional `e2e/square-sandbox-recording.spec.ts` runs only when `SQUARE_SANDBOX_RECORDING=1`, against an already running app at localhost:3000 with an isolated recording database. It creates its test business through the app, connects to the real configured sandbox and records importing the two named DEMO candles. No Square requests are mocked in that recording.
+
+Square product import also downloads the first catalog image into the owner's photo library when the product has no selected photo. Existing photo selections are preserved. Downloads accept only Square image-storage hosts, refuse redirects, time out, and enforce byte and image-dimension limits. A failed image import keeps the product and reports the missing photo so the owner can retry.
