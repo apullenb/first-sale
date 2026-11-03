@@ -4,23 +4,27 @@ import { STATE_NAMES } from "@/lib/intake/options";
 // Plain rules over a checked requirement and the owner's confirmed answers: does it apply, and on what.
 // "Unsure" and unanswered are unknowns, never "no". The owner's place comes from their answers, never a ZIP code.
 
-export const REQUIREMENT_STATUSES = ["verified", "conditional", "optional", "needs_confirmation", "outside_coverage"] as const;
+export const REQUIREMENT_STATUSES = ["verified", "conditional", "optional", "needs_confirmation", "outside_coverage", "not_needed", "to_find_out"] as const;
 export type RequirementStatus = (typeof REQUIREMENT_STATUSES)[number];
 
 export const STATUS_LABELS: Record<RequirementStatus, string> = {
   verified: "Applies to you",
   conditional: "Depends on something",
   optional: "Your choice",
-  needs_confirmation: "To confirm",
+  needs_confirmation: "Applies to you",
   outside_coverage: "Outside what we check",
+  not_needed: "Not needed",
+  to_find_out: "To find out",
 };
 
 export const STATUS_HELP: Record<RequirementStatus, string> = {
   verified: "An official page confirms this, and it fits your answers.",
   conditional: "It applies only if something is true. Each one says what.",
   optional: "Not required, but worth knowing about.",
-  needs_confirmation: "No official page confirmed it yet. That doesn’t mean it doesn’t apply.",
-  outside_coverage: "First Sale doesn’t research this kind of rule. Each one links to who does.",
+  needs_confirmation: "Official pages don’t spell this out for your area, so SnapStart decided from how it works for businesses like yours. Each one says why.",
+  outside_coverage: "SnapStart doesn’t research this kind of requirement. Each one links to who does.",
+  not_needed: "SnapStart looked into it, and it doesn’t apply to a business like yours. Each one says why.",
+  to_find_out: "SnapStart searched the office’s own site and still couldn’t say for sure. Each one says how to find out.",
 };
 
 export interface Place {
@@ -83,7 +87,16 @@ export const STRUCTURE_NAMES: Record<BusinessStructure, string> = {
 
 type Checked = Pick<RequirementDraft, "key" | "title" | "topic" | "level" | "applicability" | "condition" | "forStructures"> & {
   verification: VerificationState;
+  // The deeper look's decision on a rule no official page settled
+  verdict?: Verdict | null;
 };
+
+export const VERDICTS = ["applies", "not_needed", "unclear"] as const;
+export type Verdict = (typeof VERDICTS)[number];
+
+// The owner's answer to a question about their own plans; "unsure" plans on the step, so they're covered
+export const CONDITION_ANSWERS = ["yes", "no", "unsure"] as const;
+export type ConditionAnswer = (typeof CONDITION_ANSWERS)[number];
 
 export interface Classified {
   status: RequirementStatus;
@@ -93,12 +106,33 @@ export interface Classified {
   fitsStructure: boolean;
   // The owner said they already have this
   alreadyHave: string | null;
+  // The model's condition, asked of the owner; null when it doesn't depend on one
+  question: string | null;
+  answer: ConditionAnswer | null;
 }
 
-export function classify(requirement: Checked, profile: BusinessProfile, place: Place, decision: StructureDecision): Classified {
+// What a government requires is for SnapStart to decide, never a question for the owner: only facts about their own plans are asked
+const ABOUT_RULES =
+  /\b(require[sd]?|requiring|allows?|allowed|prohibits?|bans?|approv\w*|permits?|permitted|licen[cs]\w*|regist\w*|files?|filing|dba|zon\w*|compl(y|ies|iance)|rules?|regulat\w*|ordinances?|exempt\w*|inspect\w*|county|city)\b/i;
+export const asksAboutRules = (condition: string) => ABOUT_RULES.test(condition);
+
+// Conditional with no reason given is still a question, never a "yes"
+export function questionOf(requirement: Pick<Checked, "applicability" | "condition">): string | null {
+  if (requirement.applicability !== "conditional") return null;
+  const condition = requirement.condition.trim();
+  if (condition && asksAboutRules(condition)) return null;
+  return condition || "Whether this applies depends on something SnapStart couldn’t tell from your answers.";
+}
+
+// Conditions the rules write (structure and place), as opposed to the model's own
+export const RULE_CONDITION = /^(Only if you set up as |Which county you’re in decides|City requirements apply only inside|Applies only if your address is inside|You said you’re outside)/;
+
+// "yes" settles the model's condition; "no" and "unsure" leave it open, and the rules' conditions stay either way
+export function classify(requirement: Checked, profile: BusinessProfile, place: Place, decision: StructureDecision, answer: ConditionAnswer | null = null): Classified {
   const conditions: string[] = [];
-  const modelCondition = requirement.condition.trim();
-  if (requirement.applicability === "conditional" && modelCondition) conditions.push(modelCondition);
+  const question = questionOf(requirement);
+  const answered = question ? answer : null;
+  if (question && answered !== "yes") conditions.push(question);
 
   let fitsStructure = true;
   if (requirement.forStructures.length) {
@@ -109,30 +143,43 @@ export function classify(requirement: Checked, profile: BusinessProfile, place: 
   conditions.push(...placeConditions(requirement.level, place));
 
   const status: RequirementStatus =
-    requirement.applicability === "outside_coverage"
-      ? "outside_coverage"
-      : requirement.applicability === "optional"
-        ? "optional"
-        : conditions.length || requirement.applicability === "conditional"
-          ? "conditional"
-          : requirement.verification === "sourced"
-            ? "verified"
-            : "needs_confirmation";
-  return { status, conditions, fitsStructure, alreadyHave: alreadyHave(requirement, profile) };
+    requirement.verdict === "not_needed"
+      ? "not_needed"
+      : requirement.applicability === "outside_coverage" && !requirement.verdict
+        ? "outside_coverage"
+        : requirement.applicability === "optional"
+          ? "optional"
+          : conditions.length
+            ? "conditional"
+            : requirement.verdict === "unclear"
+              ? "to_find_out"
+              : requirement.verification === "sourced"
+                ? "verified"
+                : "needs_confirmation";
+  return { status, conditions, fitsStructure, alreadyHave: alreadyHave(requirement, profile), question, answer: answered };
 }
 
 // City rules apply only inside city limits, and county rules need the county
 export function placeConditions(level: JurisdictionLevel, place: Place): string[] {
   if (level === "county" && !place.county) return ["Which county you’re in decides this. Add your county to your answers."];
   if (level !== "city") return [];
-  if (!place.city) return ["City rules apply only inside a city’s limits. Add your city to your answers."];
+  if (!place.city) return ["City requirements apply only inside a city’s limits. Add your city to your answers."];
   if (place.insideCity === "unknown") {
     return [`Applies only if your address is inside ${place.city} city limits, which you haven’t confirmed yet. A mailing address can name a city you’re not in.`];
   }
   if (place.insideCity === "no") {
-    return [`You said you’re outside ${place.city} city limits, so ${place.city}’s rules may not apply. Your township or village may have its own.`];
+    return [`You said you’re outside ${place.city} city limits, so ${place.city}’s requirements may not apply. Your township or village may have its own.`];
   }
   return [];
+}
+
+// What's missing about the owner's place for a rule at this level, as the fix in their answers
+export function placeGap(level: JurisdictionLevel, place: Place): { action: string } | null {
+  if (level === "county" && !place.county) return { action: "Add your county to your answers" };
+  if (level !== "city") return null;
+  if (!place.city) return { action: "Add your city to your answers" };
+  if (place.insideCity === "unknown") return { action: `Confirm whether you’re inside ${place.city} city limits` };
+  return null;
 }
 
 const ALREADY: { have: BusinessProfile["alreadyHave"][number]; topics: PlanTopic[]; pattern: RegExp; label: string }[] = [
@@ -147,4 +194,24 @@ function alreadyHave(requirement: Pick<Checked, "key" | "title" | "topic">, prof
   const text = `${requirement.key} ${requirement.title}`;
   const match = ALREADY.find((rule) => profile.alreadyHave.includes(rule.have) && rule.topics.includes(requirement.topic) && rule.pattern.test(text));
   return match ? `You told us you already have ${match.label}. If this is it, mark the step done once you’ve checked it’s current.` : null;
+}
+
+const ABOUT_EMPLOYEES = /\b(employ(ee|ees|ing)?|hir(e|es|ed|ing)|staff|workers?|payroll)\b/i;
+const ABOUT_CONTRACTORS = /\b(contractors?|freelanc\w*|1099)\b/i;
+const LATER_ON = /\b(ever|future|later|eventually|someday|next few years|after (you|your) (open|launch|first sale))\b/i;
+
+export interface IntakeAnswer {
+  // Null when the intake answer doesn't settle it
+  answer: ConditionAnswer | null;
+  // Said before the question when it asks about a different time than the intake did
+  note: string | null;
+}
+
+// A question the owner's answers about their business already settle, so it isn't asked twice
+export function intakeAnswer(question: string, profile: Pick<BusinessProfile, "hiringPlans" | "helpKinds">): IntakeAnswer | null {
+  if (!ABOUT_EMPLOYEES.test(question) || ABOUT_CONTRACTORS.test(question) || !profile.hiringPlans || profile.helpKinds.includes("unsure")) return null;
+  if (profile.hiringPlans !== "not_now" || profile.helpKinds.includes("employees")) return { answer: "yes", note: null };
+  // "Not for now" covers now and the first year, which has its own answer; later on is still asked
+  if (LATER_ON.test(question)) return { answer: null, note: "You said you’re not hiring for now. This asks about later on." };
+  return { answer: "no", note: null };
 }

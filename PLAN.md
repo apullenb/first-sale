@@ -1,6 +1,6 @@
-# First Sale: project plan
+# SnapStart Business Assembly Kit: project plan
 
-*First Sale* is a working name. The app is an AI assistant for first-time business owners in the US. It helps them:
+*SnapStart Business Assembly Kit* (SnapStart) is an AI assistant for first-time business owners in the US. It helps them:
 
 - research what their business legally needs
 - choose a business structure
@@ -9,11 +9,11 @@
 
 It's built for a daughter who wants to open a bakery, two brothers who make wooden housewares, and a friend who dreams of a clothing boutique.
 
-## Ground rules
+## Principles
 
 - **US only for now.** Requirements come from federal, state, county and city governments. The data model covers all 50 states and DC, but the demo goes deep on 2–3 places.
 - **Works with any AI model.** The hackathon requires Meta's Muse, so Muse Spark is the default. No code outside `src/lib/ai` knows which model is running.
-- **AI drafts, rules calculate, the owner approves.**
+- **AI drafts; plain, tested code calculates; the owner approves.**
   - Money, stock, order status and task order are handled by plain code.
   - AI writes drafts and explanations.
   - Nothing is filed, published or sent without the owner.
@@ -27,14 +27,14 @@ Decided 2026-10-26: a **guided workspace**, direction A in the clickable prototy
 
 - **Layout.** A left menu holds Today, then two groups:
   - "Start your business": Your business, Requirements, Structure and path, Checklist.
-  - "Run your business": Branding, Website, Product photos, Products and marketing, Orders, Planning for help. Product photos sits under Website, as the owner asked ("under website creation").
+  - "Run your business": Branding, Website, Product photos, Products and marketing, Orders. Product photos sits under Website, as the owner asked ("under website creation").
 
   On a phone, the menu becomes one scrollable row above the content. A bottom tab bar, like the prototype's phone screen, is still an option.
 - **Getting started:** sign up, then answer the intake questions one at a time, inside the workspace. Returning owners log in to Today.
 - **Today is the home page.** It shows setup progress, the next step, and everything waiting for the owner's OK.
 - **AI works inside each screen,** drafting and explaining where the owner already is. There's no separate chat window.
 - **Every step says who did it.**
-  - Small labels mark each one as **AI** (drafts), **Rules** (stock, money, steps) or **You** (approvals).
+  - Small labels mark each one as **AI** (drafts), **Code** (stock, money, steps) or **You** (approvals).
   - Drafts stay drafts until the owner approves them, and anything flagged must be decided first.
 - **Every requirement carries a label.** It's either "Official source" (green) or "Needs verification" (amber), with who to call and what to ask.
 - **Look.**
@@ -66,7 +66,7 @@ Decided 2026-10-26: a **guided workspace**, direction A in the clickable prototy
 | `generateObject()` | Converts a zod schema to JSON Schema and validates the reply. Retries once with the validation error, and rejects replies cut off by the token limit. |
 | `ImageModel` (`src/lib/ai/image-types.ts`) | Optional image editing and text-to-image (`generate`), separate from `ModelProvider`. `getImageModel()` returns Muse Image for `muse`, a labeled practice preview for `mock`, and null otherwise. |
 
-**Rules for feature code**
+**Guidelines for feature code**
 - Call `getModel()` and `generateObject()`. Never import a vendor SDK.
 - Effort is `high` for research and decisions, `low` for drafting. It maps to `reasoning_effort` where the model supports it.
 - Owners' data never goes to Muse "contributor" models, which may train on prompts. The registry refuses them with any provider unless `AI_ALLOW_CONTRIBUTOR_MODELS=true`.
@@ -107,12 +107,12 @@ Decided 2026-10-26: a **guided workspace**, direction A in the clickable prototy
    - A state, county or city requirement needs a page from that government.
    - The app records the page's final URL after redirects, and refuses redirects to unapproved domains.
    - Fees written in words (as some state laws write them) count, but not as part of a larger amount. A renewal fee must sit in a sentence about renewing.
-6. **Classify** (`src/lib/research/applicability.ts`). Rules, not the model, give each requirement its status: verified, conditional, optional, needs confirmation or outside coverage. They add conditions of their own: city limits not confirmed, county not given, a structure not decided. "Unsure" is never "no". A coverage summary records what each research category found at each level of government (`coverage.ts`).
+6. **Classify** (`src/lib/research/applicability.ts`). Code, not the model, gives each requirement its status: verified, conditional, optional, needs confirmation or outside coverage. It adds conditions of its own: city limits not confirmed, county not given, a structure not decided. "Unsure" is never "no". A coverage summary records what each research category found at each level of government (`coverage.ts`).
 7. **Plan** (`src/lib/rules/plan.ts`). Code turns the checked requirements into ordered steps.
    - Prerequisites the model named are kept only if they point to a real step and don't create a loop.
    - Re-checks reuse step keys, so progress carries over.
    - Consequential changes wait for the owner's review.
-   - A rule from the IRS page puts the EIN after forming an LLC or corporation, ahead of the model's order. Changing a decision re-plans from saved research (`replanForOwner`), and the changes wait for review.
+   - Following the IRS page, code puts the EIN after forming an LLC or corporation, ahead of the model's order. Changing a decision re-plans from saved research (`replanForOwner`), and the changes wait for review.
 8. **Snapshot.** Results are saved per business with the date checked, whether it was practice mode, the answers and structure decision they ran on (`profile`, `structure`), the coverage and the conflicts. So the page can say which answers changed since and what that affects (`changes.ts`).
 
 ## Paperwork companion
@@ -124,10 +124,10 @@ Decided 2026-10-26: a **guided workspace**, direction A in the clickable prototy
 - **Owner review:** the owner confirms each answer. Typed answers can be saved to business details only when the owner ticks that.
 - **Prepared copies:** only confirmed answers go into a filled copy (fillable PDFs) or an answer sheet. Both say "Not filed."
 - **Business plan:** drafted from the owner's answers and plan. Numbers the owner didn't give are flagged, and missing facts become [bracketed] placeholders. The owner edits and approves it, which saves a PDF to the library.
-- **Official forms** (`src/data/official-forms`, `src/lib/documents/official-forms.ts`, `autofill.ts`): a hand-checked catalog. The app downloads a form only from its agency's .gov site, checks its title and revision, keeps the original unchanged, and fills blanks by fixed rules from confirmed facts. Each answer records every fact it rests on. Online applications get the same review as an answer guide.
+- **Official forms** (`src/data/official-forms`, `src/lib/documents/official-forms.ts`, `autofill.ts`): a hand-checked catalog. The app downloads a form only from its agency's .gov site, checks its title and revision, keeps the original unchanged, and fills blanks in code from confirmed facts. Each answer records every fact it rests on. Online applications get the same review as an answer guide.
 - **Library:** each document has a role, and versions share a family (`role`, `family_id`, `version`). Drafts record the facts they used (`facts_used`), so a changed fact flags them as outdated. Request keys make retries safe.
 - **Filing status** is separate from research and document status: "submitted", then "done" once approved, recorded by the owner.
-- **Workflow registry** (`src/lib/workflows.ts`): every long job, who does it (AI or rules), its time limit, and which plan topics offer it. `workflow_runs` records each run, so a reload shows one still running or one that was cut off.
+- **Workflow registry** (`src/lib/workflows.ts`): every long job, who does it (AI or code), its time limit, and which plan topics offer it. `workflow_runs` records each run, so a reload shows one still running or one that was cut off.
 
 ## Stages
 
@@ -140,8 +140,8 @@ Decided 2026-10-26: a **guided workspace**, direction A in the clickable prototy
 | Build the checklist | `/checklist` | The next step, what can happen at the same time, what waits, before-selling vs later vs optional, and costs with renewals |
 | Guide completion | `/checklist` | Numbered filing steps with sources, official forms filled for review, submitted and approved recorded separately, receipts saved to the step |
 
-**What's decided by rules vs. by AI:**
-- Fixed rules decide which structures are possible. These rules are written only after checking official sources, never from a guess.
+**What's decided in code vs. by AI:**
+- Code decides which structures are possible. That code is written only after checking official sources, never from a guess.
 - AI explains the options for this owner.
 - Code orders the checklist by prerequisites (`orderTasks`, `taskReadiness`).
 
@@ -150,27 +150,25 @@ Decided 2026-10-26: a **guided workspace**, direction A in the clickable prototy
 - **Branding (`/brand`)**
   - Autofilled brief → one-click feel words → brand picture (Muse Spark; the owner approves or rewrites it) → creative-director concepts (Muse Spark) → code-built drawing instructions (Muse Image) → blind lettering check (code decides) → owner picks → versions from the chosen logo → brand pictures → brand kit (`getMyBrand`).
 - **Website (`/website`)**
-  - Three vendor-checked options with code-worked costs and a rules-based suggestion → "Explain more" from the card's facts → "Find more options" by web search, kept only where its own sources back it → registry check of a web address → drafted words from public facts only, numbers flagged → owner approves (PDF to Documents) → preview with the brand kit → setup checklist.
+  - Three vendor-checked options with code-worked costs and a code-based suggestion → "Explain more" from the card's facts → "Find more options" by web search, kept only where its own sources back it → registry check of a web address → drafted words from public facts only, numbers flagged → owner approves (PDF to Documents) → preview with the brand kit → setup checklist.
 - **Product photos (`/photos`)**
   - The photo is checked first, edited from the original, compared with it by AI, then approved by the owner.
   - Approved photos form the product library. They aren't linked to `products` rows yet.
 - **Product → marketing (`/products`)**
   - The owner enters the photo, materials, price and quantity.
   - AI drafts a listing and a social post from those facts only. Claims like "gluten-free" are flagged for the owner to confirm, never added.
-  - Drafts are cross-checked against the owner's own requirements, such as a home-kitchen label rule.
+  - Drafts are cross-checked against the owner's own requirements, such as a home-kitchen label requirement.
   - Nothing is exported until the owner approves it.
+- **Daily workflow setup (`/run`, `/email`, `/orders`)**
+  - Two owner-selected workflows: customer email assistance and order/customer-request tracking.
+  - Guided choices → source and reminder preferences → owner review → saved setup, with pause/resume and a built-in sample run.
+  - Preferences are owner-scoped. Everything is explicitly a demo: no OAuth connection, background monitoring, scheduled notification, live request capture or sending is implemented yet.
+  - Live operation needs provider authorization, incoming-event integrations and a durable worker; order and stock changes must continue through the tested code.
 - **Order → customer reply (`/orders`)**
   - Sample orders are labeled DEMO.
   - `applyOrder` checks and updates stock all at once or not at all; it never comes from the model.
   - AI drafts the reply from the owner's pickup and shipping settings and flags missing details.
-  - Each order's history labels every step: rule, AI or owner.
-- **Planning for help (`/planning-for-help`)**
-  - The owner logs which tasks take the most time.
-  - `estimateHire` shows the formula:
-    - monthly cost = hours/week × hourly cost × 52 ÷ 12
-    - sales needed = monthly cost ÷ gross margin
-  - AI drafts a role description.
-  - The wording says "estimate," never "you will."
+  - Each order's history labels every step: code, AI or owner.
 
 ## Architecture
 
@@ -207,15 +205,15 @@ src/
   db/                   schema (including account tables), client
   lib/
     ai/                 model-agnostic layer (the only place that talks to models)
-    auth/               account config, session check, form rules
+    auth/               account config, session check, form validation
     intake/             intake catalog, questions, answers, change impact, AI suggestions and their offline stand-in
-    structure/          sourced federal facts, structure options, rules-based suggestion
+    structure/          sourced federal facts, structure options, code-based suggestion
     data/               owner-scoped data access
     research/           source packs, search, .gov ownership, page reading, the research run, citation checks
     documents/          upload checks, PDF reading and filling, companion, business plan, PDF writer
-    photos/             photo checks, edit instructions, product-photo rules
+    photos/             photo checks, edit instructions, product-photo guidance
     brand/              brand brief, concepts, drawing instructions, lettering checks, sizes
-    website/            recommendation rules, costs, web address checks, words drafting, option search
+    website/            recommendation logic, costs, web address checks, words drafting, option search
     rules/              stock, checklist order, startup plan, hiring math (plain code, unit-tested)
     details.ts          business details forms ask for, and the owner's decisions
     workflows.ts        registry of long jobs: who does them and their time limits
@@ -229,15 +227,14 @@ drizzle/                migrations
 
 | # | Milestone | Priority | Status |
 |---|---|---|---|
-| 0 | Project setup, database schema, AI layer, rules, federal sources, app layout | Must | Done |
+| 0 | Project setup, database schema, AI layer, tested calculations, federal sources, app layout | Must | Done |
 | 1 | Accounts: sign up, log in, and each owner sees only their own business | Must | Built; password reset and email verification wait on an email service |
 | 2 | Intake: the business profile questions, one at a time, as in the prototype | Must | Built: click-based branching intake with examples, "not sure" help, autosave and resume, a confirmed-vs-open summary, and change impact with history. AI can pre-fill answers from a description. One business per owner. |
-| 3 | Research engine, requirements view, gaps, streaming calls, state source packs | Must | Built: federal, Texas, Travis County and Austin source packs, Muse web search for state, county and city pages filtered by the .gov registry, checked citations, rules-based applicability statuses, coverage by category, conflicts and written questions. Live Muse search is untested until there's an API key. |
-| 4 | Structure and path, checklist | Must | Startup plan built: next action and parallel steps, costs with renewals, numbered filing steps, submitted and approved status, review for re-check and decision changes, a PDF copy. Structure comparison page built: sourced explanations, rules-based suggested path, what-ifs, confirmed decisions with history. |
+| 3 | Research engine, requirements view, gaps, streaming calls, state source packs | Must | Built: federal, Texas, Travis County and Austin source packs, Muse web search for state, county and city pages filtered by the .gov registry, checked citations, applicability statuses decided in code, coverage by category, conflicts and written questions. Live Muse search is untested until there's an API key. |
+| 4 | Structure and path, checklist | Must | Startup plan built: next action and parallel steps, costs with renewals, numbered filing steps, submitted and approved status, review for re-check and decision changes, a PDF copy. Structure comparison page built: sourced explanations, code-based suggested path, what-ifs, confirmed decisions with history. |
 | 5 | Product → marketing | Must | Product photos built (Muse Image editing from the owner's own photo, with an AI comparison and the owner's approval). Branding built (logo ideas, versions, brand pictures, brand kit). Website built (three checked options, more by search, web address check, drafted words, setup checklist). Listings and posts not built. |
 | 6 | Order → customer reply | Must | |
-| 7 | Planning for help | Must | |
-| 8 | Completion: uploads, help chat on each task | Should | Paperwork companion and official forms built: IRS SS-4 downloaded, checked and filled by rules; Texas Forms 205, 503 and AP-201 and the Travis County certificate checked and filled for review; reviewed copies as versions; outdated-draft flags; a library grouped by step with receipts and approvals. |
+| 8 | Completion: uploads, help chat on each task | Should | Paperwork companion and official forms built: IRS SS-4 downloaded, checked and filled in code; Texas Forms 205, 503 and AP-201 and the Travis County certificate checked and filled for review; reviewed copies as versions; outdated-draft flags; a library grouped by step with receipts and approvals. |
 | 9 | Your demo businesses polished end to end | Should | |
 | 10 | One-page shop, turning a pasted DM into an order, Spanish | Stretch | |
 | 11 | Evals, saved demo results, video, README | Must — save the last ~20% of your time | |
@@ -268,7 +265,7 @@ drizzle/                migrations
 1. Hackathon timeline and team size.
 2. Which states and cities the demo supports. Decided: Austin, Travis County, Texas. Its state, county and city pages are read live; anything they don't cover stays "To confirm".
 3. Repo visibility for submission. It's private for now.
-4. Whether the rules require every AI call, including eval graders, to use Muse.
+4. Whether the hackathon requires every AI call, including eval graders, to use Muse.
 5. Which email service sends password resets and verification emails, and whether a hackathon demo needs them.
-6. ~~Which generated legal documents to offer beyond prepared forms.~~ Decided: an owners' agreement for LLCs (a company agreement in Texas) and partnerships, from fixed wording filled by rules, plus Texas Form 401-A. Corporate bylaws aren't offered yet.
+6. ~~Which generated legal documents to offer beyond prepared forms.~~ Decided: an owners' agreement for LLCs (a company agreement in Texas) and partnerships, from fixed wording filled in code, plus Texas Form 401-A. Corporate bylaws aren't offered yet.
 7. Whether to map Form AP-201's 231 blanks by hand. For now its answers are drafted by matching.

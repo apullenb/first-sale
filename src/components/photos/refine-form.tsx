@@ -3,9 +3,11 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useId, useLayoutEffect, useRef, useState } from "react";
 import { refinePhotoAction } from "@/app/(app)/photos/actions";
+import { Icon } from "@/components/icons";
+import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { AI_BUTTON, ALERT, INPUT, SECONDARY } from "@/components/styles";
 import { MAX_CHANGE } from "@/lib/photos/instructions";
-import { useRequestKey, Working } from "./working";
+import { useRequestKey, Working } from "@/components/working";
 
 const EXAMPLES = ["Make the background ivory", "Remove the props", "Make it a little brighter", "Show more space around it"];
 
@@ -19,6 +21,7 @@ export function RefineForm({ photoId, versionId, versionNumber }: { photoId: str
   // Set before the first await, so a second submit in the same moment can't slip through
   const inFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  const job = useJobWatch();
   useLayoutEffect(() => () => setError(null), []);
 
   function edit(value: string) {
@@ -29,19 +32,20 @@ export function RefineForm({ photoId, versionId, versionNumber }: { photoId: str
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (inFlight.current) return;
+    if (job.watching || inFlight.current) return;
     if (change.trim().length < 3) return setError("Say what you’d like changed.");
     inFlight.current = true;
     setPending(true);
     setError(null);
     try {
       const result = await refinePhotoAction({ photoId, versionId, requestKey: requestKey.get(), change });
+      if (!result.ok && result.busy) return job.watch([result.busy]);
       if (!result.ok) return setError(result.message);
       requestKey.clear();
       setChange("");
       router.push(`/photos/${photoId}?v=${result.value}`);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection, then try again.");
+      setError("Couldn’t reach SnapStart. Check your connection, then try again.");
     } finally {
       inFlight.current = false;
       setPending(false);
@@ -51,7 +55,7 @@ export function RefineForm({ photoId, versionId, versionNumber }: { photoId: str
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
-        <label htmlFor={`${uid}-change`} className="font-semibold">
+        <label htmlFor={`${uid}-change`} className="font-bold">
           Ask for a change to version {versionNumber}
         </label>
         <textarea
@@ -74,10 +78,11 @@ export function RefineForm({ photoId, versionId, versionNumber }: { photoId: str
           </button>
         ))}
       </div>
-      <button type="submit" disabled={pending} className={`${AI_BUTTON} self-start`}>
+      <button type="submit" disabled={pending || job.watching} className={`${AI_BUTTON} self-start`}>
+        <Icon name="sparkles" size="sm" />
         {pending ? "Making the change…" : "Make this change"}
       </button>
-      <Working active={pending} label="Making the change from your original photo, then checking it. This can take a minute or two." />
+      <Working active={pending || job.watching} label={job.watching ? RUNNING_ELSEWHERE : "Making the change from your original photo, then checking it. This can take a minute or two."} />
       {error ? (
         <p role="alert" className={ALERT}>
           {error}

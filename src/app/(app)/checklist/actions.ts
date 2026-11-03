@@ -1,32 +1,20 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
-import { createMyDocument, getMyBusiness, getMyPlan, reviewMyPlan, setMyStepStatus } from "@/lib/data/my-business";
+import { OFFICIAL_FORMS } from "@/data/official-forms";
+import { createMyDocument, getMyBusiness, getMyDetails, getMyPaperwork, getMyStep, setMyStepStatus } from "@/lib/data/my-business";
+import { filedForm, formsFor } from "@/lib/documents/form-catalog";
+import { placeOf, structureOf } from "@/lib/research/applicability";
+import { stepKindOf, waitsOnOffice } from "@/lib/rules/step-kind";
 import { looksLikeIdNumber } from "@/lib/details";
 import { EMPTY_CONTENT } from "@/lib/documents/types";
 import { startupPlanPdf } from "@/lib/documents/startup-plan";
+import { stillToSettle } from "@/lib/rules/paperwork";
 import { displayName } from "@/lib/intake/answers";
-
-const reviewSchema = z.object({ checkedAt: z.iso.datetime(), acceptedKeys: z.array(z.string().max(60)).max(100) });
-
-export async function reviewPlanAction(input: unknown): Promise<ActionResult> {
-  const parsed = reviewSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, message: "Something was off with that review. Reload the page and try again." };
-  const outcome = await reviewMyPlan({ checkedAt: new Date(parsed.data.checkedAt), acceptedKeys: parsed.data.acceptedKeys });
-  refresh();
-  switch (outcome) {
-    case "applied":
-      return { ok: true, value: null };
-    case "stale":
-      return { ok: false, message: "Your requirements were re-checked since you opened this. Review the latest changes." };
-    case "no_proposal":
-      return { ok: false, message: "These changes were already handled. Reload the page to see your plan." };
-    default:
-      return { ok: false, message: "Your business wasn’t found. Reload the page and try again." };
-  }
-}
 
 const statusSchema = z.object({
   stepId: z.string().max(60),
@@ -37,6 +25,7 @@ const statusSchema = z.object({
 });
 
 export async function setStepStatusAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = statusSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Keep the note under 500 characters." };
   const { stepId, status, confirmed } = parsed.data;
@@ -45,7 +34,11 @@ export async function setStepStatusAction(input: unknown): Promise<ActionResult>
   }
   const note = parsed.data.note?.trim() || null;
   if (note && looksLikeIdNumber(note)) {
-    return { ok: false, message: "Leave Social Security and tax id numbers out of notes. Keep them somewhere safe instead." };
+    return { ok: false, message: "Leave Social Security and tax ID numbers out of notes. Keep them somewhere safe instead." };
+  }
+  if (status !== "todo") {
+    const refused = await kindRefuses(stepId, status);
+    if (refused) return { ok: false, message: refused };
   }
   const saved = await setMyStepStatus({ stepId, status, note });
   if (!saved) return { ok: false, message: "That step wasn’t found. Reload the page and try again." };
@@ -53,14 +46,33 @@ export async function setStepStatusAction(input: unknown): Promise<ActionResult>
   return { ok: true, value: null };
 }
 
-// A printable copy of the plan as it stands, saved to the document library
+// Only a filing or a question to an office is sent; a structure decision is done once that structure is recorded
+async function kindRefuses(stepId: string, status: "submitted" | "done"): Promise<string | null> {
+  const [found, business, details] = await Promise.all([getMyStep(stepId), getMyBusiness(), getMyDetails()]);
+  if (!found) return null;
+  const profile = business?.profile ?? null;
+  const decision = profile ? structureOf(profile, details) : null;
+  const forms = profile ? formsFor(OFFICIAL_FORMS, found.step, placeOf(profile), decision?.structure ?? null) : [];
+  const kind = stepKindOf(found.step, { hasForm: Boolean(filedForm(forms)) });
+  if (status === "submitted" && !waitsOnOffice(kind)) return "Nothing is sent to an office for this step. Mark it done instead.";
+  const forStructures = found.step.forStructures;
+  if (status === "done" && kind === "decision" && forStructures.length && !(decision?.structure && forStructures.includes(decision.structure))) {
+    return "Record your choice on Business structure first.";
+  }
+  return null;
+}
+
+// A printable copy of the steps that apply, as they stand, saved to the document library
 export async function savePlanPdfAction(): Promise<ActionResult<string>> {
-  const [business, plan] = await Promise.all([getMyBusiness(), getMyPlan()]);
-  if (!business?.profile || !plan || plan.steps.length === 0) return { ok: false, message: "Find your requirements first, so there’s a plan to save." };
+  if (await isDemoSession()) return DEMO_REFUSAL;
+  const paper = await getMyPaperwork();
+  const steps = (paper?.view.tasks ?? []).map((task) => ({ ...task.step, requirementStatus: task.requirementStatus, conditions: task.conditions }));
+  if (!paper || steps.length === 0) return { ok: false, message: "Find what applies to you first, so there are steps to save." };
   const now = new Date();
-  const bytes = await startupPlanPdf({ businessName: displayName(business.profile), steps: plan.steps, now });
+  const maybe = stillToSettle(paper.view).map((standing) => ({ title: standing.step.title, why: standing.step.why, conditions: standing.conditions }));
+  const bytes = await startupPlanPdf({ businessName: displayName(paper.profile), steps, maybe, now });
   const created = await createMyDocument({
-    title: `Startup plan${plan.steps.some((step) => step.simulated) ? " (practice)" : ""}, ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
+    title: `Licenses and registrations${steps.some((step) => step.simulated) ? " (practice)" : ""}, ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
     origin: "generated",
     generatedKind: "startup_plan",
     mimeType: "application/pdf",

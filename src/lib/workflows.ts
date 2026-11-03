@@ -1,6 +1,6 @@
 import type { Actor, PlanTopic } from "./domain";
 
-// Every multi-step job First Sale runs for an owner: who does it, what it's for, and how long it may take.
+// Every multi-step job SnapStart runs for an owner: who does it, what it's for, and how long it may take.
 // Pages read this to offer the right help on each step and to show a job that's still running.
 
 export interface Workflow {
@@ -21,10 +21,26 @@ const MINUTE = 60_000;
 export const WORKFLOWS = {
   research: {
     title: "Find my requirements",
-    summary: "Searches official government sites for your place, reads them, and builds your startup plan.",
+    summary: "Searches official government sites for your place, reads them, and lists the licenses and registrations you need.",
     actor: "ai",
     usesAi: true,
     timeLimitMs: 6 * MINUTE,
+    offeredFor: [],
+  },
+  follow_up: {
+    title: "Settle the open questions",
+    summary: "Searches each office’s own site, code and forms for what official pages didn’t settle, and decides what applies.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 6 * MINUTE,
+    offeredFor: [],
+  },
+  structure_advice: {
+    title: "Recommend a structure",
+    summary: "Weighs everything you told SnapStart and recommends a structure, a name plan and a tax plan.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 4 * MINUTE,
     offeredFor: [],
   },
   read_document: {
@@ -115,6 +131,14 @@ export const WORKFLOWS = {
     timeLimitMs: 3 * MINUTE,
     offeredFor: [],
   },
+  brand_tagline: {
+    title: "Suggest taglines",
+    summary: "Suggests a few short taglines from your brand description, for you to pick from or change.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 2 * MINUTE,
+    offeredFor: [],
+  },
   brand_ideas: {
     title: "Get logo ideas",
     summary: "A creative director turns your brand brief into distinct logo ideas, each with its own symbol, lettering and colors.",
@@ -133,7 +157,15 @@ export const WORKFLOWS = {
   },
   brand_refine: {
     title: "Change a logo",
-    summary: "Redraws a logo with the change you asked for, then checks the lettering again.",
+    summary: "Makes a new copy of a logo with the change you asked for, then checks the lettering again.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 5 * MINUTE,
+    offeredFor: [],
+  },
+  brand_edit: {
+    title: "Change a picture",
+    summary: "Makes a new copy of a logo version or brand image with the change you asked for, then checks it against your logo.",
     actor: "ai",
     usesAi: true,
     timeLimitMs: 5 * MINUTE,
@@ -155,6 +187,46 @@ export const WORKFLOWS = {
     timeLimitMs: 5 * MINUTE,
     offeredFor: [],
   },
+  item_suggest: {
+    title: "Suggest what you sell",
+    summary: "Lists the products or services your answers named, with a drafted description for each, for you to check.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 3 * MINUTE,
+    offeredFor: [],
+  },
+  item_describe: {
+    title: "Write a description",
+    summary: "Drafts a new short description of one product or service for you to check.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 3 * MINUTE,
+    offeredFor: [],
+  },
+  item_from_photo: {
+    title: "Describe from a photo",
+    summary: "Looks at your photo and drafts a name and description, keeping the photo with the item.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 4 * MINUTE,
+    offeredFor: [],
+  },
+  item_picture: {
+    title: "Make a picture",
+    summary: "Makes a picture of a product or service from its description, in your brand’s image style.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 5 * MINUTE,
+    offeredFor: [],
+  },
+  price_compare: {
+    title: "Compare prices near you",
+    summary: "Searches for similar products or services in your area and lists the prices their pages show.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 6 * MINUTE,
+    offeredFor: [],
+  },
   website_options: {
     title: "Find more website options",
     summary: "Searches the web for other website builders, with their prices, pros and cons.",
@@ -171,6 +243,30 @@ export const WORKFLOWS = {
     timeLimitMs: 6 * MINUTE,
     offeredFor: [],
   },
+  insights: {
+    title: "Get business insights",
+    summary: "Reads what you’ve told SnapStart and writes encouraging feedback: what’s strong, what to keep an eye on, tips and ideas.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 6 * MINUTE,
+    offeredFor: [],
+  },
+  marketing_plan: {
+    title: "Write my marketing plan",
+    summary: "Reviews everything you’ve told SnapStart and drafts a marketing plan: goals, who to reach, where, what to post and what to do first.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 6 * MINUTE,
+    offeredFor: [],
+  },
+  social_bios: {
+    title: "Draft my bios",
+    summary: "Drafts a short bio for each account you’re setting up, within each platform’s limits, for you to edit and approve.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 3 * MINUTE,
+    offeredFor: [],
+  },
   official_form: {
     title: "Get the official form",
     summary: "Downloads the form from the agency’s own site, checks it’s the right one, keeps it unchanged, and fills in what your details answer.",
@@ -185,4 +281,10 @@ export type WorkflowId = keyof typeof WORKFLOWS;
 
 export function workflowsFor(topic: PlanTopic): WorkflowId[] {
   return (Object.keys(WORKFLOWS) as WorkflowId[]).filter((id) => (WORKFLOWS[id].offeredFor as readonly PlanTopic[]).includes(topic));
+}
+
+// One job, for watching it from a page
+export interface JobRef {
+  workflow: WorkflowId;
+  subjectId: string | null;
 }

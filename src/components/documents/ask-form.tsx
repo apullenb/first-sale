@@ -2,20 +2,22 @@
 
 import { type FormEvent, useId, useLayoutEffect, useState } from "react";
 import { askDocumentAction } from "@/app/(app)/documents/actions";
+import { Icon } from "@/components/icons";
+import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { AI_BUTTON, ALERT, INPUT } from "@/components/styles";
+import { Working } from "@/components/working";
 
 interface Props {
   documentId: string;
-  fields: { id: string; label: string; page: number }[];
   maxQuestion: number;
 }
 
-export function AskForm({ documentId, fields, maxQuestion }: Props) {
+export function AskForm({ documentId, maxQuestion }: Props) {
   const uid = useId();
   const [question, setQuestion] = useState("");
-  const [fieldId, setFieldId] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const job = useJobWatch();
   useLayoutEffect(() => () => setError(null), []);
 
   async function ask(event: FormEvent<HTMLFormElement>) {
@@ -23,23 +25,21 @@ export function AskForm({ documentId, fields, maxQuestion }: Props) {
     setPending(true);
     setError(null);
     try {
-      const result = await askDocumentAction({ documentId, question, fieldId: fieldId || null });
-      if (!result.ok) setError(result.message);
-      else {
-        setQuestion("");
-        setFieldId("");
-      }
+      const result = await askDocumentAction({ documentId, question, fieldId: null });
+      if (!result.ok && result.busy) job.watch([result.busy]);
+      else if (!result.ok) setError(result.message);
+      else setQuestion("");
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }
   }
 
   return (
-    <form onSubmit={ask} className="flex flex-col gap-3">
+    <form onSubmit={ask} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <label htmlFor={`${uid}-question`} className="font-semibold">
+        <label htmlFor={`${uid}-question`} className="text-[15.5px] font-semibold">
           Your question
         </label>
         <textarea
@@ -48,36 +48,20 @@ export function AskForm({ documentId, fields, maxQuestion }: Props) {
           maxLength={maxQuestion}
           value={question}
           onChange={(event) => setQuestion(event.target.value)}
-          placeholder="For example: What does “principal office” mean?"
+          placeholder="What does “principal office” mean?"
           className={INPUT}
           aria-describedby={`${uid}-question-help`}
         />
-        <p id={`${uid}-question-help`} className="text-sm text-muted">
-          Ask about a word, a blank, or what the form wants. Leave out Social Security and tax id numbers.
+        <p id={`${uid}-question-help`} className="text-[14.5px] text-muted">
+          Leave out Social Security and tax ID numbers.
         </p>
       </div>
-      {fields.length ? (
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={`${uid}-field`} className="font-semibold">
-            Is it about one blank? <span className="font-normal text-muted">(optional)</span>
-          </label>
-          <select id={`${uid}-field`} value={fieldId} onChange={(event) => setFieldId(event.target.value)} className={INPUT}>
-            <option value="">Not about one blank</option>
-            {fields.map((field) => (
-              <option key={field.id} value={field.id}>
-                {field.label} (page {field.page})
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : null}
       <div className="flex flex-col items-start gap-2">
-        <button type="submit" disabled={pending} className={AI_BUTTON}>
+        <button type="submit" disabled={pending || job.watching} className={AI_BUTTON}>
+          <Icon name="sparkles" size="sm" />
           {pending ? "Looking for the answer…" : "Ask"}
         </button>
-        <p role="status" className={pending ? "text-sm text-muted" : "sr-only"}>
-          {pending ? "Looking through the form for the answer. This can take a minute." : ""}
-        </p>
+        <Working label={job.watching ? RUNNING_ELSEWHERE : "Looking through the form for the answer. This can take a minute."} active={pending || job.watching} />
         {error ? (
           <p role="alert" className={ALERT}>
             {error}

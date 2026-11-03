@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { verifiedRequirement } from "@/test/fixtures";
+import { placeOf } from "@/lib/research/applicability";
+import { testProfile, verifiedRequirement } from "@/test/fixtures";
 import {
   applyPlan,
   buildPlan,
+  choosesStructure,
   type CurrentTask,
   diffPlan,
   followingSteps,
   type PlanTaskDraft,
   type ReadSource,
+  settleStructureChoice,
   slugKey,
 } from "./plan";
 
@@ -22,6 +25,50 @@ describe("slugKey", () => {
     expect(slugKey("  --Café licence--  ")).toBe("cafe-licence");
     expect(slugKey("a".repeat(30) + " " + "b".repeat(30))).toBe("a".repeat(30) + "-" + "b".repeat(9));
     expect(slugKey("!!!")).toBe("step");
+  });
+});
+
+describe("rules SnapStart decided", () => {
+  const place = placeOf(testProfile({ location: { state: "TX", county: "Denton County", city: "Aubrey", insideCityLimits: "yes" } }));
+  const decided = (key: string, { background = "", ...overrides }: Parameters<typeof verifiedRequirement>[0] & { background?: string } = {}) => ({
+    ...verifiedRequirement({ key, title: `Rule ${key}`, level: "city", agency: "City clerk", ...overrides }),
+    status: "needs_confirmation" as const,
+    background,
+  });
+  const aubrey = {
+    key: "city:city-of-aubrey",
+    name: "City of Aubrey",
+    level: "city" as const,
+    contacts: { emails: [{ value: "permits@aubreytx.gov", url: "https://www.aubreytx.gov/contact" }], phones: [] },
+    site: { title: "Contact us", url: "https://www.aubreytx.gov/contact" },
+  };
+
+  it("makes each one its own step, with SnapStart's reason and the office's contacts, never a step to ask the office", () => {
+    const plan = buildPlan(
+      [decided("license", { background: "Aubrey licenses businesses that sell from home." }), decided("home"), verifiedRequirement({ key: "ein", level: "federal", verification: "sourced" })],
+      sources,
+      false,
+      { place, offices: [aubrey] },
+    );
+    expect(plan.map((step) => step.key)).toEqual(["license", "home", "ein"]);
+    expect(plan[0]).toMatchObject({ notes: [{ title: "Rule license", background: "Aubrey licenses businesses that sell from home." }], contacts: aubrey.contacts, uncertainty: [] });
+    expect(plan[2].contacts).toBeNull();
+  });
+
+  it("sends rules even the deeper look couldn't settle to their office: one step and one message for each", () => {
+    const plan = buildPlan(
+      [{ ...decided("license"), status: "to_find_out" as const }, { ...decided("home"), status: "to_find_out" as const }, decided("sign")],
+      sources,
+      false,
+      { place, offices: [aubrey] },
+    );
+    expect(plan.map((step) => step.key)).toEqual(["ask-city-of-aubrey", "sign"]);
+    expect(plan[0]).toMatchObject({ title: "Ask the City of Aubrey about 2 requirements", requirementStatus: "to_find_out", contacts: aubrey.contacts });
+  });
+
+  it("leaves out rules SnapStart decided aren't needed", () => {
+    const plan = buildPlan([{ ...decided("sign"), status: "not_needed" as const }, decided("license")], sources, false, { place, offices: [aubrey] });
+    expect(plan.map((step) => step.key)).toEqual(["license"]);
   });
 });
 
@@ -112,20 +159,15 @@ describe("buildPlan", () => {
     expect(unsourced).toMatchObject({ feeCents: 500, feeCheckedAt: null });
   });
 
-  it("explains what's uncertain, depending on whether a page was cited", () => {
-    const [sourced, cited, uncited, professional] = buildPlan(
+  it("never passes doubt on to the owner as a step's uncertainty", () => {
+    const plan = buildPlan(
       [
-        verifiedRequirement({ key: "sourced", sourceIds: ["irs-ein"], verification: "sourced" }),
         verifiedRequirement({ key: "cited", sourceIds: ["irs-ein"], verification: "needs_verification" }),
-        verifiedRequirement({ key: "uncited", sourceIds: [], verification: "needs_verification" }),
-        verifiedRequirement({ key: "professional", sourceIds: ["irs-ein"], verification: "sourced", needsProfessional: true }),
+        verifiedRequirement({ key: "uncited", sourceIds: [], verification: "needs_verification", needsProfessional: true }),
       ],
       sources,
     );
-    expect(sourced.uncertainty).toEqual([]);
-    expect(cited.uncertainty).toEqual(["The official page we found doesn’t confirm the details of this step."]);
-    expect(uncited.uncertainty).toEqual(["We didn’t find an official page for this yet. That doesn’t mean it doesn’t apply."]);
-    expect(professional.uncertainty).toEqual(["A lawyer or accountant can help you decide how this applies to you."]);
+    expect(plan.map((step) => step.uncertainty)).toEqual([[], []]);
   });
 
   it("links each cited page, marking it as confirming only when the step is sourced", () => {
@@ -179,6 +221,22 @@ describe("buildPlan", () => {
   });
 });
 
+describe("choosing a structure", () => {
+  const choose = { topic: "structure", forStructures: [], feeCents: null, status: "todo" };
+  const formLlc = { topic: "structure", forStructures: ["llc"], feeCents: 30000, status: "todo" };
+  const unnamedFiling = { topic: "structure", forStructures: [], feeCents: 30000, status: "todo" };
+  const ein = { topic: "tax_registration", forStructures: [], feeCents: 0, status: "todo" };
+
+  it("is only the step with no structure named and no fee", () => {
+    expect([choose, formLlc, unnamedFiling, ein].map(choosesStructure)).toEqual([true, false, false, false]);
+  });
+
+  it("is settled by a known structure, and stays open while undecided", () => {
+    expect(settleStructureChoice([choose, formLlc, ein], true).map((step) => step.status)).toEqual(["done", "todo", "todo"]);
+    expect(settleStructureChoice([choose, formLlc, ein], false).map((step) => step.status)).toEqual(["todo", "todo", "todo"]);
+  });
+});
+
 describe("followingSteps", () => {
   it("lists the steps waiting on one", () => {
     const steps = [
@@ -216,6 +274,7 @@ const step = (key: string, overrides: Partial<PlanTaskDraft> = {}): PlanTaskDraf
   renewal: null,
   jurisdiction: "",
   alreadyHave: null,
+  question: "",
   ...overrides,
 });
 

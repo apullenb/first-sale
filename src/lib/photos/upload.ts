@@ -19,7 +19,7 @@ export function checkPhotoUpload(bytes: Uint8Array, fileName: string, name = "")
     return { ok: false, message: "That photo is over 4 MB. Choose it again on this page and it will be made smaller for you." };
   }
   const info = imageInfo(bytes);
-  if (!info) return { ok: false, message: "That isn’t a photo First Sale can use. Try a JPEG, PNG or WebP photo." };
+  if (!info) return { ok: false, message: "That isn’t a photo SnapStart can use. Try a JPEG, PNG or WebP photo." };
   // The page turns photos upright before upload; a file still marked as turned didn't come through it
   if (info.orientation !== null && info.orientation !== 1) {
     return { ok: false, message: "This photo needs turning the right way up. Choose it again on this page." };

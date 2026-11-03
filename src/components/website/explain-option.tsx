@@ -2,15 +2,20 @@
 
 import { useLayoutEffect, useState } from "react";
 import { explainOptionAction } from "@/app/(app)/website/option-actions";
-import { ActorChip } from "@/components/actor-chip";
+import { Icon } from "@/components/icons";
+import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { ALERT, SECONDARY } from "@/components/styles";
+import { Working } from "@/components/working";
 import type { OptionExplanation } from "@/lib/website/options";
 
 // "Explain more": fetched once per option, then shown or hidden
-export function ExplainOption({ optionKey, name, explanation }: { optionKey: string; name: string; explanation: OptionExplanation | null }) {
+// firstYear: written by code from the cost summary, never by the model
+export function ExplainOption({ optionKey, name, explanation, firstYear }: { optionKey: string; name: string; explanation: OptionExplanation | null; firstYear: string }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The explanation arrives with the refreshed page
+  const job = useJobWatch(() => setOpen(true));
   useLayoutEffect(() => () => setError(null), []);
 
   async function toggle() {
@@ -22,10 +27,11 @@ export function ExplainOption({ optionKey, name, explanation }: { optionKey: str
     setError(null);
     try {
       const result = await explainOptionAction(optionKey);
-      if (!result.ok) setError(result.message);
+      if (!result.ok && result.busy) job.watch([result.busy]);
+      else if (!result.ok) setError(result.message);
       else setOpen(true);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }
@@ -33,25 +39,23 @@ export function ExplainOption({ optionKey, name, explanation }: { optionKey: str
 
   return (
     <div className="flex flex-col gap-2">
-      <button type="button" onClick={toggle} disabled={pending} aria-expanded={open} className={`${SECONDARY} w-fit`}>
-        {pending ? "Explaining…" : open ? "Hide the explanation" : `Explain ${name} more`}
+      <button type="button" onClick={toggle} disabled={pending || job.watching} aria-expanded={open} className={`${SECONDARY} w-fit`}>
+        <Icon name={open ? "close" : "lightbulb"} size="sm" />
+        {pending || job.watching ? "Explaining…" : open ? "Hide the explanation" : `Explain ${name} more`}
       </button>
-      <p role="status" className={pending ? "text-sm text-muted" : "sr-only"}>
-        {pending ? `Writing a plain explanation of ${name} for your business.` : ""}
-      </p>
+      <Working label={job.watching ? RUNNING_ELSEWHERE : `Writing a plain explanation of ${name} for your business.`} active={pending || job.watching} />
       {error ? (
         <p role="alert" className={ALERT}>
           {error}
         </p>
       ) : null}
       {open && explanation ? (
-        <div className="flex flex-col gap-2.5 rounded-xl bg-ai-tint/60 px-4 py-3 text-[15px]">
+        <div className="flex flex-col gap-2.5 rounded-xl border border-ai/15 bg-ai-tint px-4 py-3.5 text-[15px]">
           <p className="flex items-center gap-2 text-sm font-semibold text-ai-ink">
-            {explanation.simulated ? <ActorChip actor="rule" /> : <ActorChip actor="ai" />}
             {explanation.simulated ? "Practice mode: no AI explanation" : "Explained by AI from the facts on this card"}
           </p>
           {explanation.flags.length ? (
-            <ul className="flex flex-col gap-1 rounded-lg bg-check-tint px-3 py-2 text-sm text-check">
+            <ul className="flex flex-col gap-1 rounded-lg border border-check-ring bg-check-tint px-3 py-2 text-sm text-check">
               {explanation.flags.map((flag) => (
                 <li key={flag}>{flag}</li>
               ))}
@@ -61,7 +65,10 @@ export function ExplainOption({ optionKey, name, explanation }: { optionKey: str
           <Part title="What it’s like to use" text={explanation.whatItsLike} />
           <Part title="Why it could fit you" text={explanation.goodFit} />
           <Part title="What to watch out for" text={explanation.watchOut} />
-          <Part title="Your first year" text={explanation.firstYear} />
+          <div>
+            <p className="font-bold">Your first year</p>
+            <p className="text-rule">{firstYear}</p>
+          </div>
           {explanation.stillNeed.length ? (
             <div>
               <p className="font-bold">You’ll still need</p>

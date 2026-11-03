@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createMockProvider } from "@/lib/ai/providers/mock";
 import { type BusinessProfile, businessProfileSchema } from "@/lib/domain";
 import {
+  answerText,
   answersToProfile,
   applySuggestion,
   displayName,
@@ -207,6 +208,8 @@ describe("stepProblem", () => {
   it("blocks the required steps until answered", () => {
     expect(stepProblem("sell", EMPTY_ANSWERS)).toMatch(/kind of business/);
     expect(stepProblem("sell", { ...EMPTY_ANSWERS, category: "other" })).toMatch(/at least one/);
+    expect(stepProblem("sell", { ...EMPTY_ANSWERS, category: "resale_shop", offeringKinds: ["resale"] })).toMatch(/kind of shop/);
+    expect(stepProblem("sell", { ...EMPTY_ANSWERS, category: "resale_shop", offeringKinds: ["resale"], firstItems: "plants" })).toBeNull();
     expect(stepProblem("place", EMPTY_ANSWERS)).toMatch(/state/);
     expect(stepProblem("owners", EMPTY_ANSWERS)).toMatch(/owns/);
     expect(stepProblem("channels", EMPTY_ANSWERS)).toMatch(/at least one/);
@@ -214,12 +217,18 @@ describe("stepProblem", () => {
   });
 
   it("lets optional steps through", () => {
-    for (const step of ["status", "details", "premises", "money", "help", "timing"] as const) expect(stepProblem(step, EMPTY_ANSWERS)).toBeNull();
+    for (const step of ["details", "money", "help", "timing"] as const) expect(stepProblem(step, EMPTY_ANSWERS)).toBeNull();
     expect(stepProblem("sell", { ...EMPTY_ANSWERS, category: "crafts" })).toBeNull();
     expect(stepProblem("name", { ...EMPTY_ANSWERS, noName: true })).toBeNull();
   });
 
-  it("never requires a follow-up", () => {
+  it("asks where the owner is now and where they'll work", () => {
+    expect(stepProblem("status", EMPTY_ANSWERS)).toMatch(/where you are now/);
+    expect(stepProblem("premises", EMPTY_ANSWERS)).toMatch(/where you’ll work/);
+    expect(stepProblem("premises", { ...EMPTY_ANSWERS, premises: "unsure" })).toBeNull();
+  });
+
+  it("requires the follow-ups that shape recommendations, where they're asked", () => {
     const unanswered: IntakeAnswers = {
       ...WITH_FOLLOW_UPS,
       insideCityLimits: "",
@@ -230,7 +239,26 @@ describe("stepProblem", () => {
       customersVisit: "",
       helpKinds: [],
     };
-    expect(STEPS.map((step) => stepProblem(step, unanswered)).filter(Boolean)).toEqual([]);
+    const problems = Object.fromEntries(STEPS.map((step) => [step, stepProblem(step, unanswered)]));
+    expect(problems.place).toMatch(/city limits/);
+    expect(problems.status).toMatch(/registered/);
+    expect(problems.details).toMatch(/kept cold/);
+    expect(problems.channels).toMatch(/how customers get/);
+    expect(problems.premises).toMatch(/come to your home/);
+    expect(problems.help).toMatch(/kind of help/);
+    expect(problems.timing).toBeNull();
+    // "Not sure" is an answer, so it lets the owner through
+    expect(stepProblem("place", { ...unanswered, insideCityLimits: "unsure" })).toBeNull();
+    // Not asked, not required
+    expect(stepProblem("place", { ...unanswered, city: "" })).toBeNull();
+  });
+
+  it("requires the owner follow-ups before the name step", () => {
+    const base: IntakeAnswers = { ...COMPLETE, owners: "me", mayAddOwners: "" };
+    expect(stepProblem("owners", base)).toMatch(/co-owner/);
+    expect(stepProblem("owners", { ...base, mayAddOwners: "no" })).toBeNull();
+    expect(stepProblem("owners", { ...base, owners: "others", ownerCount: 2, ownerRelation: "" })).toMatch(/other owners/);
+    expect(stepProblem("name", { ...base, name: "Maple Crumb Test Bakery", nameIsLegalName: "" })).toMatch(/legal name/);
   });
 
   it("skips the details step when none of its questions apply", () => {
@@ -267,6 +295,27 @@ describe("summarize", () => {
     const { open, confirmed } = groupRows(rows);
     expect(open.map((row) => row.label)).toContain("Customers at your home");
     expect(confirmed.map((row) => row.label)).not.toContain("Customers at your home");
+  });
+
+  it("keeps “no date yet” as an undecided answer, apart from skipped questions", () => {
+    const undecided = { ...COMPLETE, launchDate: "", launchTiming: "unsure" as const };
+    expect(answersToProfile(undecided).launchTiming).toBe("unsure");
+    const row = summarize(profileToAnswers(businessProfileSchema.parse(answersToProfile(undecided)))).find((each) => each.label === "Goal launch date");
+    expect(row).toMatchObject({ value: "No date yet", state: "undecided" });
+    const groups = groupRows(summarize(undecided));
+    expect(groups.undecided.map((each) => each.label)).toContain("Goal launch date");
+    expect(groups.unanswered.map((each) => each.label)).not.toContain("Goal launch date");
+
+    const skipped = summarize({ ...COMPLETE, launchDate: "", launchTiming: "" }).find((each) => each.label === "Goal launch date")!;
+    expect(skipped.state).toBe("unanswered");
+    expect(answerText(skipped)).toBe("Not answered");
+    const dated = summarize({ ...COMPLETE, launchDate: "2027-03-01" }).find((each) => each.label === "Goal launch date")!;
+    expect(dated).toMatchObject({ value: "Mar 1, 2027", state: "answered" });
+  });
+
+  it("treats a name not picked yet as undecided, not skipped", () => {
+    const row = summarize({ ...COMPLETE, noName: true }).find((each) => each.label === "Business name")!;
+    expect(row).toMatchObject({ value: "Not picked yet", state: "undecided" });
   });
 
   it("keeps answers filled in for the owner apart until confirmed", () => {

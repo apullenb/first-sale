@@ -157,6 +157,9 @@ export const PLAN_TOPICS = [
 export type PlanTopic = (typeof PLAN_TOPICS)[number];
 
 // Shape the research step asks the model for; sourceIds point at retrieved sources.
+// What the owner does for a requirement; code has the last word (src/lib/rules/step-kind.ts)
+export const OWNER_ACTIONS = ["decision", "training", "compliance", "filing", "contact"] as const;
+
 export const requirementDraftSchema = z.object({
   // Short id, reused across re-checks so plan progress carries over
   key: z.string().min(1).max(60),
@@ -191,6 +194,8 @@ export const requirementDraftSchema = z.object({
   // Kept only if the quote states them, like the fee and deadline
   renewal: z.string().max(200).nullable().default(null),
   renewalFeeUsd: z.number().nonnegative().nullable().default(null),
+  // The model's read of what the owner does; null on results saved before it was asked
+  ownerAction: z.enum(OWNER_ACTIONS).nullable().default(null),
 });
 export type RequirementDraft = z.infer<typeof requirementDraftSchema>;
 
@@ -203,7 +208,7 @@ export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 export const DOCUMENT_ORIGINS = ["upload", "paste", "official_form", "generated"] as const;
 export type DocumentOrigin = (typeof DOCUMENT_ORIGINS)[number];
-export const GENERATED_KINDS = ["business_plan", "filled_form", "answer_sheet", "startup_plan", "website_copy", "answer_guide", "owners_agreement"] as const;
+export const GENERATED_KINDS = ["business_plan", "filled_form", "answer_sheet", "startup_plan", "website_copy", "answer_guide", "owners_agreement", "marketing_plan", "logo_guide"] as const;
 export type GeneratedKind = (typeof GENERATED_KINDS)[number];
 export const DRAFT_KINDS = ["listing", "social_post", "order_reply", "role_description"] as const;
 export const DRAFT_STATUSES = ["draft", "approved", "exported"] as const;

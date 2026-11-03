@@ -5,7 +5,7 @@ import { type Place, placeOf, type StructureDecision, structureOf } from "@/lib/
 import { type Fact, factsFor, mustFillYourself } from "./companion";
 import type { DocumentField, DraftAnswer, DraftAnswers } from "./types";
 
-// Fills a known official form from confirmed facts by fixed rules, never model output.
+// Fills a known official form from confirmed facts in code, never model output.
 // Each answer names the fact it came from, so a later change to that fact flags the draft as outdated.
 
 export interface AutofillContext {
@@ -120,7 +120,7 @@ export function autofillAnswers(
   for (const field of fields) {
     const kept = previous[field.id];
     if (mustFillYourself(field)) {
-      answers[field.id] = { value: "", source: "", state: "fill_yourself", note: "First Sale never fills in ID numbers, signatures or sworn statements. Fill this in yourself." };
+      answers[field.id] = { value: "", source: "", state: "fill_yourself", note: "SnapStart never fills in ID numbers, signatures or sworn statements. Fill this in yourself." };
       continue;
     }
     const rule = byId.get(field.id);
@@ -151,7 +151,7 @@ export function autofillAnswers(
 
 function suggested(field: DocumentField, filled: Extract<Filled, { value: string }>): DraftAnswer {
   const note = filled.note ?? (filled.sure ? "" : "Check this one: it may need different wording.");
-  const empty: DraftAnswer = { value: "", source: "", state: "unanswered", note: "First Sale couldn’t fill this one safely." };
+  const empty: DraftAnswer = { value: "", source: "", state: "unanswered", note: "SnapStart couldn’t fill this one safely." };
   if (looksLikeIdNumber(filled.value)) return empty;
   if (field.kind === "checkbox" && filled.value !== "Yes" && filled.value !== "No") return empty;
   if (field.kind === "choice" && field.options.length && !field.options.includes(filled.value)) return empty;

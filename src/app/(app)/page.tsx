@@ -1,107 +1,109 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { ActorLegend } from "@/components/how-it-works";
-import { DashboardWidgets } from "@/components/plan/dashboard-widgets";
+import { ContactQuestion } from "@/components/contact/contact-question";
+import { Icon } from "@/components/icons";
+import { MoveOn } from "@/components/move-on";
+import { DashboardWidgets, LaunchCard } from "@/components/plan/dashboard-widgets";
 import { JourneyStages, StartHere } from "@/components/plan/journey";
+import { LaunchSchedule, TodayHead } from "@/components/plan/launch-countdown";
+import { actionStep, needsConfirming, priceTasks } from "@/components/plan/paperwork";
 import { StepBoard } from "@/components/plan/step-board";
-import { CARD, SECONDARY_LINK, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
-import { OFFICIAL_FORMS } from "@/data/official-forms";
-import { getMyBusiness, getMyDetails, getMyPlan, getMyResearch, listMyDocuments, type MyBusiness } from "@/lib/data/my-business";
+import { PracticeBanner } from "@/components/practice-banner";
+import { SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
+import { Card } from "@/components/ui";
+import { getCurrentUser } from "@/lib/auth/server";
+import { getMyBusiness, getMyPaperwork, getMyResearch, listMyDocuments, type MyBusiness } from "@/lib/data/my-business";
 import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
-import { formsFor } from "@/lib/documents/form-catalog";
 import { displayName, profileToAnswers, summarize } from "@/lib/intake/answers";
 import { BUDGET_LABELS } from "@/lib/intake/options";
-import { placeOf, structureOf } from "@/lib/research/applicability";
 import { answerChanges } from "@/lib/research/changes";
-import { type JourneyInput, journeyStages, nextMove } from "@/lib/rules/journey";
-import { nextActions, planCosts } from "@/lib/rules/next-action";
-import { budgetCapCents, remainingWork, spentCents } from "@/lib/rules/progress";
+import { type JourneyInput, journeyStages, nextMove, readyForFirstSale } from "@/lib/rules/journey";
+import { planCosts } from "@/lib/rules/next-action";
+import { nextTaskAfter } from "@/lib/rules/paperwork";
+import { budgetCapCents, finishedFeesCents, remainingWork } from "@/lib/rules/progress";
 
-const LABEL = "text-xs font-bold uppercase tracking-wider text-muted";
+export const metadata: Metadata = { title: "Today" };
 
 export default function Today() {
   return (
-    <div className="flex flex-col gap-6">
-      <section className="flex flex-col gap-3">
-        <p className="text-sm font-semibold text-accent-ink">Today</p>
-        <h1 className="max-w-2xl font-display text-4xl font-bold leading-tight tracking-tight">Start your business one step at a time.</h1>
-        <p className="max-w-2xl text-lg text-muted">What to do next, what’s done, and what’s still left.</p>
-      </section>
-      <Suspense fallback={<div className="h-28 max-w-2xl rounded-2xl bg-surface ring-1 ring-ink/5" />}>
+    <div className="@container flex max-w-[1000px] flex-col gap-6">
+      <Suspense fallback={<Loading />}>
         <Overview />
       </Suspense>
-      <ActorLegend />
+    </div>
+  );
+}
+
+function Loading() {
+  return (
+    <div aria-hidden="true" className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
+        <div className="h-4 w-44 rounded bg-wash" />
+        <div className="h-10 w-80 max-w-full rounded-lg bg-wash" />
+        <div className="h-5 w-96 max-w-full rounded bg-wash" />
+      </div>
+      <div className="h-80 rounded-2xl border border-line bg-surface shadow-card" />
     </div>
   );
 }
 
 async function Overview() {
-  const [business, plan, research, details, documents] = await Promise.all([getMyBusiness(), getMyPlan(), getMyResearch(), getMyDetails(), listMyDocuments()]);
+  const [user, business, paper, research, documents] = await Promise.all([getCurrentUser(), getMyBusiness(), getMyPaperwork(), getMyResearch(), listMyDocuments()]);
 
   const profile = business?.profile ?? null;
-  const structure = profile ? structureOf(profile, details) : { structure: null, from: null };
-  const decision = structure.structure;
-  const changes = research && profile ? answerChanges(research.profile, profile, (research.structure as typeof decision) ?? null, decision) : [];
+  const details = paper?.details ?? [];
+  const decision = paper?.context.decision ?? { structure: null, from: null };
+  const changes = research && profile ? answerChanges(research.profile, profile, (research.structure as typeof decision.structure) ?? null, decision.structure) : [];
   const facts = profile ? autofillFacts(profile, details) : [];
   const outdated = documents.filter((doc) => doc.role !== "reviewed" && outdatedFacts(doc.factsUsed, facts).length > 0);
   const toCheck = documents.filter((doc) => doc.role !== "reviewed" && Object.values(doc.answers).some((answer) => answer.state === "suggested"));
 
-  const where = profile ? placeOf(profile) : null;
-  const priced = (plan?.steps ?? []).map((step) => {
-    const form = where ? (formsFor(OFFICIAL_FORMS, step, where, decision).find((each) => !each.kept) ?? null) : null;
-    return { ...step, feeCents: step.feeCents ?? form?.fee?.cents ?? null, formKey: form?.key ?? null };
-  });
-  const actions = nextActions(priced);
+  // Only tasks that apply, counted the same way as the menu's paperwork groups
+  const view = paper?.basis ? paper.view : null;
+  const tasks = view ? priceTasks(view.tasks, paper!.context.place, decision.structure) : [];
+  const priced = tasks.map(actionStep);
   const costs = planCosts(priced);
   const work = remainingWork(priced);
-  const widgets =
-    profile && priced.length ? (
-      <DashboardWidgets
-        left={work.left.length}
-        minutes={work.minutes}
-        waiting={work.waiting.length}
-        spentCents={spentCents(priced)}
-        toGoCents={costs.startupCents}
-        unknownFees={costs.unknown.length}
-        budgetCapCents={budgetCapCents(profile.startupBudget)}
-        budgetLabel={profile.startupBudget ? BUDGET_LABELS[profile.startupBudget] : null}
-        launchDate={profile.launchDate}
-      />
-    ) : null;
-  const required = priced.filter((step) => step.timing === "before_selling" && step.requirementStatus !== "optional" && step.requirementStatus !== "outside_coverage");
+  const required = priced.filter((step) => step.timing === "before_selling");
   const beforeSelling = { total: required.length, done: required.filter((step) => step.status === "done").length };
-  const first = actions.first;
+  const first = view?.first ?? null;
+  const groupOf = (key: string) => view?.groups.find((group) => group.key === key) ?? null;
 
   const input: JourneyInput = {
     business: !business ? "none" : profile ? "done" : "update",
     businessSummary: profile ? `Answers saved for ${displayName(profile)}.` : null,
     researched: Boolean(research),
     answersChanged: changes.length > 0,
-    structure,
+    structure: { ...decision, recorded: details.some((detail) => detail.key === "structure_choice") },
+    questions: view?.open.length ?? 0,
     plan: {
       steps: priced.length,
-      proposal: Boolean(plan?.proposal),
       beforeSelling,
-      first: first ? { id: first.id, title: first.title, later: first.timing === "later", structure: first.topic === "structure" } : null,
+      first: first
+        ? {
+            id: first.step.id,
+            title: first.step.title,
+            later: first.step.timing === "later", group: { name: groupOf(first.group)!.name, href: groupOf(first.group)!.href },
+          }
+        : null,
+      waitsOnStructure: Boolean(view?.waitsOnStructure),
     },
     documents: { total: documents.length, waiting: new Set([...outdated, ...toCheck].map((doc) => doc.id)).size },
   };
   const move = nextMove(input);
   const moveStep = move.stepId ? priced.find((step) => step.id === move.stepId) : undefined;
+  const afterTask = moveStep && view ? nextTaskAfter(view.tasks, moveStep.key) : null;
+  const after = afterTask ? (priced.find((step) => step.id === afterTask.step.id) ?? null) : null;
+  const moveGroup = first && move.stepId === first.step.id ? groupOf(first.group) : null;
+  const stages = journeyStages(input);
 
   const waiting: { text: string; href: string; action: string }[] = [];
-  if (plan?.proposal) {
-    waiting.push({
-      text: plan.proposal.from === "replan" ? "Your decisions changed some steps in your plan. Review them first." : "Your requirements were re-checked, and some changes to your plan need your review.",
-      href: "/checklist",
-      action: "Review the changes",
-    });
-  }
   if (changes.length) {
     waiting.push({
-      text: `Your answers changed since your requirements were checked (${changes.map((change) => change.what.toLowerCase()).join(", ")}).`,
+      text: `You changed your answers (${changes.map((change) => change.what.toLowerCase()).join(", ")}), so your steps need updating.`,
       href: "/requirements",
-      action: "See what it changes",
+      action: "Update my steps",
     });
   }
   if (outdated.length) {
@@ -113,52 +115,95 @@ async function Overview() {
   const alsoWaiting = waiting.filter((item) => item.href !== move.href);
 
   return (
-    <div className="flex max-w-2xl flex-col gap-4">
-      {/* Widgets above the next step on wider screens, below it on phones; one copy shows at a time */}
-      {widgets ? <div className="hidden sm:block">{widgets}</div> : null}
-      <StartHere move={move} step={moveStep} parallel={moveStep && moveStep.timing !== "later" ? Math.max(0, actions.now.length - 1) : 0} />
-      {widgets ? <div className="sm:hidden">{widgets}</div> : null}
+    <>
+      <TodayHead
+        name={user.name.trim().split(/\s+/)[0] || null}
+        business={profile?.name ?? null}
+        launchDate={profile?.launchDate ?? null}
+        ready={readyForFirstSale(input)}
+      />
+
+      {/* "Do this next" comes first on phones too */}
+      <div className="grid items-stretch gap-5 @3xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
+        <StartHere
+          move={move}
+          step={moveStep}
+          group={moveGroup ? { name: moveGroup.name, href: moveGroup.href } : null}
+          parallel={moveStep && moveStep.timing !== "later" ? Math.max(0, tasks.filter((task) => task.state === "ready" && task.step.timing !== "later").length - 1) : 0}
+          after={after}
+          unconfirmed={tasks.some((task) => task.step.id === moveStep?.id && needsConfirming(task))}
+        />
+        {profile ? <LaunchCard date={profile.launchDate} /> : null}
+      </div>
+
+      {profile ? <MoveOn from="Start your business" /> : null}
+
+      {/* Asked once for owners who finished intake before it was asked; then a step if they put it off */}
+      {profile ? <ContactQuestion /> : null}
 
       {alsoWaiting.length ? (
-        <section aria-labelledby="waiting-heading" className="flex flex-col gap-2 rounded-2xl bg-ai-tint p-5 ring-1 ring-ai/15">
-          <h2 id="waiting-heading" className="text-xs font-bold uppercase tracking-wider text-ai-ink">
-            Also waiting for your OK
-          </h2>
-          <ul className="flex flex-col gap-2">
-            {alsoWaiting.map((item) => (
-              <li key={item.href + item.action} className="flex flex-col">
-                <p className="text-ai-ink">{item.text}</p>
-                <Link href={item.href} className={`flex min-h-11 w-fit items-center ${TEXT_LINK}`}>
-                  {item.action}
-                </Link>
-              </li>
-            ))}
-          </ul>
+        <section aria-labelledby="waiting-heading" className="flex items-start gap-3 rounded-[14px] border border-check-ring bg-check-tint px-4 py-3.5 text-check">
+          <Icon name="info" className="mt-0.5" />
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <h2 id="waiting-heading" className="font-bold">
+              Also waiting for your OK
+            </h2>
+            <ul className="flex flex-col gap-1">
+              {alsoWaiting.map((item) => (
+                <li key={item.href + item.action} className="flex flex-col">
+                  <p>{item.text}</p>
+                  <Link href={item.href} className="flex min-h-11 w-fit items-center font-bold underline decoration-[1.5px] underline-offset-[3px] hover:text-ink">
+                    {item.action}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       ) : null}
 
-      <JourneyStages stages={journeyStages(input)} />
-
-      {priced.length ? <StepBoard actions={actions} costs={costs} beforeSelling={beforeSelling} /> : null}
-
-      {business ? (
+      {profile && priced.length ? (
         <>
-          <section aria-labelledby="have-heading" className={`flex flex-col gap-2 ${CARD}`}>
-            <h2 id="have-heading" className={SECTION_TITLE}>
-              Already have some paperwork?
-            </h2>
-            <p className="text-rule">
-              Not starting from scratch? Upload what you already have, like your LLC certificate or EIN letter. Got a letter in the mail you’re not
-              sure about? Upload it and First Sale explains what it is and what to do.
-            </p>
-            <Link href="/documents?add=have#add-form" className={SECONDARY_LINK}>
-              Upload a document
-            </Link>
-          </section>
-          <CurrentBusiness business={business} />
+          <DashboardWidgets
+            left={work.left.length}
+            minutes={work.minutes}
+            waiting={work.waiting.length}
+            parts={(view?.groups ?? []).filter((group) => !group.later && group.minutesLeft).map((group) => ({ name: group.name, href: group.href, minutes: group.minutesLeft }))}
+            finishedCents={finishedFeesCents(priced)}
+            toGoCents={costs.startupCents}
+            unknownFees={costs.unknown}
+            budgetCapCents={budgetCapCents(profile.startupBudget)}
+            budgetLabel={profile.startupBudget ? BUDGET_LABELS[profile.startupBudget] : null}
+            done={beforeSelling.done}
+            total={beforeSelling.total}
+            stages={stages}
+          />
+          {profile.launchDate ? <LaunchSchedule date={profile.launchDate} minutes={work.minutes} waiting={work.waiting.length} /> : null}
         </>
       ) : null}
-    </div>
+
+      {/* The step in "Do this next" isn't listed again */}
+      {tasks.length ? <StepBoard tasks={tasks} costs={costs} skip={moveStep?.id ?? null} /> : null}
+      {priced.some((step) => step.simulated) ? <PracticeBanner what="These steps came from practice results." /> : null}
+
+      <div className={`grid items-start gap-5 ${business ? "@3xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]" : ""}`}>
+        <JourneyStages stages={stages} />
+        {business ? (
+          <div className="flex flex-col gap-5">
+            <Card title="Already have some paperwork?" icon="upload" id="have-heading">
+              <p className="text-rule">
+                Not starting from scratch? Upload what you already have, like your LLC certificate or the IRS letter with your EIN (tax ID number). Got a letter in the mail you’re not
+                sure about? Upload it and SnapStart explains what it is and what to do.
+              </p>
+              <Link href="/documents?add=have#add-form" className={SECONDARY_LINK}>
+                Upload a document
+              </Link>
+            </Card>
+            <CurrentBusiness business={business} />
+          </div>
+        ) : null}
+      </div>
+    </>
   );
 }
 
@@ -171,15 +216,12 @@ function CurrentBusiness({ business }: { business: MyBusiness }) {
     .join(" · ");
 
   return (
-    <section aria-labelledby="current-business" className={`flex flex-col gap-2 ${CARD}`}>
-      <p className={LABEL}>Working on</p>
-      <h2 id="current-business" className="font-display text-2xl font-bold">
-        {displayName(business.profile)}
-      </h2>
-      {detail ? <p className="text-rule">{detail}</p> : null}
-      <Link href="/business" className={`flex min-h-11 w-fit items-center ${TEXT_LINK}`}>
+    <Card title="Working on" icon="store" id="current-business">
+      <p className="font-display text-[22px] leading-tight">{displayName(business.profile)}</p>
+      {detail ? <p className="text-[15px] text-muted">{detail}</p> : null}
+      <Link href="/business" className={`-my-3 w-fit py-3 ${TEXT_LINK}`}>
         See your business
       </Link>
-    </section>
+    </Card>
   );
 }

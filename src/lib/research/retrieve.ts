@@ -1,14 +1,15 @@
 import type { JurisdictionLevel } from "@/lib/domain";
 import { pdfText } from "@/lib/documents/pdf";
+import { type Contacts, pageContacts } from "./contacts";
 import type { ResearchCategory } from "./coverage";
-import { MAX_SOURCE_CHARS, pageText } from "./page-text";
+import { MAX_SOURCE_CHARS, pageText, sourceTitle } from "./page-text";
 import { isAllowedHost } from "./source-pack";
 import type { RetrievedSource } from "./verify";
 
 const MAX_REDIRECTS = 5;
 const MAX_BYTES = 3_000_000;
 const TIMEOUT_MS = 20_000;
-const USER_AGENT = "FirstSale/0.1 (research for first-time small business owners)";
+const USER_AGENT = "SnapStart/0.1 (research for first-time small business owners)";
 
 export interface SourceToRead {
   id: string;
@@ -31,6 +32,8 @@ export interface RetrievedPage extends RetrievedSource {
   discovered: boolean;
   text: string;
   categories?: ResearchCategory[];
+  // Printed on the page, footer included; not saved
+  contacts?: Contacts;
 }
 
 export interface UnreadSource {
@@ -70,7 +73,8 @@ export async function retrieveSources(
       unread.push({ id: source.id, title: source.title, url: source.url, reason: fetched.reason, level: source.level, categories: source.categories });
       continue;
     }
-    const text = fetched.pdf ? await readPdfSource(fetched.pdf) : pageText(fetched.html, fragment).text;
+    const read = fetched.pdf ? null : pageText(fetched.html, fragment);
+    const text = read ? read.text : await readPdfSource(fetched.pdf!);
     if (!text) {
       const reason = text === null ? "The linked section isn’t on the page anymore" : "The page had no readable text";
       unread.push({ id: source.id, title: source.title, url: source.url, reason, level: source.level, categories: source.categories });
@@ -78,7 +82,8 @@ export async function retrieveSources(
     }
     pages.push({
       id: source.id,
-      title: source.title,
+      // A search result's title can name another page on the site
+      title: read ? sourceTitle({ title: source.title, heading: read.heading, text }) : source.title,
       url: fragment && !fetched.pdf ? `${fetched.finalUrl}#${fragment}` : fetched.finalUrl,
       level: source.level,
       government: source.government,
@@ -86,6 +91,7 @@ export async function retrieveSources(
       text,
       retrievedAt: now.toISOString(),
       categories: source.categories,
+      contacts: fetched.html ? pageContacts(fetched.html, fetched.finalUrl) : undefined,
     });
   }
   return { pages, unread };

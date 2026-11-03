@@ -3,11 +3,6 @@ export interface TaskNode {
   prerequisites: readonly string[];
 }
 
-export type TaskReadiness =
-  | { id: string; state: "done" }
-  | { id: string; state: "ready" }
-  | { id: string; state: "waiting"; waitingOn: string[] };
-
 // Prerequisites first; otherwise keeps the given order. Throws on unknown ids or cycles.
 export function orderTasks<T extends TaskNode>(tasks: readonly T[]): T[] {
   const byId = new Map(tasks.map((task) => [task.id, task]));
@@ -34,17 +29,4 @@ export function orderTasks<T extends TaskNode>(tasks: readonly T[]): T[] {
     placed.add(next.id);
   }
   return ordered;
-}
-
-export function taskReadiness(
-  tasks: readonly TaskNode[],
-  doneIds: ReadonlySet<string>,
-): TaskReadiness[] {
-  return tasks.map((task) => {
-    if (doneIds.has(task.id)) return { id: task.id, state: "done" };
-    const waitingOn = task.prerequisites.filter((id) => !doneIds.has(id));
-    return waitingOn.length === 0
-      ? { id: task.id, state: "ready" }
-      : { id: task.id, state: "waiting", waitingOn };
-  });
 }

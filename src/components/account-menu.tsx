@@ -7,7 +7,7 @@ export async function AccountMenu() {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="hidden max-w-48 truncate text-sm text-muted sm:inline">{user.name}</span>
+      <span className="min-w-0 flex-1 truncate text-sm text-white/60">{user.name}</span>
       <LogOutButton />
     </div>
   );

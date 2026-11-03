@@ -7,6 +7,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   serial,
   text,
   timestamp,
@@ -22,13 +23,15 @@ import {
   GENERATED_KINDS,
   JURISDICTION_LEVELS,
   ORDER_STATUSES,
+  OWNER_ACTIONS,
   PLAN_TOPICS,
   TASK_STATUSES,
   VERIFICATION_STATES,
   type BusinessProfile,
   type BusinessStructure,
 } from "@/lib/domain";
-import { REQUIREMENT_STATUSES } from "@/lib/research/applicability";
+import { CONDITION_ANSWERS, REQUIREMENT_STATUSES, VERDICTS } from "@/lib/research/applicability";
+import type { StructureAdvice } from "@/lib/structure/advise";
 import { DOCUMENT_ROLES } from "@/lib/documents/library";
 import type {
   DocumentContent,
@@ -38,15 +41,26 @@ import type {
   GeneratedContent,
 } from "@/lib/documents/types";
 import type { PlanLink, PlanTaskDraft } from "@/lib/rules/plan";
+import type { Contacts } from "@/lib/research/contacts";
 import type { CoverageCell } from "@/lib/research/coverage";
+import type { OfficeContact } from "@/lib/research/office";
 import type { FormVerification } from "@/lib/documents/official-forms";
 import type { MoreOptions, OptionExplanation } from "@/lib/website/options";
-import { type DomainCheck, PLATFORMS, type WebsiteContent } from "@/lib/website/types";
+import { type DomainCheck, type ExistingSite, PLATFORMS, type SiteFinish, type WebsiteContent } from "@/lib/website/types";
+import type { SiteDesign } from "@/lib/website/site/design";
 import { PHOTO_CATEGORIES, PHOTO_CROPS, PHOTO_LOOKS, type PhotoCheck, type PhotoReview } from "@/lib/photos/types";
-import { ASSET_KINDS, type AssetCheck, type BrandBrief, type BrandPicks, type ConceptReply } from "@/lib/brand/types";
+import { ASSET_KINDS, ASSET_ORIGINS, type AssetCheck, type BrandBrief, type BrandDesign, type BrandPicks, type ConceptReply, IMAGE_MEDIUMS } from "@/lib/brand/types";
 import type { IntakeAnswers, Marks } from "@/lib/intake/answers";
+import type { StoredIntake } from "@/lib/marketing/intake";
+import type { MarketingPlan, MarketingStep } from "@/lib/marketing/types";
+import type { SocialProfiles } from "@/lib/social/types";
 import type { DecisionBasis } from "@/lib/structure/types";
 import type { WebSearchHit } from "@/lib/ai/types";
+import type { InsightFeedback, SavedInsights } from "@/lib/insights/types";
+import { LIBRARY_GROUPS } from "@/lib/brand/library";
+import type { PriceCheck } from "@/lib/rules/price-compare";
+import { PICTURE_VIEWS, WEARERS } from "@/lib/rules/picture-views";
+import { DESCRIPTION_AUTHORS, ITEM_KINDS, ITEM_ORIGINS, ITEM_STATUSES, type ItemOptions, type ProductPhotoRef } from "@/lib/rules/products";
 
 const id = () => text("id").primaryKey().$defaultFn(() => crypto.randomUUID());
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -85,6 +99,8 @@ export const businesses = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     isDemo: boolean("is_demo").notNull().default(false),
     profile: jsonb("profile").$type<BusinessProfile>().notNull(),
+    // The AI's structure, name and tax recommendation, for the answers it was made from
+    structureAdvice: jsonb("structure_advice").$type<StructureAdvice>(),
     createdAt: createdAt(),
   },
   // One business per owner
@@ -100,13 +116,13 @@ export const researchSnapshots = pgTable("research_snapshots", {
   // Hash of the profile it ran on, to spot answers changed since
   profileKey: text("profile_key").notNull(),
   model: text("model").notNull(),
-  // Practice mode: built-in rules stood in for the AI model
+  // Practice mode: built-in code stood in for the AI model
   simulated: boolean("simulated").notNull().default(false),
   // Whether state and local pages were searched for, or only the built-in source list was read
   searched: boolean("searched").notNull().default(false),
   unreadSources: jsonb("unread_sources").$type<{ key: string; title: string; url: string; reason: string }[]>().notNull(),
   assumptions: jsonb("assumptions").$type<string[]>().notNull().default([]),
-  openQuestions: jsonb("open_questions").$type<{ question: string; whoToCall: string }[]>().notNull().default([]),
+  openQuestions: jsonb("open_questions").$type<{ question: string; whoToCall: string; sourceId?: string; answer?: string }[]>().notNull().default([]),
   // Plan built from this run; the owner reviews it when a plan already exists
   planProposal: jsonb("plan_proposal").$type<PlanTaskDraft[]>(),
   planReviewedAt: timestamp("plan_reviewed_at", { withTimezone: true }),
@@ -119,6 +135,10 @@ export const researchSnapshots = pgTable("research_snapshots", {
   coverage: jsonb("coverage").$type<CoverageCell[]>().notNull().default([]),
   // Where official pages disagree, as the model reported them, cited pages checked in code
   conflicts: jsonb("conflicts").$type<{ about: string; explanation: string; sourceIds: string[] }[]>().notNull().default([]),
+  // The second, narrower look at what no official page confirmed; null until it runs
+  followedUpAt: timestamp("followed_up_at", { withTimezone: true }),
+  // Contact details each office's own pages list, found by that look
+  offices: jsonb("offices").$type<OfficeContact[]>().notNull().default([]),
 });
 
 // Pages the research step actually fetched; requirements cite their keys
@@ -180,11 +200,16 @@ export const requirements = pgTable(
     renewal: text("renewal"),
     renewalFeeCents: integer("renewal_fee_cents"),
     alreadyHave: text("already_have"),
+    // The deeper look's decision on a rule no official page settled, and why (background)
+    verdict: text("verdict", { enum: VERDICTS }),
+    background: text("background").notNull().default(""),
+    // The model's read of what the owner does; stepKindOf decides
+    ownerAction: text("owner_action", { enum: OWNER_ACTIONS }),
   },
   (table) => [index("requirements_business_id_idx").on(table.businessId)],
 );
 
-// The startup plan. Rows are replaced only when the owner accepts a proposed change; done steps stay done.
+// The startup plan. A re-check or a changed decision rewrites it; done steps stay done.
 export const checklistTasks = pgTable(
   "checklist_tasks",
   {
@@ -229,6 +254,13 @@ export const checklistTasks = pgTable(
     renewal: jsonb("renewal").$type<{ text: string; feeCents: number | null }>(),
     jurisdiction: text("jurisdiction").notNull().default(""),
     alreadyHave: text("already_have"),
+    // The model's condition, asked of the owner; empty when it doesn't depend on one
+    question: text("question").notNull().default(""),
+    // Why SnapStart decided a rule no official page spells out, and the office's contact details
+    notes: jsonb("notes").$type<{ title: string; background: string }[]>().notNull().default([]),
+    contacts: jsonb("contacts").$type<Contacts>(),
+    // The model's read of what the owner does; null on steps saved before it was asked
+    ownerAction: text("owner_action", { enum: OWNER_ACTIONS }),
     // Filing progress: submitted, then done once the office approves; never set by opening a link
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
     submissionNote: text("submission_note"),
@@ -325,15 +357,78 @@ export const products = pgTable(
   {
     id: id(),
     businessId: businessId(),
+    kind: text("kind", { enum: ITEM_KINDS }).notNull().default("product"),
+    // Suggested items stay out of public copy until the owner confirms them
+    status: text("status", { enum: ITEM_STATUSES }).notNull().default("confirmed"),
+    origin: text("origin", { enum: ITEM_ORIGINS }).notNull().default("owner"),
     name: text("name").notNull(),
-    materials: text("materials").notNull(),
-    priceCents: integer("price_cents").notNull(),
+    description: text("description").notNull().default(""),
+    descriptionBy: text("description_by", { enum: DESCRIPTION_AUTHORS }).notNull().default("owner"),
+    materials: text("materials").notNull().default(""),
+    // Exactly what the owner typed, in cents; null until they type one
+    priceCents: integer("price_cents"),
+    // Services: the price in the owner's words, such as "$40 an hour"
+    priceText: text("price_text").notNull().default(""),
     unitCostCents: integer("unit_cost_cents"),
-    quantity: integer("quantity").notNull(),
+    // Null when the owner doesn't track stock; the options' total when they're counted
+    quantity: integer("quantity"),
+    duration: text("duration").notNull().default(""),
+    location: text("location").notNull().default(""),
+    included: text("included").notNull().default(""),
+    // Who wears it, when the owner was asked for the in-use picture
+    wearer: text("wearer", { enum: WEARERS }),
+    // Option groups and each combination's own price and stock
+    options: jsonb("options").$type<ItemOptions>().notNull().default({ groups: [], variants: [] }),
     photoUrl: text("photo_url"),
+    // A product photo, an approved edit, a Brand Library picture or an approved generated picture
+    photo: jsonb("photo").$type<ProductPhotoRef>(),
+    createdAt: createdAt(),
   },
   (table) => [index("products_business_id_idx").on(table.businessId)],
 );
+
+// Pictures made from an item's description, byte for byte as returned; used only once approved
+export const productPictures = pgTable(
+  "product_pictures",
+  {
+    id: id(),
+    businessId: businessId(),
+    productId: text("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    // Main photo first, then the extra views made from the approved main
+    view: text("view", { enum: PICTURE_VIEWS }).notNull().default("main"),
+    // The picture this one edited
+    sourceId: text("source_id"),
+    change: text("change"),
+    prompt: text("prompt").notNull(),
+    model: text("model").notNull(),
+    // Practice preview, not made by the image service
+    simulated: boolean("simulated").notNull(),
+    requestKey: text("request_key").notNull(),
+    mimeType: text("mime_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+    data: bytea("data").notNull(),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    uniqueIndex("product_pictures_business_request_idx").on(table.businessId, table.requestKey),
+    index("product_pictures_product_idx").on(table.productId),
+  ],
+);
+
+// The last "Compare prices near you" search per item, so it doesn't re-run on every visit
+export const productPriceChecks = pgTable("product_price_checks", {
+  productId: text("product_id")
+    .primaryKey()
+    .references(() => products.id, { onDelete: "cascade" }),
+  businessId: businessId(),
+  result: jsonb("result").$type<PriceCheck>().notNull(),
+  checkedAt: timestamp("checked_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 // AI drafts stay drafts until the owner approves them
 export const drafts = pgTable(
@@ -379,10 +474,15 @@ export const orderLines = pgTable(
     productId: text("product_id")
       .notNull()
       .references(() => products.id),
+    // The exact option combination ordered, as saved when ordered; empty for items without options
+    optionValues: jsonb("option_values").$type<string[]>().notNull().default([]),
+    variantKey: text("variant_key").notNull().default(""),
     quantity: integer("quantity").notNull(),
+    // Each one's price when ordered, as the owner typed it; null when no dollar price was set
+    unitPriceCents: integer("unit_price_cents"),
   },
   (table) => [
-    uniqueIndex("order_lines_order_product").on(table.orderId, table.productId),
+    uniqueIndex("order_lines_order_product_variant").on(table.orderId, table.productId, table.variantKey),
     index("order_lines_product_id_idx").on(table.productId),
   ],
 );
@@ -395,6 +495,8 @@ export const stockMovements = pgTable(
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
     orderId: text("order_id").references(() => orders.id, { onDelete: "set null" }),
+    // The option whose stock moved; empty when the item's own count moved
+    optionValues: jsonb("option_values").$type<string[]>().notNull().default([]),
     delta: integer("delta").notNull(),
     reason: text("reason").notNull(),
     createdAt: createdAt(),
@@ -514,6 +616,28 @@ export const websitePlans = pgTable("website_plans", {
   moreOptions: jsonb("more_options").$type<MoreOptions>(),
   // "Explain more" answers, by option key, so each is written once
   explanations: jsonb("explanations").$type<Record<string, OptionExplanation>>().notNull().default({}),
+  // The site SnapStart builds: look, parts shown, and each item's price, photo and buy link
+  design: jsonb("design").$type<SiteDesign>(),
+  // Demo finish of the site SnapStart builds; nothing is published
+  finished: jsonb("finished").$type<SiteFinish>(),
+  // A site the owner already has, connected in the demo
+  existingSite: jsonb("existing_site").$type<ExistingSite>(),
+  updatedAt: updatedAt(),
+});
+
+// The owner's marketing answers, the drafted plan, and the steps made when they approve it. One per business.
+export const marketingPlans = pgTable("marketing_plans", {
+  businessId: text("business_id")
+    .primaryKey()
+    .references(() => businesses.id, { onDelete: "cascade" }),
+  intake: jsonb("intake").$type<StoredIntake>(),
+  plan: jsonb("plan").$type<MarketingPlan>(),
+  // Set when the owner approves the plan; a new draft clears it
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  steps: jsonb("steps").$type<MarketingStep[]>().notNull().default([]),
+  stepsDone: jsonb("steps_done").$type<string[]>().notNull().default([]),
+  // Name, handle and bio for each social account, drafted and approved on the social page
+  social: jsonb("social").$type<SocialProfiles>().notNull().default({}),
   updatedAt: updatedAt(),
 });
 
@@ -527,6 +651,8 @@ export const brandKits = pgTable("brand_kits", {
   chosenLogoId: text("chosen_logo_id"),
   // Approved files by kind: the version set, then each brand image
   picks: jsonb("picks").$type<BrandPicks>().notNull().default({}),
+  // The owner's Photo / Illustration switch for brand images; null leaves it to the rule
+  imageMedium: text("image_medium", { enum: IMAGE_MEDIUMS }),
   updatedAt: updatedAt(),
 });
 
@@ -570,13 +696,16 @@ export const brandAssets = pgTable(
     id: id(),
     businessId: businessId(),
     kind: text("kind", { enum: ASSET_KINDS }).notNull(),
-    conceptId: text("concept_id")
-      .notNull()
-      .references(() => brandConcepts.id, { onDelete: "cascade" }),
+    // "uploaded": the owner's own logo, stored byte for byte
+    origin: text("origin", { enum: ASSET_ORIGINS }).notNull().default("generated"),
+    // Null for an uploaded logo and the files made from it
+    conceptId: text("concept_id").references(() => brandConcepts.id, { onDelete: "cascade" }),
     // The logo it was made from: the one refined, or the chosen logo
     sourceId: text("source_id"),
-    // The owner's requested change, in their words
+    // The owner's requested change, in their words, or what a one-click change did
     change: text("change"),
+    // Colors, lettering or tagline a one-click change set; null when drawn as the idea describes
+    design: jsonb("design").$type<BrandDesign>(),
     prompt: text("prompt").notNull(),
     model: text("model").notNull(),
     // Practice preview, not made by the image service
@@ -589,6 +718,10 @@ export const brandAssets = pgTable(
     height: integer("height").notNull(),
     data: bytea("data").notNull(),
     check: jsonb("check").$type<AssetCheck>(),
+    // Uploads only: the owner's name for the file, the words in the logo as they typed them, and its fingerprint
+    title: text("title"),
+    words: text("words"),
+    sha256: text("sha256"),
     createdAt: createdAt(),
   },
   (table) => [
@@ -645,3 +778,67 @@ export const searchCache = pgTable(
   },
   (table) => [index("search_cache_created_idx").on(table.createdAt)],
 );
+
+// Business insights: the last set written, and the owner's useful or dismissed marks, which outlast a refresh
+export const businessInsights = pgTable("business_insights", {
+  businessId: text("business_id")
+    .primaryKey()
+    .references(() => businesses.id, { onDelete: "cascade" }),
+  insights: jsonb("insights").$type<SavedInsights>(),
+  feedback: jsonb("feedback").$type<InsightFeedback>().notNull().default({}),
+  updatedAt: updatedAt(),
+});
+
+// "I already have this" for a step done outside SnapStart, with the owner's link or note. A row means done.
+export const journeyMarks = pgTable(
+  "journey_marks",
+  {
+    businessId: businessId(),
+    // A step key such as "logo", or "social:instagram" for one account
+    key: text("key").notNull(),
+    url: text("url"),
+    note: text("note"),
+    createdAt: createdAt(),
+  },
+  (table) => [primaryKey({ columns: [table.businessId, table.key] })],
+);
+
+// The owner's yes, no or not sure to "does this apply to you?", by step and the condition's wording, so a reworded condition is asked again
+export const conditionAnswers = pgTable(
+  "condition_answers",
+  {
+    businessId: businessId(),
+    stepKey: text("step_key").notNull(),
+    condition: text("condition").notNull(),
+    answer: text("answer", { enum: CONDITION_ANSWERS }).notNull(),
+    answeredAt: timestamp("answered_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.businessId, table.stepKey, table.condition] })],
+);
+
+// Pictures the owner adds to their Brand Library, kept byte for byte. Generated files stay in their own tables.
+export const brandLibraryFiles = pgTable(
+  "brand_library_files",
+  {
+    id: id(),
+    businessId: businessId(),
+    group: text("group", { enum: LIBRARY_GROUPS }).notNull(),
+    title: text("title").notNull(),
+    mimeType: text("mime_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    sha256: text("sha256").notNull(),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+    data: bytea("data").notNull(),
+    createdAt: createdAt(),
+  },
+  (table) => [index("brand_library_files_business_idx").on(table.businessId, table.group)],
+);
+
+export const operationSetups = pgTable("operation_setups", {
+  businessId: businessId(),
+  kind: text("kind", { enum: ["email", "requests"] }).notNull(),
+  config: jsonb("config").$type<import("@/lib/rules/operations").OperationSetup>().notNull(),
+  paused: boolean("paused").notNull().default(false),
+  updatedAt: updatedAt(),
+}, (table) => [primaryKey({ columns: [table.businessId, table.kind] })]);

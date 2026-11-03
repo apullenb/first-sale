@@ -1,5 +1,5 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { eq, getTableColumns } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { businesses, websitePlans } from "@/db/schema";
 
@@ -8,13 +8,15 @@ import { businesses, websitePlans } from "@/db/schema";
 export type WebsitePlan = typeof websitePlans.$inferSelect;
 export type WebsitePatch = Partial<Omit<WebsitePlan, "businessId" | "updatedAt">>;
 
+const planColumns = getTableColumns(websitePlans);
+
 export async function getWebsitePlanForOwner(db: Db, ownerId: string): Promise<WebsitePlan | null> {
   const [row] = await db
-    .select({ plan: websitePlans })
+    .select(planColumns)
     .from(websitePlans)
     .innerJoin(businesses, eq(businesses.id, websitePlans.businessId))
     .where(eq(businesses.ownerId, ownerId));
-  return row?.plan ?? null;
+  return row ?? null;
 }
 
 // Creates the plan on first save. False when the owner has no business.

@@ -2,8 +2,11 @@
 
 import { useId, useLayoutEffect, useState } from "react";
 import { checkDomainAction, chooseDomainAction } from "@/app/(app)/website/actions";
+import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
+import { Done } from "@/components/marketing/pieces";
 import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
+import { Chip } from "@/components/ui";
 import type { DomainCheck } from "@/lib/website/types";
 
 interface Props {
@@ -13,9 +16,9 @@ interface Props {
 }
 
 const STATUS = {
-  available: { label: "Not registered yet", style: "bg-accent-tint text-accent-ink" },
-  taken: { label: "Already taken", style: "bg-rule-tint text-rule" },
-  unknown: { label: "Couldn’t check", style: "bg-check-tint text-check" },
+  available: { label: "Not registered yet", tone: "done" },
+  taken: { label: "Already taken", tone: "gray" },
+  unknown: { label: "Couldn’t check", tone: "warn" },
 } as const;
 
 // Ideas from the business name, plus any address the owner types, checked against the official registry
@@ -36,7 +39,7 @@ export function DomainFinder({ ideas, checks, chosen }: Props) {
       const result = await action();
       if (!result.ok) setError(result.message ?? "That didn’t work. Try again.");
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(null);
     }
@@ -45,9 +48,11 @@ export function DomainFinder({ ideas, checks, chosen }: Props) {
   return (
     <div className="flex flex-col gap-4">
       {chosen ? (
-        <p className="rounded-xl bg-accent-tint px-4 py-3 text-accent-ink">
-          Your web address: <strong className="break-all">{chosen}</strong>. Buy it when you set up your site; until then, someone else could.
-        </p>
+        <Done>
+          <span className="font-normal">
+            Your web address: <strong className="break-all">{chosen}</strong>. Buy it when you set up your site; until then, someone else could.
+          </span>
+        </Done>
       ) : null}
 
       <form
@@ -74,6 +79,7 @@ export function DomainFinder({ ideas, checks, chosen }: Props) {
             className={`${INPUT} min-w-0 flex-1 basis-56`}
           />
           <button type="submit" disabled={pending !== null || !typed.trim()} className={SECONDARY}>
+            <Icon name="search" size="sm" />
             {pending === "typed" ? "Checking…" : "Check"}
           </button>
         </div>
@@ -85,15 +91,19 @@ export function DomainFinder({ ideas, checks, chosen }: Props) {
           {list.map((domain) => {
             const check = checked.get(domain);
             return (
-              <li key={domain} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-ground px-3.5 py-2.5">
-                <span className="min-w-0 flex-1 basis-48 break-all font-semibold">{domain}</span>
+              <li
+                key={domain}
+                className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border bg-surface px-3.5 py-2.5 shadow-soft ${chosen === domain ? "border-accent" : "border-line"}`}
+              >
+                <Icon name="globe" className="text-faint" />
+                <span className="min-w-0 flex-1 basis-40 break-all font-semibold">{domain}</span>
                 {check ? (
-                  <span className={`rounded-full px-2.5 py-0.5 text-[13px] font-semibold ${STATUS[check.status].style}`}>
+                  <Chip tone={STATUS[check.status].tone}>
                     {STATUS[check.status].label}
                     <span className="sr-only">
                       , checked <LocalDate iso={check.checkedAt} />
                     </span>
-                  </span>
+                  </Chip>
                 ) : null}
                 {!check || check.status === "unknown" ? (
                   <button type="button" disabled={pending !== null} onClick={() => run(domain, () => checkDomainAction(domain))} className={SECONDARY}>
@@ -105,7 +115,11 @@ export function DomainFinder({ ideas, checks, chosen }: Props) {
                     Use this one
                   </button>
                 ) : null}
-                {chosen === domain ? <span className="text-sm font-semibold text-accent-ink">Your choice</span> : null}
+                {chosen === domain ? (
+                  <Chip tone="accent" icon="check">
+                    Your choice
+                  </Chip>
+                ) : null}
               </li>
             );
           })}

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { BUSINESS_STRUCTURES } from "./domain";
+import { isEmailAddress, isUsPhone } from "./rules/contact-setup";
 
 // Business details that forms ask for, beyond the intake answers, and decisions the owner records.
 // Never Social Security numbers, tax ids or other identity numbers: forms leave those for the owner to fill in.
@@ -19,7 +20,7 @@ export const STRUCTURE_LABELS: Record<(typeof BUSINESS_STRUCTURES)[number] | "un
   llc: "Limited liability company (LLC)",
   partnership: "Partnership",
   corporation: "Corporation",
-  undecided: "Not decided yet",
+  undecided: "Not sure yet",
 };
 
 export const DETAILS = {
@@ -38,7 +39,7 @@ export const DETAILS = {
     options: [
       ["register_dba", "Register a name to sell under (DBA)"],
       ["legal_name", "Sell under my legal name or the company’s registered name"],
-      ["undecided", "Not decided yet"],
+      ["undecided", "Not sure yet"],
     ],
     maxLength: 40,
     decision: true,
@@ -49,8 +50,8 @@ export const DETAILS = {
     kind: "choice",
     options: [
       ["default", "Keep the default for my structure"],
-      ["ask_professional", "Ask a tax professional about choosing another first"],
-      ["undecided", "Not decided yet"],
+      ["s_corp", "Choose S corporation status"],
+      ["undecided", "Not sure yet"],
     ],
     maxLength: 40,
     decision: true,
@@ -77,7 +78,7 @@ export const DETAILS = {
   business_phone: { label: "Business phone", help: "A phone number forms and customers can reach you at.", kind: "text", maxLength: 40 },
   registered_agent: {
     label: "Registered agent (name and address)",
-    help: "A person or company named to receive official legal papers for an LLC or corporation. Many states let an owner be their own agent if they have a street address in the state. Your state’s rules say who can serve.",
+    help: "The person or company that accepts legal mail for your LLC or corporation, like lawsuits and state notices. It can be you: many states let an owner be their own agent if they have a street address in the state. Your state’s law says who can serve.",
     kind: "multiline",
     maxLength: 400,
   },
@@ -90,6 +91,12 @@ export const DETAILS = {
       ["manager_managed", "A chosen manager (manager-managed)"],
     ],
     maxLength: 40,
+  },
+  pickup_details: {
+    label: "Pickup hours and place",
+    help: "When and where customers collect orders, like “Saturdays 9 to noon, at my front porch”. Kept here for your plans; share it with customers only where you choose.",
+    kind: "multiline",
+    maxLength: 300,
   },
   business_purpose: {
     label: "What the business does, in one sentence",
@@ -106,6 +113,9 @@ export const DETAILS = {
 } as const satisfies Record<string, DetailSpec>;
 
 export type DetailKey = keyof typeof DETAILS;
+
+// Where a detail's field sits on Your business, for links straight to it
+export const detailAnchor = (key: DetailKey) => `detail-${key}`;
 export const DETAIL_KEYS = Object.keys(DETAILS) as DetailKey[];
 
 export const DECISION_KEYS = DETAIL_KEYS.filter((key) => (DETAILS[key] as DetailSpec).decision);
@@ -126,7 +136,9 @@ export function detailProblem(key: DetailKey, value: string): string | null {
   if (!trimmed) return `Enter ${spec.label.toLowerCase()}.`;
   if (trimmed.length > spec.maxLength) return `Keep it under ${spec.maxLength} characters.`;
   if (spec.options && !spec.options.some(([option]) => option === trimmed)) return "Pick one of the options.";
-  if (looksLikeIdNumber(trimmed)) return "First Sale doesn’t store Social Security or tax id numbers. Fill those in on the form yourself.";
+  if (key === "business_email" && !isEmailAddress(trimmed)) return "Enter an email address like hello@example.com.";
+  if (key === "business_phone" && !isUsPhone(trimmed)) return "Enter a US phone number with its area code, like (512) 555-0123.";
+  if (looksLikeIdNumber(trimmed)) return "SnapStart doesn’t store Social Security or tax ID numbers. Fill those in on the form yourself.";
   return null;
 }
 

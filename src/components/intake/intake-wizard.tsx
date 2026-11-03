@@ -10,8 +10,10 @@ import {
   suggestAnswersAction,
   updateBusinessAction,
 } from "@/app/(app)/business/actions";
+import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
-import { PRIMARY, SECONDARY } from "@/components/styles";
+import { ALERT, EYEBROW, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
+import { Card, IconTile } from "@/components/ui";
 import { type BusinessCategory, type BusinessProfile, businessProfileSchema, MAX_OWNERS, type OFFERING_KINDS } from "@/lib/domain";
 import {
   answersToProfile,
@@ -30,10 +32,12 @@ import {
 import { categoryFor } from "@/lib/intake/catalog";
 import { type ImpactContext, profileImpact } from "@/lib/intake/impact";
 import { type QuestionField, questionsFor } from "@/lib/intake/questions";
-import { ChoiceCards, PracticeSuggestions } from "./choices";
+import { ChapterTabs } from "./chapter-tabs";
+import { CHAPTERS, chapterIndex } from "./chapters";
+import { CheckTile, ChoiceCards, PracticeSuggestions } from "./choices";
 import { IntakeReview } from "./intake-review";
 import { PlaceStep } from "./place-step";
-import { MarkBadge, QuestionBlock } from "./question-block";
+import { MarkBadge, QUESTION_TITLE, QuestionBlock, WhyLine } from "./question-block";
 import { SellStep } from "./sell-step";
 
 type OfferingKind = (typeof OFFERING_KINDS)[number];
@@ -60,6 +64,9 @@ type Props =
       context: ImpactContext;
     };
 
+// How long Continue waits after a part opens
+const STEP_GUARD_MS = 400;
+
 const TITLES: Record<Exclude<StepId, "details">, string> = {
   sell: "What kind of business is it?",
   place: "Where will your business be?",
@@ -74,13 +81,13 @@ const TITLES: Record<Exclude<StepId, "details">, string> = {
 };
 
 const WHY: Record<StepId, string> = {
-  sell: "What you sell decides which rules we look for, like food rules, product safety and sales tax. Pick the closest; you can add more.",
-  place: "Rules come from your state, county and city. We only use official government sites for the places you pick.",
+  sell: "What you sell decides which requirements we look for, like food safety laws, product safety and sales tax. Pick the closest; you can add more.",
+  place: "Requirements come from your state, county and city. We only use official government sites for the places you pick.",
   owners: "One owner or several changes which business structures fit, and which agreements are worth writing down.",
   name: "Selling under a name that isn’t your own legal name usually means registering it. No name yet is fine.",
   status: "So we can mark steps you’ve already done instead of repeating them.",
-  channels: "Markets, shops, delivery and shipping each come with their own rules.",
-  details: "These few questions decide which product rules we check for you.",
+  channels: "Markets, shops, delivery and shipping each come with their own requirements.",
+  details: "These few questions decide which product safety requirements we check for you.",
   premises: "Working from home can need zoning approval. A rented space has to be approved for your kind of business.",
   money: "Your budget and sales shape which costs come first and which structure fits. Rough answers are fine.",
   help: "Paying people adds employer steps, usually later on.",
@@ -89,8 +96,15 @@ const WHY: Record<StepId, string> = {
 
 function detailsTitle(a: IntakeAnswers): string {
   const category = categoryFor(a.category);
-  return category && category.id !== "other" ? `About your ${category.label.toLowerCase()}` : "A few details";
+  if (!category || category.id === "other") return "A few details";
+  return category.id === "resale_shop" ? "About your shop" : `About your ${category.label.toLowerCase()}`;
 }
+
+// Steps whose title is the question itself, so the reason sits right under it
+const ASKS_ITSELF: StepId[] = ["sell", "place", "owners", "name"];
+
+const STEPPER =
+  "grid size-11 place-items-center rounded-[10px] border border-line-strong bg-surface text-ink shadow-soft transition hover:border-muted hover:bg-soft active:translate-y-px";
 
 // Fields shown on each step: continuing past a step confirms their suggestions
 const STEP_FIELDS: Partial<Record<StepId, (keyof IntakeAnswers)[]>> = {
@@ -150,6 +164,8 @@ export function IntakeWizard(props: Props) {
   const errorRef = useRef<HTMLParagraphElement>(null);
   // Focus moves only after the owner changes question, not when a kept screen is shown again
   const focusHeading = useRef(false);
+  // Continue waits a moment after each part opens, so a second click can't skip the new part
+  const [settling, setSettling] = useState(false);
   const dirty = useRef(false);
   const closed = useRef(false);
   const inFlight = useRef<Promise<unknown> | null>(null);
@@ -194,6 +210,8 @@ export function IntakeWizard(props: Props) {
   }
 
   function go(to: Step) {
+    setSettling(true);
+    window.setTimeout(() => setSettling(false), STEP_GUARD_MS);
     focusHeading.current = true;
     // The welcome-back note and its Start over button are only for the first screen
     setResumed(null);
@@ -207,8 +225,9 @@ export function IntakeWizard(props: Props) {
     errorRef.current?.focus();
   }
 
-  function next() {
-    if (step === "review") return;
+  function next(event?: { detail: number }) {
+    // A double click, or a click that lands as the next part opens, never skips a part
+    if (step === "review" || (event?.detail ?? 0) > 1) return;
     const problem = stepProblem(step, answers);
     if (problem) return showProblem(problem);
     // Continuing past a step confirms what was filled in on it
@@ -281,7 +300,7 @@ export function IntakeWizard(props: Props) {
         error: false,
       });
     } catch {
-      setAiNote({ text: "Couldn’t reach First Sale. Check your connection and try again.", error: true });
+      setAiNote({ text: "Couldn’t reach SnapStart. Check your connection and try again.", error: true });
     } finally {
       setAiPending(false);
     }
@@ -305,7 +324,7 @@ export function IntakeWizard(props: Props) {
     } catch (error) {
       closed.current = false;
       const message = error instanceof Error && !(error instanceof TypeError) ? error.message : "";
-      setSaveError(message || "Couldn’t reach First Sale. Check your connection and try again.");
+      setSaveError(message || "Couldn’t reach SnapStart. Check your connection and try again.");
       setSaving(false);
       return;
     }
@@ -343,9 +362,11 @@ export function IntakeWizard(props: Props) {
 
   const rows = summarize(answers, { followUps: true });
   const saved = autosave === "saved" ? "Progress saved" : autosave === "saving" ? "Saving…" : autosave === "failed" ? "Couldn’t save progress just now" : "";
+  const savedIcon = autosave === "saved" ? <Icon name="check" size="xs" className="text-accent" /> : null;
   const resumeBanner = resumed ? (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent-tint px-4 py-3 text-accent-ink">
-      <p>
+    <div className="flex flex-wrap items-center gap-3 rounded-[14px] border border-line bg-surface px-4 py-3.5 shadow-card sm:px-5">
+      <IconTile icon="clock" />
+      <p className="min-w-0 flex-1 basis-56">
         {editing ? "You have changes you haven’t confirmed yet, from " : "Welcome back. We kept your answers from "}
         <LocalDate iso={resumed} />.
       </p>
@@ -366,43 +387,49 @@ export function IntakeWizard(props: Props) {
       <PracticeSuggestions value={practice}>
         <div className="flex max-w-3xl flex-col gap-5">
           {resumeBanner}
-          <IntakeReview editing={editing} rows={rows} marks={marks} impact={impact} headingRef={headingRef} onEdit={editFromReview} disabled={saving} />
-          {saveError ? (
-            <p role="alert" className="rounded-lg bg-check-tint px-3 py-2.5 text-sm text-check">
-              {saveError}
-            </p>
-          ) : null}
-          <div className="flex flex-wrap justify-between gap-2.5">
-            {editing ? (
-              <button
-                type="button"
-                onClick={() =>
-                  // Leaves the draft so the owner can come back to these changes
-                  startTransition(() => {
-                    setFromReview(false);
-                    setSaveError(null);
-                    router.push("/business");
-                  })
-                }
-                disabled={saving}
-                className={SECONDARY}
-              >
-                Back to your business
+          <ChapterTabs step="review" steps={steps} />
+          <IntakeReview editing={editing} rows={rows} marks={marks} impact={impact} headingRef={headingRef} onEdit={editFromReview} disabled={saving}>
+            {saveError ? (
+              <p role="alert" className={ALERT}>
+                {saveError}
+              </p>
+            ) : null}
+            <div className="flex flex-wrap justify-between gap-2.5 border-t border-line pt-[18px]">
+              {editing ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    // Leaves the draft so the owner can come back to these changes
+                    startTransition(() => {
+                      setFromReview(false);
+                      setSaveError(null);
+                      router.push("/business");
+                    })
+                  }
+                  disabled={saving}
+                  className={SECONDARY}
+                >
+                  <Icon name="back" size="sm" />
+                  Back to your business
+                </button>
+              ) : (
+                <button type="button" onClick={back} disabled={saving} className={SECONDARY}>
+                  <Icon name="back" size="sm" />
+                  Back
+                </button>
+              )}
+              <button type="button" onClick={save} disabled={saving || unchanged} className={PRIMARY}>
+                {saving ? "Saving…" : editing ? "Confirm these changes" : "This is right. Continue"}
+                {saving ? null : <Icon name="arrow" size="sm" />}
               </button>
-            ) : (
-              <button type="button" onClick={back} disabled={saving} className={SECONDARY}>
-                Back
-              </button>
-            )}
-            <button type="button" onClick={save} disabled={saving || unchanged} className={PRIMARY}>
-              {saving ? "Saving…" : editing ? "Confirm these changes" : "This is right. Continue"}
-            </button>
-          </div>
-          {saved ? (
-            <p role="status" className="text-sm text-muted">
-              {saved}
-            </p>
-          ) : null}
+            </div>
+            {saved ? (
+              <p role="status" className="flex items-center gap-1.5 text-sm text-muted">
+                {savedIcon}
+                {saved}
+              </p>
+            ) : null}
+          </IntakeReview>
         </div>
       </PracticeSuggestions>
     );
@@ -414,28 +441,38 @@ export function IntakeWizard(props: Props) {
   const answered = rows.filter((row) => row.value);
   const questions = questionsFor(step, answers);
   const onQuestion = (field: QuestionField, value: string | string[]) => update(field, value as IntakeAnswers[typeof field]);
+  const chapter = CHAPTERS[chapterIndex(step)];
 
   return (
     <PracticeSuggestions value={practice}>
       <div className="flex flex-col gap-5">
         {resumeBanner}
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-sm font-semibold text-accent-ink">
-              Part {position} of {steps.length}
-            </span>
-            <span role="status" className="text-sm text-muted">
-              {saved}
-            </span>
-          </div>
-          <div aria-hidden="true" className="h-2 overflow-hidden rounded-full bg-line">
-            <div className="h-full rounded-full bg-accent" style={{ width: `${Math.round((position / (steps.length + 1)) * 100)}%` }} />
-          </div>
-        </div>
+        <ChapterTabs step={step} steps={steps} />
 
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
-          <section aria-labelledby={id("question")} className="flex min-w-0 flex-col gap-5 rounded-2xl bg-surface p-5 ring-1 ring-ink/5 sm:p-6 lg:flex-1">
-            <StepTitle id={id("question")} headingRef={headingRef} title={title} />
+          <section
+            aria-labelledby={id("question")}
+            className="flex min-w-0 flex-col gap-7 rounded-2xl border border-line bg-surface px-4 py-5 shadow-card sm:p-7 lg:flex-1"
+          >
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                <p className={EYEBROW}>
+                  {chapter.label} · Part {position} of {steps.length}
+                </p>
+                <span role="status" className="flex items-center gap-1.5 text-sm text-muted">
+                  {savedIcon}
+                  {saved}
+                </span>
+              </div>
+              <StepTitle id={id("question")} headingRef={headingRef} title={title} />
+              {ASKS_ITSELF.includes(step) ? (
+                <WhyLine>
+                  <b className="font-bold text-rule">Why we ask:</b> {WHY[step]}
+                </WhyLine>
+              ) : (
+                <p className="text-[17px] text-muted">{WHY[step]}</p>
+              )}
+            </div>
 
             {step === "sell" ? (
               <SellStep
@@ -484,10 +521,12 @@ export function IntakeWizard(props: Props) {
             ) : null}
 
             {step === "owners" ? (
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <MarkBadge mark={marks.owners} />
-                </div>
+              <div className="flex flex-col gap-4">
+                {marks.owners ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <MarkBadge mark={marks.owners} />
+                  </div>
+                ) : null}
                 <ChoiceCards
                   labelledBy={id("question")}
                   describedBy={errorId}
@@ -499,19 +538,19 @@ export function IntakeWizard(props: Props) {
                   onSelect={(value) => update("owners", value)}
                 />
                 {answers.owners === "others" ? (
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span id={id("owner-count-label")} className="font-semibold">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <span id={id("owner-count-label")} className="text-[15.5px] font-semibold">
                       How many owners in total, including you?
                     </span>
-                    <div role="group" aria-labelledby={id("owner-count-label")} className="flex items-center gap-1.5">
-                      <button type="button" aria-label="Fewer owners" onClick={() => update("ownerCount", Math.max(2, answers.ownerCount - 1))} className="size-11 rounded-lg border border-field text-lg font-bold">
-                        −
+                    <div role="group" aria-labelledby={id("owner-count-label")} className="flex items-center gap-2">
+                      <button type="button" aria-label="Fewer owners" onClick={() => update("ownerCount", Math.max(2, answers.ownerCount - 1))} className={STEPPER}>
+                        <Icon name="minus" />
                       </button>
-                      <span aria-live="polite" className="min-w-8 text-center text-lg font-bold">
+                      <span aria-live="polite" className="min-w-10 text-center font-display text-2xl tabular-nums">
                         {answers.ownerCount}
                       </span>
-                      <button type="button" aria-label="More owners" onClick={() => update("ownerCount", Math.min(MAX_OWNERS, answers.ownerCount + 1))} className="size-11 rounded-lg border border-field text-lg font-bold">
-                        +
+                      <button type="button" aria-label="More owners" onClick={() => update("ownerCount", Math.min(MAX_OWNERS, answers.ownerCount + 1))} className={STEPPER}>
+                        <Icon name="plus" />
                       </button>
                     </div>
                   </div>
@@ -520,8 +559,8 @@ export function IntakeWizard(props: Props) {
             ) : null}
 
             {step === "name" ? (
-              <div className="flex flex-col gap-2">
-                <label htmlFor={id("biz-name")} className="font-semibold">
+              <div className="flex flex-col gap-2.5">
+                <label htmlFor={id("biz-name")} className="text-[15.5px] font-semibold">
                   Business name
                 </label>
                 <input
@@ -534,23 +573,22 @@ export function IntakeWizard(props: Props) {
                   aria-describedby={errorId}
                   aria-invalid={stepError ? true : undefined}
                   placeholder="For example: Sunrise Bakes"
-                  className="min-h-12 rounded-lg border border-field bg-surface px-3 py-2.5 text-base disabled:bg-ground"
+                  className={`${INPUT} disabled:bg-wash disabled:text-faint sm:max-w-md`}
                 />
-                <label className="flex min-h-11 items-center gap-2.5">
-                  <input type="checkbox" checked={answers.noName} onChange={(e) => update("noName", e.target.checked)} className="size-5 accent-accent" />
+                <CheckTile checked={answers.noName} onChange={(checked) => update("noName", checked)}>
                   I haven’t picked a name yet
-                </label>
+                </CheckTile>
               </div>
             ) : null}
 
             {step === "timing" ? (
               <div className="flex flex-col gap-2.5">
-                <label htmlFor={id("launch-date")} className="text-[19px] font-bold leading-snug">
+                <label htmlFor={id("launch-date")} className={QUESTION_TITLE}>
                   What’s your goal launch date?
                 </label>
-                <p id={id("launch-why")} className="text-[15px] text-rule">
-                  <span className="font-semibold">Why we ask:</span> it’s the day you hope to make your first sale, and your dashboard counts down to it.
-                </p>
+                <WhyLine id={id("launch-why")}>
+                  <b className="font-bold text-rule">Why we ask:</b> it’s the day you hope to make your first sale, and your dashboard counts down to it.
+                </WhyLine>
                 <input
                   id={id("launch-date")}
                   type="date"
@@ -558,20 +596,19 @@ export function IntakeWizard(props: Props) {
                   onChange={(e) => update("launchDate", e.target.value)}
                   disabled={noDate}
                   aria-describedby={[id("launch-why"), errorId].filter(Boolean).join(" ")}
-                  className="min-h-12 w-fit rounded-lg border border-field bg-surface px-3 py-2.5 text-base disabled:bg-ground"
+                  className={`${INPUT} disabled:bg-wash disabled:text-faint sm:max-w-[280px]`}
                 />
-                <label className="flex min-h-11 items-center gap-2.5">
-                  <input
-                    type="checkbox"
-                    checked={noDate}
-                    onChange={(e) => {
-                      setNoDate(e.target.checked);
-                      if (e.target.checked) update("launchDate", "");
-                    }}
-                    className="size-5 accent-accent"
-                  />
+                <CheckTile
+                  checked={noDate}
+                  onChange={(checked) => {
+                    setNoDate(checked);
+                    // Stored as "unsure": no date yet is an answer, not a skipped question
+                    update("launchTiming", checked ? "unsure" : "");
+                    if (checked) update("launchDate", "");
+                  }}
+                >
                   I don’t have a date yet
-                </label>
+                </CheckTile>
               </div>
             ) : null}
 
@@ -580,47 +617,48 @@ export function IntakeWizard(props: Props) {
             ))}
 
             {stepError ? (
-              <p id={id("step-error")} ref={errorRef} role="alert" tabIndex={-1} className="text-sm font-semibold text-danger">
+              <p id={id("step-error")} ref={errorRef} role="alert" tabIndex={-1} className="flex items-start gap-2 text-[15px] font-bold text-danger">
+                <Icon name="info" size="sm" className="mt-[3px]" />
                 {stepError}
               </p>
             ) : null}
 
-            <div className="flex flex-wrap justify-between gap-2.5 border-t border-rule-tint pt-3">
+            <div className="flex flex-wrap justify-between gap-2.5 border-t border-line pt-[18px]">
               {position > 1 || fromReview ? (
                 <button type="button" onClick={back} disabled={busy} className={SECONDARY}>
+                  <Icon name="back" size="sm" />
                   Back
                 </button>
               ) : (
                 <span />
               )}
-              <button type="button" onClick={next} disabled={busy} className={PRIMARY}>
+              <button type="button" onClick={(event) => next(event)} disabled={busy || settling} className={PRIMARY}>
                 {fromReview ? "Back to summary" : nextStep(step, answers) === "review" ? "See my summary" : "Continue"}
+                <Icon name="arrow" size="sm" />
               </button>
             </div>
           </section>
 
           <aside className="flex flex-col gap-3.5 lg:w-72 lg:shrink-0">
-            <div className="flex flex-col gap-1.5 rounded-2xl bg-surface p-4.5 ring-1 ring-ink/5">
-              <h2 className="font-bold">Why we ask</h2>
-              <p className="text-[15px] text-rule">{WHY[step]}</p>
-            </div>
-            <div className="flex flex-col gap-2 rounded-2xl bg-surface p-4.5 ring-1 ring-ink/5">
-              <h2 className="font-bold">Your answers so far</h2>
+            <Card title="Your answers so far" icon="checklist" id={id("so-far")}>
               {answered.length > 10 ? <p className="text-sm text-muted">Your latest 10. You’ll see them all before you confirm.</p> : null}
               {answered.length ? (
-                <dl className="flex flex-col gap-2">
+                <dl className="flex flex-col">
                   {answered.slice(-10).map((row) => (
-                    <div key={row.label}>
-                      <dt className="text-[13px] font-semibold text-muted">{row.label}</dt>
-                      <dd className="text-[15px]">{row.value.length > 70 ? `${row.value.slice(0, 67)}…` : row.value}</dd>
+                    <div key={row.label} className="border-b border-line py-2 first:pt-0 last:border-b-0">
+                      <dt className="text-[13.5px] text-muted">{row.label}</dt>
+                      <dd className="text-[15px] font-semibold">{row.value.length > 70 ? `${row.value.slice(0, 67)}…` : row.value}</dd>
                     </div>
                   ))}
                 </dl>
               ) : (
                 <p className="text-sm text-muted">Nothing yet.</p>
               )}
-              <p className="text-sm text-muted">Saved as you go. Come back any time to pick up where you left off.</p>
-            </div>
+              <p className="flex items-start gap-1.5 border-t border-line pt-3 text-sm text-muted">
+                <Icon name="check" size="xs" className="mt-[3px] text-accent" />
+                Saved as you go. Come back any time to pick up where you left off.
+              </p>
+            </Card>
           </aside>
         </div>
       </div>
@@ -636,7 +674,7 @@ function withoutMark(marks: Marks, field: keyof IntakeAnswers): Marks {
 
 function StepTitle({ id, title, headingRef }: { id: string; title: string; headingRef: RefObject<HTMLHeadingElement | null> }) {
   return (
-    <h1 id={id} ref={headingRef} tabIndex={-1} className="font-display text-3xl font-bold leading-tight tracking-tight">
+    <h1 id={id} ref={headingRef} tabIndex={-1} className="font-display text-[30px] leading-[1.15] tracking-[-0.01em] sm:text-[36px]">
       {title}
     </h1>
   );

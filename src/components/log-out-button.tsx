@@ -32,7 +32,7 @@ export function LogOutButton() {
   return (
     <div className="flex items-center gap-2">
       {failed ? (
-        <span role="alert" className="text-sm text-danger">
+        <span role="alert" className="text-sm text-red-300">
           Couldn’t log out. Try again.
         </span>
       ) : null}
@@ -40,7 +40,7 @@ export function LogOutButton() {
         type="button"
         onClick={logOut}
         disabled={pending}
-        className="min-h-11 rounded-lg px-3 text-sm font-semibold text-rule underline underline-offset-4 hover:bg-rule-tint disabled:opacity-60"
+        className="min-h-11 rounded-[10px] px-3 text-sm font-semibold text-white/80 underline underline-offset-4 hover:bg-white/10 hover:text-white disabled:opacity-60"
       >
         {pending ? "Logging out…" : "Log out"}
       </button>

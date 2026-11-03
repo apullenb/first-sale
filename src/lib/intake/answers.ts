@@ -393,11 +393,67 @@ export function profileToAnswers(p: BusinessProfile): IntakeAnswers {
   };
 }
 
+// Follow-ups that shape the requirements or the structure advice: Continue waits for them, and "Not sure" always counts
+const REQUIRED_FOLLOW_UPS: Partial<Record<FollowUp, string>> = {
+  insideCityLimits: "Say whether your address is inside the city limits. “Not sure” is fine.",
+  ownerRelation: "Say who the other owners are. “Not sure” is fine.",
+  mayAddOwners: "Say whether someone might join as a co-owner later. “Not sure” is fine.",
+  nameIsLegalName: "Say whether the business name is just your own legal name. “Not sure” is fine.",
+  registeredAs: "Say what kind of business you registered. “Not sure” is fine.",
+  alreadyHave: "Pick what you already have, or “None yet”.",
+  foodNeedsCold: "Say whether any of it needs to be kept cold. “Not sure” is fine.",
+  makesForKids: "Say whether any items are made mainly for children. “Not sure” is fine.",
+  foodContact: "Say whether any items touch food. “Not sure” is fine.",
+  inventorySources: "Pick where your stock comes from. “Not sure” is fine.",
+  servicesLicensed: "Say whether your work needs a personal license. “Not sure” is fine.",
+  handoff: "Pick how customers get what they buy. “Not sure” is fine.",
+  customersVisit: "Say whether customers will come to your home. “Not sure” is fine.",
+  helpKinds: "Pick what kind of help. “Not sure” is fine.",
+};
+
+// Questions the owner may leave blank; everything else on a step is needed before Continue
+export const OPTIONAL_FIELDS: readonly (keyof IntakeAnswers)[] = ["startupBudget", "firstYearSales", "takesOnDebt", "hiringPlans", "launchTiming", "experience", "goals"];
+
+const STEP_OF: Partial<Record<FollowUp, StepId>> = {
+  insideCityLimits: "place",
+  ownerRelation: "owners",
+  mayAddOwners: "owners",
+  nameIsLegalName: "name",
+  registeredAs: "status",
+  alreadyHave: "status",
+  foodNeedsCold: "details",
+  makesForKids: "details",
+  foodContact: "details",
+  inventorySources: "details",
+  servicesLicensed: "details",
+  handoff: "channels",
+  customersVisit: "premises",
+  helpKinds: "help",
+};
+
+function missingFollowUp(step: StepId, a: IntakeAnswers): string | null {
+  for (const [field, message] of Object.entries(REQUIRED_FOLLOW_UPS) as [FollowUp, string][]) {
+    if (STEP_OF[field] !== step || !asks(field, a)) continue;
+    const value = a[field];
+    if (Array.isArray(value) ? !value.length : !value) return message;
+  }
+  return null;
+}
+
 // What stops Continue on a step; null when the step is complete enough
 export function stepProblem(step: StepId, a: IntakeAnswers): string | null {
+  return ownProblem(step, a) ?? missingFollowUp(step, a);
+}
+
+function ownProblem(step: StepId, a: IntakeAnswers): string | null {
   switch (step) {
+    case "status":
+      return a.stage ? null : "Pick where you are now.";
+    case "premises":
+      return a.premises ? null : "Pick where you’ll work. “Not sure yet” is fine.";
     case "sell":
       if (!a.category) return "Pick the kind of business closest to yours. “Something else” works too.";
+      if (a.category === "resale_shop" && !a.productTags.length && !a.firstItems.trim()) return "Say what kind of shop it is, or pick what you’ll sell.";
       return kindsOf(a).length ? null : "Pick at least one kind of thing you’ll sell.";
     case "name":
       return a.noName || a.name.trim() ? null : "Enter a name, or tick “I haven’t picked a name yet”.";
@@ -417,6 +473,9 @@ export function stepProblem(step: StepId, a: IntakeAnswers): string | null {
   }
 }
 
+// "undecided": the owner chose "not sure" or "not yet", which is an answer, never a "no"; "unanswered": skipped
+export type AnswerState = "answered" | "undecided" | "unanswered";
+
 export interface SummaryRow {
   label: string;
   value: string;
@@ -424,11 +483,22 @@ export interface SummaryRow {
   // Answers shown in this row, for marking suggestions
   fields: (keyof IntakeAnswers)[];
   followUp?: true;
+  state: AnswerState;
   // The owner said "not sure" to at least part of it: an open question, never a "no"
   unsure?: true;
 }
 
 const isUnsure = (value: string | readonly string[]) => (Array.isArray(value) ? value.includes("unsure") : value === "unsure");
+const stateOf = (value: string, unsure: boolean): AnswerState => (unsure ? "undecided" : value ? "answered" : "unanswered");
+
+// Shown above each kind of open question
+export const UNDECIDED_NOTE = "You haven’t decided these yet, and that’s an answer. SnapStart never reads it as “no”: steps that depend on it stay in your plan.";
+export const UNANSWERED_NOTE = "You skipped these. We won’t guess: your requirements show what depends on them.";
+
+// How a row's answer reads wherever answers are listed
+export function answerText(row: Pick<SummaryRow, "value" | "state">): string {
+  return row.value || (row.state === "undecided" ? "Not decided yet" : "Not answered");
+}
 
 // Short summaries leave out follow-ups; the review and the business page ask for them
 export function summarize(a: IntakeAnswers, options: { followUps?: boolean } = {}): SummaryRow[] {
@@ -442,15 +512,12 @@ export function summarize(a: IntakeAnswers, options: { followUps?: boolean } = {
   const list = <K extends string>(labels: Record<K, string>, values: readonly K[]) => values.map((value) => labels[value]).join(", ");
   const followUp = (field: FollowUp, label: string, value: string, step: StepId): SummaryRow[] =>
     options.followUps && asks(field, a)
-      ? [{ label, value, step, fields: [field], followUp: true, ...(isUnsure(a[field]) ? { unsure: true as const } : {}) }]
+      ? [{ label, value, step, fields: [field], followUp: true, state: stateOf(value, isUnsure(a[field])), ...(isUnsure(a[field]) ? { unsure: true as const } : {}) }]
       : [];
-  const row = (label: string, value: string, step: StepId, fields: (keyof IntakeAnswers)[]): SummaryRow => ({
-    label,
-    value,
-    step,
-    fields,
-    ...(fields.some((field) => isUnsure(a[field] as string | string[])) ? { unsure: true as const } : {}),
-  });
+  const row = (label: string, value: string, step: StepId, fields: (keyof IntakeAnswers)[], undecided = false): SummaryRow => {
+    const unsure = undecided || fields.some((field) => isUnsure(a[field] as string | string[]));
+    return { label, value, step, fields, state: stateOf(value, unsure), ...(unsure ? { unsure: true as const } : {}) };
+  };
 
   return [
     row("What you’ll sell", [sells, sellsText(a)].filter(Boolean).join(": "), "sell", ["category", "productTags", "offeringKinds", "firstItems"]),
@@ -460,7 +527,7 @@ export function summarize(a: IntakeAnswers, options: { followUps?: boolean } = {
     row("Owners", a.owners === "me" ? "Just you" : a.owners === "others" ? `${a.ownerCount} owners` : "", "owners", ["owners", "ownerCount"]),
     ...followUp("ownerRelation", "Who the owners are", a.ownerRelation ? OWNER_RELATION_LABELS[a.ownerRelation] : "", "owners"),
     ...followUp("mayAddOwners", "Might add a co-owner", yesNo(a.mayAddOwners), "owners"),
-    row("Business name", a.noName ? "Not picked yet" : a.name.trim(), "name", ["name", "noName"]),
+    row("Business name", a.noName ? "Not picked yet" : a.name.trim(), "name", ["name", "noName"], a.noName),
     ...followUp("nameIsLegalName", "Name is your own legal name", yesNo(a.nameIsLegalName), "name"),
     row("Where you are now", a.stage ? STAGE_LABELS[a.stage] : "", "status", ["stage"]),
     ...followUp("registeredAs", "Registered as", a.registeredAs ? REGISTERED_AS_LABELS[a.registeredAs] : "", "status"),
@@ -484,7 +551,12 @@ export function summarize(a: IntakeAnswers, options: { followUps?: boolean } = {
       : []),
     row("Hiring", a.hiringPlans ? HIRING_LABELS[a.hiringPlans] : "", "help", ["hiringPlans"]),
     ...followUp("helpKinds", "Kind of help", list(HELP_KIND_LABELS, a.helpKinds), "help"),
-    row("Goal launch date", a.launchDate ? formatLaunchDate(a.launchDate) : a.launchTiming ? LAUNCH_TIMING_LABELS[a.launchTiming] : "", "timing", ["launchDate", "launchTiming"]),
+    row(
+      "Goal launch date",
+      a.launchDate ? formatLaunchDate(a.launchDate) : a.launchTiming === "unsure" ? "No date yet" : a.launchTiming ? LAUNCH_TIMING_LABELS[a.launchTiming] : "",
+      "timing",
+      a.launchDate ? ["launchDate"] : ["launchDate", "launchTiming"],
+    ),
     row("Run a business before", a.experience ? EXPERIENCE_LABELS[a.experience] : "", "timing", ["experience"]),
     ...(options.followUps ? [row("Your goals", list(GOAL_LABELS, a.goals), "timing", ["goals"])] : []),
   ];
@@ -502,13 +574,17 @@ export function sameAnswers(a: IntakeAnswers, b: IntakeAnswers): boolean {
   return comparable(a) === comparable(b);
 }
 
-// Confirmed answers, ones filled in for the owner to check, and open questions, kept apart
+// Confirmed answers, ones filled in for the owner to check, ones not decided yet and skipped ones, kept apart
 export function groupRows(rows: SummaryRow[], marks: Marks = {}) {
   const marked = (row: SummaryRow) => row.fields.some((field) => marks[field]);
+  const unmarked = rows.filter((row) => !marked(row));
   return {
     check: rows.filter((row) => row.value && marked(row)),
-    open: rows.filter((row) => !marked(row) && (!row.value || row.unsure)),
-    confirmed: rows.filter((row) => row.value && !row.unsure && !marked(row)),
+    undecided: unmarked.filter((row) => row.state === "undecided"),
+    unanswered: unmarked.filter((row) => row.state === "unanswered"),
+    // Both kinds of open question
+    open: unmarked.filter((row) => row.state !== "answered"),
+    confirmed: unmarked.filter((row) => row.state === "answered"),
   };
 }
 

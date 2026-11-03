@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CompletionRequest, ModelProvider } from "@/lib/ai";
-import { checkBrandImage, checkLogo, checkVersion, compareLettering, type Expected, marksFor, noWords, onlyMarks } from "./checks";
+import { checkBrandImage, checkLogo, checkVersion, compareLettering, type Expected, marksFor, onlyMarks } from "./checks";
 
 const name: Expected = { name: "Rise Bakery", tagline: "", marks: "none" };
 const file = { mimeType: "image/png", data: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) };
@@ -69,11 +69,6 @@ describe("the spelling check", () => {
     expect(compareLettering(name, ["Rise Bakery"], false).status).toBe("unreadable");
   });
 
-  it("flags any words in a picture that should have none", () => {
-    expect(noWords([]).status).toBe("matches");
-    expect(noWords(["SALE"]).status).toBe("has_words");
-  });
-
   it("keeps the profile picture to the symbol, even with a misspelled name", () => {
     expect(onlyMarks(name, []).status).toBe("matches");
     expect(onlyMarks({ ...name, marks: "initials" }, ["RB"]).status).toBe("matches");
@@ -129,9 +124,9 @@ describe("reading the lettering with AI", () => {
     expect(check.lettering?.status).toBe("has_words");
   });
 
-  it("expects no words in a website picture, and the name in a banner", async () => {
-    const hero = await checkBrandImage(vision(() => ({ lettering: ["BREAD"], readable: true, notes: "" })).model, file, "website_hero", name, now);
-    expect(hero.lettering?.status).toBe("has_words");
+  it("expects the name and no other words in every brand image", async () => {
+    const hero = await checkBrandImage(vision(() => ({ lettering: ["Rise Bakery", "BREAD"], readable: true, notes: "" })).model, file, "website_hero", name, now);
+    expect(hero.lettering?.status).toBe("extra_words");
     const banner = await checkBrandImage(vision(() => ({ lettering: ["Rise Bakery"], readable: true, notes: "" })).model, file, "youtube_banner", name, now);
     expect(banner.lettering?.status).toBe("matches");
   });

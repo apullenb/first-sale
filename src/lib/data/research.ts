@@ -1,9 +1,11 @@
 import "server-only";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, like } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { businesses, requirements, researchSnapshots, sources } from "@/db/schema";
+import type { BusinessProfile, RequirementDraft, VerificationState } from "@/lib/domain";
+import type { FollowUpResult } from "@/lib/research/follow-up";
 import type { ResearchResult } from "@/lib/research/requirements";
-import { proposePlan } from "./plan";
+import { proposePlan, rebuildPlan, type ReplanOutcome } from "./plan";
 
 // Owner-scoped like businesses.ts: the business is always looked up by its owner.
 
@@ -35,6 +37,24 @@ export async function getResearchForOwner(db: Db, ownerId: string): Promise<Rese
     },
     { isolationLevel: "repeatable read", accessMode: "read only" },
   );
+}
+
+// Just what deciding what applies needs: the answers and structure the last check ran on
+export interface ResearchBasis {
+  checkedAt: Date;
+  profileKey: string;
+  profile: ResearchSnapshot["profile"];
+  structure: string | null;
+}
+
+export async function getResearchBasisForOwner(db: Db, ownerId: string): Promise<ResearchBasis | null> {
+  const [row] = await db
+    .select({ checkedAt: researchSnapshots.checkedAt, profileKey: researchSnapshots.profileKey, profile: researchSnapshots.profile, structure: researchSnapshots.structure })
+    .from(researchSnapshots)
+    .innerJoin(businesses, eq(businesses.id, researchSnapshots.businessId))
+    .where(eq(businesses.ownerId, ownerId))
+    .limit(1);
+  return row ?? null;
 }
 
 // Replaces the owner's last results in one go, unless a run that started later already saved.
@@ -78,6 +98,8 @@ export async function saveResearchForOwner(
       structure: research.structure,
       coverage: research.coverage,
       conflicts: research.conflicts,
+      followedUpAt: null,
+      offices: [],
     };
     await tx
       .insert(researchSnapshots)
@@ -132,10 +154,109 @@ export async function saveResearchForOwner(
           renewal: requirement.renewal,
           renewalFeeCents: requirement.renewalFeeUsd === null ? null : Math.round(requirement.renewalFeeUsd * 100),
           alreadyHave: requirement.alreadyHave,
+          ownerAction: requirement.ownerAction,
         })),
       );
     }
     await proposePlan(tx, business.id, research.plan, research.checkedAt);
     return true;
   });
+}
+
+// Saves the follow-up look onto the check it followed, then rebuilds the plan from it.
+// "stale" when a newer check replaced that one meanwhile.
+export async function saveFollowUpForOwner(
+  db: Db,
+  ownerId: string,
+  checkedAt: Date,
+  result: FollowUpResult,
+  profile: BusinessProfile,
+  details: readonly { key: string; value: string }[],
+  now = new Date(),
+): Promise<ReplanOutcome | "stale"> {
+  return db.transaction(async (tx) => {
+    const [business] = await tx.select({ id: businesses.id }).from(businesses).where(eq(businesses.ownerId, ownerId)).for("update");
+    if (!business) return "no_business";
+    const [snapshot] = await tx.select().from(researchSnapshots).where(eq(researchSnapshots.businessId, business.id));
+    if (!snapshot) return "no_research";
+    if (snapshot.checkedAt.getTime() !== checkedAt.getTime()) return "stale";
+
+    // A second follow-up replaces the first one's pages
+    await tx.delete(sources).where(and(eq(sources.businessId, business.id), like(sources.key, "fu-%")));
+    if (result.pages.length) {
+      await tx.insert(sources).values(
+        result.pages.map((page) => ({
+          businessId: business.id,
+          key: page.id,
+          url: page.url,
+          title: page.title,
+          level: page.level,
+          government: page.government,
+          discovered: page.discovered,
+          retrievedAt: new Date(page.retrievedAt),
+        })),
+      );
+    }
+    const settled = { applicability: "applies" as const, condition: "" };
+    for (const confirmed of result.confirmed) {
+      await tx
+        .update(requirements)
+        .set({
+          ...settled,
+          sourceIds: confirmed.sourceIds,
+          evidence: confirmed.evidence,
+          feeCents: confirmed.feeUsd === null ? null : Math.round(confirmed.feeUsd * 100),
+          deadline: confirmed.deadline,
+          verification: "sourced",
+          problems: [],
+          background: "",
+          verdict: "applies",
+        })
+        .where(and(eq(requirements.businessId, business.id), eq(requirements.key, confirmed.key)));
+    }
+    for (const note of result.notes) {
+      const quoted = note.evidence ? { sourceIds: note.sourceIds, evidence: note.evidence, verification: "sourced" as const, problems: [] } : {};
+      await tx
+        .update(requirements)
+        .set({ ...settled, ...quoted, background: note.background, verdict: note.verdict, ...(note.questions.length ? { whatToAsk: note.questions } : {}) })
+        .where(and(eq(requirements.businessId, business.id), eq(requirements.key, note.key)));
+    }
+    const answered = new Map(result.answers.map((each) => [each.question, each.answer]));
+    const openQuestions = snapshot.openQuestions.map((question) => {
+      const answer = answered.get(question.question);
+      return answer ? { ...question, answer } : question;
+    });
+    await tx.update(researchSnapshots).set({ followedUpAt: now, offices: result.offices, openQuestions }).where(eq(researchSnapshots.businessId, business.id));
+    return rebuildPlan(tx, business.id, profile, details, now);
+  });
+}
+
+// A saved requirement in the shape research works with
+export function draftOf(row: ResearchSnapshot["requirements"][number]): RequirementDraft & { verification: VerificationState } {
+  return {
+    key: row.key,
+    title: row.title,
+    topic: row.topic,
+    whyItApplies: row.whyItApplies,
+    level: row.level,
+    agency: row.agency,
+    sourceIds: row.sourceIds,
+    evidence: row.evidence,
+    feeUsd: row.feeCents === null ? null : row.feeCents / 100,
+    deadline: row.deadline,
+    needsProfessional: row.needsProfessional,
+    whoToCall: row.whoToCall,
+    whatToAsk: row.whatToAsk,
+    gather: row.gather,
+    doneWhen: row.doneWhen,
+    dependsOn: row.dependsOn,
+    applicability: row.applicability,
+    condition: row.condition,
+    timing: row.timing,
+    forStructures: row.forStructures,
+    renewal: row.renewal,
+    renewalFeeUsd: row.renewalFeeCents === null ? null : row.renewalFeeCents / 100,
+    ownerAction: row.ownerAction,
+    verification: row.verification,
+  };
 }

@@ -38,6 +38,6 @@ describe("the brand picture", () => {
   it("has a practice stand-in that says what it is", async () => {
     const story = await writeStory(getModel({}), testBrief());
     expect(story).toContain("Rise Bakery feels farmhouse, Southern porch, cozy.");
-    expect(story).toContain("practice placeholder");
+    expect(story).toContain("practice sample");
   });
 });

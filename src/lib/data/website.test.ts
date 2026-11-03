@@ -40,4 +40,12 @@ describe("website plan data access", () => {
     expect(await getWebsitePlanForOwner(db, "owner-b")).toBeNull();
     expect(await saveWebsitePlanForOwner(db, "nobody", { platform: "wix" })).toBe(false);
   });
+
+  it("keeps the demo finish and a connected site with the owner's plan", async () => {
+    const finished = { at: "2026-10-29T12:00:00Z", signature: "abc" };
+    const existingSite = { platform: "wix" as const, url: "https://risebakery.com", connectedAt: "2026-10-29T12:00:00Z" };
+    await saveWebsitePlanForOwner(db, "owner-a", { platform: "first_sale", finished, existingSite });
+    expect(await getWebsitePlanForOwner(db, "owner-a")).toMatchObject({ platform: "first_sale", finished, existingSite });
+    expect(await getWebsitePlanForOwner(db, "owner-b")).toBeNull();
+  });
 });

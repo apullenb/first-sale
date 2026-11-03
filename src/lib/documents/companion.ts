@@ -289,7 +289,7 @@ function unanswered(): DraftAnswer {
 
 function fillYourselfNote(field: DocumentField): string {
   if (field.kind === "signature" || /sign/i.test(`${field.label} ${field.printedText}`)) return "Only you can sign. Sign the printed or final copy yourself.";
-  return "First Sale never fills in ID numbers, account numbers or sworn statements. Fill this in yourself.";
+  return "SnapStart never fills in ID numbers, account numbers or sworn statements. Fill this in yourself.";
 }
 
 // --- Messages and anchors

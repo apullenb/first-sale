@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -7,7 +9,7 @@ import { PLATFORM_DATA, PLATFORM_ORDER } from "@/data/website-platforms";
 import { getModel } from "@/lib/ai";
 import { getMyBusiness, getMyWebsitePlan, myAiKey, updateMyWebsitePlan } from "@/lib/data/my-business";
 import { OwnerFacingError } from "@/lib/errors";
-import { explainOption, findMoreOptions, isCurrentExplanation, platformFacts } from "@/lib/website/options";
+import { explainOption, findMoreOptions, foundFacts, isCurrentExplanation, platformFacts } from "@/lib/website/options";
 import { PLATFORMS } from "@/lib/website/types";
 import { runWorkflow } from "@/lib/workflow-runner";
 
@@ -15,6 +17,7 @@ const NO_BUSINESS = "Tell us about your business first.";
 
 // Muse searches the web for other builders, only when the owner asks
 export async function findMoreOptionsAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const business = await getMyBusiness();
   if (!business?.profile) return { ok: false, message: NO_BUSINESS };
   // Practice mode can't search, so it says so without using up an AI request
@@ -54,7 +57,7 @@ export async function explainOptionAction(input: unknown): Promise<ActionResult>
     const option = plan?.moreOptions?.options.find((each) => `more:${each.name.toLowerCase()}` === key);
     if (!option) return { ok: false, message: "That option wasn’t found. Search again and try once more." };
     name = option.name;
-    facts = option;
+    facts = foundFacts(option);
   }
   if (isCurrentExplanation(plan?.explanations[key], business.profile, facts, getModel().simulated)) {
     refresh();

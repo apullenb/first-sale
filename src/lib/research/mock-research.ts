@@ -1,6 +1,7 @@
 import type { BusinessProfile, BusinessStructure, RequirementDraft } from "@/lib/domain";
+import { STATE_NAMES } from "@/lib/intake/options";
 
-// Offline stand-in for the research model: fixed rules over the profile, quoting the pages it was given.
+// Offline stand-in for the research model: fixed logic over the profile, quoting the pages it was given.
 // Real research comes from the configured model; results from this are labeled as practice.
 
 type Fixed = "sourceIds" | "evidence" | "feeUsd" | "deadline";
@@ -51,6 +52,7 @@ export function mockResearch(
 
   sourced(["sba-business-structure", "irs-business-structures"], /before you register/i, {
     key: "structure",
+    ownerAction: "decision",
     title: "Choose a business structure",
     topic: "structure",
     level: "federal",
@@ -63,12 +65,13 @@ export function mockResearch(
     whoToCall: "a small business counselor (SBA or SCORE)",
     whatToAsk: ["Which structure fits a business like mine?", "What does each one cost to set up and keep up?"],
     gather: ["How many owners there are", "How much risk your business could carry"],
-    doneWhen: "You’ve picked a structure and noted it in First Sale.",
+    doneWhen: "You’ve picked a structure and noted it in SnapStart.",
   });
 
   if (texas("tx-sos-205")) {
     sourced(["tx-sos-205"], /^Filing Fee:/, {
       key: "llc-formation",
+      ownerAction: "filing",
       title: "File a certificate of formation to form your LLC",
       topic: "structure",
       level: "state",
@@ -89,6 +92,29 @@ export function mockResearch(
     });
   }
 
+  // Other states: a practice step with no page behind it, so no fee, form name or timing
+  const company = structure === "llc" || structure === "corporation" ? structure : null;
+  const formationKey = company === "corporation" ? "corporation-formation" : "llc-formation";
+  if (company && !texas("tx-sos-205")) {
+    const stateName = STATE_NAMES[profile.location.state];
+    const kind = company === "llc" ? "LLC" : "corporation";
+    gap({
+      key: formationKey,
+      ownerAction: "filing",
+      title: `Form your ${kind} with the state of ${stateName}`,
+      topic: "structure",
+      level: "state",
+      agency: `${stateName}’s business filing office`,
+      forStructures: [company],
+      whyItApplies: `Practice step: you chose ${company === "llc" ? "an LLC" : "a corporation"}, and ${kind === "LLC" ? "an LLC" : "a corporation"} is usually formed by filing with the state. Practice mode doesn’t read ${stateName}’s pages, so the form, fee and timing are unknown until real research runs.`,
+      whoToCall: `${stateName}’s business filing office (often the Secretary of State)`,
+      whatToAsk: [`Which form creates ${kind === "LLC" ? "an LLC" : "a corporation"} in ${stateName}?`, "What’s the fee, and how long does filing take?"],
+      gather: [`Your ${kind}’s name`, "A registered agent in the state", "Each owner’s name and address"],
+      doneWhen: `${stateName} has filed the paperwork that forms your ${kind}.`,
+      dependsOn: ["structure"],
+    });
+  }
+
   // A Texas LLC's other filings name the LLC, so they wait for its certificate of formation
   const formedFirst = structure === "llc" ? ["llc-formation"] : ["structure"];
   const sellsAs = profile.name && profile.nameIsLegalName !== "yes" ? profile.name : null;
@@ -100,6 +126,7 @@ export function mockResearch(
     const county = {
       ...nameRule,
       key: "assumed-name-county",
+      ownerAction: "filing",
       level: "county",
       forStructures: ["sole_proprietorship", "partnership"],
       gather: [`The name “${sellsAs}”`, "Your business address", "Each owner’s name and address", "ID for every owner if you file in person, or the form signed before a notary if you mail it"],
@@ -120,7 +147,7 @@ export function mockResearch(
         ...county,
         title: "File an assumed name certificate with your county clerk",
         agency: "Your county clerk",
-        whyItApplies: `You plan to sell as “${sellsAs}”. A Texas business that isn’t incorporated usually records its assumed name with the county clerk. First Sale couldn’t read your county’s pages to confirm.`,
+        whyItApplies: `You plan to sell as “${sellsAs}”. A Texas business that isn’t incorporated usually records its assumed name with the county clerk. SnapStart couldn’t read your county’s pages to confirm.`,
         whoToCall: "your county clerk",
         whatToAsk: [`Do I need to file an assumed name certificate for “${sellsAs}”?`, "What’s the fee, and how long does it last?"],
       });
@@ -128,6 +155,7 @@ export function mockResearch(
     sourced(["tx-sos-503"], /^Filing Fee:/, {
       ...nameRule,
       key: "assumed-name-state",
+      ownerAction: "filing",
       title: "File an assumed name certificate with the Texas Secretary of State",
       level: "state",
       agency: "Texas Secretary of State",
@@ -143,6 +171,7 @@ export function mockResearch(
   } else if (sellsAs) {
     sourced(["sba-business-name"], /register/i, {
       key: "business-name",
+      ownerAction: "filing",
       title: "Register your business name",
       topic: "name_registration",
       level: "state",
@@ -160,6 +189,7 @@ export function mockResearch(
   const needsEin = hiring || profile.owners.count > 1 || structure === "partnership" || structure === "llc" || structure === "corporation";
   sourced(["irs-ein", "sba-tax-ids"], /\bfree\b/i, {
     key: "ein",
+    ownerAction: "filing",
     title: "Employer Identification Number (EIN)",
     topic: "tax_registration",
     level: "federal",
@@ -182,6 +212,7 @@ export function mockResearch(
   if (goods && texas("tx-cpa-permit-faq")) {
     sourced(["tx-cpa-permit-faq", "tx-cpa-permit", ...(onlyFood && baked ? ["tx-cpa-bakery"] : [])], /no fee for the permit/i, {
       key: "sales-tax-permit",
+      ownerAction: "filing",
       title: "Get a Texas sales and use tax permit",
       topic: "tax_registration",
       level: "state",
@@ -206,6 +237,7 @@ export function mockResearch(
   } else if (goods) {
     gap({
       key: "sales-tax",
+      ownerAction: "filing",
       title: "Sales tax permit",
       topic: "tax_registration",
       level: "state",
@@ -225,7 +257,8 @@ export function mockResearch(
     sourced(["tx-dshs-cottage"], /exempt from the requirements of a food service establishment/i, {
       ...cottage,
       key: "cottage-food",
-      title: "Check that your foods fit Texas cottage food rules",
+      ownerAction: "compliance",
+      title: "Check that your foods fit Texas cottage food law",
       whyItApplies: "You make food at home to sell. In Texas that’s a cottage food operation: no health department permit, inspection or fee, but limits on what you sell and how you label it.",
       whatToAsk: ["Are all the foods I plan to sell allowed as cottage foods?", "Does my yearly income stay under the cottage food limit?"],
       gather: ["A list of the foods you’ll sell"],
@@ -234,6 +267,7 @@ export function mockResearch(
     sourced(["tx-dshs-cottage"], /THIS PRODUCT WAS PRODUCED IN A PRIVATE RESIDENCE/, {
       ...cottage,
       key: "cottage-labels",
+      ownerAction: "compliance",
       title: "Label your cottage foods the way Texas requires",
       whyItApplies: "Each Texas cottage food label must carry this statement, along with your address or a DSHS registration number.",
       whatToAsk: ["What else must my labels show?", "What must I post online before I take payment?"],
@@ -244,6 +278,7 @@ export function mockResearch(
     sourced(["tx-dshs-cottage"], /must successfully complete a basic food safety education or training program/i, {
       ...cottage,
       key: "food-handler",
+      ownerAction: "training",
       title: "Complete an accredited food handler course",
       agency: "A food handler program accredited in Texas",
       whyItApplies: "Texas requires anyone running a cottage food operation to complete an accredited food handler course.",
@@ -253,6 +288,7 @@ export function mockResearch(
     sourced(["tx-dshs-cottage"], cold === "no" ? /^Registration will allow CFPOs/ : /that sell time and temperature control for safety \(TCS\) foods must register/i, {
       ...cottage,
       key: "cottage-registration",
+      ownerAction: "filing",
       title: "Register your cottage food operation with DSHS",
       applicability: cold === "yes" ? "applies" : cold === "no" ? "optional" : "conditional",
       condition: unknown(cold) ? "Only if any food you sell needs time and temperature control for safety (TCS), like refrigeration. You haven’t told us yet." : "",
@@ -266,7 +302,8 @@ export function mockResearch(
   } else if (food) {
     gap({
       key: "cottage-food",
-      title: "Home food business (“cottage food”) rules",
+      ownerAction: "compliance",
+      title: "Home food business (“cottage food”) requirements",
       topic: "license_permit",
       level: "county",
       agency: "Your county health department",
@@ -279,6 +316,7 @@ export function mockResearch(
   if (texas("tx-cpa-franchise")) {
     sourced(["tx-cpa-franchise"], /annual franchise tax report is due/i, {
       key: "franchise-tax",
+      ownerAction: "filing",
       title: "File a Texas franchise tax report each year",
       topic: "tax_registration",
       level: "state",
@@ -297,6 +335,7 @@ export function mockResearch(
 
   sourced(["sba-licenses-permits"], /federal license or permit/i, {
     key: "federal-license",
+    ownerAction: "compliance",
     title: "Check whether anything you do needs a federal license",
     topic: "license_permit",
     level: "federal",
@@ -312,6 +351,7 @@ export function mockResearch(
       applicability: hiring ? "applies" : "conditional",
       condition: hiring ? "" : "Only if you hire employees. You haven’t told us yet.",
       key: "payroll",
+      ownerAction: "filing",
       title: "Set up payroll before your first hire",
       topic: "employer",
       level: "federal",
@@ -329,25 +369,27 @@ export function mockResearch(
   if (profile.makesForKids === "yes" || profile.makesForKids === "unsure") {
     gap({
       key: "childrens-products",
-      title: "Safety rules for children’s products",
+      ownerAction: "compliance",
+      title: "Safety requirements for children’s products",
       topic: "other",
       level: "federal",
       agency: "U.S. Consumer Product Safety Commission",
       applicability: "outside_coverage",
-      whyItApplies: `${profile.makesForKids === "yes" ? "You make things for children." : "You weren’t sure whether you make things for children."} Federal safety rules for children’s products can require testing and labels. First Sale doesn’t research product safety rules.`,
+      whyItApplies: `${profile.makesForKids === "yes" ? "You make things for children." : "You weren’t sure whether you make things for children."} Federal safety laws for children’s products can require testing and labels. SnapStart doesn’t research product safety rules.`,
       whoToCall: "the U.S. Consumer Product Safety Commission",
-      whatToAsk: ["Which children’s product rules apply to what I make?", "Do small makers need third-party testing?"],
+      whatToAsk: ["Which children’s product requirements apply to what I make?", "Do small makers need third-party testing?"],
     });
   }
   if (profile.foodContact === "yes" || profile.foodContact === "unsure") {
     gap({
       key: "food-contact",
-      title: "Rules for items that touch food",
+      ownerAction: "compliance",
+      title: "Requirements for items that touch food",
       topic: "other",
       level: "federal",
       agency: "U.S. Food and Drug Administration",
       applicability: "outside_coverage",
-      whyItApplies: `${profile.foodContact === "yes" ? "Some of what you make will touch food, like cutting boards or bowls." : "You weren’t sure whether what you make will touch food."} Finishes and materials for food-contact items have federal rules First Sale doesn’t research.`,
+      whyItApplies: `${profile.foodContact === "yes" ? "Some of what you make will touch food, like cutting boards or bowls." : "You weren’t sure whether what you make will touch food."} Finishes and materials for food-contact items have federal requirements SnapStart doesn’t research.`,
       whoToCall: "the U.S. Food and Drug Administration",
       whatToAsk: ["Which finishes are allowed on items that touch food?"],
     });
@@ -355,13 +397,14 @@ export function mockResearch(
   if (profile.handoff.includes("ship_out_of_state")) {
     gap({
       key: "other-states-tax",
+      ownerAction: "filing",
       title: "Sales tax in other states you ship to",
       topic: "tax_registration",
       level: "state",
       agency: "Each state you ship to",
       applicability: "outside_coverage",
       timing: "later",
-      whyItApplies: "You plan to ship to other states. Some states require sellers to collect their sales tax once sales there pass a limit. First Sale only researches your own state.",
+      whyItApplies: "You plan to ship to other states. Some states require sellers to collect their sales tax once sales there pass a limit. SnapStart only researches your own state.",
       whoToCall: "each state’s department of revenue",
       whatToAsk: ["At what level of sales must an out-of-state seller collect your sales tax?"],
     });
@@ -370,12 +413,13 @@ export function mockResearch(
   const austinHome = atHome && texas("tx-austin-home");
   gap({
     key: "business-license",
+    ownerAction: "filing",
     title: "General business license",
     topic: "license_permit",
     level: "city",
     agency: "Your city or county clerk",
     whyItApplies: austinHome
-      ? "Austin says it can’t require permits for most home businesses, but First Sale couldn’t confirm whether another city or county license applies to what you do."
+      ? "Austin says it can’t require permits for most home businesses, but SnapStart couldn’t confirm whether another city or county license applies to what you do."
       : atHome
         ? "Many cities license home-based businesses too."
         : "Many cities license businesses that operate inside city limits.",
@@ -385,6 +429,7 @@ export function mockResearch(
   if (austinHome) {
     sourced(["tx-austin-home"], /City of Austin cannot prohibit or require permits for home-based businesses/i, {
       key: "home-business",
+      ownerAction: "compliance",
       title: "Keep your home business within Austin’s limits",
       topic: "location_zoning",
       level: "city",
@@ -401,13 +446,14 @@ export function mockResearch(
   } else if (atHome) {
     gap({
       key: "home-business",
+      ownerAction: "filing",
       title: "Approval for a home business",
       topic: "location_zoning",
       level: "city",
       agency: "Your city’s planning or zoning office",
       whyItApplies: profile.handoff.includes("pickup_home")
-        ? "Customers will pick up at your home, and zoning rules decide what a home business may do, including customer visits."
-        : "You’ll work from home, and zoning rules decide what a home business may do.",
+        ? "Customers will pick up at your home, and zoning decides what a home business may do, including customer visits."
+        : "You’ll work from home, and zoning decides what a home business may do.",
       whoToCall: "your city’s planning or zoning office",
       whatToAsk: ["Is a home-based business allowed at my address?", "Can customers pick up orders at my home?"],
     });
@@ -415,6 +461,7 @@ export function mockResearch(
   if (sells("markets")) {
     gap({
       key: "vendor-permit",
+      ownerAction: "filing",
       title: "Market or event vendor permit",
       topic: "license_permit",
       level: "county",
@@ -429,6 +476,7 @@ export function mockResearch(
   if (sells("storefront") || profile.premises === "rented_space") {
     gap({
       key: "occupancy",
+      ownerAction: "filing",
       title: "Certificate of occupancy for your space",
       topic: "location_zoning",
       level: "city",

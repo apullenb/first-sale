@@ -36,7 +36,7 @@ export function checkUpload(bytes: Uint8Array, fileName: string): UploadCheck {
     return { ok: false, message: "That file is over 4 MB. Try a smaller scan, or take a photo of each page." };
   }
   const type = sniffType(bytes);
-  if (!type) return { ok: false, message: "First Sale can read PDFs and photos (PNG, JPEG or WebP). Try one of those." };
+  if (!type) return { ok: false, message: "SnapStart can read PDFs and photos (PNG, JPEG or WebP). Try one of those." };
   return { ok: true, type, sha256: createHash("sha256").update(bytes).digest("hex"), title: cleanTitle(fileName) };
 }
 

@@ -1,5 +1,5 @@
 import type { PREMISES } from "@/lib/domain";
-import { asks, kindsOf, type FollowUp, type IntakeAnswers, type StepId } from "./answers";
+import { asks, kindsOf, OPTIONAL_FIELDS, type FollowUp, type IntakeAnswers, type StepId } from "./answers";
 import {
   BUDGET_LABELS,
   CHANNEL_LABELS,
@@ -70,6 +70,9 @@ export interface QuestionSpec {
   asks: (a: IntakeAnswers) => boolean;
 }
 
+// Shown as "Optional" next to the question
+export const isOptional = (spec: Pick<QuestionSpec, "field">) => OPTIONAL_FIELDS.includes(spec.field);
+
 const always = () => true;
 const followUp = (field: FollowUp) => (a: IntakeAnswers) => asks(field, a);
 const yesNo = () => entries(YES_NO_LABELS);
@@ -104,14 +107,14 @@ export const QUESTIONS: readonly QuestionSpec[] = [
     field: "insideCityLimits",
     step: "place",
     title: (a) => `Is your address inside the city limits of ${a.city.trim()}?`,
-    why: "City rules apply only inside city limits, and a mailing address can name a city you’re not actually in.",
+    why: "City requirements apply only inside city limits, and a mailing address can name a city you’re not actually in.",
     options: yesNo,
     unsure: {
       explain: "Lots of people don’t know this one. Ways to check:",
       tips: [
         "Your property tax bill or lease often names the city when you’re inside it.",
         "Your county’s property search website shows the city for your address.",
-        "We’ll keep it as an open question and check both city and county rules.",
+        "We’ll keep it as an open question and check both city and county requirements.",
       ],
     },
     asks: followUp("insideCityLimits"),
@@ -191,7 +194,7 @@ export const QUESTIONS: readonly QuestionSpec[] = [
     field: "channels",
     step: "channels",
     title: () => "How will you sell?",
-    why: "Markets, storefronts and online sales each come with their own permits and tax rules.",
+    why: "Markets, storefronts and online sales each come with their own permits and tax requirements.",
     options: () => entries(CHANNEL_LABELS),
     multiple: true,
     asks: always,
@@ -200,7 +203,7 @@ export const QUESTIONS: readonly QuestionSpec[] = [
     field: "handoff",
     step: "channels",
     title: () => "How will customers get what they buy?",
-    why: "Pickup at home, delivery and shipping can each change which rules apply, especially for food.",
+    why: "Pickup at home, delivery and shipping can each change which requirements apply, especially for food.",
     options: () => entries(HANDOFF_LABELS),
     multiple: true,
     unsure: {
@@ -221,7 +224,7 @@ export const QUESTIONS: readonly QuestionSpec[] = [
     field: "foodNeedsCold",
     step: "details",
     title: () => "Does any of it need to be kept cold, like cheesecake, cream pies or meat fillings?",
-    why: "Rules for food made at home often depend on whether it needs a fridge to stay safe.",
+    why: "Food safety laws for food made at home often depend on whether it needs a fridge to stay safe.",
     options: yesNo,
     unsure: {
       explain: "A quick way to tell:",
@@ -237,7 +240,7 @@ export const QUESTIONS: readonly QuestionSpec[] = [
     field: "makesForKids",
     step: "details",
     title: () => "Will any items be made mainly for children 12 and under?",
-    why: "Products made for young children can have extra safety rules, so we’ll check.",
+    why: "Products made for young children can have extra safety requirements, so we’ll check.",
     options: yesNo,
     unsure: {
       explain: "Think about who it’s for:",
@@ -249,7 +252,7 @@ export const QUESTIONS: readonly QuestionSpec[] = [
     field: "foodContact",
     step: "details",
     title: () => "Will any items touch food, like cutting boards, bowls or mugs?",
-    why: "Finishes and materials on things that touch food can have their own rules, so we’ll look into it.",
+    why: "Finishes and materials on things that touch food can have their own requirements, so we’ll look into it.",
     options: yesNo,
     unsure: { explain: "Will someone eat off it, drink from it, or prepare food on it? Then pick Yes.", tips: [] },
     asks: followUp("foodContact"),
@@ -290,7 +293,7 @@ export const QUESTIONS: readonly QuestionSpec[] = [
     field: "customersVisit",
     step: "premises",
     title: () => "Will customers come to your home, for pickups or appointments?",
-    why: "Rules for home businesses often limit customer visits, parking or signs.",
+    why: "Zoning for home businesses often limits customer visits, parking or signs.",
     options: yesNo,
     unsure: { explain: "If you might offer pickup at home, pick Yes for now. You can change it later.", tips: [] },
     asks: followUp("customersVisit"),
@@ -307,7 +310,7 @@ export const QUESTIONS: readonly QuestionSpec[] = [
     field: "firstYearSales",
     step: "money",
     title: () => "About how much do you hope to sell in your first year?",
-    why: "Some rules and limits depend on how much you sell. A rough guess is fine.",
+    why: "Some requirements and limits depend on how much you sell. A rough guess is fine.",
     options: () => entries(SALES_LABELS),
     unsure: { explain: "A guess helps:", tips: ["$100 a week is about $5,000 a year.", "$500 a week is about $25,000 a year."] },
     asks: always,

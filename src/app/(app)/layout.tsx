@@ -1,56 +1,66 @@
-import Link from "next/link";
 import { unstable_rethrow } from "next/navigation";
 import { Suspense } from "react";
+import Link from "next/link";
 import { AccountMenu } from "@/components/account-menu";
-import { HowItWorks } from "@/components/how-it-works";
-import { LogoMark } from "@/components/logo";
-import { NavLinks } from "@/components/nav-links";
-import { SidebarNav } from "@/components/sidebar-nav";
-import { getMyPlan } from "@/lib/data/my-business";
-import { remainingWork } from "@/lib/rules/progress";
+import { DemoBanner } from "@/components/demo-banner";
+import { Logo } from "@/components/logo";
+import { RefreshOnFocus } from "@/components/refresh-on-focus";
+import { SidebarFallback, SidebarNav, type SidebarBusiness } from "@/components/sidebar-nav";
+import { displayName, formatLaunchDate } from "@/lib/intake/answers";
+import { getMySidebarStatus } from "@/lib/sidebar-status";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
-    <>
-      <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-2.5 sm:px-6">
-          <Link href="/" className="flex min-h-11 items-center gap-2.5">
-            <LogoMark />
-            <span className="font-display text-xl font-bold tracking-tight">First Sale</span>
+    <div className="mx-auto w-full max-w-[1360px] flex-1 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 md:pb-24 md:grid md:grid-cols-[288px_minmax(0,1fr)] md:items-start md:gap-7 md:pt-3">
+      <RefreshOnFocus />
+      {/* The fallback reads no route, so pages with unknown params still prerender */}
+      <Suspense fallback={<SidebarFallback />}>
+        <SidebarWithData />
+      </Suspense>
+      <div className="min-w-0">
+        <header className="flex items-center pt-4 md:hidden">
+          <Link href="/" aria-label="SnapStart home">
+            <Logo className="w-36 sm:w-40" />
           </Link>
-          <div className="ml-auto">
-            {/* Reads the session, so it streams in after the rest of the page */}
-            <Suspense fallback={<span className="block h-11 w-24" />}>
-              <AccountMenu />
-            </Suspense>
-          </div>
-        </div>
-      </header>
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-4 sm:px-6 md:flex-row md:items-start md:gap-8 md:py-6">
-        <aside className="flex min-w-0 flex-col gap-5 md:w-56 md:shrink-0">
-          {/* Fallback keeps the menu prerendered if a route ever has unknown params */}
-          <Suspense fallback={<NavLinks activeHref={null} />}>
-            <SidebarNavWithCounts />
-          </Suspense>
-          <HowItWorks />
-        </aside>
-        <main id="main" className="min-w-0 flex-1">
+        </header>
+        <Suspense fallback={null}>
+          <DemoBanner />
+        </Suspense>
+        <main id="main" className="pt-4 md:pt-3">
           {children}
         </main>
       </div>
-    </>
+    </div>
   );
 }
 
-// The count is extra: if the plan can't be read, the menu still shows without it
-async function SidebarNavWithCounts() {
-  let plan: Awaited<ReturnType<typeof getMyPlan>> = null;
+// The business card is extra: if it can't be read, the menu still shows without it
+async function SidebarWithData() {
+  let sidebar: Awaited<ReturnType<typeof getMySidebarStatus>> = { business: null, status: null };
   try {
-    plan = await getMyPlan();
+    sidebar = await getMySidebarStatus();
   } catch (error) {
     unstable_rethrow(error);
-    console.error("Sidebar counts skipped:", error instanceof Error ? error.name : "unknown error");
+    console.error("Sidebar details skipped:", error instanceof Error ? error.name : "unknown error");
   }
-  const work = remainingWork(plan?.steps ?? []);
-  return <SidebarNav badges={work.left.length ? { "/checklist": { count: work.left.length, minutes: work.minutes } } : {}} />;
+  const profile = sidebar.business?.profile ?? null;
+  const card: SidebarBusiness | null = profile
+    ? {
+        name: displayName(profile),
+        place: [profile.location.city, profile.location.state].filter(Boolean).join(", "),
+        launch: profile.launchDate ? `Opens ${formatLaunchDate(profile.launchDate)}` : null,
+      }
+    : null;
+  return (
+    <SidebarNav
+      status={sidebar.status ?? undefined}
+      business={card}
+      account={
+        // Also the session check: an expired session redirects to log in
+        <Suspense fallback={<span className="block h-11" />}>
+          <AccountMenu />
+        </Suspense>
+      }
+    />
+  );
 }

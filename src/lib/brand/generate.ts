@@ -2,10 +2,30 @@ import { ImageEditError, type ImageEditResult, type ImageInput, type ImageModel,
 import { OwnerFacingError } from "@/lib/errors";
 import { imageInfo } from "@/lib/photos/image-info";
 import { checkBrandImage, checkLogo, checkVersion, type Expected, failedCheck, marksFor, skippedCheck } from "./checks";
-import { isSerif, practiceSvg } from "./practice";
-import { brandImagePrompt, logoPrompt, refinePrompt, versionPrompt } from "./prompts";
+import { applyEdit, type Built, buildVersion, CODE_MODEL, codeEdit } from "./code-build";
+import { kitColors } from "./colors";
+import { letterCount } from "./layout";
+import { clearFrame, logoColors, oneColor, type Pixels } from "./pixels";
+import { decodePng, encodePng } from "./png";
+import { imageStyle } from "./image-style";
+import { practiceSvg } from "./practice";
+import { brandImagePrompt, logoPrompt, ownLogoEditPrompt, pictureEditPrompt, refinePrompt, retryLines, versionPrompt } from "./prompts";
+import { applyDesign, inherited } from "./refine";
 import { sizeFor } from "./sizes";
-import type { AssetCheck, AssetKind, BrandBrief, BrandImageKind, ConceptReply, VersionKind } from "./types";
+import { EXAMPLE_IMAGE } from "./slots";
+import {
+  type AssetCheck,
+  type AssetKind,
+  type BrandBrief,
+  type BrandDesign,
+  type BrandImageKind,
+  type ConceptReply,
+  IMAGE_KINDS,
+  LOGO_KINDS,
+  type ImageMedium,
+  type PaletteColor,
+  type VersionKind,
+} from "./types";
 
 // Each file is saved only once its bytes check out, so a failed try leaves nothing behind.
 // Limits are checked before paying, and a request key already used returns the saved file instead of paying again.
@@ -17,9 +37,14 @@ const MAX_RESULT_BYTES = 25_000_000;
 
 export interface NewBrandAsset {
   kind: AssetKind;
-  conceptId: string;
+  // Null for files made from the owner's uploaded logo
+  conceptId: string | null;
   sourceId: string | null;
   change: string | null;
+  // One-click changes this file carries, inherited from the logo it was made from
+  design: BrandDesign | null;
+  // An edit of the owner's own logo keeps the words they said it has
+  words?: string | null;
   prompt: string;
   model: string;
   simulated: boolean;
@@ -42,8 +67,8 @@ export interface AssetStore {
 
 export const ROOM_MESSAGES = {
   not_found: "Your brand wasn’t found. Reload the page and try again.",
-  too_many: "You’ve made as many brand files as First Sale can keep. Remove ideas you don’t need, then try again.",
-  too_large: "Your brand files are taking up all the space First Sale allows. Remove ideas you don’t need, then try again.",
+  too_many: "You’ve made as many brand files as SnapStart can keep. Remove ideas you don’t need, then try again.",
+  too_large: "Your brand files are taking up all the space SnapStart allows. Remove ideas you don’t need, then try again.",
 } as const;
 
 export interface Models {
@@ -51,27 +76,48 @@ export interface Models {
   vision: ModelProvider;
 }
 
-// The concept a file belongs to, with the brief it was written from
+// The concept a file belongs to, with the brief it was written from; for a logo, with its one-click changes applied
 export interface ConceptRef {
   id: string;
   concept: ConceptReply;
   brief: BrandBrief;
 }
 
-export interface LogoRef extends ConceptRef {
+// id and concept are null for the owner's uploaded logo, which wasn't drawn from an idea
+export interface LogoRef {
+  id: string | null;
+  concept: ConceptReply | null;
+  brief: BrandBrief;
   logoId: string;
   logo: ImageInput;
+  design: BrandDesign | null;
+  // Uploaded logos: the words in it as the owner typed them; "" when it has none or they didn't say
+  words?: string;
 }
+
+export const UPLOAD_ONE_CLICK = "One-click changes are only for logos drawn here. Say what you’d like changed instead, and SnapStart makes an edited copy of your logo.";
 
 interface Job {
   kind: AssetKind;
-  concept: ConceptRef;
+  concept: LogoRef | ConceptRef;
   sourceId: string | null;
   change: string | null;
+  design: BrandDesign | null;
+  words?: string | null;
   prompt: string;
   requestKey: string;
   call: () => Promise<ImageEditResult>;
   check: (file: ImageInput) => Promise<AssetCheck>;
+  // Made in code from the logo's pixels: saved as is, with no image call or check
+  built?: Extract<Built, { ok: true }>;
+  // Why code didn't build it, kept on the file's check
+  layout?: AssetCheck["layout"];
+  // Fixes code can guarantee, run on the returned pixels before saving
+  fix?: (image: Pixels) => Pixels;
+  // One more try, written from what the first one's check flagged
+  retry?: (check: AssetCheck) => Job;
+  // Brand images: shown on the practice preview
+  medium?: ImageMedium;
 }
 
 export interface BatchResult {
@@ -80,9 +126,16 @@ export interface BatchResult {
   failed: string | null;
 }
 
-const expected = (ref: ConceptRef, kind: AssetKind): Expected => ({ name: ref.brief.name, tagline: ref.brief.tagline, marks: marksFor(ref.concept, kind) });
+// An uploaded logo is checked against the words the owner said it has, if any
+const expected = (ref: LogoRef | ConceptRef, kind: AssetKind): Expected =>
+  ref.concept
+    ? { name: ref.brief.name, tagline: ref.brief.tagline, marks: marksFor(ref.concept, kind) }
+    : { name: ("words" in ref && ref.words) || "", tagline: "", marks: "initials" };
+
+const paletteOf = (ref: LogoRef) => ref.concept?.palette ?? ref.design?.palette ?? [];
 
 async function runOne(models: Models, store: AssetStore, job: Job, now: Date): Promise<string> {
+  if (job.built) return saveBuilt(store, job, job.built, now);
   let result: ImageEditResult;
   try {
     result = await job.call();
@@ -93,12 +146,22 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
   let file: { mimeType: string; data: Uint8Array; width: number; height: number };
   if (models.image.simulated) {
     // Never shown as a picture: a labeled text wordmark stands in
-    const preview = practiceSvg({ kind: job.kind, name: job.concept.brief.name, palette: job.concept.concept.palette, serif: isSerif(job.concept.concept.typography) });
+    const preview = practiceSvg({
+      kind: job.kind,
+      conceptKind: job.concept.concept?.kind ?? "wordmark",
+      name: job.concept.brief.name,
+      tagline: job.concept.concept ? job.concept.brief.tagline : "",
+      palette: job.concept.concept?.palette ?? job.design?.palette ?? [],
+      typography: job.concept.concept?.typography ?? "",
+      medium: job.medium,
+    });
     file = { mimeType: "image/svg+xml", data: new TextEncoder().encode(preview.svg), width: preview.width, height: preview.height };
   } else {
     const info = result.data.byteLength <= MAX_RESULT_BYTES ? imageInfo(result.data) : null;
     if (!info) throw new OwnerFacingError("The image service sent back something that isn’t a usable picture. Nothing was saved. Try again.");
     file = { mimeType: info.type, data: result.data, width: info.width, height: info.height };
+    const fixed = job.fix ? fixPng(file.data, job.fix) : null;
+    if (fixed) file = { ...file, mimeType: "image/png", data: fixed };
   }
 
   const added = await store.add({
@@ -107,6 +170,8 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
     conceptId: job.concept.id,
     sourceId: job.sourceId,
     change: job.change,
+    design: job.design,
+    words: job.words ?? null,
     prompt: job.prompt,
     model: models.image.model,
     simulated: models.image.simulated,
@@ -115,12 +180,81 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
   if (!added.ok) throw new OwnerFacingError(ROOM_MESSAGES[added.reason]);
 
   // A failed check never loses the file: the owner is asked to look closely themselves
-  const check =
+  const checked =
     models.image.simulated || !models.vision.capabilities.vision
       ? skippedCheck(now)
       : await job.check({ mimeType: file.mimeType, data: file.data }).catch(() => failedCheck(now));
+  const check = job.layout ? { ...checked, layout: job.layout } : checked;
   await store.setCheck(added.id, check);
+  if (!job.retry || !needsRetry(check) || (await store.room(1)) !== "ok") return added.id;
+  // Both are kept: the retry shows as newest and the first try stays under "Earlier ones"
+  return runOne(models, store, job.retry(check), now).catch(() => added.id);
+}
+
+// Built from the logo's own pixels: real output, not practice, and nothing redrawn for AI to check
+async function saveBuilt(store: AssetStore, job: Job, built: Extract<Built, { ok: true }>, now: Date): Promise<string> {
+  const added = await store.add({
+    kind: job.kind,
+    conceptId: job.concept.id,
+    sourceId: job.sourceId,
+    change: job.change,
+    design: job.design,
+    words: job.words ?? null,
+    prompt: job.prompt,
+    model: CODE_MODEL,
+    simulated: false,
+    requestKey: job.requestKey,
+    mimeType: "image/png",
+    data: encodePng(built.image),
+    width: built.image.width,
+    height: built.image.height,
+  });
+  if (!added.ok) throw new OwnerFacingError(ROOM_MESSAGES[added.reason]);
+  await store.setCheck(added.id, { checkedAt: now.toISOString(), method: "code", lettering: null, drift: [], layout: { built: "code", note: built.note, confidence: built.confidence } });
   return added.id;
+}
+
+// How many letters the logo's words have, to compare with the shapes found; null when not known
+function lettersOf(ref: LogoRef): number | null {
+  if (ref.concept) return letterCount(ref.brief.name) + letterCount(ref.brief.tagline);
+  return ref.words ? letterCount(ref.words) : null;
+}
+
+// A code-built file's job: the record says what was done in place of a prompt
+function builtJob(job: Omit<Job, "call" | "check" | "built" | "prompt">, built: Extract<Built, { ok: true }>): Job {
+  const never = () => Promise.reject(new Error("Built in code"));
+  return { ...job, prompt: built.note, built, call: never, check: never };
+}
+
+// The app's own check found the version drifted from the logo, or its lettering wrong
+export function needsRetry(check: AssetCheck): boolean {
+  if (check.method !== "ai") return false;
+  return check.drift.length > 0 || Boolean(check.lettering?.problems.length && check.lettering.status !== "unreadable");
+}
+
+// Null when the file isn't a PNG this can read, or nothing changed
+function fixPng(data: Uint8Array, fix: (image: Pixels) => Pixels): Uint8Array | null {
+  const image = decodePng(data);
+  if (!image) return null;
+  const fixed = fix(image);
+  return fixed === image ? null : encodePng(fixed);
+}
+
+// The one color: the logo's darkest, as the kit uses; for an uploaded logo, read from its pixels
+function solidInk(logo: LogoRef, version: Pixels | null): string {
+  const listed = paletteOf(logo);
+  if (listed.length) return kitColors(listed).ink;
+  const source = decodePng(logo.logo.data) ?? version;
+  return kitColors((source ? logoColors(source) : []).map((hex): PaletteColor => ({ hex, name: hex }))).ink;
+}
+
+// Logos never get a frame; the one-color version is made one color in code, whatever came back
+function logoFix(kind: AssetKind, logo: LogoRef | null): ((image: Pixels) => Pixels) | undefined {
+  if (!(LOGO_KINDS as readonly string[]).includes(kind)) return undefined;
+  return (image) => {
+    const unframed = clearFrame(image);
+    return kind === "solid" && logo ? (oneColor(unframed, solidInk(logo, unframed)) ?? unframed) : unframed;
+  };
 }
 
 // Several at once; each one that comes back is kept even if others fail
@@ -160,7 +294,7 @@ async function runBatch(models: Models, store: AssetStore, jobs: Job[], now: Dat
 
 function generator(models: Models) {
   const generate = models.image.generate;
-  if (!generate) throw new OwnerFacingError("Logo drawing isn’t turned on for First Sale yet.");
+  if (!generate) throw new OwnerFacingError("Logo drawing isn’t turned on for SnapStart yet.");
   return generate.bind(models.image);
 }
 
@@ -174,10 +308,12 @@ export async function drawConcepts(models: Models, store: AssetStore, input: { c
       concept,
       sourceId: null,
       change: null,
+      design: null,
       prompt,
       requestKey: drawKey(concept.id),
       call: () => generate({ prompt, size: sizeFor("logo"), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
       check: (file) => checkLogo(models.vision, file, expected(concept, "logo"), input.now, input.userKey),
+      fix: logoFix("logo", null),
     };
   });
   return runBatch(models, store, jobs, input.now);
@@ -185,72 +321,178 @@ export async function drawConcepts(models: Models, store: AssetStore, input: { c
 
 export const drawKey = (conceptId: string) => `draw:${conceptId}`;
 
-// The draft goes back as image 1 with the owner's words
-export async function refineLogo(
-  models: Models,
-  store: AssetStore,
-  input: { logo: LogoRef; change: string; requestKey: string; userKey?: string; now: Date },
-): Promise<string> {
+// An edit code can make exactly, such as bolder lettering; when it can't after all, why is kept on the model's file
+function editInCode(logo: LogoRef, change: string): { built: Extract<Built, { ok: true }>; design: BrandDesign | null } | { layout: AssetCheck["layout"] } | null {
+  const edit = codeEdit(change);
+  if (!edit) return null;
+  const built = applyEdit(logo.logo.data, edit, lettersOf(logo));
+  if (!built.ok) return { layout: { built: "model", note: built.note, confidence: built.confidence } };
+  const design = inherited(logo.design);
+  if (edit.kind !== "recolor") return { built, design };
+  const color = { hex: edit.hex, name: edit.name.replace(/^\w/, (char) => char.toUpperCase()).slice(0, 40) };
+  const palette = edit.target === "all" ? [color] : [color, ...paletteOf(logo).filter((each) => each.hex.toUpperCase() !== edit.hex)].slice(0, 3);
+  return { built, design: { ...design, palette } };
+}
+
+// The owner's own logo goes back as image 1 with their words; the edit is a new file and the original never changes
+async function editOwnLogo(models: Models, store: AssetStore, input: { logo: LogoRef; change: string; requestKey: string; userKey?: string; now: Date }): Promise<string> {
   const { logo } = input;
-  const prompt = refinePrompt(logo.brief, logo.concept, input.change);
+  const coded = editInCode(logo, input.change);
+  if (coded && "built" in coded) {
+    const job = builtJob({ kind: "logo", concept: logo, sourceId: logo.logoId, change: input.change, design: coded.design, words: logo.words ?? "", requestKey: input.requestKey }, coded.built);
+    return (await runBatch(models, store, [job], input.now)).ids[0];
+  }
+  const prompt = ownLogoEditPrompt(logo.words ?? "", input.change);
   const job: Job = {
+    layout: coded?.layout,
     kind: "logo",
     concept: logo,
     sourceId: logo.logoId,
     change: input.change,
+    design: inherited(logo.design),
+    words: logo.words ?? "",
     prompt,
     requestKey: input.requestKey,
     call: () => models.image.edit({ instruction: prompt, images: [logo.logo], size: sizeFor("logo"), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
     check: (file) => checkLogo(models.vision, file, expected(logo, "logo"), input.now, input.userKey),
+    fix: logoFix("logo", null),
   };
   const result = await runBatch(models, store, [job], input.now);
   return result.ids[0];
 }
 
-// The chosen logo is image 1 of every version, so the design stays the same
+// The draft goes back as image 1, with the owner's words or a one-click change (refine.ts)
+export async function refineLogo(
+  models: Models,
+  store: AssetStore,
+  input: { logo: LogoRef; change: string; oneClick?: { lines: string[]; design: BrandDesign }; requestKey: string; userKey?: string; now: Date },
+): Promise<string> {
+  const concept = input.logo.concept;
+  if (!concept) {
+    if (input.oneClick) throw new OwnerFacingError(UPLOAD_ONE_CLICK);
+    return editOwnLogo(models, store, input);
+  }
+  // Drawn and checked as it will be: new colors, lettering or tagline included
+  const logo = input.oneClick
+    ? { ...input.logo, ...applyDesign(concept, input.logo.brief, input.oneClick.design), design: input.oneClick.design }
+    : { ...input.logo, concept };
+  const coded = input.oneClick ? null : editInCode(logo, input.change);
+  if (coded && "built" in coded) {
+    const job = builtJob({ kind: "logo", concept: logo, sourceId: logo.logoId, change: input.change, design: coded.design, requestKey: input.requestKey }, coded.built);
+    return (await runBatch(models, store, [job], input.now)).ids[0];
+  }
+  const prompt = refinePrompt(logo.brief, logo.concept, input.oneClick?.lines ?? input.change);
+  const job: Job = {
+    layout: coded?.layout,
+    kind: "logo",
+    concept: logo,
+    sourceId: logo.logoId,
+    change: input.change,
+    design: input.oneClick ? input.oneClick.design : inherited(logo.design),
+    prompt,
+    requestKey: input.requestKey,
+    call: () => models.image.edit({ instruction: prompt, images: [logo.logo], size: sizeFor("logo"), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
+    check: (file) => checkLogo(models.vision, file, expected(logo, "logo"), input.now, input.userKey),
+    fix: logoFix("logo", null),
+  };
+  const result = await runBatch(models, store, [job], input.now);
+  return result.ids[0];
+}
+
+// Built in code from the chosen logo's pixels when that can be done with confidence, so the lettering can't change.
+// Otherwise, or when the owner asks for a new drawing (redraw), the logo is image 1 for the image model;
+// when the check flags drift, one more try is made and both are kept.
 export async function makeVersions(
   models: Models,
   store: AssetStore,
-  input: { logo: LogoRef; kinds: VersionKind[]; requestKey: string; userKey?: string; now: Date },
+  input: { logo: LogoRef; kinds: VersionKind[]; redraw?: boolean; requestKey: string; userKey?: string; now: Date },
 ): Promise<BatchResult> {
   const { logo } = input;
-  const jobs = input.kinds.map((kind): Job => {
-    const prompt = versionPrompt(logo.brief, logo.concept, kind);
+  const job = (kind: VersionKind, flagged: AssetCheck | null, layout?: AssetCheck["layout"]): Job => {
+    const prompt = [versionPrompt(logo.brief, logo.concept, kind, logo.words), ...(flagged ? retryLines(flagged) : [])].join("\n");
+    // Tied to the logo, so a key kept from another logo's try can't return that logo's files
+    const requestKey = `${logo.logoId}:${input.requestKey}:${kind}${flagged ? ":retry" : ""}`;
     return {
       kind,
       concept: logo,
       sourceId: logo.logoId,
       change: null,
+      design: inherited(logo.design),
       prompt,
-      // Tied to the logo, so a key kept from another logo's try can't return that logo's files
-      requestKey: `${logo.logoId}:${input.requestKey}:${kind}`,
+      requestKey,
       call: () => models.image.edit({ instruction: prompt, images: [logo.logo], size: sizeFor(kind), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
       check: (file) => checkVersion(models.vision, logo.logo, file, kind, expected(logo, kind), input.now, input.userKey),
+      fix: logoFix(kind, logo),
+      layout,
+      retry: flagged ? undefined : (check) => job(kind, check, layout),
     };
-  });
-  return runBatch(models, store, jobs, input.now);
+  };
+  const first = (kind: VersionKind): Job => {
+    if (input.redraw) return job(kind, null, { built: "model", note: "Drawn by the image model, because you asked for a new drawing.", confidence: 0 });
+    const built = buildVersion(logo.logo.data, kind, { letters: lettersOf(logo), ink: kind === "solid" ? solidInk(logo, null) : "" });
+    if (!built.ok) return job(kind, null, { built: "model", note: `Drawn by the image model: ${built.note}`, confidence: built.confidence });
+    const requestKey = `${logo.logoId}:${input.requestKey}:${kind}`;
+    return builtJob({ kind, concept: logo, sourceId: logo.logoId, change: null, design: inherited(logo.design), requestKey }, built);
+  };
+  return runBatch(models, store, input.kinds.map(first), input.now);
 }
 
 export async function makeBrandImages(
   models: Models,
   store: AssetStore,
-  input: { logo: LogoRef; kinds: BrandImageKind[]; change: string | null; requestKey: string; userKey?: string; now: Date },
+  // example: the approved one the others match, never sent for its own slot; medium: the owner's Photo / Illustration switch
+  input: { logo: LogoRef; kinds: BrandImageKind[]; change: string | null; example?: ImageInput | null; medium?: ImageMedium | null; requestKey: string; userKey?: string; now: Date },
 ): Promise<BatchResult> {
   const { logo } = input;
+  const medium = imageStyle(logo.brief, input.medium ?? null).medium;
   const jobs = input.kinds.map((kind): Job => {
-    const prompt = brandImagePrompt(logo.brief, logo.concept, kind, input.change);
+    const example = kind !== EXAMPLE_IMAGE && input.example ? input.example : null;
+    const prompt = brandImagePrompt(logo.brief, paletteOf(logo), kind, input.change, example ? EXAMPLE_IMAGE : undefined, input.medium ?? null);
     return {
       kind,
+      medium,
       concept: logo,
       sourceId: logo.logoId,
       change: input.change,
+      design: inherited(logo.design),
       prompt,
       requestKey: `${logo.logoId}:${input.requestKey}:${kind}`,
-      call: () => models.image.edit({ instruction: prompt, images: [logo.logo], size: sizeFor(kind), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
+      call: () =>
+        models.image.edit({ instruction: prompt, images: example ? [logo.logo, example] : [logo.logo], size: sizeFor(kind), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
       check: (file) => checkBrandImage(models.vision, file, kind, expected(logo, "logo"), input.now, input.userKey),
     };
   });
   return runBatch(models, store, jobs, input.now);
+}
+
+// A version or brand image changed in the owner's words: image 1 is the picture, image 2 the logo it must still match
+export async function editPicture(
+  models: Models,
+  store: AssetStore,
+  input: { logo: LogoRef; picture: { kind: VersionKind | BrandImageKind; file: ImageInput }; change: string; requestKey: string; userKey?: string; now: Date },
+): Promise<string> {
+  const { logo, picture } = input;
+  const kind = picture.kind;
+  const prompt = pictureEditPrompt(kind, input.change, logo);
+  const isImage = (IMAGE_KINDS as readonly string[]).includes(kind);
+  const job: Job = {
+    kind,
+    concept: logo,
+    // Made from the chosen logo, so the owner can pick it like any other
+    sourceId: logo.logoId,
+    change: input.change,
+    design: inherited(logo.design),
+    prompt,
+    requestKey: `${logo.logoId}:${input.requestKey}:edit`,
+    call: () => models.image.edit({ instruction: prompt, images: [picture.file, logo.logo], size: sizeFor(kind), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
+    check: (file) =>
+      isImage
+        ? checkBrandImage(models.vision, file, kind as BrandImageKind, expected(logo, "logo"), input.now, input.userKey)
+        : checkVersion(models.vision, logo.logo, file, kind as VersionKind, expected(logo, kind), input.now, input.userKey),
+    fix: logoFix(kind, logo),
+  };
+  const result = await runBatch(models, store, [job], input.now);
+  return result.ids[0];
 }
 
 function ownerFacing(error: unknown): unknown {

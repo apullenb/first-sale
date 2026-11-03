@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -10,6 +12,7 @@ import {
   getMyDetails,
   getMyWebsitePlan,
   listMyDocuments,
+  listMyProducts,
   myAiKey,
   saveMyWebsitePlan,
   updateMyDocument,
@@ -20,18 +23,26 @@ import { knownNumbers } from "@/lib/documents/business-plan";
 import { writePdf } from "@/lib/documents/pdf-writer";
 import { EMPTY_CONTENT } from "@/lib/documents/types";
 import { OwnerFacingError } from "@/lib/errors";
+import { claimConflicts } from "@/lib/website/claims";
 import { copyFlags, copyOf, draftWebsite, factsMessage, websiteCopySchema } from "@/lib/website/content";
 import { checkDomain, normalizeDomain } from "@/lib/website/domains";
 import { PLATFORMS, type WebsiteContent } from "@/lib/website/types";
 import { PLATFORM_DATA } from "@/data/website-platforms";
+import { finishStands } from "@/lib/website/site/finish";
+import { claimRecords } from "@/lib/website/site/check";
+import { loadSite } from "./site-data";
 import { runWorkflow } from "@/lib/workflow-runner";
+import { optionsSummary, priceLabel } from "@/lib/rules/products";
 
 const NO_BUSINESS = "Tell us about your business first.";
 
 export async function choosePlatformAction(platform: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = z.enum(PLATFORMS).nullable().safeParse(platform);
-  if (!parsed.success) return { ok: false, message: "Pick one of the three options." };
-  if (!(await saveMyWebsitePlan({ platform: parsed.data }))) return { ok: false, message: NO_BUSINESS };
+  if (!parsed.success) return { ok: false, message: "Pick one of the options." };
+  // A demo finish belongs to the SnapStart site
+  const patch = parsed.data === "first_sale" ? { platform: parsed.data } : { platform: parsed.data, finished: null };
+  if (!(await saveMyWebsitePlan(patch))) return { ok: false, message: NO_BUSINESS };
   refresh();
   return { ok: true, value: null };
 }
@@ -45,6 +56,7 @@ const MAX_CHECKS = 20;
 
 // Asks the official .com/.net registry whether a web address is registered
 export async function checkDomainAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const domain = typeof input === "string" ? normalizeDomain(input) : null;
   if (!domain) return { ok: false, message: "Type a web address ending in .com or .net, like yourbusiness.com. Letters, numbers and dashes only." };
   const age = (checkedAt: string) => Date.now() - Date.parse(checkedAt);
@@ -74,6 +86,7 @@ export async function checkDomainAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function chooseDomainAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   if (input === null) {
     if (!(await saveMyWebsitePlan({ domain: null }))) return { ok: false, message: NO_BUSINESS };
     refresh();
@@ -107,7 +120,19 @@ async function planAnswers(): Promise<Record<string, string>> {
   return Object.fromEntries(Object.entries(plan?.draft?.inputs ?? {}).filter(([key]) => PUBLIC_PLAN_ANSWERS.includes(key)));
 }
 
+// Selling prices only; what each product costs the owner stays out
+async function siteProducts() {
+  return (await listMyProducts()).map((product) => ({
+    name: product.name,
+    description: product.description,
+    priceCents: product.priceCents,
+    price: priceLabel(product),
+    options: optionsSummary(product.options),
+  }));
+}
+
 export async function draftWebsiteAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const [business, plan] = await Promise.all([getMyBusiness(), getMyWebsitePlan()]);
   if (!business?.profile) return { ok: false, message: NO_BUSINESS };
   if (!plan?.platform) return { ok: false, message: "Pick where you’ll build your site first." };
@@ -115,8 +140,10 @@ export async function draftWebsiteAction(): Promise<ActionResult> {
   const platform = plan.platform;
 
   const result = await runWorkflow("website_copy", null, async () => {
-    const content = await draftWebsite(getModel(), { profile, platform, details: await publicDetails(), planAnswers: await planAnswers() }, new Date(), await myAiKey());
-    if (!(await saveMyWebsitePlan({ content, contentApprovedAt: null }))) throw new OwnerFacingError(NO_BUSINESS);
+    const facts = { profile, platform, details: await publicDetails(), planAnswers: await planAnswers(), products: await siteProducts() };
+    const content = await draftWebsite(getModel(), facts, new Date(), await myAiKey());
+    // New words need approving and finishing again
+    if (!(await saveMyWebsitePlan({ content, contentApprovedAt: null, finished: null }))) throw new OwnerFacingError(NO_BUSINESS);
   });
   refresh();
   return result.ok ? { ok: true, value: null } : result;
@@ -127,17 +154,24 @@ const saveSchema = z.object({ copy: websiteCopySchema, approve: z.boolean(), dra
 
 // The owner's edits. Approving also saves a printable copy of the words to Documents.
 export async function saveWebsiteCopyAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = saveSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Some of the text is too long. Shorten it and try again." };
   const [business, plan] = await Promise.all([getMyBusiness(), getMyWebsitePlan()]);
   if (!business?.profile || !plan?.content) return { ok: false, message: "Draft your website words first." };
   const copy = copyOf(parsed.data.copy);
-  if (looksLikeIdNumber(JSON.stringify(copy))) return { ok: false, message: "Leave Social Security and tax id numbers off your website." };
+  if (looksLikeIdNumber(JSON.stringify(copy))) return { ok: false, message: "Leave Social Security and tax ID numbers off your website." };
 
   // A flagged number stays flagged until it's changed or removed
   const known = knownNumbers(
-    factsMessage({ profile: business.profile, platform: plan.content.platform, details: await publicDetails(), planAnswers: await planAnswers() }),
+    factsMessage({ profile: business.profile, platform: plan.content.platform, details: await publicDetails(), planAnswers: await planAnswers(), products: await siteProducts() }),
   );
+  // Price and ordering claims that disagree with saved prices or answers wait for the owner to settle
+  if (parsed.data.approve) {
+    const site = await loadSite();
+    const conflicts = site ? claimConflicts(copy, claimRecords({ ...site, content: { ...plan.content, ...copy } })) : [];
+    if (conflicts.length) return { ok: false, message: `Before approving: ${conflicts.join(" ")}` };
+  }
   const flags = copyFlags(copy, known).filter((flag) => plan.content!.flags.includes(flag));
   const now = new Date();
   const content = { ...plan.content, ...copy, flags };
@@ -145,9 +179,13 @@ export async function saveWebsiteCopyAction(input: unknown): Promise<ActionResul
   // Checked again under the lock, so a draft or platform change made meanwhile isn't overwritten
   let problem = null as string | null;
   const saved = await updateMyWebsitePlan((latest) => {
-    if (latest?.content?.generatedAt !== parsed.data.draftedAt) problem = "Your words were drafted again since this page loaded. Reload the page to see them.";
+    const before = latest?.content;
+    if (!latest || before?.generatedAt !== parsed.data.draftedAt) problem = "Your words were drafted again since this page loaded. Reload the page to see them.";
     else if (approvedAt && latest.platform !== content.platform) problem = "These words were written for a different platform. Draft them again before approving.";
-    return problem ? null : { content, contentApprovedAt: approvedAt };
+    if (problem || !latest || !before) return null;
+    // Changed or unapproved words need finishing again
+    const stands = finishStands({ copy: copyOf(before), approved: Boolean(latest.contentApprovedAt), design: null }, { copy, approved: Boolean(approvedAt), design: null });
+    return { content, contentApprovedAt: approvedAt, ...(stands ? {} : { finished: null }) };
   });
   if (saved === "no_business") return { ok: false, message: NO_BUSINESS };
   if (problem) return { ok: false, message: problem };
@@ -197,7 +235,7 @@ async function websitePdf(content: WebsiteContent, platformName: string, now: Da
   return writePdf({
     title: "Your website words",
     subtitle: `Approved ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })} · for ${platformName}`,
-    notice: content.simulated ? "Practice draft: written by built-in rules, not by the AI service." : undefined,
+    notice: content.simulated ? "Practice draft: written from your answers by SnapStart, not by the AI service." : undefined,
     blocks: [
       { heading: "Home page", paragraphs: [content.headline, content.subheadline, content.intro] },
       { heading: "About", paragraphs: [content.about] },
@@ -207,13 +245,14 @@ async function websitePdf(content: WebsiteContent, platformName: string, now: Da
       { heading: "Questions and answers", entries: content.faq.map((entry) => ({ label: entry.question, value: entry.answer })) },
       { heading: "Search results", entries: [{ label: "Title", value: content.seoTitle }, { label: "Description", value: content.seoDescription }] },
     ],
-    footer: "Website words made with First Sale",
+    footer: "Website words made with SnapStart",
   });
 }
 
 const stepSchema = z.object({ key: z.string().max(60), done: z.boolean() });
 
 export async function setSetupStepAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = stepSchema.safeParse(input);
   const plan = await getMyWebsitePlan();
   const platform = plan?.platform;

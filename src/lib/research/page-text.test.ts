@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_SOURCE_CHARS, pageText } from "./page-text";
+import { MAX_SOURCE_CHARS, pageText, sourceTitle } from "./page-text";
 
 const html = `<!doctype html><html><head><title>Launch your business</title><style>p{}</style></head><body>
 <header><nav><a href="/">Home</a></nav></header>
@@ -76,5 +76,23 @@ describe("pageText", () => {
     const text = pageText(long).text ?? "";
     expect(text.length).toBeLessThanOrEqual(MAX_SOURCE_CHARS);
     expect(text.endsWith("A sentence that goes on for a while.")).toBe(true);
+  });
+});
+
+describe("sourceTitle", () => {
+  const dba = "Assumed Names\nA business that operates under a name other than its owner’s must file an assumed name certificate with the County Clerk.";
+  it("prefers the page's heading when the title is about something else", () => {
+    expect(sourceTitle({ title: "Debarred, Divested, or Excluded Parties", heading: "Assumed Names", text: dba })).toBe("Assumed Names");
+  });
+
+  it("keeps a title that describes the page, and replaces a generic one", () => {
+    expect(sourceTitle({ title: "Assumed Name Certificates | Denton County", heading: "Assumed Names", text: dba })).toBe("Assumed Name Certificates | Denton County");
+    expect(sourceTitle({ title: "Home", heading: "Assumed Names", text: dba })).toBe("Assumed Names");
+    expect(sourceTitle({ title: "County Clerk", heading: "", text: dba })).toBe("County Clerk");
+  });
+
+  it("reads the main heading of a page, or of the linked section", () => {
+    expect(pageText(html).heading).toBe("Launch");
+    expect(pageText(html, "taxes").heading).toBe("Get tax IDs");
   });
 });

@@ -76,6 +76,7 @@ export function requirementDraft(overrides: Partial<RequirementDraft> = {}): Req
     forStructures: [],
     renewal: null,
     renewalFeeUsd: null,
+    ownerAction: null,
     ...overrides,
   };
 }
@@ -92,6 +93,8 @@ export function researchedRequirement(overrides: Partial<VerifiedRequirement & C
     conditions: [],
     fitsStructure: true,
     alreadyHave: null,
+    question: null,
+    answer: null,
     ...base,
     ...overrides,
   };

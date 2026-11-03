@@ -56,17 +56,17 @@ export function profileImpact(before: BusinessProfile, after: BusinessProfile, c
     effects.push(
       context.researchCheckedAt
         ? {
-            title: "Requirements",
-            detail: "They were checked with your old answers. Re-check them so they match what you’ve changed.",
+            title: "What applies to you",
+            detail: "SnapStart updates it for your new answers when you open it.",
             href: "/requirements",
           }
-        : { title: "Requirements", detail: "They’ll use your new answers when you find them.", href: "/requirements" },
+        : { title: "What applies to you", detail: "It’ll use your new answers when you find what applies.", href: "/requirements" },
     );
     if (context.planSteps > 0) {
       effects.push({
-        title: "Startup plan",
-        detail: "A re-check may add or remove steps. You’ll review any change first, and steps you’ve finished stay finished.",
-        href: "/checklist",
+        title: "Start your business",
+        detail: "Your steps update to match. Steps you’ve finished stay finished.",
+        href: "/start",
       });
     }
   }

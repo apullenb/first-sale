@@ -2,6 +2,7 @@
 
 import { type FormEvent, useId, useLayoutEffect, useState } from "react";
 import { renameDocumentAction } from "@/app/(app)/documents/actions";
+import { Icon } from "@/components/icons";
 import { ALERT, INPUT, PAGE_TITLE, PRIMARY, SECONDARY } from "@/components/styles";
 
 // The document's name as the page heading, with an inline rename
@@ -22,7 +23,7 @@ export function DocumentTitle({ documentId, title }: { documentId: string; title
       if (!result.ok) setError(result.message);
       else setEditing(false);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }
@@ -30,7 +31,7 @@ export function DocumentTitle({ documentId, title }: { documentId: string; title
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <h1 className={`${PAGE_TITLE} min-w-0 break-words`}>{title}</h1>
         {editing ? null : (
           <button
@@ -39,15 +40,16 @@ export function DocumentTitle({ documentId, title }: { documentId: string; title
               setValue(title);
               setEditing(true);
             }}
-            className={SECONDARY}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] px-2.5 text-[15px] font-semibold text-muted transition hover:bg-wash hover:text-ink"
           >
+            <Icon name="pencil" size="sm" />
             Rename<span className="sr-only"> this document</span>
           </button>
         )}
       </div>
       {editing ? (
-        <form onSubmit={save} className="flex flex-col gap-2">
-          <label htmlFor={`${uid}-name`} className="font-semibold">
+        <form onSubmit={save} className="flex max-w-2xl flex-col gap-2 rounded-[14px] border border-line bg-surface p-4 shadow-card">
+          <label htmlFor={`${uid}-name`} className="text-[15.5px] font-semibold">
             New name
           </label>
           <input
