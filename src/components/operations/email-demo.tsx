@@ -4,9 +4,8 @@ import { Icon } from "@/components/icons";
 import { INPUT, OUTSIDE_LINK, PRIMARY, SECONDARY } from "@/components/styles";
 import { Card, Chip } from "@/components/ui";
 import { Working } from "@/components/working";
-import { DEMO_ADDRESS, DEMO_BUSINESS, DEMO_CODE, DEMO_EMAILS, DEMO_OWNER_EMAIL, type DemoEmail } from "@/data/email-demo";
+import { DEMO_EMAILS, DEMO_OWNER_EMAIL, type DemoEmail } from "@/data/email-demo";
 import { replySubject } from "@/lib/email/mailto";
-import { Numbered, SetupGuide, type SetupTab, useCopy } from "./forwarding";
 
 // Client-side only: nothing here is saved, sent or read by AI; a reload starts over
 export function EmailDemo() {
@@ -15,7 +14,7 @@ export function EmailDemo() {
     <div className="flex flex-col gap-5">
       <Card title="Coming soon" id="email-coming-soon" icon="clock" tone="pick">
         <p className="text-lg">
-          Forwarding customer emails to SnapStart is coming soon. Here’s how it will work — try it with sample emails.
+          Connecting your email is coming soon. Here’s how it will work once your inbox is connected — try it with sample emails.
         </p>
       </Card>
       <DemoBody key={round} onReset={() => setRound((value) => value + 1)} />
@@ -27,10 +26,7 @@ const Sample = () => <Chip tone="pick">Sample</Chip>;
 const Demo = () => <Chip tone="warn">DEMO</Chip>;
 
 function DemoBody({ onReset }: { onReset: () => void }) {
-  const { copied, copy } = useCopy();
-  const [tab, setTab] = useState<SetupTab>("one"),
-    [tested, setTested] = useState(false),
-    [reading, setReading] = useState<number | null>(null),
+  const [reading, setReading] = useState<number | null>(null),
     [read, setRead] = useState(false),
     [confirmed, setConfirmed] = useState<string[]>([]);
 
@@ -47,71 +43,16 @@ function DemoBody({ onReset }: { onReset: () => void }) {
     return () => window.clearTimeout(timer);
   }, [reading]);
 
-  const copyAddress = (key: string, className: string) => (
-    <button type="button" className={className} onClick={() => copy(key, DEMO_ADDRESS)}>
-      <Icon name={copied === key ? "check" : "copy"} size="sm" />
-      {copied === key ? "Copied!" : "Copy address"}
-    </button>
-  );
-  const orders = DEMO_EMAILS.filter((email) => confirmed.includes(email.id));
+  const orders = DEMO_EMAILS.filter((email) => confirmed.includes(email.id) && GOES_TO_ORDERS.has(email.result.kind));
 
   return (
     <>
-      <Card title="Your SnapStart email address" id="email-address" icon="mail" action={<Sample />}>
-        <p className="text-lg">Send customer emails to this address and SnapStart turns them into orders.</p>
-        <div className="flex flex-col gap-3 rounded-2xl border-2 border-accent bg-accent-tint p-4 sm:p-5">
-          <p className="text-sm font-semibold text-accent-ink">Sample address for {DEMO_BUSINESS}. Yours will be private to your business.</p>
-          <p aria-label="Sample SnapStart address" className="break-all font-mono text-lg font-bold text-accent-ink sm:text-xl">
-            {DEMO_ADDRESS}
-          </p>
-          {copyAddress("address", `${SECONDARY} min-h-14 w-full text-lg sm:w-fit`)}
-          {copied === "address:failed" ? <p className="text-sm text-check">Couldn’t copy. Press and hold the address to copy it.</p> : null}
-        </div>
-        <p className="flex items-start gap-2 text-[15px] text-muted">
-          <Icon name="lock" size="sm" className="mt-0.5 shrink-0" />
-          Only emails you send or forward to this address reach SnapStart. SnapStart can’t see anything else in your inbox.
+      <Card title="Your connected inbox" id="email-connected" icon="mail" action={<Sample />}>
+        <p className="flex flex-wrap items-center gap-2 text-lg">
+          <Chip tone="done" icon="check">Connected</Chip>
+          <span className="break-all font-semibold">{DEMO_OWNER_EMAIL}</span>
         </p>
-      </Card>
-
-      <SetupGuide
-        tab={tab}
-        onTab={setTab}
-        copyAddress={copyAddress}
-        test={
-          <div role="tabpanel" className="flex flex-col gap-4">
-            <Numbered
-              steps={[
-                <span key="copy" className="flex flex-col gap-2">Copy your SnapStart address. {copyAddress("test", `${SECONDARY} w-fit`)}</span>,
-                "From any email, send a short message to that address. For example: “Testing SnapStart.”",
-                "Wait a minute. This page checks for it on its own.",
-                "When it says “It works!”, tap Read new emails.",
-              ]}
-            />
-            {tested ? (
-              <p className="flex items-center gap-2 rounded-xl border border-done/25 bg-done-tint p-4 text-lg font-bold text-done">
-                <Icon name="check" />
-                It works! We got your email from {DEMO_OWNER_EMAIL}.
-              </p>
-            ) : (
-              <button type="button" className={`${SECONDARY} w-fit`} onClick={() => setTested(true)}>
-                <Icon name="send" size="sm" />
-                Pretend a test email arrived
-              </button>
-            )}
-          </div>
-        }
-      />
-
-      <Card title="Example: a Gmail confirmation code" id="email-confirmation" icon="badge" action={<Sample />}>
-        <p className="text-muted">When you turn on automatic forwarding, Gmail and some others email your SnapStart address to confirm it. It shows up here, at the top of the page:</p>
-        <div className="flex flex-col gap-3 rounded-2xl border-2 border-check-ring bg-check-tint p-4 text-check">
-          <p className="text-lg font-bold">Gmail sent a confirmation code: {DEMO_CODE}</p>
-          <p className="text-ink">Copy it, then paste it back in Gmail where it asks for the code and click Verify.</p>
-          <button type="button" className={`${SECONDARY} w-fit`} onClick={() => copy("code", DEMO_CODE)}>
-            <Icon name={copied === "code" ? "check" : "copy"} size="sm" />
-            {copied === "code" ? "Copied!" : "Copy code"}
-          </button>
-        </div>
+        <p className="text-[15px] text-muted">New customer emails show up below. SnapStart reads them when you tap Read new emails.</p>
       </Card>
 
       <Card title="Customer inbox" id="demo-inbox" icon="mail" action={<Sample />}>
@@ -125,7 +66,7 @@ function DemoBody({ onReset }: { onReset: () => void }) {
             </button>
           )}
           <Working label={reading !== null ? `Reading email ${reading + 1} of ${DEMO_EMAILS.length}…` : ""} active={reading !== null} />
-          <p className="text-sm text-muted">Orders and requests are added for your review. Nothing is sent to customers.</p>
+          <p className="text-sm text-muted">Orders and quote requests go to Orders &amp; jobs for your review. Questions and shipping updates get a reply ready to send. Nothing is sent to customers.</p>
         </div>
         {DEMO_EMAILS.map((email, index) =>
           read ? (
@@ -159,7 +100,7 @@ function DemoBody({ onReset }: { onReset: () => void }) {
             ))}
           </ul>
         ) : (
-          <p className="text-muted">Confirm an order or request above and it shows up here.</p>
+          <p className="text-muted">Confirm an order or quote request above and it shows up here.</p>
         )}
         <p className="text-sm text-muted">Demo only: nothing here is saved, and it doesn’t change your real orders.</p>
       </Card>
@@ -171,6 +112,15 @@ function DemoBody({ onReset }: { onReset: () => void }) {
     </>
   );
 }
+
+// Orders and quotes land in Orders & jobs; updates and questions only need a reply
+const GOES_TO_ORDERS = new Set<DemoEmail["result"]["kind"]>(["order", "quote"]);
+const KIND: Record<DemoEmail["result"]["kind"], { label: string; icon: "receipt" | "question" | "box" | "mail"; tone: "accent" | "pick" | "gray" }> = {
+  order: { label: "Order", icon: "receipt", tone: "accent" },
+  quote: { label: "Quote request", icon: "question", tone: "pick" },
+  update: { label: "Shipping update", icon: "box", tone: "gray" },
+  question: { label: "Question", icon: "mail", tone: "gray" },
+};
 
 function From({ email }: { email: DemoEmail }) {
   return (
@@ -210,11 +160,11 @@ function ResultCard({ email, confirmed, onConfirm }: { email: DemoEmail; confirm
   return (
     <article aria-labelledby={`demo-${email.id}`} className="flex flex-col gap-3 rounded-xl border border-line p-4 shadow-soft">
       <div className="flex flex-wrap items-center gap-2">
-        <Chip tone={result.kind === "order" ? "accent" : "pick"} icon={result.kind === "order" ? "receipt" : "question"}>
-          {result.kind === "order" ? "Order" : "Request"}
+        <Chip tone={KIND[result.kind].tone} icon={KIND[result.kind].icon}>
+          {KIND[result.kind].label}
         </Chip>
         <Demo />
-        {confirmed ? <Chip tone="done" icon="check">Added to Orders & jobs</Chip> : <Chip tone="gray">For review</Chip>}
+        {!GOES_TO_ORDERS.has(result.kind) ? null : confirmed ? <Chip tone="done" icon="check">Added to Orders & jobs</Chip> : <Chip tone="gray">For review</Chip>}
       </div>
       <h3 id={`demo-${email.id}`} className="font-display text-xl">
         {result.title}
@@ -224,18 +174,22 @@ function ResultCard({ email, confirmed, onConfirm }: { email: DemoEmail; confirm
         <dd>
           {email.fromName} ({email.from})
         </dd>
-        <dt className="font-semibold text-muted">{result.kind === "order" ? "Items" : "Asking about"}</dt>
+        <dt className="font-semibold text-muted">{result.kind === "order" || result.kind === "quote" ? "Items" : result.kind === "update" ? "Order" : "Asking about"}</dt>
         <dd>
           <ul>
             {result.items.map((item) => (
               <li key={item.name}>
-                {item.quantity} × {item.name}
+                {result.kind === "question" ? item.name : `${item.quantity} × ${item.name}`}
               </li>
             ))}
           </ul>
         </dd>
-        <dt className="font-semibold text-muted">When</dt>
-        <dd>{result.when}</dd>
+        {result.kind === "question" ? null : (
+          <>
+            <dt className="font-semibold text-muted">{result.kind === "update" ? "Status" : "When"}</dt>
+            <dd>{result.when}</dd>
+          </>
+        )}
         {result.notes ? (
           <>
             <dt className="font-semibold text-muted">Notes</dt>
@@ -256,7 +210,7 @@ function ResultCard({ email, confirmed, onConfirm }: { email: DemoEmail; confirm
           <p className="whitespace-pre-wrap break-words text-sm">{email.body}</p>
         </div>
       </details>
-      {confirmed ? null : (
+      {confirmed || !GOES_TO_ORDERS.has(result.kind) ? null : (
         <button type="button" className={`${SECONDARY} w-fit`} onClick={onConfirm}>
           <Icon name="check" size="sm" />
           Review and confirm

@@ -19,20 +19,21 @@ test("email demo: links land there, sample emails become orders and replies, not
   await page.waitForURL("**/email/demo");
   await page.waitForLoadState("networkidle");
 
-  await expect(page.getByRole("region", { name: "Coming soon" })).toContainText("Forwarding customer emails to SnapStart is coming soon.");
-  const address = page.getByRole("region", { name: "Your SnapStart email address" });
-  await expect(address.getByLabel("Sample SnapStart address")).toHaveText("maple-crumb+sample@inbound.example");
-  await address.getByRole("button", { name: "Copy address" }).click();
-  await expect(address.getByRole("button", { name: "Copied!" })).toBeVisible();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("maple-crumb+sample@inbound.example");
-  await page.getByRole("tab", { name: "Forward automatically" }).click();
-  await expect(page.getByRole("tabpanel")).toContainText("Add a forwarding address");
+  await expect(page.getByRole("region", { name: "Coming soon" })).toContainText("Connecting your email is coming soon.");
+  await expect(page.getByRole("region", { name: "Your connected inbox" })).toContainText("Connected");
+  await expect(page.getByText("Your SnapStart email address")).toHaveCount(0);
 
   const inbox = page.getByRole("region", { name: "Customer inbox" });
-  await expect(inbox.getByRole("article")).toHaveCount(4);
+  await expect(inbox.getByRole("article")).toHaveCount(9);
   await expect(inbox.getByRole("article").first()).toContainText("Sample");
   await inbox.getByRole("button", { name: "Read new emails" }).click();
-  await expect(inbox).toContainText("Read 4 sample emails");
+  await expect(inbox).toContainText("Read 9 sample emails");
+
+  await expect(inbox.getByRole("article", { name: "150 wedding favor cookies" })).toContainText("Quote request");
+  const shipping = inbox.getByRole("article", { name: "Shipping update for order #1043" });
+  await expect(shipping).toContainText("Shipping update");
+  await expect(shipping.getByRole("button", { name: "Review and confirm" })).toHaveCount(0);
+  await expect(inbox.getByRole("article", { name: "Vegan and gluten-free options" })).toContainText("Question");
 
   const order = inbox.getByRole("article", { name: "2 dozen chocolate chip cookies" });
   await expect(order).toContainText("Order");
@@ -58,6 +59,6 @@ test("email demo: links land there, sample emails become orders and replies, not
 
   await page.getByRole("button", { name: "Start the demo over" }).click();
   await expect(inbox.getByRole("button", { name: "Read new emails" })).toBeVisible();
-  await expect(orders).toContainText("Confirm an order or request above");
+  await expect(orders).toContainText("Confirm an order or quote request above");
   await context.close();
 });

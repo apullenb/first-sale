@@ -104,7 +104,7 @@ SnapStart is a guided workspace in three parts, and a **Today** page always show
       • A website built from your products, checked against your prices<br>
       • Prices from similar businesses near you</td>
     <td valign="top"><b>Keep the day-to-day in one place.</b><br><br>
-      • Customer email by forwarding (coming soon, with a working demo to try now)<br>
+      • Customer email, turned into orders and replies (coming soon, with a working demo to try now)<br>
       • Order and job tracking with due dates, payments and balances<br>
       • Friendly business insights with tips you can act on<br>
       • Every form, receipt and approval in one document library</td>
@@ -247,7 +247,7 @@ Everything the brand is made of lives in one place: the chosen logo and its vers
 
 <img src="docs/media/nav/run-your-business.webp" alt="Menu link: Run your business" width="225" height="32"> <img src="docs/media/nav/connect-your-email.webp" alt="Menu link: Connect your email" width="201" height="32"> <img src="docs/media/nav/orders-and-requests.webp" alt="Menu link: Orders & requests" width="201" height="32">
 
-Customer email and a shared order/job tracker. Coming soon: each business gets its own private SnapStart email address. Owners forward a customer's email there (or set their email to forward automatically), press **Read new emails**, and each email becomes an order or request for review, with a reply drafted for them to send. You can try it today: **Connect your email** opens a working demo with sample bakery emails (`/email/demo`) that turns them into orders, requests and replies right in the browser, saving nothing. Owners can already upload an invoice, paste an email or enter work themselves. The tracker adapts to products, made-to-order work and services, with due dates, progress, payments and balances; confirming applies catalog prices and takes stock once. Replies are drafted for the owner to edit, then open in the owner's own email app to send. Setup: [Customer operations](docs/CUSTOMER-OPERATIONS.md).
+Customer email and a shared order/job tracker. Coming soon: connect your business email, press **Read new emails**, and SnapStart turns each customer email into an order, a quote request, a shipping update or a question, with a reply drafted for the owner to send. You can try it today: **Connect your email** opens a working demo with a connected sample inbox (`/email/demo`), where nine bakery emails become orders, quote requests and replies right in the browser, saving nothing. Owners can already upload an invoice, paste an email or enter work themselves. The tracker adapts to products, made-to-order work and services, with due dates, progress, payments and balances; confirming applies catalog prices and takes stock once. Replies are drafted for the owner to edit, then open in the owner's own email app to send. Setup: [Customer operations](docs/CUSTOMER-OPERATIONS.md).
 
 <p align="center"><img src="docs/media/run.webp" alt="The Run your business page: Connect your email and Track orders and customer requests, each ready to set up" width="900"></p>
 
