@@ -36,8 +36,11 @@ export interface InboxMessage {
 }
 export function RequestImport({
   onMessage,
+  quiet = false,
 }: {
   onMessage?: (message: string) => void;
+  // A secondary button, when another primary is on the page
+  quiet?: boolean;
 }) {
   const [pending, start] = useTransition(),
     [message, setMessage] = useState("");
@@ -73,7 +76,7 @@ export function RequestImport({
         Or paste a customer email or invoice
         <textarea name="text" rows={5} maxLength={30_000} className={INPUT} />
       </label>
-      <button disabled={pending} className={`${PRIMARY} w-fit`}>
+      <button disabled={pending} className={`${quiet ? SECONDARY : PRIMARY} w-fit`}>
         {pending ? "Reading request…" : "Read & add for review"}
       </button>
       <p role="status" className="text-sm text-accent">
@@ -304,7 +307,7 @@ function Message({
       {item.orderId ? (
         <Link
           className={`${SECONDARY} w-fit`}
-          href={`/orders?order=${encodeURIComponent(item.orderId)}`}
+          href={`/orders/${encodeURIComponent(item.orderId)}`}
         >
           Open order or job
         </Link>
