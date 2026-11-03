@@ -183,6 +183,27 @@
       "when": 1793642101036,
       "tag": "0025_orders_by_option",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793653440777,
+      "tag": "0026_lazy_snowbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1793653896440,
+      "tag": "0027_fluffy_swordsman",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1793731819627,
+      "tag": "0028_customer_email_orders",
+      "breakpoints": true
     }
   ]
 }

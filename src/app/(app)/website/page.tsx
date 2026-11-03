@@ -131,7 +131,7 @@ async function WebsitePlanView() {
     conflicts: content ? claimConflicts(copyOf(content), claimRecords(site)).length : 0,
   });
 
-  const existingPanel = <ExistingSitePanel connected={existing} marked={mark ? { url: mark.url, note: mark.note } : null} />;
+  const existingPanel = <div className="flex flex-col gap-3"><ExistingSitePanel connected={existing} marked={mark ? { url: mark.url, note: mark.note } : null} /><Link href="/products/square" className={TEXT_LINK}>Connect Square to review and update product descriptions</Link></div>;
   const steps = (
     <>
       <Fold open={!chosen} icon="book" title="New to websites? Start here" summary="The five things you’ll need to be online">

@@ -2,21 +2,79 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { PRIMARY_LINK } from "@/components/styles";
 import { Card, Chip, PageHead } from "@/components/ui";
-import { listMyOperationSetups } from "@/lib/data/my-business";
-import { OPERATIONS, OPERATION_KINDS } from "@/lib/operations/catalog";
+import { getMyEmailState, listMyOrders } from "@/lib/data/my-business";
 import { sectionMetadata } from "@/lib/sections";
 
 export const metadata = sectionMetadata("/run");
-
 export default function RunPage() {
-  return <div className="flex max-w-4xl flex-col gap-6"><PageHead kicker="Your daily workspace" title="Run your business" lead="Choose the work you want help with. We’ll walk you through the setup, then you can try it with a sample." /><Suspense fallback={<p className="text-muted">Loading your workflows…</p>}><Workflows /></Suspense><Card title="You stay in charge" id="in-charge"><p>Replies wait for your review. Orders, stock and payments change only through confirmed actions. Connecting a tool will require your permission.</p></Card></div>;
+  return (
+    <div className="flex max-w-4xl flex-col gap-6">
+      <PageHead
+        kicker="Your daily workspace"
+        title="Run your business"
+        lead="Stay on top of customer messages, orders, jobs and payments."
+      />
+      <Suspense fallback={<p className="text-muted">Loading your work…</p>}>
+        <Workflows />
+      </Suspense>
+      <Card title="You stay in charge" id="in-charge">
+        <p>
+          Imported emails become orders and requests for your review. You
+          confirm stock changes, record payments and approve every reply before
+          it’s sent.
+        </p>
+      </Card>
+    </div>
+  );
 }
-
 async function Workflows() {
-  const setups = await listMyOperationSetups();
-  return <div className="grid gap-5 md:grid-cols-2">{OPERATION_KINDS.map((kind) => {
-    const definition = OPERATIONS[kind];
-    const saved = setups.find((setup) => setup.kind === kind);
-    return <Card key={kind} title={definition.title} icon={kind === "email" ? "file" : "receipt"} id={`workflow-${kind}`}><Chip tone={saved ? "accent" : "gray"}>{saved ? saved.paused ? "Demo paused" : "Demo setup saved" : "Ready to set up"}</Chip><p className="text-muted">{definition.description}</p><p className="text-sm text-rule">{definition.trigger}</p><Link href={definition.href} className={PRIMARY_LINK}>{saved ? "Manage setup" : "Set this up"}</Link></Card>;
-  })}</div>;
+  const [email, orders] = await Promise.all([
+    getMyEmailState(),
+    listMyOrders(),
+  ]);
+  const review = orders.filter(
+    (order) => order.status === "needs_review" || order.status === "new",
+  ).length;
+  return (
+    <div className="grid gap-5 md:grid-cols-2">
+      <Card title="Customer email" icon="file" id="workflow-email">
+        <Chip
+          tone={
+            email.connection?.status === "connected"
+              ? "done"
+              : email.connection
+                ? "warn"
+                : "gray"
+          }
+        >
+          {email.connection
+            ? email.connection.status === "connected"
+              ? "Connected"
+              : "Reconnect needed"
+            : "Connect your inbox"}
+        </Chip>
+        <p className="text-muted">
+          Connect your inbox, import new emails, turn them into orders or
+          requests, and reply.
+        </p>
+        <Link href="/email" className={PRIMARY_LINK}>
+          Open customer email
+        </Link>
+      </Card>
+      <Card title="Orders & jobs" icon="receipt" id="workflow-requests">
+        <Chip tone={review ? "warn" : "gray"}>
+          {review
+            ? `${review} need review`
+            : `${orders.filter((order) => !["fulfilled", "cancelled"].includes(order.status)).length} active`}
+        </Chip>
+        <p className="text-muted">
+          Track work, due dates, payments and balances. Add work yourself,
+          upload invoices or create it from imported email.
+        </p>
+        <Link href="/orders" className={PRIMARY_LINK}>
+          Open orders & jobs
+        </Link>
+      </Card>
+    </div>
+  );
 }

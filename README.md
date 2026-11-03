@@ -104,8 +104,8 @@ SnapStart is a guided workspace in three parts, and a **Today** page always show
       • A website built from your products, checked against your prices<br>
       • Prices from similar businesses near you</td>
     <td valign="top"><b>Keep the day-to-day in one place.</b><br><br>
-      • Guided setup for an email assistant that drafts replies for your review<br>
-      • Order and customer-request tracking with follow-up reminders<br>
+      • Customer email: import new messages, turn them into orders or requests, and reply<br>
+      • Order and job tracking with due dates, payments and balances<br>
       • Friendly business insights with tips you can act on<br>
       • Every form, receipt and approval in one document library</td>
   </tr>
@@ -241,7 +241,7 @@ Everything the brand is made of lives in one place: the chosen logo and its vers
 
 <img src="docs/media/nav/run-your-business.webp" alt="Menu link: Run your business" width="225" height="32"> <img src="docs/media/nav/connect-your-email.webp" alt="Menu link: Connect your email" width="201" height="32"> <img src="docs/media/nav/orders-and-requests.webp" alt="Menu link: Orders & requests" width="201" height="32">
 
-Guided setup for the daily work an owner can't hire for yet: an email assistant that keeps customer messages together and drafts replies for review, and order and customer-request tracking with reminders to follow up. Owners can enter orders themselves, each line naming the exact option, priced from it and taken from its stock. Each walks through choices and preferences, then lets the owner try it with a sample.
+Customer email and a shared order/job tracker. Owners connect their business inbox, press **Import new emails** to bring in what's new, and each email becomes an order or request for review. They can also paste an email, upload an invoice or enter work themselves. The tracker adapts to products, made-to-order work and services, with due dates, progress, payments and balances; confirming applies catalog prices and takes stock once. Replies are drafted for the owner to edit and approve, then sent from their inbox. Provider setup: [Customer operations](docs/CUSTOMER-OPERATIONS.md).
 
 <p align="center"><img src="docs/media/run.webp" alt="The Run your business page: Connect your email and Track orders and customer requests, each ready to set up" width="900"></p>
 
@@ -377,7 +377,7 @@ The AI drafts, and SnapStart checks each draft in code at a set step before the 
 
 ### Long jobs: `runWorkflow`
 
-Every long AI job goes through one runner (`src/lib/workflow-runner.ts`) and a registry of 32 workflows (`src/lib/workflows.ts`). It applies fair-use limits (30 requests an hour and 150 a day per owner, 2,000 a day overall by default) inside a Postgres advisory lock, runs one copy of a job at a time, and records each run in `workflow_runs` so a reload or another tab picks up the result. Picture requests carry a request key from the browser, so a retry after a dropped connection returns the picture already made.
+Every long AI job goes through one runner (`src/lib/workflow-runner.ts`) and a workflow registry (`src/lib/workflows.ts`). It applies fair-use limits (30 requests an hour and 150 a day per owner, 2,000 a day overall by default) inside a Postgres advisory lock, runs one copy of a job at a time, and records each run in `workflow_runs` so a reload or another tab picks up the result. Picture requests carry a request key from the browser, so a retry after a dropped connection returns the picture already made.
 
 ### Telemetry
 
@@ -493,6 +493,7 @@ To use a different OpenAI-compatible model instead, set `AI_PROVIDER=openai-comp
 | `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Sessions; sign-in accepts requests from `BETTER_AUTH_URL` |
 | `BETTER_AUTH_TRUSTED_ORIGINS` | Extra sign-in origins (Vercel previews are added automatically) |
 | `DEMO_OWNER_EMAIL` | Optional open demo: `/demo` shows this account's business read-only, no sign-in needed |
+| `NYLAS_API_KEY`, `NYLAS_CLIENT_ID`, `NYLAS_REGION`, `NYLAS_REDIRECT_URI` | Optional customer email connection through Nylas; see [Customer operations](docs/CUSTOMER-OPERATIONS.md) |
 
 PGlite allows one process at a time, so stop `npm run dev` before `db:migrate`. See [docs/GUIDE.md](docs/GUIDE.md#quick-start) for more.
 
@@ -521,7 +522,7 @@ The production address and each preview's URLs are trusted for sign-in automatic
 
 ## Coming soon
 
-- **Live email and order connections**, so the email assistant and order tracking work right from the owner's inbox and sales channels.
+- **Order connections for websites and stores**, so orders arrive in tracking from the owner's sales channels.
 - **Publishing the website SnapStart builds**, with hosting, a custom web address and payments built in.
 - **Product photo galleries** on the built website, straight from the owner's approved photos.
 - **Password recovery and email verification.**
