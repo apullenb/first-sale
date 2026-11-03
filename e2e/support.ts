@@ -233,12 +233,12 @@ export async function saveDetail(page: Page, label: string, value: string) {
 }
 
 // A small solid-color PNG, encoded in memory
-export function pngBuffer(size = 64, rgb: [number, number, number] = [180, 90, 40]): Buffer {
+export function pngBuffer(size = 64, rgb: [number, number, number] = [180, 90, 40], height = size): Buffer {
   const row = Buffer.concat([Buffer.from([0]), Buffer.from(Array.from({ length: size }, () => rgb).flat())]);
-  const raw = Buffer.concat(Array.from({ length: size }, () => row));
+  const raw = Buffer.concat(Array.from({ length: height }, () => row));
   const header = Buffer.alloc(13);
   header.writeUInt32BE(size, 0);
-  header.writeUInt32BE(size, 4);
+  header.writeUInt32BE(height, 4);
   header.set([8, 2, 0, 0, 0], 8);
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),

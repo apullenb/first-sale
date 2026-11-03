@@ -1,11 +1,15 @@
 "use server";
 
+import { getModel } from "@/lib/ai";
+import { getMyBrandState, myAiKey } from "@/lib/data/my-business";
+import { runWorkflow } from "@/lib/workflow-runner";
+import { designBrandTheme, validateTheme } from "@/lib/website/site/theme";
 import { isDemoSession } from "@/lib/auth/server";
 import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
-import { listMyPhotoLibrary, saveMyWebsitePlan, updateMyWebsitePlan } from "@/lib/data/my-business";
+import { saveMyWebsitePlan, updateMyWebsitePlan } from "@/lib/data/my-business";
 import { buyLinkProblem, siteDesignSchema } from "@/lib/website/site/design";
 import { finishStands } from "@/lib/website/site/finish";
 import { publishReadiness } from "@/lib/website/site/ready";
@@ -26,11 +30,12 @@ export async function saveSiteDesignAction(input: unknown): Promise<ActionResult
     if (problem) return { ok: false, message: `${item.name}: ${problem}` };
   }
   // Only photos the owner approved in their library
-  const library = await listMyPhotoLibrary();
-  const items = design.items.map((item) =>
-    item.photo && !library.some((photo) => photo.id === item.photo!.versionId && photo.photoId === item.photo!.photoId) ? { ...item, photo: null } : item,
-  );
-  const next = { ...design, items };
+  const site = await loadSite();
+  const library = site?.library ?? [];
+  if (design.items.some((item) => item.photo && !library.some((photo) => photo.id === item.photo!.versionId && photo.photoId === item.photo!.photoId))) return { ok: false, message: "Choose product photos from your own library." };
+  const items = design.items;
+  if (design.heroImage && !library.some((photo) => photo.id === design.heroImage!.versionId && photo.photoId === design.heroImage!.photoId)) return { ok: false, message: "Choose a header picture from your own library." };
+  const next = { ...design, items, ...(design.theme ? { theme: validateTheme(design.theme) } : {}) };
   let missing = false;
   // A changed design needs finishing again
   const saved = await updateMyWebsitePlan((plan) => {
@@ -89,4 +94,21 @@ export async function disconnectExistingSiteAction(): Promise<ActionResult> {
   if (saved === "no_business") return { ok: false, message: NO_BUSINESS };
   refresh();
   return { ok: true, value: null };
+}
+
+export async function designThemeAction(request: string) {
+  if (await isDemoSession()) return DEMO_REFUSAL;
+  if (typeof request !== "string" || request.length > 1000) return { ok: false as const, message: "Keep your design request under 1,000 characters." };
+  const site = await loadSite();
+  if (!site || site.platform !== "first_sale") return { ok: false as const, message: "Choose a SnapStart site first." };
+  const brand = await getMyBrandState();
+  const brief = brand?.brief;
+  let proposal: Awaited<ReturnType<typeof designBrandTheme>> | undefined;
+  const result = await runWorkflow("website_theme", null, async () => {
+    proposal = await designBrandTheme(getModel(), {
+      brief: brief ? { name: brief.name, tagline: brief.tagline, sells: brief.sells, customers: brief.customers, vibes: brief.vibes, leanings: brief.leanings, colors: brief.colors, likedColors: brief.likedColors, avoidColors: brief.avoidColors, story: brief.story } : null,
+      palette: site.brand?.colors ?? [], lettering: site.brand?.lettering, images: site.library.map(({ id, title, width, height }) => ({ id, title, width, height })), request,
+    }, await myAiKey());
+  });
+  return result.ok && proposal ? { ok: true as const, value: proposal } : result.ok ? { ok: false as const, message: "The theme could not be drafted. Try again." } : result;
 }

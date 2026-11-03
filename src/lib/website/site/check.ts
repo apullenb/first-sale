@@ -53,12 +53,14 @@ export function claimRecords(site: Pick<SiteState, "content" | "products" | "des
 export function photosShown(site: SiteState): SitePhoto[] {
   const { library } = site;
   const { content, design } = shownSite(site);
-  if (!content || !shows(design, "offerings")) return [];
-  const shown = content.offerings.flatMap((offering) => {
+  if (!content) return [];
+  const shown = (shows(design, "offerings") ? content.offerings : []).flatMap((offering) => {
     const ref = itemFor(design, offering.name)?.photo;
     const photo = ref ? library.find((each) => each.id === ref.versionId && each.photoId === ref.photoId) : undefined;
     return photo ? [photo] : [];
   });
+  const hero = design.showHero && design.heroImage ? library.find((photo) => photo.id === design.heroImage!.versionId && photo.photoId === design.heroImage!.photoId) : null;
+  if (hero) shown.push(hero);
   return [...new Map(shown.map((photo) => [photo.id, photo])).values()];
 }
 

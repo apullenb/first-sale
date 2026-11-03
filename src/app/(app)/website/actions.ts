@@ -5,6 +5,8 @@ import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
+import { designBrandTheme } from "@/lib/website/site/theme";
+import { getMyBrandState } from "@/lib/data/my-business";
 import { getModel } from "@/lib/ai";
 import {
   createMyDocument,
@@ -145,6 +147,18 @@ export async function draftWebsiteAction(): Promise<ActionResult> {
     const content = await draftWebsite(getModel(), facts, new Date(), await myAiKey());
     // New words need approving and finishing again
     if (!(await saveMyWebsitePlan({ content, contentApprovedAt: null, finished: null }))) throw new OwnerFacingError(NO_BUSINESS);
+    if (platform === "first_sale" && !plan.design?.theme) {
+      const [site, state] = await Promise.all([loadSite(), getMyBrandState()]);
+      if (site) {
+        const brief = state?.brief;
+        const proposal = await designBrandTheme(getModel(), {
+          brief: brief ? { name: brief.name, tagline: brief.tagline, sells: brief.sells, customers: brief.customers, vibes: brief.vibes, leanings: brief.leanings, colors: brief.colors, likedColors: brief.likedColors, avoidColors: brief.avoidColors, story: brief.story } : null,
+          palette: site.brand?.colors ?? [], lettering: site.brand?.lettering, images: site.library.map(({ id, title, width, height }) => ({ id, title, width, height })), request: "Create the initial website theme from my brand.",
+        }, await myAiKey());
+        const image = site.library.find((image) => image.id === proposal.heroId);
+        await updateMyWebsitePlan((latest) => latest?.content?.generatedAt === content.generatedAt && !latest.design?.theme ? { design: { ...site.design, theme: proposal.theme, color: proposal.theme.accent, ...(image ? { heroImage: { photoId: image.photoId, versionId: image.id } } : {}) } } : null);
+      }
+    }
   });
   refresh();
   return result.ok ? { ok: true, value: null } : result;

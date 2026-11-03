@@ -37,10 +37,28 @@ export const siteItemSchema = z.object({
   priceCents: z.number().int().min(0).max(MAX_PRICE_CENTS).nullable(),
   buyUrl: z.string().trim().max(500),
   photo: photoRef.nullable(),
+  hidePhoto: z.boolean().optional(),
 });
 export type SiteItem = z.infer<typeof siteItemSchema>;
 
+export const themeSchema = z.object({
+  name: z.string().min(1).max(60),
+  rationale: z.string().max(400),
+  layout: z.enum(["split", "cover", "centered"]),
+  font: z.enum(["sans", "serif", "editorial"]),
+  background: z.string().regex(HEX),
+  foreground: z.string().regex(HEX),
+  surface: z.string().regex(HEX),
+  accent: z.string().regex(HEX),
+  radius: z.number().int().min(0).max(40),
+  titleScale: z.number().min(0.7).max(1.2),
+  simulated: z.boolean().optional(),
+});
+export type SiteTheme = z.infer<typeof themeSchema>;
+
 export const siteDesignSchema = z.object({
+  theme: themeSchema.optional(),
+  heroImage: photoRef.nullable().optional(),
   style: z.enum(SITE_STYLES),
   color: z.string().regex(HEX),
   showLogo: z.boolean(),
@@ -78,6 +96,8 @@ export function readDesign(raw: unknown, color: string): SiteDesign {
     return parsed.success ? (parsed.data as SiteDesign[K]) : base[key];
   };
   return {
+    ...(stored.theme ? { theme: field("theme") } : {}),
+    ...(stored.heroImage ? { heroImage: field("heroImage") } : {}),
     style: field("style"),
     color: field("color").toLowerCase(),
     showLogo: field("showLogo"),
@@ -100,6 +120,7 @@ export function itemFor(design: SiteDesign, name: string): SiteItem | null {
 export interface SiteProduct {
   id: string;
   name: string;
+  photo?: z.infer<typeof photoRef> | null;
   description: string;
   // Exactly as the owner typed it; null when it has no plain price
   priceCents: number | null;
@@ -111,13 +132,18 @@ export function withProducts(copy: WebsiteCopy, products: SiteProduct[], design:
   const added = products.filter(
     (product) => !design.hiddenProducts.includes(product.id) && !copy.offerings.some((offering) => key(offering.name) === key(product.name)),
   );
-  const room = Math.max(0, MAX_ITEMS - copy.offerings.length);
-  const offerings = [...copy.offerings, ...added.slice(0, room).map((product) => ({ name: product.name, description: product.description }))];
+  const existing = copy.offerings.filter((offering) => !products.length || products.some((product) => key(product.name) === key(offering.name))).filter((offering) => !products.some((product) => key(product.name) === key(offering.name) && design.hiddenProducts.includes(product.id))).map((offering) => {
+    const product = products.find((product) => key(product.name) === key(offering.name));
+    return product ? { name: offering.name, description: product.description } : offering;
+  });
+  const room = Math.max(0, MAX_ITEMS - existing.length);
+  const offerings = [...existing, ...added.slice(0, room).map((product) => ({ name: product.name, description: product.description }))];
   const items = offerings.flatMap((offering): SiteItem[] => {
     const item = itemFor(design, offering.name);
     const price = productPrice(products, offering.name);
-    if (item) return [item.priceCents == null && price != null ? { ...item, priceCents: price } : item];
-    return price != null ? [{ name: offering.name, priceCents: price, buyUrl: "", photo: null }] : [];
+    const photo = products.find((product) => key(product.name) === key(offering.name))?.photo ?? null;
+    if (item) return [{ ...item, priceCents: item.priceCents ?? price, photo: item.hidePhoto ? null : item.photo ?? photo }];
+    return price !== null || photo ? [{ name: offering.name, priceCents: price, buyUrl: "", photo }] : [];
   });
   return { copy: { ...copy, offerings }, design: { ...design, items } };
 }

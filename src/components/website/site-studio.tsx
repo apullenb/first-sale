@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { saveWebsiteCopyAction } from "@/app/(app)/website/actions";
+import { PracticeBanner } from "@/components/practice-banner";
 import { type ReactNode, useDeferredValue, useId, useLayoutEffect, useState } from "react";
-import { finishSiteAction, saveSiteDesignAction } from "@/app/(app)/website/site-actions";
+import { designThemeAction, finishSiteAction, saveSiteDesignAction } from "@/app/(app)/website/site-actions";
 import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { Done, LABEL, PickOption, PickTile, SectionHead, Segmented, SOFT } from "@/components/marketing/pieces";
@@ -49,6 +51,7 @@ export interface FinishPanel {
 
 interface Props {
   name: string;
+  draftedAt: string;
   copy: WebsiteCopy;
   saved: SiteDesign;
   images: { logo: SiteImage | null; hero: SiteImage | null; favicon: SiteImage | null };
@@ -75,7 +78,7 @@ function draftsFrom(design: SiteDesign, copy: WebsiteCopy): Record<string, ItemD
       const item = itemFor(design, offering.name);
       return [
         offering.name,
-        { price: item?.priceCents != null ? (item.priceCents / 100).toFixed(item.priceCents % 100 ? 2 : 0) : "", buyUrl: item?.buyUrl ?? "", photo: item?.photo?.versionId ?? "" },
+        { price: item?.priceCents != null ? (item.priceCents / 100).toFixed(item.priceCents % 100 ? 2 : 0) : "", buyUrl: item?.buyUrl ?? "", photo: item?.hidePhoto ? "none" : item?.photo?.versionId ?? "" },
       ];
     }),
   );
@@ -87,8 +90,8 @@ function itemsFrom(drafts: Record<string, ItemDraft>, copy: WebsiteCopy, library
     if (!draft) return [];
     const photo = library.find((each) => each.versionId === draft.photo);
     const priceCents = draft.price.trim() ? parseDollars(draft.price) : null;
-    if (priceCents == null && !draft.buyUrl.trim() && !photo) return [];
-    return [{ name: offering.name, priceCents, buyUrl: draft.buyUrl.trim(), photo: photo ? { photoId: photo.photoId, versionId: photo.versionId } : null }];
+    if (priceCents == null && !draft.buyUrl.trim() && !photo && draft.photo !== "none") return [];
+    return [{ name: offering.name, priceCents, buyUrl: draft.buyUrl.trim(), photo: photo ? { photoId: photo.photoId, versionId: photo.versionId } : null, ...(draft.photo === "none" ? { hidePhoto: true } : {}) }];
   });
 }
 
@@ -98,10 +101,17 @@ export function SiteStudio(props: Props) {
   const uid = useId();
   const [fullPreview, setFullPreview] = useState(false);
   const [design, setDesign] = useState(saved);
+  const [words, setWords] = useState(props.copy);
+  const wordsKey = JSON.stringify(props.copy);
+  const [seenWords, setSeenWords] = useState(wordsKey);
+  if (seenWords !== wordsKey) { setSeenWords(wordsKey); setWords(props.copy); }
+  const [themeRequest, setThemeRequest] = useState("");
+  const [designing, setDesigning] = useState(false);
+  const wordsDirty = JSON.stringify(words) !== JSON.stringify(props.copy);
   // The items to edit: the drafted words' items, then saved products that are turned on
-  const copy = withProducts(props.copy, products, design).copy;
+  const copy = withProducts(words, products, design).copy;
   const savedCopy = withProducts(props.copy, products, saved).copy;
-  const [drafts, setDrafts] = useState(() => draftsFrom(saved, copy));
+  const [drafts, setDrafts] = useState(() => draftsFrom(withProducts(props.copy, products, saved).design, copy));
   // Compared by value: other actions on the page refresh it without changing these
   const savedKey = JSON.stringify(saved);
   const namesKey = JSON.stringify(copy.offerings.map((offering) => offering.name));
@@ -115,7 +125,7 @@ export function SiteStudio(props: Props) {
   if (seen.saved !== savedKey) {
     setSeen({ saved: savedKey, names: namesKey });
     setDesign(saved);
-    setDrafts(draftsFrom(saved, savedCopy));
+    setDrafts(draftsFrom(withProducts(props.copy, products, saved).design, savedCopy));
   } else if (seen.names !== namesKey) {
     setSeen({ saved: savedKey, names: namesKey });
     setDrafts((before) => ({
@@ -131,9 +141,9 @@ export function SiteStudio(props: Props) {
     return problem ? [`${offering.name}: ${problem}`] : [];
   });
   // Items for words that changed since don't count as edits
-  const dirty = JSON.stringify(current) !== JSON.stringify({ ...saved, items: itemsFrom(draftsFrom(saved, savedCopy), savedCopy, library) });
+  const dirty = wordsDirty || JSON.stringify(current) !== JSON.stringify({ ...saved, items: itemsFrom(draftsFrom(withProducts(props.copy, products, saved).design, savedCopy), savedCopy, library) });
 
-  const shown = withProducts(props.copy, products, current);
+  const shown = withProducts(words, products, current);
   const preview = useDeferredValue(
     renderSite({
       name: props.name,
@@ -176,7 +186,24 @@ export function SiteStudio(props: Props) {
       setError({ at: "design", message: "Fix the prices and links marked below, then save." });
       return;
     }
-    await run("saving", () => saveSiteDesignAction(current));
+    await run("saving", async () => {
+      if (wordsDirty) {
+        const result = await saveWebsiteCopyAction({ copy: words, approve: false, draftedAt: props.draftedAt });
+        if (!result.ok) return result;
+      }
+      return saveSiteDesignAction(current);
+    });
+  }
+
+  async function designWithAi() {
+    setDesigning(true); setError(null);
+    try {
+      const result = await designThemeAction(themeRequest);
+      if (!result.ok) { setError({ at: "design", message: result.message }); return; }
+      const image = library.find((image) => image.versionId === result.value.heroId);
+      change({ theme: result.value.theme, color: result.value.theme.accent, ...(image ? { heroImage: { photoId: image.photoId, versionId: image.versionId }, showHero: true } : {}) });
+    } catch { setError({ at: "design", message: failedMessage() }); }
+    finally { setDesigning(false); }
   }
 
   async function finishNow() {
@@ -184,7 +211,7 @@ export function SiteStudio(props: Props) {
     await run("finishing", () => finishSiteAction({ signature: finish.signature }));
   }
 
-  const pending = status === "saving" || status === "finishing";
+  const pending = designing || status === "saving" || status === "finishing";
 
   return (
     <>
@@ -198,6 +225,36 @@ export function SiteStudio(props: Props) {
         />
         <div className="grid items-start gap-5 @4xl:grid-cols-[minmax(0,21rem)_minmax(0,1fr)]">
           <Card title="Your design" icon="palette" id="design-controls-heading" headingLevel={3} bodyClassName="gap-5">
+            <div className="flex flex-col gap-3 rounded-xl bg-soft p-4">
+              <h4 className="font-semibold">Designed around your brand</h4>
+              <p className="text-sm text-muted">Your brand choices guide the colors, typography, layout and images. Review the result in the preview, then save.</p>
+              <label className="text-sm font-semibold" htmlFor={`${uid}-theme-request`}>Design direction</label>
+              <textarea id={`${uid}-theme-request`} className={INPUT} maxLength={1000} value={themeRequest} onChange={(event) => setThemeRequest(event.target.value)} placeholder="For example: a full-width header photo, refined lettering and soft cream backgrounds" />
+              <button type="button" data-writes disabled={pending} className={PRIMARY} onClick={designWithAi}>{designing ? "Designing your theme…" : design.theme ? "Refine theme with AI" : "Design theme from my brand"}</button>
+              {design.theme ? <><strong>{design.theme.name}</strong><p className="text-sm">{design.theme.rationale}</p></> : null}
+              {design.theme ? <div className="grid grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1 text-sm">Layout<select aria-label="Layout" className={INPUT} value={design.theme.layout} onChange={(event) => change({ theme: { ...design.theme!, layout: event.target.value as "split" | "cover" | "centered" } })}><option value="split">Split image and text</option><option value="cover">Full-width photo</option><option value="centered">Centered editorial</option></select></label>
+                <label className="flex flex-col gap-1 text-sm">Typography<select aria-label="Typography" className={INPUT} value={design.theme.font} onChange={(event) => change({ theme: { ...design.theme!, font: event.target.value as "sans" | "serif" | "editorial" } })}><option value="sans">Modern sans serif</option><option value="serif">Classic serif</option><option value="editorial">Editorial serif</option></select></label>
+                {([['background', 'Page background'], ['surface', 'Section background']] as const).map(([key, label]) => <label key={key} className="flex items-center gap-2 text-sm"><input type="color" aria-label={label} value={design.theme![key]} onChange={(event) => change({ theme: { ...design.theme!, [key]: event.target.value } })} />{label}</label>)}
+              </div> : null}
+              {design.theme?.simulated ? <PracticeBanner what="This theme is a practice suggestion." /> : null}
+            </div>
+            <details className="rounded-xl border border-line p-3">
+              <summary className="cursor-pointer font-semibold">Edit page text</summary>
+              <div className="mt-3 flex flex-col gap-3">
+                {([['headline', 'Headline'], ['subheadline', 'Subtitle'], ['intro', 'Introduction'], ['about', 'About text'], ['howToBuy', 'Ordering text'], ['contact', 'Contact text']] as const).map(([key, label]) => <label key={key} className="flex flex-col gap-1 text-sm font-semibold">{label}<textarea aria-label={label} className={INPUT} value={words[key]} maxLength={key === "headline" ? 80 : key === "subheadline" ? 160 : key === "about" ? 1500 : key === "contact" ? 600 : key === "intro" ? 800 : 1200} onChange={(event) => setWords((before) => ({ ...before, [key]: event.target.value }))} /></label>)}
+                {wordsDirty ? <p className="text-sm text-muted">Text changes update the preview immediately. Save, then approve your words in step 3.</p> : null}
+              </div>
+            </details>
+            {library.length ? <div className="flex flex-col gap-2">
+              <label className={LABEL} htmlFor={`${uid}-hero`}>Header image</label>
+              <select id={`${uid}-hero`} className={INPUT} value={design.heroImage?.versionId ?? ""} onChange={(event) => { const image = library.find((image) => image.versionId === event.target.value); change({ heroImage: image ? { photoId: image.photoId, versionId: image.versionId } : null, showHero: Boolean(image) }); }}>
+                <option value="">No header image</option>{library.map((image) => <option key={image.versionId} value={image.versionId}>{image.title}</option>)}
+              </select>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {design.heroImage ? <img src={library.find((image) => image.versionId === design.heroImage?.versionId)?.src} alt="Selected header image" className="aspect-video w-full rounded-lg object-cover" /> : null}
+              <p className="text-xs text-muted">Brand images, uploads and product photos from your library.</p>
+            </div> : null}
             <div className="flex flex-col gap-2.5">
               <p id={`${uid}-look`} className={LABEL}>
                 Look
@@ -207,7 +264,7 @@ export function SiteStudio(props: Props) {
                   <PickTile
                     key={style}
                     pressed={design.style === style}
-                    onClick={() => change({ style })}
+                    onClick={() => change({ style, theme: undefined })}
                     label={STYLE_LABELS[style].name}
                     description={STYLE_LABELS[style].hint}
                     layout="top"
@@ -226,7 +283,7 @@ export function SiteStudio(props: Props) {
                     <PickTile
                       key={color.hex}
                       pressed={design.color.toLowerCase() === color.hex.toLowerCase()}
-                      onClick={() => change({ color: color.hex.toLowerCase() })}
+                      onClick={() => change({ color: color.hex.toLowerCase(), ...(design.theme ? { theme: { ...design.theme, accent: color.hex.toLowerCase() } } : {}) })}
                       lead={<span aria-hidden="true" className="size-5 shrink-0 rounded-full ring-1 ring-ink/20" style={{ background: color.hex }} />}
                       label={color.name}
                       layout="word"
@@ -246,7 +303,7 @@ export function SiteStudio(props: Props) {
                 <input
                   type="color"
                   value={design.color}
-                  onChange={(event) => change({ color: event.target.value.toLowerCase() })}
+                  onChange={(event) => change({ color: event.target.value.toLowerCase(), ...(design.theme ? { theme: { ...design.theme, accent: event.target.value.toLowerCase() } } : {}) })}
                   className="h-11 w-14 cursor-pointer rounded-[10px] border border-line-strong bg-surface"
                 />
                 <span>
@@ -268,7 +325,6 @@ export function SiteStudio(props: Props) {
                 />
               ))}
               {products
-                .filter((product) => !props.copy.offerings.some((offering) => offering.name.trim().toLowerCase() === product.name.trim().toLowerCase()))
                 .map((product) => (
                   <Check
                     key={product.id}
@@ -296,8 +352,9 @@ export function SiteStudio(props: Props) {
               <fieldset className="flex flex-col gap-3 border-t border-line pt-5">
                 <legend className={`${LABEL} float-left mb-2.5 w-full`}>Your items</legend>
                 <p className="text-sm text-muted">
-                  Prices show only if you type them here or saved them with what you sell (Build your brand · Step 4). A buy link opens your own payment page from a payment provider like Stripe or Square (see the steps below).
+                  Your saved products supply the names, descriptions, photos and prices. Use the controls below to change how they appear on this site.
                 </p>
+                <Link href="/products" className={TEXT_LINK}>Edit products and descriptions →</Link>
                 {copy.offerings.map((offering, index) => {
                   const draft = drafts[offering.name] ?? { price: "", buyUrl: "", photo: "" };
                   const priceBad = draft.price.trim() !== "" && parseDollars(draft.price) == null;
@@ -350,7 +407,7 @@ export function SiteStudio(props: Props) {
                             Photo
                           </label>
                           <select id={`${id}-photo`} value={draft.photo} onChange={(event) => changeItem(offering.name, { photo: event.target.value })} className={INPUT}>
-                            <option value="">No photo</option>
+                            <option value="">Use product photo</option><option value="none">No photo</option>
                             {library.map((photo) => (
                               <option key={photo.versionId} value={photo.versionId}>
                                 {photo.title}
@@ -394,7 +451,8 @@ export function SiteStudio(props: Props) {
                   disabled={pending || !dirty}
                   onClick={() => {
                     setDesign(saved);
-                    setDrafts(draftsFrom(saved, savedCopy));
+                    setWords(props.copy);
+                    setDrafts(draftsFrom(withProducts(props.copy, products, saved).design, savedCopy));
                     setError(null);
                   }}
                   className={SECONDARY}
