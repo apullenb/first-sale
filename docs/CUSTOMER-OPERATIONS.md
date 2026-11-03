@@ -2,7 +2,7 @@
 
 ## Owner workflow
 
-`/run` links to `/email` and `/orders`.
+`/run` links to `/orders` and, until inbound email opens to owners, to a sample-data demo at `/email/demo` (client-side only, saves nothing). The real page stays at `/email`.
 
 1. **Get your SnapStart address.** On `/email`, the owner taps **Get my SnapStart address** once. Each business gets its own private address, `local+token@inbound.postmarkapp.com`, where `token` is 26 random characters (130 bits) stored in `email_inboxes`. The page shows it in a big box with **Copy address**. **Get a new address** replaces the token; the old address stops working at once.
 2. **Send emails to it.** The setup card has three tabs:
