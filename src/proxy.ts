@@ -13,6 +13,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except the auth API, Next internals and files like favicon.ico
-  matcher: ["/((?!api/auth/|_next/static|_next/image|.*\\..*).*)"],
+  // Everything except the auth API, the inbound email webhook (its own password), Next internals and files like favicon.ico
+  matcher: ["/((?!api/auth/|api/email/inbound|_next/static|_next/image|.*\\..*).*)"],
 };

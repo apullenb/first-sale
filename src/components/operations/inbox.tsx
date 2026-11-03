@@ -2,36 +2,36 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import {
-  connectCustomerEmail,
-  disconnectCustomerEmail,
   dismissCustomerMessage,
-  importCustomerEmail,
+  markCustomerReplySent,
   retryCustomerMessage,
-  sendCustomerReply,
 } from "@/app/(app)/email/actions";
 import { importCustomerRequest } from "@/app/(app)/orders/tracking-actions";
 import { Card, Chip } from "@/components/ui";
-import { JobWatch, RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
-import { Working } from "@/components/working";
-import { INPUT, PRIMARY, SECONDARY } from "@/components/styles";
+import { Icon } from "@/components/icons";
+import { INPUT, OUTSIDE_LINK, PRIMARY, SECONDARY } from "@/components/styles";
 import { PracticeBanner } from "@/components/practice-banner";
+import { replyLink } from "@/lib/email/mailto";
 import type { ExtractedRequest } from "@/lib/orders/extract";
+import { ForwardingSetup, type ForwardingState } from "./forwarding";
 
 export interface InboxMessage {
   id: string;
   subject: string;
   sender: string;
+  senderName: string;
+  forwardedBy: string | null;
   body: string;
   source: "email" | "invoice";
   documentId: string | null;
+  attachmentIds: string[];
   orderId: string | null;
   state: "pending" | "processing" | "ready" | "failed" | "dismissed";
   extraction: ExtractedRequest | null;
   simulated: boolean;
   issue: string | null;
   reply: string;
-  sendState: "draft" | "sending" | "sent" | "uncertain";
-  connectionId: string | null;
+  sendState: "draft" | "sent";
   createdAt: string;
 }
 export function RequestImport({
@@ -84,19 +84,14 @@ export function RequestImport({
 }
 export function CustomerInbox({
   messages,
-  connection,
-  available,
-  importing,
+  forwarding,
 }: {
   messages: InboxMessage[];
-  connection: { email: string; status: string } | null;
-  available: boolean;
-  importing: boolean;
+  forwarding: ForwardingState;
 }) {
   const [pending, start] = useTransition(),
     [message, setMessage] = useState(""),
     [showResolved, setShowResolved] = useState(false);
-  const job = useJobWatch();
   function run(action: () => Promise<{ ok: boolean; message: string }>) {
     start(async () => {
       try {
@@ -106,101 +101,12 @@ export function CustomerInbox({
       }
     });
   }
-  function importNew() {
-    start(async () => {
-      try {
-        const result = await importCustomerEmail();
-        if (result.busy) {
-          setMessage("");
-          job.watch([result.busy]);
-        } else setMessage(result.message);
-      } catch {
-        setMessage("Could not import your emails. Try again.");
-      }
-    });
-  }
-  const connected = connection?.status === "connected";
   const visible = messages.filter(
     (item) => showResolved || item.state !== "dismissed",
   );
   return (
     <div className="flex flex-col gap-5">
-      <Card title="Your customer email" id="email-connection">
-        {connection ? (
-          <>
-            <p className="font-semibold">{connection.email}</p>
-            <Chip tone={connected ? "done" : "warn"}>
-              {connected ? "Connected" : "Reconnect needed"}
-            </Chip>
-            <p className="text-muted">
-              Import new emails to bring in customer messages. Orders and
-              requests are added for your review, and every reply waits for
-              your approval.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {connected ? (
-                <button
-                  data-writes
-                  className={PRIMARY}
-                  disabled={pending || job.watching}
-                  onClick={importNew}
-                >
-                  {pending || job.watching
-                    ? "Importing…"
-                    : "Import new emails"}
-                </button>
-              ) : null}
-              <button
-                data-writes
-                className={SECONDARY}
-                disabled={pending}
-                onClick={() => run(disconnectCustomerEmail)}
-              >
-                Disconnect
-              </button>
-            </div>
-            {job.watching ? (
-              <Working label={RUNNING_ELSEWHERE} active />
-            ) : importing && !pending ? (
-              <JobWatch
-                jobs={[{ workflow: "email_import", subjectId: null }]}
-                what="Importing your emails"
-              />
-            ) : null}
-          </>
-        ) : (
-          <p className="text-muted">
-            Connect your business inbox to import customer emails, turn them
-            into orders or requests, and reply from here.
-          </p>
-        )}
-        {available ? (
-          <button
-            data-writes
-            disabled={pending}
-            className={`${PRIMARY} w-fit`}
-            onClick={() =>
-              start(async () => {
-                const result = await connectCustomerEmail();
-                setMessage(result.message);
-                if (result.url) window.location.assign(result.url);
-              })
-            }
-          >
-            {connection ? "Reconnect email" : "Connect business email"}
-          </button>
-        ) : (
-          <p className="text-sm text-muted">
-            Connecting an inbox isn’t set up on this site yet.
-          </p>
-        )}
-        <p role="status" className="text-sm text-accent">
-          {message}
-        </p>
-      </Card>
-      <Card title="Add a customer message or invoice" id="email-import">
-        <RequestImport />
-      </Card>
+      <ForwardingSetup state={forwarding} />
       <Card title="Customer messages" id="customer-messages">
         <label className="flex items-center gap-2 text-sm">
           <input
@@ -210,6 +116,9 @@ export function CustomerInbox({
           />
           Show resolved
         </label>
+        <p role="status" className="text-sm text-accent">
+          {message}
+        </p>
         {visible.length ? (
           visible.map((item) => (
             <Message
@@ -229,6 +138,100 @@ export function CustomerInbox({
           </p>
         )}
       </Card>
+      <Card title="Add a customer message or invoice" id="email-import">
+        <RequestImport />
+      </Card>
+    </div>
+  );
+}
+function Reply({
+  item,
+  pending,
+  run,
+}: {
+  item: InboxMessage;
+  pending: boolean;
+  run: (action: () => Promise<{ ok: boolean; message: string }>) => void;
+}) {
+  const [reply, setReply] = useState(item.reply),
+    [copied, setCopied] = useState("");
+  const to = item.sender || item.extraction?.customerEmail || "";
+  const link = to ? replyLink(to, item.subject, reply) : null;
+  const sent = item.sendState === "sent";
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(reply);
+      setCopied("Copied. Paste it into your reply.");
+    } catch {
+      setCopied("Couldn’t copy. Select the text and copy it instead.");
+    }
+  }
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-line bg-wash p-4">
+      <label className="flex flex-col gap-2 font-semibold">
+        {sent ? "Your reply · Sent from your email" : "Your reply · edit it before sending"}
+        <textarea
+          className={INPUT}
+          rows={6}
+          maxLength={10_000}
+          value={reply}
+          disabled={sent}
+          onChange={(event) => setReply(event.target.value)}
+        />
+      </label>
+      {sent ? (
+        <Chip tone="done" icon="check">Sent from your email</Chip>
+      ) : (
+        <>
+          {item.simulated ? (
+            <p className="text-sm text-check">
+              Practice mode: this reply uses stand-in details. Check every word before you send it.
+            </p>
+          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {link?.full ? (
+              <a href={link.full} className={OUTSIDE_LINK}>
+                <Icon name="send" size="sm" />
+                Reply in your email
+              </a>
+            ) : null}
+            <button type="button" className={SECONDARY} onClick={copy} disabled={!reply.trim()}>
+              <Icon name="copy" size="sm" />
+              Copy reply
+            </button>
+            {link && !link.full ? (
+              <a href={link.short} className={OUTSIDE_LINK}>
+                <Icon name="mail" size="sm" />
+                Open email
+              </a>
+            ) : null}
+          </div>
+          {link && !link.full ? (
+            <p className="text-sm text-muted">
+              This reply is long, so copy it first, then open your email and paste it in.
+            </p>
+          ) : !to ? (
+            <p className="text-sm text-muted">
+              No customer email address was found. Copy the reply and send it from your email.
+            </p>
+          ) : (
+            <p className="text-sm text-muted">
+              Opens a reply to {to} in your own email app. SnapStart doesn’t send it.
+            </p>
+          )}
+          <p role="status" className="text-sm text-accent">{copied}</p>
+          <button
+            data-writes
+            type="button"
+            className={`${SECONDARY} w-fit`}
+            disabled={pending || !reply.trim()}
+            onClick={() => run(() => markCustomerReplySent({ id: item.id, reply }))}
+          >
+            <Icon name="check" size="sm" />
+            I sent it
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -241,8 +244,6 @@ function Message({
   pending: boolean;
   run: (action: () => Promise<{ ok: boolean; message: string }>) => void;
 }) {
-  const [reply, setReply] = useState(item.reply),
-    [approve, setApprove] = useState(false);
   return (
     <article className="flex flex-col gap-3 rounded-xl border border-line p-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -251,7 +252,7 @@ function Message({
           {item.state === "failed"
             ? "Needs another look"
             : item.state === "pending"
-              ? "Waiting to be read"
+              ? "New · waiting to be read"
               : item.state === "processing"
                 ? "Reading"
                 : item.state === "dismissed"
@@ -262,10 +263,13 @@ function Message({
         </Chip>
       </div>
       {item.sender ? (
-        <p className="text-sm text-muted">From {item.sender}</p>
+        <p className="text-sm text-muted">
+          From {item.senderName ? `${item.senderName} (${item.sender})` : item.sender}
+          {item.forwardedBy ? ` · forwarded by ${item.forwardedBy}` : ""}
+        </p>
       ) : null}
       {item.simulated ? (
-        <PracticeBanner what="These extracted details are stand-ins. They cannot confirm an order or send a reply." />
+        <PracticeBanner what="These extracted details are stand-ins. They cannot confirm an order." />
       ) : null}
       {item.body ? (
         <details>
@@ -285,6 +289,11 @@ function Message({
           Download original invoice
         </Link>
       ) : null}
+      {item.attachmentIds.map((id, index) => (
+        <Link key={id} href={`/documents/${id}/file`} className="font-semibold text-accent">
+          Download attachment {item.attachmentIds.length > 1 ? index + 1 : ""}
+        </Link>
+      ))}
       {item.extraction?.warnings.length ? (
         <ul className="list-disc pl-5 text-sm text-muted">
           {item.extraction.warnings.map((warning, index) => (
@@ -301,70 +310,18 @@ function Message({
         </Link>
       ) : null}
       {item.issue ? <p className="text-sm text-check">{item.issue}</p> : null}
-      {(item.state === "failed" || item.state === "pending") &&
-      !(item.source === "email" && !item.connectionId && !item.body) ? (
+      {item.state === "failed" && !(item.source === "email" && !item.body) ? (
         <button
           data-writes
           disabled={pending}
           className={`${SECONDARY} w-fit`}
           onClick={() => run(() => retryCustomerMessage(item.id))}
         >
-          {item.state === "failed" ? "Retry reading" : "Read now"}
+          Retry reading
         </button>
       ) : null}
       {item.reply && item.state === "ready" ? (
-        <>
-          <label className="flex flex-col gap-2 font-semibold">
-            Reply draft ·{" "}
-            {item.sendState === "sent" ? "Sent" : "Review before sending"}
-            <textarea
-              className={INPUT}
-              rows={5}
-              maxLength={10_000}
-              value={reply}
-              disabled={item.sendState !== "draft"}
-              onChange={(event) => {
-                setReply(event.target.value);
-                setApprove(false);
-              }}
-            />
-          </label>
-          {item.connectionId &&
-          !item.simulated &&
-          item.sendState === "draft" ? (
-            <>
-              <label className="flex items-start gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={approve}
-                  onChange={(event) => setApprove(event.target.checked)}
-                />
-                I reviewed this reply to {item.sender} and approve sending it.
-              </label>
-              <button
-                data-writes
-                className={`${PRIMARY} w-fit`}
-                disabled={pending || !approve || !reply.trim()}
-                onClick={() => {
-                  setApprove(false);
-                  run(() => sendCustomerReply({ id: item.id, reply }));
-                }}
-              >
-                Send approved reply
-              </button>
-            </>
-          ) : item.sendState === "uncertain" || item.sendState === "sending" ? (
-            <p className="text-sm text-check">
-              Sending is unconfirmed. Check your Sent folder before replying;
-              retry is blocked to prevent duplicates.
-            </p>
-          ) : !item.connectionId ? (
-            <p className="text-sm text-muted">
-              Pasted messages have no connected sender. Copy this draft into
-              your email service.
-            </p>
-          ) : null}
-        </>
+        <Reply item={item} pending={pending} run={run} />
       ) : null}
       {item.state === "ready" ? (
         <button

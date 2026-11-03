@@ -5,9 +5,9 @@ export const OPERATIONS = {
   email: {
     title: "Connect your email",
     href: "/email",
-    description: "Connect your inbox, import new emails, turn them into orders or requests, and reply.",
-    trigger: "A customer email arrives in the inbox you choose.",
-    steps: ["Read messages from your chosen inbox", "Prepare a reply using your saved business details", "Put the draft in your review queue"],
+    description: "Forward customer emails to your own SnapStart address. They become orders or requests for you to check, with replies you send from your own email.",
+    trigger: "You forward a customer email to your SnapStart address.",
+    steps: ["Read emails sent to your SnapStart address", "Prepare a reply using your saved business details", "Put the draft in your review queue"],
     choices: ["Gmail", "Outlook", "Other email"],
     sourceLabel: "Which email service do you use?",
     goals: ["Draft customer replies", "Flag messages that need my attention"],

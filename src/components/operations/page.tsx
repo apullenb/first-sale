@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { OrdersPanel } from "@/components/operations/orders";
 import { CustomerInbox } from "@/components/operations/inbox";
-import { emailAvailable } from "@/lib/email/client";
+import { inboundAddress, inboundAvailable } from "@/lib/email/inbound";
 import { workDefault } from "@/lib/rules/order-tracking";
 import { Icon } from "@/components/icons";
 import { PRIMARY_LINK } from "@/components/styles";
@@ -77,9 +77,12 @@ async function Setup({
       id,
       subject,
       sender,
+      senderName,
+      forwardedBy,
       body,
       source,
       documentId,
+      attachmentIds,
       orderId,
       state,
       extraction,
@@ -87,15 +90,17 @@ async function Setup({
       issue,
       reply,
       sendState,
-      connectionId,
       createdAt,
     }) => ({
       id,
       subject,
       sender,
+      senderName,
+      forwardedBy,
       body,
       source,
       documentId,
+      attachmentIds,
       orderId,
       state,
       extraction,
@@ -103,7 +108,6 @@ async function Setup({
       issue,
       reply,
       sendState,
-      connectionId,
       createdAt: createdAt.toISOString(),
     }),
   );
@@ -148,9 +152,15 @@ async function Setup({
       ) : (
         <CustomerInbox
           messages={messages}
-          connection={email.connection}
-          available={emailAvailable()}
-          importing={importRun?.status === "running"}
+          forwarding={{
+            available: inboundAvailable(),
+            address: email.inbox ? inboundAddress(email.inbox.token) : null,
+            confirmation: email.inbox?.confirmation ?? null,
+            firstFrom: email.inbox?.firstFrom ?? null,
+            firstAt: email.inbox?.firstAt?.toISOString() ?? null,
+            waiting: email.waiting,
+            reading: importRun?.status === "running",
+          }}
         />
       )}
     </>

@@ -20,12 +20,9 @@ import {
   addMessageForOwner,
   claimMessageForOwner,
   completeMessageForOwner,
-  connectEmailForOwner,
   emailStateForOwner,
   messageForOwner,
-  reserveReplyForOwner,
-  connectionForOwner,
-  finishReplyForOwner,
+  markReplySentForOwner,
 } from "./customer-messages";
 import type { ExtractedRequest } from "@/lib/orders/extract";
 let db: Awaited<ReturnType<typeof createTestDb>>;
@@ -295,18 +292,14 @@ describe("orders, stock and payments", () => {
   });
 });
 
-describe("reviewed sending", () => {
-  it("reserves only one exact reply, isolates owners and blocks retries after uncertainty", async () => {
-    await connectEmailForOwner(db, "owner-a", "grant-a", "owner@example.test");
-    const connection = (await connectionForOwner(db, "owner-a"))!;
+describe("replies sent from the owner's email", () => {
+  it("records a sent reply once, for its own owner only", async () => {
     const id = (await addMessageForOwner(db, "owner-a", {
       source: "email",
-      sourceKey: "send-once",
+      sourceKey: "inbound:send-once",
       subject: "A question",
       sender: "sam@example.test",
-      connectionId: connection.id,
-      providerMessageId: "mail-send",
-      threadId: "send-thread",
+      threadId: "sam@example.test:a question",
     }))!;
     await claimMessageForOwner(db, "owner-a", id);
     await completeMessageForOwner(
@@ -318,55 +311,13 @@ describe("reviewed sending", () => {
       "question",
       await claimedAt(id),
     );
-    expect(await reserveReplyForOwner(db, "owner-b", id, "Hello")).toBeNull();
-    const reserved = await reserveReplyForOwner(
-      db,
-      "owner-a",
-      id,
-      "Approved exact words",
-    );
-    expect(reserved?.message.sender).toBe("sam@example.test");
-    expect(
-      await reserveReplyForOwner(db, "owner-a", id, "Duplicate"),
-    ).toBeNull();
-    await finishReplyForOwner(db, "owner-a", id, "uncertain");
-    expect(await reserveReplyForOwner(db, "owner-a", id, "Retry")).toBeNull();
+    expect(await markReplySentForOwner(db, "owner-b", id, "Hello")).toBe(false);
+    expect(await markReplySentForOwner(db, "owner-a", id, "Approved exact words")).toBe(true);
+    expect(await markReplySentForOwner(db, "owner-a", id, "Again")).toBe(false);
     const saved = (await emailStateForOwner(db, "owner-a")).messages.find(
       (message) => message.id === id,
     )!;
-    expect(saved.reply).toBe("Approved exact words");
-    expect(saved.sendState).toBe("uncertain");
-  });
-  it("blocks an old reply when a newer message arrived in the same thread", async () => {
-    const connection = (await connectionForOwner(db, "owner-a"))!;
-    const first = (await addMessageForOwner(db, "owner-a", {
-      source: "email",
-      sourceKey: "old-reply",
-      subject: "Question",
-      sender: "sam@example.test",
-      connectionId: connection.id,
-      threadId: "changed-thread",
-    }))!;
-    await claimMessageForOwner(db, "owner-a", first);
-    await completeMessageForOwner(
-      db,
-      "owner-a",
-      first,
-      { ...extraction(), category: "question" },
-      false,
-      "first",
-      await claimedAt(first),
-    );
-    await addMessageForOwner(db, "owner-a", {
-      source: "email",
-      sourceKey: "new-reply",
-      subject: "Changed question",
-      sender: "sam@example.test",
-      connectionId: connection.id,
-      threadId: "changed-thread",
-    });
-    expect(
-      await reserveReplyForOwner(db, "owner-a", first, "Old reply"),
-    ).toBeNull();
+    expect(saved).toMatchObject({ reply: "Approved exact words", sendState: "sent" });
+    expect(saved.sentAt).not.toBeNull();
   });
 });

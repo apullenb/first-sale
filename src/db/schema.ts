@@ -906,24 +906,31 @@ export const orderPayments = pgTable("order_payments", {
   createdAt: createdAt(),
 }, (table) => [uniqueIndex("order_payment_request_idx").on(table.orderId, table.requestKey)]);
 
-export const emailConnections = pgTable("email_connections", {
+// Each business's private forwarding address; a new token retires the old address
+export const emailInboxes = pgTable("email_inboxes", {
   id: id(), businessId: businessId(),
-  grantId: text("grant_id").notNull().unique(),
-  email: text("email").notNull(),
-  status: text("status", { enum: ["connected", "reconnect"] }).notNull().default("connected"),
-  // When the last import started; null until the first one
-  importedAt: timestamp("imported_at", { withTimezone: true }),
+  token: text("token").notNull().unique(),
+  // Latest code or link an email service sent to confirm the address
+  confirmation: jsonb("confirmation").$type<import("@/lib/email/confirmation").ForwardingConfirmation>(),
+  // First email that reached the address, for the "It works!" check
+  firstFrom: text("first_from"),
+  firstAt: timestamp("first_at", { withTimezone: true }),
   createdAt: createdAt(),
-}, (table) => [uniqueIndex("email_business_idx").on(table.businessId)]);
+}, (table) => [uniqueIndex("email_inbox_business_idx").on(table.businessId)]);
 
 export const customerMessages = pgTable("customer_messages", {
   id: id(), businessId: businessId(),
-  connectionId: text("connection_id").references(() => emailConnections.id, { onDelete: "set null" }),
   sourceKey: text("source_key").notNull(),
   source: text("source", { enum: ["email", "invoice"] }).notNull(),
-  providerMessageId: text("provider_message_id"),
   threadId: text("thread_id"),
+  // The customer; for a forwarded email, read from the forwarded part
   sender: text("sender").notNull().default(""),
+  senderName: text("sender_name").notNull().default(""),
+  // Who forwarded it, usually the owner
+  forwardedBy: text("forwarded_by"),
+  receivedAt: timestamp("received_at", { withTimezone: true }),
+  // Attachments saved unchanged in Documents, read along with the email
+  attachmentIds: jsonb("attachment_ids").$type<string[]>().notNull().default([]),
   subject: text("subject").notNull(),
   body: text("body").notNull().default(""),
   documentId: text("document_id").references(() => documents.id, { onDelete: "set null" }),
@@ -933,7 +940,8 @@ export const customerMessages = pgTable("customer_messages", {
   simulated: boolean("simulated").notNull().default(false),
   issue: text("issue"),
   reply: text("reply").notNull().default(""),
-  sendState: text("send_state", { enum: ["draft", "sending", "sent", "uncertain"] }).notNull().default("draft"),
+  // "sent": the owner says they sent the reply from their own email
+  sendState: text("send_state", { enum: ["draft", "sent"] }).notNull().default("draft"),
   sentAt: timestamp("sent_at", { withTimezone: true }),
   createdAt: createdAt(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [uniqueIndex("customer_message_source_idx").on(table.businessId, table.sourceKey)]);
