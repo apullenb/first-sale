@@ -8,6 +8,7 @@ import { useDemo } from "./demo-mode";
 import { RUNNING_ELSEWHERE, useJobWatch } from "./job-watch";
 import { AI_BUTTON, DANGER, PRIMARY, SECONDARY } from "./styles";
 import { Working } from "./working";
+import { failedMessage } from "@/lib/failure";
 
 const STYLES = { primary: PRIMARY, secondary: SECONDARY, ai: AI_BUTTON, danger: DANGER };
 
@@ -52,7 +53,7 @@ export function ActionButton({ action, label, pendingLabel, pendingStatus, varia
       if (openDocument && typeof result.value === "string") router.push(`/documents/${result.value}`);
       else if (doneHref) router.push(doneHref);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }

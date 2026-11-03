@@ -7,6 +7,7 @@ import { ALERT, PRIMARY, SECONDARY } from "@/components/styles";
 import { colorName } from "@/lib/brand/colors";
 import { logoColors } from "@/lib/brand/pixels";
 import type { PaletteColor } from "@/lib/brand/types";
+import { failedMessage } from "@/lib/failure";
 
 const MAX = 3;
 
@@ -72,7 +73,7 @@ export function LogoColors({ assetId, src, saved }: { assetId: string; src: stri
       if (!result.ok) setError(result.message);
       else setNote("Saved. Your brand kit, logo files and website use these colors.");
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setBusy(false);
     }

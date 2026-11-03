@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { clearAlreadyHaveAction, setAlreadyHaveAction } from "@/app/(app)/already-have-actions";
 import { Icon } from "@/components/icons";
 import { ALERT, INPUT, PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles";
+import { failedMessage } from "@/lib/failure";
 
 interface Props {
   // "social:instagram"
@@ -47,7 +48,7 @@ export function AccountMark({ markKey, platformName, done, had, noun = "account"
       if (!result.ok) setError(result.message ?? "Something went wrong. Try again.");
       else setOpen(null);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }

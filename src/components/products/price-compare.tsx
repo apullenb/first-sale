@@ -9,6 +9,7 @@ import { IconTile, OutsideLink } from "@/components/ui";
 import { Working } from "@/components/working";
 import { comparableStats, type PriceCheck, UNIT_WORDS } from "@/lib/rules/price-compare";
 import { dollars, type ItemKind, type ItemOptions, priceLabel } from "@/lib/rules/products";
+import { failedMessage } from "@/lib/failure";
 
 interface ComparedItem {
   id: string;
@@ -40,7 +41,7 @@ export function PriceCompare({ items, checks, noun }: { items: ComparedItem[]; c
       if (!result.ok && result.busy) return job.watch([result.busy]);
       if (!result.ok) setError(result.message);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }

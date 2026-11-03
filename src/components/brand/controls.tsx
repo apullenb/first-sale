@@ -13,8 +13,8 @@ import { MAX_CHANGE } from "@/lib/brand/prompts";
 import { familyPalette, LETTERING_STYLE_KEYS, LETTERING_STYLES, type LetteringStyle, type Refinement } from "@/lib/brand/refine";
 import { BRIEF_LIMITS, type BrandImageKind, type PaletteColor, type VersionKind } from "@/lib/brand/types";
 import { COLOR_FAMILIES, type ColorFamily } from "@/lib/brand/vibes";
+import { failedMessage } from "@/lib/failure";
 
-const OFFLINE = "Couldn’t reach SnapStart. Check your connection, then try again.";
 
 // Errors and notes clear when the page is hidden: kept-mounted screens keep their state
 function useMessages() {
@@ -97,7 +97,7 @@ function useBrandRun(intent: Intent, blocked?: string | null) {
       if (result.value) setNote(result.value);
       return true;
     } catch {
-      setError(OFFLINE);
+      setError(failedMessage());
       return false;
     } finally {
       inFlight.current = false;
@@ -266,7 +266,7 @@ export function EditPrompt({ target, label = "Edit", hint, working, done, latest
       setMade(result.value);
       close();
     } catch {
-      setError(OFFLINE);
+      setError(failedMessage());
     } finally {
       inFlight.current = false;
       setPending(false);
@@ -397,7 +397,7 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
       lastIntent.current = null;
       setNote("Done. The new logo is shown under this idea, and this one is kept.");
     } catch {
-      setError(OFFLINE);
+      setError(failedMessage());
     } finally {
       inFlight.current = false;
       setPending(false);

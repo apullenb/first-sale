@@ -9,6 +9,7 @@ import { ALERT, INPUT, PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles
 import { Chip } from "@/components/ui";
 import { EXISTING_LABELS, siteAddress } from "@/lib/website/existing-site";
 import { EXISTING_PLATFORMS, type ExistingPlatform, type ExistingSite } from "@/lib/website/types";
+import { failedMessage } from "@/lib/failure";
 
 const SMALL = `${SECONDARY} text-[15px]`;
 
@@ -33,7 +34,7 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
       if (!result.ok) setError(result.message ?? "Something went wrong. Try again.");
       else setOpen(false);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }

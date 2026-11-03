@@ -39,6 +39,7 @@ import { IntakeReview } from "./intake-review";
 import { PlaceStep } from "./place-step";
 import { MarkBadge, QUESTION_TITLE, QuestionBlock, WhyLine } from "./question-block";
 import { SellStep } from "./sell-step";
+import { failedMessage } from "@/lib/failure";
 
 type OfferingKind = (typeof OFFERING_KINDS)[number];
 type Step = StepId | "review";
@@ -300,7 +301,7 @@ export function IntakeWizard(props: Props) {
         error: false,
       });
     } catch {
-      setAiNote({ text: "Couldn’t reach SnapStart. Check your connection and try again.", error: true });
+      setAiNote({ text: failedMessage(), error: true });
     } finally {
       setAiPending(false);
     }
@@ -324,7 +325,7 @@ export function IntakeWizard(props: Props) {
     } catch (error) {
       closed.current = false;
       const message = error instanceof Error && !(error instanceof TypeError) ? error.message : "";
-      setSaveError(message || "Couldn’t reach SnapStart. Check your connection and try again.");
+      setSaveError(message || failedMessage());
       setSaving(false);
       return;
     }

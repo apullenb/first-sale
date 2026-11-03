@@ -5,6 +5,7 @@ import { choosePlatformAction } from "@/app/(app)/website/actions";
 import { Icon } from "@/components/icons";
 import { ALERT, PRIMARY, SECONDARY } from "@/components/styles";
 import type { PlatformId } from "@/lib/website/types";
+import { failedMessage } from "@/lib/failure";
 
 // The cards move once a package is chosen, so focus goes to the next heading as soon as it's on the page
 function focusWhenShown(id: string, tries = 100) {
@@ -48,7 +49,7 @@ export function ChoosePlatformButton({
         focusWhenShown(chosen ? "step-choose" : "step-address");
       }
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }

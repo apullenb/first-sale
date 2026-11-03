@@ -8,6 +8,7 @@ import { Icon } from "@/components/icons";
 import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import type { TaskStatus } from "@/lib/domain";
 import type { StepKind } from "@/lib/rules/step-kind";
+import { failedMessage } from "@/lib/failure";
 
 interface Props {
   stepId: string;
@@ -54,7 +55,7 @@ export function StepStatus({ stepId, title, status, note, submittedAt, submissio
         if (next === "done") celebrate(title);
       }
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
@@ -157,7 +158,7 @@ export function AcknowledgeDecision({ stepId, title, ready }: { stepId: string; 
       if (!result.ok) setError(result.message);
       else celebrate(title);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }

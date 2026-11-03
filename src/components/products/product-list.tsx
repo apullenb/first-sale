@@ -25,6 +25,7 @@ import {
 } from "@/lib/rules/products";
 import { ItemPictures } from "./item-pictures";
 import type { PictureView, Wearer } from "@/lib/rules/picture-views";
+import { failedMessage } from "@/lib/failure";
 
 export interface PhotoChoice {
   key: string;
@@ -62,7 +63,6 @@ export const photoKey = (ref: ProductPhotoRef | null) =>
           ? `generated:${ref.pictureId}`
           : `original:${ref.photoId}`;
 
-const OFFLINE = "Couldn’t reach SnapStart. Check your connection and try again.";
 const empty = (kind: ItemKind): ProductForm => ({ kind, name: "", description: "", price: "", unitCost: "", quantity: "", duration: "", location: "", included: "", groups: [], variants: [], photo: null });
 const NOUN: Record<ItemKind, { one: string; many: string; Title: string }> = {
   product: { one: "product", many: "products", Title: "Product" },
@@ -170,7 +170,7 @@ function ProductRow({
       const result = await deleteProductAction(product.id);
       if (!result.ok) setError(result.message);
     } catch {
-      setError(OFFLINE);
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
@@ -307,7 +307,7 @@ function ProductEditor({
       if (!id) setForm(empty(form.kind));
       onDone();
     } catch {
-      setError({ message: OFFLINE });
+      setError({ message: failedMessage() });
     } finally {
       setPending(false);
     }

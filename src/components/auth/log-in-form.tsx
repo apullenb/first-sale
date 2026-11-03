@@ -5,8 +5,9 @@ import { useRef, useState, type FormEvent } from "react";
 import { flushSync } from "react-dom";
 import { ALERT, EYEBROW, PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles";
 import { authClient } from "@/lib/auth/client";
-import { authErrorMessage, isValidEmail, NETWORK_ERROR_MESSAGE } from "@/lib/auth/rules";
+import { authErrorMessage, isValidEmail } from "@/lib/auth/rules";
 import { TextField } from "./text-field";
+import { failedMessage } from "@/lib/failure";
 
 export function LogInForm() {
   const [values, setValues] = useState({ email: "", password: "" });
@@ -50,7 +51,7 @@ export function LogInForm() {
         return;
       }
     } catch {
-      showFormError(NETWORK_ERROR_MESSAGE);
+      showFormError(failedMessage());
       return;
     }
     // Full page load so no kept screen holds this form's state; replace keeps it out of Back

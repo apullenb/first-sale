@@ -13,8 +13,8 @@ import { IDEAS } from "@/lib/brand/cost";
 import { PRACTICE_LABEL } from "@/lib/brand/practice";
 import { BRIEF_LIMITS } from "@/lib/brand/types";
 import { LogoKindPicker } from "./feel-pickers";
+import { failedMessage } from "@/lib/failure";
 
-const OFFLINE = "Couldn’t reach SnapStart. Check your connection, then try again.";
 
 interface Props {
   initial: Choices;
@@ -75,7 +75,7 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
     try {
       await job();
     } catch {
-      (next === "suggesting" ? setTaglineError : setError)(OFFLINE);
+      (next === "suggesting" ? setTaglineError : setError)(failedMessage());
     } finally {
       inFlight.current = false;
       setPhase("idle");

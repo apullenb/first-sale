@@ -8,6 +8,7 @@ import { useRequestKey, Working } from "@/components/working";
 import { ALERT } from "@/components/styles";
 import { EXAMPLE_IMAGE } from "@/lib/brand/slots";
 import { IMAGE_MEDIUMS, type ImageMedium } from "@/lib/brand/types";
+import { failedMessage } from "@/lib/failure";
 
 const OPTIONS = [
   { value: "photo", label: "Photo", icon: "camera" },
@@ -44,7 +45,7 @@ export function MediumSwitch({ logoId, medium, by, hasExample, hint }: { logoId:
       if (!made.ok) return setError(made.message);
       requestKey.clear();
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection, then try again.");
+      setError(failedMessage());
     } finally {
       inFlight.current = false;
       setPending(null);

@@ -8,8 +8,8 @@ import { AI_BUTTON, ALERT, INPUT, SECONDARY } from "@/components/styles";
 import { useRequestKey, Working } from "@/components/working";
 import { EXTRA_VIEWS, type PictureView, VIEW_LABELS, type Wearer, WEARER_LABELS, WEARERS, wearerFor } from "@/lib/rules/picture-views";
 import type { ListedProduct } from "./product-list";
+import { failedMessage } from "@/lib/failure";
 
-const OFFLINE = "Couldn’t reach SnapStart. Check your connection, then try again.";
 
 export interface Picture {
   id: string;
@@ -40,7 +40,7 @@ function useRun() {
       if (!result.ok) return setError(result.message);
       after?.();
     } catch {
-      setError(OFFLINE);
+      setError(failedMessage());
     } finally {
       inFlight.current = false;
       setPending(null);
@@ -155,7 +155,7 @@ export function ItemPictures({ item, pictures, inUse, changeLimit, hasOwnPhoto }
           onClick={async () => {
             if (!window.confirm("Remove the pictures of this item you haven’t approved?")) return;
             const result = await clearPicturesAction(item.id).catch(() => null);
-            if (!result?.ok) work.setError(result?.message ?? OFFLINE);
+            if (!result?.ok) work.setError(result?.message ?? failedMessage());
           }}
           className="w-fit text-sm text-muted underline underline-offset-[3px] hover:text-accent"
         >
@@ -254,9 +254,9 @@ function PictureCard({ picture, productId, name, title, newest, inUse, main }: {
     setError(null);
     try {
       const result = await action();
-      if (!result.ok) setError(result.message ?? OFFLINE);
+      if (!result.ok) setError(result.message ?? failedMessage());
     } catch {
-      setError(OFFLINE);
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
