@@ -17,9 +17,11 @@ export async function themeFacts(site: LoadedSite, request: string): Promise<The
   const state = await getMyBrandState();
   const brief = state?.brief;
   const logoId = brandAssetId(site.brand?.logos.primary ?? null);
-  const images: ThemeFacts["images"] = site.library.map(({ id, title, width, height }) => ({ id, title, width, height, purpose: id === site.design.heroImage?.versionId ? "selected header" : id.startsWith("brand:") ? "brand image" : "library image" }));
+  const headerId = brandAssetId(site.brand?.images.websiteHero ?? null);
+  const productImages = new Set(site.products.flatMap((product) => product.photo ? [product.photo.versionId] : []));
+  const images: ThemeFacts["images"] = site.library.map(({ id, title, width, height }) => ({ id, title, width, height, purpose: id === site.design.heroImage?.versionId ? "selected header" : id === `brand:${headerId}` ? "brand header" : productImages.has(id) ? "product photo" : id.startsWith("brand:") ? "brand image" : "library image" }));
   if (logoId && site.brand?.logos.primary) images.unshift({ id: `brand:${logoId}`, title: "Approved business logo", purpose: "logo", width: site.brand.logos.primary.width, height: site.brand.logos.primary.height });
-  const candidates = [images.find((image) => image.purpose === "logo"), images.find((image) => image.purpose === "selected header"), images.find((image) => image.purpose !== "logo" && image.width > image.height * 1.2), images.find((image) => image.purpose !== "logo")].filter((image) => image !== undefined);
+  const candidates = [images.find((image) => image.purpose === "logo"), images.find((image) => image.purpose === "selected header"), images.find((image) => image.purpose !== "logo" && image.width > image.height * 1.2), images.find((image) => image.purpose === "product photo") ?? images.find((image) => image.purpose !== "logo")].filter((image) => image !== undefined);
   await Promise.all([...new Map(candidates.map((image) => [image.id, image])).values()].slice(0, 3).map(async (image) => {
     const photo = site.library.find((photo) => photo.id === image.id);
     image.preview = await preview(image.id, photo?.photoId ?? logoId ?? "");

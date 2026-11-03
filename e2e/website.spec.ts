@@ -78,6 +78,7 @@ test.describe("website setup and visual editor", () => {
     await page.waitForURL("**/website/editor", { timeout: 120000 });
     const editor = page.getByRole("region", { name: "Website editor", exact: true });
     await expect(editor.getByRole("button", { name: "Design my theme from brand", exact: true })).toBeVisible();
+    await expect(editor.frameLocator("iframe").locator(".hero-image")).toHaveAttribute("src", /brand-library/);
     await expect(editor.getByRole("combobox", { name: /model|provider|muse/i })).toHaveCount(0);
     await editor.getByRole("textbox", { name: "Design brief", exact: true }).fill("A clean editorial candle shop with our header photo.");
     await editor.getByRole("button", { name: "Design my theme from brand", exact: true }).click();

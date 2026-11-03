@@ -289,3 +289,23 @@ describe("placeholderCount", () => {
     expect(placeholderCount({ ...copy, faq: [{ question: "Hours?", answer: "[Add your hours]" }] })).toBe(1);
   });
 });
+
+describe("image-led storefront", () => {
+  const offerings = ["Lavender", "Cedar", "Rose"].map((name, index) => ({ name, description: `Scent ${index}` }));
+  const items = offerings.map(({ name }) => ({ name, priceCents: 1800, buyUrl: "", photo: { photoId: name, versionId: name } }));
+  const photos = Object.fromEntries(offerings.map(({ name }) => [name, { src: `/photos/${name}.png`, width: 1000, height: 1000 }]));
+  it("composes the available product photos into the default opening", () => {
+    const html = renderSite(input({ copy: { ...copy, offerings }, design: design({ items }), images: { logo: null, hero: null, favicon: null, photos } }));
+    expect(html).toContain('class="hero split collection"');
+    expect(html).toContain('class="hero-collection"');
+    expect(html).toContain('<figcaption>Cedar</figcaption>');
+    expect(html).toContain('Explore the collection');
+    expect(html).not.toContain('<script');
+  });
+  it("respects a single-photo opening and the owner's photo visibility choice", () => {
+    const render = (patch: Partial<SiteDesign>) => renderSite(input({ copy: { ...copy, offerings }, design: design({ items, ...patch }), images: { logo: null, hero: null, favicon: null, photos } }));
+    expect(render({ heroComposition: "single" })).not.toContain('class="hero-collection"');
+    expect(render({ showHero: false })).toContain('class="hero split no-image"');
+    expect(render({ hidden: ["offerings"] })).not.toContain('class="hero-collection"');
+  });
+});

@@ -179,6 +179,7 @@ export function WebsiteEditor(props: WebsiteEditorProps) {
           {panel === "images" ? <>
             <PanelTitle title="Give the page a point of view." description="Use your brand imagery, product photos or an original upload." />
             {hero ? <div className="overflow-hidden rounded-xl border border-line"><img src={thumbnail(hero)} alt="Selected header image" className="aspect-video w-full object-cover" /><p className="px-3 py-2 text-xs text-muted">{hero.title}</p></div> : null}
+            <Select label="Opening photos" value={doc.design.heroComposition ?? "collection"} onChange={(value) => design({ heroComposition: value as "collection" | "single" })} options={[["collection", "Product collection"], ["single", "Single photo"]]} />
             <ImagePicker images={props.library} selected={doc.design.heroImage?.versionId ?? ""} onChange={(image) => design({ heroImage: image ? { photoId: image.photoId, versionId: image.id } : null, showHero: Boolean(image) })} label="Header image" />
             <Select label="Image focus" value={doc.design.imagePosition ?? "center"} onChange={(imagePosition) => design({ imagePosition: imagePosition as SiteDesign["imagePosition"] })} options={[["center", "Center"], ["top", "Top"], ["bottom", "Bottom"]]} />
             <details className="rounded-xl border border-line p-4"><summary className="cursor-pointer text-sm font-semibold">+ Upload an image</summary><div className="mt-4"><LibraryUpload groups={["brand_images"]} initialGroup="brand_images" maxBytes={4_000_000} /></div></details>
