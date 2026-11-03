@@ -27,6 +27,7 @@ import {
 import { renderSite, type SiteImage } from "@/lib/website/site/render";
 import type { WebsiteCopy } from "@/lib/website/types";
 import { SiteFrame } from "./site-frame";
+import { failedMessage } from "@/lib/failure";
 
 export interface LibraryChoice {
   versionId: string;
@@ -164,7 +165,7 @@ export function SiteStudio(props: Props) {
       if (!result.ok) setError({ at, message: result.message ?? "That didn’t work. Try again." });
       setStatus(result.ok && next === "saving" ? "saved" : "idle");
     } catch {
-      setError({ at, message: "Couldn’t reach SnapStart. Check your connection and try again." });
+      setError({ at, message: failedMessage() });
       setStatus("idle");
     }
   }

@@ -9,6 +9,7 @@ import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles
 import { Working } from "@/components/working";
 import type { FieldKind } from "@/lib/documents/types";
 import type { JobRef } from "@/lib/workflows";
+import { failedMessage } from "@/lib/failure";
 
 export interface EditorField {
   id: string;
@@ -114,7 +115,7 @@ export function AnswersEditor({ documentId, fields, signature, sourceLabels, det
         setStatus("idle");
       } else setStatus(next === "saving" ? "saved" : "idle");
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
       setStatus("idle");
     }
   }

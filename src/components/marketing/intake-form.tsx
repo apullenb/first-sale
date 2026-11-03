@@ -11,6 +11,7 @@ import { MARKETING_PLATFORMS, type MarketingPlatformId, PLATFORM_DATA } from "@/
 import { DONE_ALREADY, DONE_LABELS, type DoneAlready, MAX_DONE_NOTE, marketingIntakeSchema, SKILL_QUESTIONS, type StoredIntake } from "@/lib/marketing/intake";
 import { PlanProgress, useFinishAndRefresh } from "./ai-progress";
 import { InfoRows, PICKS, PickTile, Why } from "./pieces";
+import { failedMessage } from "@/lib/failure";
 
 const EMPTY: StoredIntake = { include: [], have: [], exclude: [], social: null, seo: null, content: null, done: [], doneNote: "" };
 const SCREENS = ["Where you want to show up", "What you already know", "What you’ve tried so far"] as const;
@@ -136,7 +137,7 @@ export function MarketingIntakeForm({ initial, hasPlan, known, onDone }: Props) 
       if (!written.ok) throw new Error(`Your answers are saved. ${written.message}`);
       finished();
     } catch (problem) {
-      setError(problem instanceof Error && problem.message !== "Failed to fetch" ? problem.message : "Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(problem instanceof Error && problem.message !== "Failed to fetch" ? problem.message : failedMessage());
       setPhase("form");
     }
   }

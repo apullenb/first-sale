@@ -4,6 +4,7 @@ import { useLayoutEffect, useState } from "react";
 import { answerConditionAction } from "@/app/(app)/requirements/actions";
 import { ALERT } from "@/components/styles";
 import type { ConditionAnswer } from "@/lib/research/applicability";
+import { failedMessage } from "@/lib/failure";
 
 const CHOICES: { value: ConditionAnswer; label: string }[] = [
   { value: "yes", label: "Yes" },
@@ -28,7 +29,7 @@ function useAnswer(stepKey: string, condition: string) {
       if (!result.ok) setError(result.message);
       return result.ok;
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
       return false;
     } finally {
       setPending(false);

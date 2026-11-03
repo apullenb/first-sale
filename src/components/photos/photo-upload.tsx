@@ -8,6 +8,7 @@ import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { IconTile } from "@/components/ui";
 import { preparePhoto } from "./prepare-photo";
 import { Working } from "@/components/working";
+import { failedMessage } from "@/lib/failure";
 
 const PICKER = `${SECONDARY} cursor-pointer has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent`;
 
@@ -59,7 +60,7 @@ export function PhotoUpload({ maxUploadBytes, nameLimit }: { maxUploadBytes: num
       setName("");
       router.push(`/photos/${result.value}`);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setUploading(false);
     }

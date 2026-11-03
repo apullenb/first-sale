@@ -25,6 +25,7 @@ import {
 } from "@/lib/documents/plan-facts";
 import type { MoneyInputs } from "@/lib/rules/plan-money";
 import { moneyForm, moneyFromForm, PlanMoney } from "./plan-money";
+import { failedMessage } from "@/lib/failure";
 
 interface Props {
   facts: KnownFact[];
@@ -67,7 +68,7 @@ export function PlanInputs({ facts, basis, initial, money, hasDraft, privacy }: 
       else if (!result.ok) setError(result.message);
       else requestAnimationFrame(() => document.getElementById("plan-review-heading")?.scrollIntoView({ behavior: "smooth", block: "start" }));
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     }
     setStatus("idle");
   }

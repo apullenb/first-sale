@@ -9,6 +9,7 @@ import { type ClaimRecords, claimConflicts, siteClaimRecords } from "@/lib/websi
 import type { SiteDesign, SiteProduct } from "@/lib/website/site/design";
 import type { WebsiteCopy } from "@/lib/website/types";
 import { placeholderCount } from "@/lib/website/words";
+import { failedMessage } from "@/lib/failure";
 
 interface Props {
   copy: WebsiteCopy;
@@ -66,7 +67,7 @@ export function CopyEditor({ copy: saved, flags, approved, signature, records }:
         setStatus("idle");
       } else setStatus(approve ? "approved" : "saved");
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
       setStatus("idle");
     }
   }

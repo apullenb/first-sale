@@ -7,6 +7,7 @@ import { ALERT, INPUT, SECONDARY } from "@/components/styles";
 import { Card, Chip } from "@/components/ui";
 import { MONEY_LIMITS, MONEY_PIECES, type MoneyInputs, PLAN_LEVEL_LABELS, planMoney } from "@/lib/rules/plan-money";
 import { dollars, parseDollars } from "@/lib/website/site/design";
+import { failedMessage } from "@/lib/failure";
 
 // The form keeps text as typed; amounts become cents only when they read as dollars
 export interface MoneyForm {
@@ -83,7 +84,7 @@ export function PlanMoney({ form, onChange, hasDraft }: { form: MoneyForm; onCha
       if (!done.ok) setError(done.message);
       setStatus(done.ok ? "saved" : "idle");
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
       setStatus("idle");
     }
   }

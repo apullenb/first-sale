@@ -11,6 +11,7 @@ import type { MarketingPlatformId } from "@/data/marketing-platforms";
 import type { SocialProfileFacts } from "@/data/social-profiles";
 import { bioLimit, charCount, checkBio, checkHandle, checkName } from "@/lib/rules/social";
 import { MAX_FIELD, type SocialProfile } from "@/lib/social/types";
+import { failedMessage } from "@/lib/failure";
 
 interface Props {
   platform: MarketingPlatformId;
@@ -66,7 +67,7 @@ export function ProfileEditor({ platform, platformName, facts, initial, handles,
       if (!result.ok) setError(result.message);
       else if (approve) setEditing(false);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(null);
     }

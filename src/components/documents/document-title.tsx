@@ -4,6 +4,7 @@ import { type FormEvent, useId, useLayoutEffect, useState } from "react";
 import { renameDocumentAction } from "@/app/(app)/documents/actions";
 import { Icon } from "@/components/icons";
 import { ALERT, INPUT, PAGE_TITLE, PRIMARY, SECONDARY } from "@/components/styles";
+import { failedMessage } from "@/lib/failure";
 
 // The document's name as the page heading, with an inline rename
 export function DocumentTitle({ documentId, title }: { documentId: string; title: string }) {
@@ -23,7 +24,7 @@ export function DocumentTitle({ documentId, title }: { documentId: string; title
       if (!result.ok) setError(result.message);
       else setEditing(false);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }

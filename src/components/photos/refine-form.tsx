@@ -8,6 +8,7 @@ import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { AI_BUTTON, ALERT, INPUT, SECONDARY } from "@/components/styles";
 import { MAX_CHANGE } from "@/lib/photos/instructions";
 import { useRequestKey, Working } from "@/components/working";
+import { failedMessage } from "@/lib/failure";
 
 const EXAMPLES = ["Make the background ivory", "Remove the props", "Make it a little brighter", "Show more space around it"];
 
@@ -45,7 +46,7 @@ export function RefineForm({ photoId, versionId, versionNumber }: { photoId: str
       setChange("");
       router.push(`/photos/${photoId}?v=${result.value}`);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection, then try again.");
+      setError(failedMessage());
     } finally {
       inFlight.current = false;
       setPending(false);

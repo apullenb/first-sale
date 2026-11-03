@@ -6,6 +6,7 @@ import type { ActionResult } from "@/app/(app)/business/actions";
 import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { PRIMARY, SECONDARY } from "@/components/styles";
 import { Working } from "@/components/working";
+import { failedMessage } from "@/lib/failure";
 
 interface Props {
   action: (input: { stepId: string; formKey: string; requestKey: string }) => Promise<ActionResult<string>>;
@@ -35,7 +36,7 @@ export function FormButton({ action, stepId, formKey, label, pendingLabel, pendi
       else if (!result.ok) setError(result.message);
       else router.push(`/documents/${encodeURIComponent(result.value)}`);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }

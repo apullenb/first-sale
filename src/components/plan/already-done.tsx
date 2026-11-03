@@ -8,6 +8,7 @@ import { celebrate } from "@/components/celebrate";
 import { Icon } from "@/components/icons";
 import { ALERT, PRIMARY, SECONDARY } from "@/components/styles";
 import { RecordUpload } from "./record-upload";
+import { failedMessage } from "@/lib/failure";
 
 const SMALL = `${SECONDARY} text-[15px]`;
 const PANEL = "flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5 shadow-card";
@@ -114,7 +115,7 @@ function MarkDone({
         router.refresh();
       }
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }

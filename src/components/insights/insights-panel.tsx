@@ -11,6 +11,7 @@ import { StepProgress, stepStatus, useStepTicker } from "@/components/step-progr
 import { AI_BUTTON, ALERT, EYEBROW, PRIMARY_LINK, SECONDARY, SECTION_TITLE, TEXT_LINK } from "@/components/styles";
 import { Fold, IconTile } from "@/components/ui";
 import type { Insight, InsightMark, InsightSection } from "@/lib/insights/types";
+import { failedMessage } from "@/lib/failure";
 
 const STEPS = [
   "Reading your answers, plan, brand and website",
@@ -99,7 +100,7 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
     } catch {
       focusNext.current = "button";
       ticker.stop();
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     }
   }
 
@@ -112,7 +113,7 @@ export function InsightsPanel({ insights, marks: savedMarks, changed, practice }
         const result = await markInsightAction({ key: item.key, mark: value });
         if (!result.ok) setError(result.message);
       } catch {
-        setError("Couldn’t reach SnapStart. Check your connection and try again.");
+        setError(failedMessage());
       }
     });
   }
