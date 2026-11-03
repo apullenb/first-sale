@@ -5,6 +5,7 @@ import { approveVersionAction } from "@/app/(app)/photos/actions";
 import { Icon } from "@/components/icons";
 import { PickOption } from "@/components/marketing/pieces";
 import { ALERT, PRIMARY } from "@/components/styles";
+import { failedMessage } from "@/lib/failure";
 
 // The owner's review: they confirm it shows the product as it really is before it can be used
 export function ApprovePanel({ photoId, versionId, preview }: { photoId: string; versionId: string; preview: boolean }) {
@@ -24,7 +25,7 @@ export function ApprovePanel({ photoId, versionId, preview }: { photoId: string;
       const result = await approveVersionAction({ photoId, versionId, confirmed: true });
       if (!result.ok) setError(result.message);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection, then try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }

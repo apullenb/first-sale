@@ -5,6 +5,7 @@ import { useId, useLayoutEffect, useRef, useState } from "react";
 import { uploadRecordAction } from "@/app/(app)/documents/form-actions";
 import { Icon } from "@/components/icons";
 import { ALERT, INPUT, SECONDARY } from "@/components/styles";
+import { failedMessage } from "@/lib/failure";
 
 const ROLES = [
   ["receipt", "A receipt or filing confirmation"],
@@ -36,7 +37,7 @@ export function RecordUpload({ stepId, accept }: { stepId: string; accept: strin
         router.refresh();
       }
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }

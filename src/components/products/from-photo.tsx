@@ -9,6 +9,7 @@ import { AI_BUTTON, ALERT, INPUT, SECONDARY } from "@/components/styles";
 import { IconTile } from "@/components/ui";
 import { Working } from "@/components/working";
 import type { ItemKind } from "@/lib/rules/products";
+import { failedMessage } from "@/lib/failure";
 
 const PICKER = `${SECONDARY} cursor-pointer has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent`;
 
@@ -57,7 +58,7 @@ export function FromPhoto({ kinds, maxUploadBytes, nameLimit }: { kinds: ItemKin
       setPrepared(null);
       setHint("");
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setUploading(false);
     }

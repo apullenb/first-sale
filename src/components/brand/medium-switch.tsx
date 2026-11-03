@@ -8,6 +8,7 @@ import { useRequestKey, Working } from "@/components/working";
 import { ALERT } from "@/components/styles";
 import { EXAMPLE_IMAGE } from "@/lib/brand/slots";
 import { IMAGE_MEDIUMS, type ImageMedium } from "@/lib/brand/types";
+import { failedMessage } from "@/lib/failure";
 
 const OPTIONS = [
   { value: "photo", label: "Photo", icon: "camera" },
@@ -44,7 +45,7 @@ export function MediumSwitch({ logoId, medium, by, hasExample, hint }: { logoId:
       if (!made.ok) return setError(made.message);
       requestKey.clear();
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection, then try again.");
+      setError(failedMessage());
     } finally {
       inFlight.current = false;
       setPending(null);
@@ -55,7 +56,7 @@ export function MediumSwitch({ logoId, medium, by, hasExample, hint }: { logoId:
     <div className="flex flex-col gap-2 rounded-xl border border-line bg-soft px-3.5 py-3" data-testid="medium-switch">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <p className="text-sm text-rule">{explain(medium, by)}</p>
-        <Segmented label="Style of your brand images" options={[...OPTIONS]} value={pending ?? medium} onChange={choose} />
+        <Segmented label="Style of your brand images" options={[...OPTIONS]} value={pending ?? medium} onChange={choose} writes />
       </div>
       {hasExample ? <p className="text-sm text-muted">Switching makes a new header picture in that style. {hint} The current one is kept under “Earlier ones”.</p> : null}
       {job.watching ? <Working label={RUNNING_ELSEWHERE} active /> : null}

@@ -191,13 +191,14 @@ export const PICKS = {
 };
 
 // Two or three views of one thing, like Computer and Phone
-export function Segmented({ label, options, value, onChange }: { label: string; options: { value: string; label: string; icon?: IconName }[]; value: string; onChange: (value: string) => void }) {
+export function Segmented({ label, options, value, onChange, writes }: { label: string; options: { value: string; label: string; icon?: IconName }[]; value: string; onChange: (value: string) => void; writes?: boolean }) {
   return (
     <div role="group" aria-label={label} className="inline-flex w-fit gap-1 rounded-xl border border-line bg-wash p-1">
       {options.map((option) => (
         <button
           key={option.value}
           type="button"
+          data-writes={writes || undefined}
           aria-pressed={value === option.value}
           onClick={() => onChange(option.value)}
           className="inline-flex min-h-11 items-center gap-2 rounded-[9px] px-3.5 text-[15px] font-semibold text-muted transition hover:text-ink aria-pressed:bg-surface aria-pressed:text-ink aria-pressed:shadow-soft"
@@ -214,7 +215,7 @@ export function Segmented({ label, options, value, onChange }: { label: string; 
 export function TickBox({ id, checked, fresh, disabled, onChange }: { id: string; checked: boolean; fresh?: boolean; disabled?: boolean; onChange: (checked: boolean) => void }) {
   return (
     <label className="grid size-11 shrink-0 cursor-pointer place-items-center has-disabled:cursor-wait">
-      <input id={id} type="checkbox" className="peer sr-only" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
+      <input data-writes id={id} type="checkbox" className="peer sr-only" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
       <span
         aria-hidden="true"
         className="grid size-[30px] place-items-center rounded-[9px] border-[1.5px] border-line-strong bg-surface text-accent transition hover:border-muted peer-checked:border-accent-ring peer-checked:bg-accent-tint peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent peer-disabled:opacity-60"

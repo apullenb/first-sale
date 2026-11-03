@@ -8,6 +8,7 @@ import { celebrate } from "@/components/celebrate";
 import { Icon } from "@/components/icons";
 import { ALERT, PRIMARY, SECONDARY } from "@/components/styles";
 import { RecordUpload } from "./record-upload";
+import { failedMessage } from "@/lib/failure";
 
 const SMALL = `${SECONDARY} text-[15px]`;
 const PANEL = "flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5 shadow-card";
@@ -114,7 +115,7 @@ function MarkDone({
         router.refresh();
       }
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
@@ -142,7 +143,7 @@ function MarkDone({
         <span>I finished this step myself, before or outside SnapStart.</span>
       </label>
       <div className="flex flex-wrap gap-2.5">
-        <button type="button" disabled={pending || !confirmed} onClick={save} className={PRIMARY}>
+        <button type="button" data-writes disabled={pending || !confirmed} onClick={save} className={PRIMARY}>
           <Icon name="check" size="sm" />
           {pending ? "Saving…" : "Mark it done"}
         </button>

@@ -4,6 +4,8 @@ import { OwnerFacingError } from "@/lib/errors";
 
 export const DEMO_NOTE = "This is the demo, so changes aren’t saved. Start your own to try it.";
 export const DEMO_REFUSAL = { ok: false as const, message: DEMO_NOTE };
+// On buttons that would save, in place of their label
+export const DEMO_BUTTON = "Not available in the demo";
 
 // Only /demo makes tokens with this prefix; Better Auth's own are letters and digits
 export const DEMO_TOKEN_PREFIX = "demo_";

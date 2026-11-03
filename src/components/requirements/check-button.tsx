@@ -7,6 +7,7 @@ import { RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
 import { ALERT, PRIMARY, SECONDARY } from "@/components/styles";
 import { Working } from "@/components/working";
 import type { JobRef } from "@/lib/workflows";
+import { failedMessage } from "@/lib/failure";
 
 const STYLES = { primary: PRIMARY, secondary: SECONDARY };
 
@@ -60,7 +61,7 @@ export function CheckRequirementsButton({
       const deeper = await followUpAction();
       if (!deeper.ok) failed(deeper);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPhase(null);
     }
@@ -77,7 +78,7 @@ export function CheckRequirementsButton({
   return (
     <div className="flex flex-col items-start gap-2">
       {auto && !error ? null : (
-        <button type="button" onClick={() => run(from)} disabled={pending} className={STYLES[variant]}>
+        <button type="button" data-writes onClick={() => run(from)} disabled={pending} className={STYLES[variant]}>
           <Icon name={variant === "primary" ? "search" : "refresh"} size="sm" />
           {pending ? "Checking official sources…" : error && auto ? "Try again" : label}
         </button>

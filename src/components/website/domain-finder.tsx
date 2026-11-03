@@ -8,6 +8,7 @@ import { Done } from "@/components/marketing/pieces";
 import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { Chip } from "@/components/ui";
 import type { DomainCheck } from "@/lib/website/types";
+import { failedMessage } from "@/lib/failure";
 
 interface Props {
   ideas: string[];
@@ -39,7 +40,7 @@ export function DomainFinder({ ideas, checks, chosen }: Props) {
       const result = await action();
       if (!result.ok) setError(result.message ?? "That didn’t work. Try again.");
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(null);
     }
@@ -106,12 +107,12 @@ export function DomainFinder({ ideas, checks, chosen }: Props) {
                   </Chip>
                 ) : null}
                 {!check || check.status === "unknown" ? (
-                  <button type="button" disabled={pending !== null} onClick={() => run(domain, () => checkDomainAction(domain))} className={SECONDARY}>
+                  <button data-writes type="button" disabled={pending !== null} onClick={() => run(domain, () => checkDomainAction(domain))} className={SECONDARY}>
                     {pending === domain ? "Checking…" : "Check"}
                   </button>
                 ) : null}
                 {check?.status === "available" && chosen !== domain ? (
-                  <button type="button" disabled={pending !== null} onClick={() => run(`choose-${domain}`, () => chooseDomainAction(domain))} className={PRIMARY}>
+                  <button data-writes type="button" disabled={pending !== null} onClick={() => run(`choose-${domain}`, () => chooseDomainAction(domain))} className={PRIMARY}>
                     Use this one
                   </button>
                 ) : null}

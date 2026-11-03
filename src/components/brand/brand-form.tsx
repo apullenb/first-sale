@@ -13,8 +13,8 @@ import { PRACTICE_LABEL } from "@/lib/brand/practice";
 import { BRIEF_LIMITS, type BrandBrief } from "@/lib/brand/types";
 import { MAX_COLOR_FAMILIES, VIBE_LIMITS } from "@/lib/brand/vibes";
 import { ColorPicker, LeaningPicker, VibePicker } from "./feel-pickers";
+import { failedMessage } from "@/lib/failure";
 
-const OFFLINE = "Couldn’t reach SnapStart. Check your connection, then try again.";
 
 // What the description is written from; changing any of these makes it out of date
 const STORY_INPUTS = ["sells", "customers", "vibes", "leanings", "colors", "likedColors"] as const;
@@ -84,7 +84,7 @@ export function BrandForm({ initial, practice }: { initial: BrandBrief; practice
     try {
       await job();
     } catch {
-      setError(OFFLINE);
+      setError(failedMessage());
     } finally {
       inFlight.current = false;
       setPhase("idle");
@@ -257,7 +257,7 @@ export function BrandForm({ initial, practice }: { initial: BrandBrief; practice
             {textField("avoid", "Things your brand shouldn’t look like (optional)", "Such as “no cupcakes” or “nothing that looks like a coffee chain”.", BRIEF_LIMITS.avoid)}
           </div>
           <div className="flex flex-col gap-2 border-t border-line pt-5">
-            <button type="button" onClick={describe} disabled={busy} className={`${AI_BUTTON} w-fit`}>
+            <button type="button" data-writes onClick={describe} disabled={busy} className={`${AI_BUTTON} w-fit`}>
               <Icon name="sparkles" size="sm" />
               {phase === "describing" || job.watching ? "Describing…" : brief.story ? "Describe my brand again" : "Describe my brand"}
             </button>
@@ -301,7 +301,7 @@ export function BrandForm({ initial, practice }: { initial: BrandBrief; practice
                   className={`${INPUT} min-h-32 text-lg`}
                 />
                 <div className="flex flex-wrap gap-3">
-                  <button type="button" onClick={() => approve(draft)} disabled={busy} className={PRIMARY}>
+                  <button type="button" data-writes onClick={() => approve(draft)} disabled={busy} className={PRIMARY}>
                     {phase === "saving" ? "Saving…" : "Save: this feels like my business"}
                   </button>
                   <button
@@ -346,7 +346,7 @@ export function BrandForm({ initial, practice }: { initial: BrandBrief; practice
               </div>
             ) : (
               <div className="flex flex-wrap gap-3">
-                <button type="button" onClick={() => approve(brief.story)} disabled={busy} className={PRIMARY}>
+                <button type="button" data-writes onClick={() => approve(brief.story)} disabled={busy} className={PRIMARY}>
                   <Icon name="check" size="sm" />
                   {phase === "saving" ? "Saving…" : "This feels like my business"}
                 </button>

@@ -41,6 +41,10 @@ test("catalog orders count exact options, record a deposit and restore stock onc
   await entry.getByRole("button", { name: "Save order or job" }).click();
   const tile = page.getByRole("button").filter({ hasText: "Sam Rivera" });
   await expect(tile).toContainText("$96 owed");
+  // Saving the order takes the stock, so cancelling it later has something to give back
+  await open(page, "/products");
+  await expect(options).toContainText("12 oz · $32 · 7 in stock");
+  await open(page, "/orders");
   await tile.click();
   const detail = page.getByRole("region", {
     name: "Three candles",

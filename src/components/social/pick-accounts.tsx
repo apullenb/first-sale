@@ -7,6 +7,7 @@ import { PICKS, PickTile, Why } from "@/components/marketing/pieces";
 import { ALERT, PRIMARY } from "@/components/styles";
 import { MARKETING_PLATFORMS, type MarketingPlatformId, PLATFORM_DATA } from "@/data/marketing-platforms";
 import { SKILL_LEVELS, SKILL_QUESTIONS, type SkillLevel } from "@/lib/marketing/intake";
+import { failedMessage } from "@/lib/failure";
 
 const SOCIAL_QUESTION = SKILL_QUESTIONS.find((question) => question.area === "social")!;
 
@@ -25,7 +26,7 @@ export function PickAccounts({ include, social }: { include: MarketingPlatformId
       const result = await pickSocialAccountsAction({ include: picked, social: level });
       if (!result.ok) setError(result.message);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
@@ -70,7 +71,7 @@ export function PickAccounts({ include, social }: { include: MarketingPlatformId
           {error}
         </p>
       ) : null}
-      <button type="button" disabled={pending || !picked.length} onClick={save} className={`${PRIMARY} w-fit`}>
+      <button type="button" data-writes disabled={pending || !picked.length} onClick={save} className={`${PRIMARY} w-fit`}>
         <Icon name="check" size="sm" />
         {pending ? "Saving…" : "Set up these accounts"}
       </button>

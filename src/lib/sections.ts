@@ -170,7 +170,7 @@ export const SECTIONS: Section[] = [
     group: "Run your business",
     step: null,
     milestone: 6,
-    summary: "Set up help with customer messages and reply drafts, with every reply waiting for your review.",
+    summary: "Connect your inbox, import new emails, turn them into orders or requests, and reply.",
   },
   {
     href: "/orders",

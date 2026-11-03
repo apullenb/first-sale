@@ -104,8 +104,8 @@ SnapStart is a guided workspace in three parts, and a **Today** page always show
       • A website built from your products, checked against your prices<br>
       • Prices from similar businesses near you</td>
     <td valign="top"><b>Keep the day-to-day in one place.</b><br><br>
-      • Guided setup for an email assistant that drafts replies for your review<br>
-      • Order and customer-request tracking with follow-up reminders<br>
+      • Customer email: import new messages, turn them into orders or requests, and reply<br>
+      • Order and job tracking with due dates, payments and balances<br>
       • Friendly business insights with tips you can act on<br>
       • Every form, receipt and approval in one document library</td>
   </tr>
@@ -247,7 +247,7 @@ Everything the brand is made of lives in one place: the chosen logo and its vers
 
 <img src="docs/media/nav/run-your-business.webp" alt="Menu link: Run your business" width="225" height="32"> <img src="docs/media/nav/connect-your-email.webp" alt="Menu link: Connect your email" width="201" height="32"> <img src="docs/media/nav/orders-and-requests.webp" alt="Menu link: Orders & requests" width="201" height="32">
 
-Customer email and a shared order/job tracker: connect an inbox, upload a customer invoice, or enter work manually. The workspace adapts to products, made-to-order work and services, with due dates, progress, payments and balances. Imported requests appear for review automatically; confirmation applies catalog pricing and stock changes once. Every email reply waits for explicit owner approval. Deployment and provider setup: [Customer operations](docs/CUSTOMER-OPERATIONS.md).
+Customer email and a shared order/job tracker. Owners connect their business inbox, press **Import new emails** to bring in what's new, and each email becomes an order or request for review. They can also paste an email, upload an invoice or enter work themselves. The tracker adapts to products, made-to-order work and services, with due dates, progress, payments and balances; confirming applies catalog prices and takes stock once. Replies are drafted for the owner to edit and approve, then sent from their inbox. Provider setup: [Customer operations](docs/CUSTOMER-OPERATIONS.md).
 
 <p align="center"><img src="docs/media/run.webp" alt="The Run your business page: Connect your email and Track orders and customer requests, each ready to set up" width="900"></p>
 
@@ -393,95 +393,9 @@ Every long AI job goes through one runner (`src/lib/workflow-runner.ts`) and a w
 
 ## Architecture
 
-```mermaid
-flowchart TB
-  Browser["Browser<br/><sub>React 19 · Tailwind v4</sub>"]
-
-  subgraph Next["Next.js 16 App Router · Cache Components on"]
-    direction TB
-    Proxy["proxy.ts<br/><sub>cookie check, sends signed-out visitors to /login</sub>"]
-    Pages["Server Components<br/><sub>session reads inside &lt;Suspense&gt;</sub>"]
-    Actions["Server Actions"]
-    Runner["runWorkflow<br/><sub>AI limits · one run at a time · run records</sub>"]
-    Owner["Owner-scoped data layer<br/><sub>src/lib/data/my-business.ts</sub>"]
-    Logic["Tested business logic<br/><sub>src/lib/rules · plan, costs, stock, filing steps</sub>"]
-    AI["AI layer · src/lib/ai<br/><sub>getModel · generateObject · getImageModel</sub>"]
-    Research["Research pipeline<br/><sub>discover · retrieve · verify · classify</sub>"]
-    PDF["PDF engine<br/><sub>pdf-lib fill + write · unpdf read</sub>"]
-    Auth["Better Auth<br/><sub>email + password · scrypt · DB sessions</sub>"]
-  end
-
-  Registry[(".gov registry<br/><sub>CISA snapshot</sub>")]
-  Packs[("Source packs and<br/>official forms catalog")]
-  DB[("Postgres via Drizzle<br/><sub>Neon in production · PGlite locally</sub>")]
-  Muse["Meta Muse<br/><sub>Spark: text, vision, web search<br/>Image: generations, edits</sub>"]
-  Gov["Official .gov sites"]
-
-  Browser --> Proxy --> Pages
-  Browser --> Actions
-  Pages --> Owner
-  Actions --> Runner --> Owner
-  Runner --> AI
-  Runner --> Research
-  Research --> AI
-  Research --> Registry
-  Research --> Packs
-  Research -->|"fetches each page"| Gov
-  Actions --> PDF
-  PDF -->|"downloads official forms"| Gov
-  Owner --> Logic
-  Owner --> DB
-  Auth --> DB
-  Pages --> Auth
-  AI --> Muse
-  AI -.->|"or"| Other["Any OpenAI-compatible model"]
-```
-
 - **Owner-scoped by design.** Each owner has one business and sees only their own. Pages, actions and route handlers read data through `my-business.ts`, which takes the owner from the verified session.
 - **Cache Components.** Session reads sit inside `<Suspense>` boundaries, and sign-in, sign-up and log-out do a full page load so each owner starts fresh.
-- **One database, two drivers.** `postgres-js` against Neon in production, PGlite (Postgres in WebAssembly) locally and in tests, with the same Drizzle schema and migrations.
-
-### How "What applies to you" works
-
-```mermaid
-sequenceDiagram
-  actor Owner
-  participant App as SnapStart server
-  participant Spark as Meta Muse Spark
-  participant Gov as Official .gov sites
-  participant Code as Code checks
-
-  Owner->>App: Find what applies to me
-
-  rect rgba(8, 102, 255, 0.08)
-    Note over App,Code: 1 · Find sources
-    App->>Spark: Search each topic for state, county, city
-    Spark-->>App: Page addresses
-    App->>Code: Keep the owner's own governments (.gov registry)
-    App->>Gov: Fetch each page
-  end
-
-  rect rgba(16, 185, 129, 0.08)
-    Note over App,Code: 2 · Read and quote
-    App->>Spark: Official pages, then the owner's answers
-    Spark-->>App: Requirements with exact quotes
-    App->>Spark: Look deeper at open questions
-  end
-
-  rect rgba(245, 158, 11, 0.10)
-    Note over App,Code: 3 · Verify in code
-    App->>Code: Quote is on the page?
-    App->>Spark: Quote says what's claimed?
-    App->>Code: Does it fit this owner?
-  end
-
-  rect rgba(139, 92, 246, 0.08)
-    Note over App,Code: 4 · Plan
-    App->>Code: Order the steps, add up fees
-  end
-
-  App-->>Owner: What applies, with sources and next steps
-```
+- **One database, two drivers.** `pg` against Neon in production, PGlite (Postgres in WebAssembly) locally and in tests, with the same Drizzle schema and migrations.
 
 ---
 
@@ -585,6 +499,7 @@ To use a different OpenAI-compatible model instead, set `AI_PROVIDER=openai-comp
 | `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Sessions; sign-in accepts requests from `BETTER_AUTH_URL` |
 | `BETTER_AUTH_TRUSTED_ORIGINS` | Extra sign-in origins (Vercel previews are added automatically) |
 | `DEMO_OWNER_EMAIL` | Optional open demo: `/demo` shows this account's business read-only, no sign-in needed |
+| `NYLAS_API_KEY`, `NYLAS_CLIENT_ID`, `NYLAS_REGION`, `NYLAS_REDIRECT_URI` | Optional customer email connection through Nylas; see [Customer operations](docs/CUSTOMER-OPERATIONS.md) |
 
 PGlite allows one process at a time, so stop `npm run dev` before `db:migrate`. See [docs/GUIDE.md](docs/GUIDE.md#quick-start) for more.
 
@@ -613,7 +528,7 @@ The production address and each preview's URLs are trusted for sign-in automatic
 
 ## Coming soon
 
-- **Live email and order connections**, so the email assistant and order tracking work right from the owner's inbox and sales channels.
+- **Order connections for websites and stores**, so orders arrive in tracking from the owner's sales channels.
 - **Publishing the website SnapStart builds**, with hosting, a custom web address and payments built in.
 - **Product photo galleries** on the built website, straight from the owner's approved photos.
 - **Password recovery and email verification.**

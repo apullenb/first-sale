@@ -10,6 +10,7 @@ import { Icon } from "@/components/icons";
 import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { Working } from "@/components/working";
 import { Card } from "@/components/ui";
+import { failedMessage } from "@/lib/failure";
 
 // "have": a paper the owner already has or got in the mail; "fill": a form to fill in
 export type AddKind = "have" | "fill";
@@ -127,7 +128,7 @@ export function AddFormPanel({ steps, initialStep, initialKind, initialMode, acc
       if (fileInput.current) fileInput.current.value = "";
       router.push(`/documents/${result.value}`);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setStatus(null);
     }

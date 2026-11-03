@@ -10,6 +10,7 @@ import { PLATFORM_DATA } from "@/data/marketing-platforms";
 import { type HandHolding, type MarketingStep, type StepLink, stepAnchor } from "@/lib/marketing/types";
 import { progressLabel } from "@/lib/progress-labels";
 import { TickBox } from "./pieces";
+import { failedMessage } from "@/lib/failure";
 
 export type ShownStep = MarketingStep & { help: HandHolding; helpNote: string };
 
@@ -115,7 +116,7 @@ export function MarketingStepList({ steps, done, auto = [], next }: { steps: Sho
       const result = await setMarketingStepAction({ key, done: checked });
       if (!result.ok) setError(result.message);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(null);
     }

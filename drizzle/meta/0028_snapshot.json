@@ -1,5 +1,5 @@
 {
-  "id": "ed1dc71a-355c-46be-a077-2fc8e25094ef",
+  "id": "897635e2-2783-4718-b28a-b71ea68d726b",
   "prevId": "09c56a13-f1ad-48b0-8808-464531b87092",
   "version": "7",
   "dialect": "postgresql",
@@ -1509,19 +1509,6 @@
           "notNull": true,
           "default": "'pending'"
         },
-        "attempts": {
-          "name": "attempts",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "lease_until": {
-          "name": "lease_until",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
         "extraction": {
           "name": "extraction",
           "type": "jsonb",
@@ -1594,27 +1581,6 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "customer_message_queue_idx": {
-          "name": "customer_message_queue_idx",
-          "columns": [
-            {
-              "expression": "state",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "lease_until",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -2089,13 +2055,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "paused": {
-          "name": "paused",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
         "status": {
           "name": "status",
           "type": "text",
@@ -2103,22 +2062,9 @@
           "notNull": true,
           "default": "'connected'"
         },
-        "sync_since": {
-          "name": "sync_since",
+        "imported_at": {
+          "name": "imported_at",
           "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "sync_started": {
-          "name": "sync_started",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "sync_cursor": {
-          "name": "sync_cursor",
-          "type": "text",
           "primaryKey": false,
           "notNull": false
         },

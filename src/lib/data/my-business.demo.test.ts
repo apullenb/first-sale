@@ -28,11 +28,9 @@ const WRITES = [
   "setMyItemWearer", "deleteMyUnusedItemPictures", "saveMyPriceCheck", "createMyProduct", "updateMyProduct", "deleteMyProduct",
   "saveMyIntakeDraft", "deleteMyIntakeDraft", "createMyBusinessFromIntake", "updateMyProfileWithHistory", "recordMyDecisions",
   "replanMyPlan", "saveMyStructureAdvice", "saveMyInsights", "markMyInsight", "setMyJourneyMark", "clearMyJourneyMark",
-  "setMyEmailReminder", "setMyOrderTotal", "progressMyOrder", "recordMyPayment", "scheduleMyOrder", "addMyCustomerMessage", "processMyCustomerMessage", "retryMyCustomerMessage", "dismissMyCustomerMessage", "beginMyEmailConnection", "finishMyEmailConnection", "pauseMyEmail", "disconnectMyEmail", "sendMyCustomerReply",
+  "setMyOrderTotal", "progressMyOrder", "recordMyPayment", "scheduleMyOrder", "addMyCustomerMessage", "processMyCustomerMessage", "retryMyCustomerMessage", "dismissMyCustomerMessage", "beginMyEmailConnection", "finishMyEmailConnection", "importMyEmail", "disconnectMyEmail", "sendMyCustomerReply",
   "saveMyOperationSetup", "pauseMyOperationSetup", "recordMyOrder", "cancelMyOrder",
 ];
-
-const SERVICE = ["acceptCustomerEmailEvent", "runScheduledCustomerWork"];
 
 const READS = [
   "getMySquareState", "getMyProductSync",
@@ -53,11 +51,7 @@ const call = (name: string) => (wrappers[name] as Call)("x", "y", "z");
 describe("data wrappers for a demo session", () => {
   it("lists every export as a read or a write", () => {
     const exported = Object.keys(wrappers).filter((name) => typeof wrappers[name] === "function");
-    expect([...WRITES, ...READS, ...SERVICE].sort()).toEqual(exported.sort());
-  });
-
-  it.each(SERVICE)("%s refuses unauthenticated service calls before reading data", async (name) => {
-    await expect(call(name)).resolves.toBeFalsy();
+    expect([...WRITES, ...READS].sort()).toEqual(exported.sort());
   });
 
   it.each(WRITES)("%s refuses before reaching the database", async (name) => {

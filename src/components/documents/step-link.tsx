@@ -5,6 +5,7 @@ import { useId, useLayoutEffect, useState } from "react";
 import { linkStepAction } from "@/app/(app)/documents/actions";
 import { Icon } from "@/components/icons";
 import { ALERT, INPUT, TEXT_LINK } from "@/components/styles";
+import { failedMessage } from "@/lib/failure";
 
 interface Props {
   documentId: string;
@@ -33,7 +34,7 @@ export function StepLink({ documentId, stepId, steps }: Props) {
       }
     } catch {
       setValue(previous);
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
@@ -45,6 +46,7 @@ export function StepLink({ documentId, stepId, steps }: Props) {
         Plan step this is for
       </label>
       <select
+        data-writes
         id={`${uid}-step`}
         value={value}
         disabled={pending}

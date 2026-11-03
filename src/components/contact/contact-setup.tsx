@@ -8,6 +8,7 @@ import { ALERT, INPUT, PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles
 import { Chip, OutsideLink, Source } from "@/components/ui";
 import { type ContactGuide, GMAIL_GUIDE, VOICE_GUIDE } from "@/data/contact-setup";
 import { CONTACT_STEP_TITLE, type ContactItem, type ItemState } from "@/lib/rules/contact-setup";
+import { failedMessage } from "@/lib/failure";
 
 const ITEMS: Record<ContactItem, { label: string; field: string; type: string; autoComplete: string; placeholder: string; guide: ContactGuide }> = {
   email: { label: "Business email", field: "Your business email", type: "email", autoComplete: "email", placeholder: "hello@yourbusiness.com", guide: GMAIL_GUIDE },
@@ -54,7 +55,7 @@ function ItemSetup({ item, view, openGuide }: { item: ContactItem; view: Contact
         if (!result.ok) return setError(result.message);
         after?.();
       } catch {
-        setError("Couldn’t reach SnapStart. Check your connection and try again.");
+        setError(failedMessage());
       }
     });
   }
@@ -88,7 +89,7 @@ function ItemSetup({ item, view, openGuide }: { item: ContactItem; view: Contact
               Change<span className="sr-only"> your {spec.label.toLowerCase()}</span>
             </button>
           ) : (
-            <button type="button" disabled={pending} onClick={() => run(() => undoContactHaveAction(item))} className={`min-h-11 ${TEXT_LINK}`}>
+            <button type="button" data-writes disabled={pending} onClick={() => run(() => undoContactHaveAction(item))} className={`min-h-11 ${TEXT_LINK}`}>
               Undo<span className="sr-only">: I already have a {spec.label.toLowerCase()}</span>
             </button>
           )}
@@ -104,7 +105,7 @@ function ItemSetup({ item, view, openGuide }: { item: ContactItem; view: Contact
                   ["later", "Do this later"],
                 ] as const
               ).map(([key, label]) => (
-                <button key={key} type="button" aria-pressed={choice === key} disabled={pending} onClick={() => pick(key)} className={choice === key ? PRIMARY : SECONDARY}>
+                <button key={key} type="button" data-writes={key === "have" ? undefined : ""} aria-pressed={choice === key} disabled={pending} onClick={() => pick(key)} className={choice === key ? PRIMARY : SECONDARY}>
                   {label}
                 </button>
               ))}
@@ -158,7 +159,7 @@ function ItemSetup({ item, view, openGuide }: { item: ContactItem; view: Contact
           ) : null}
 
           {view.state === "todo" ? (
-            <button type="button" disabled={pending} onClick={() => run(() => markContactHaveAction(item))} className={`w-fit min-h-11 ${TEXT_LINK}`}>
+            <button type="button" data-writes disabled={pending} onClick={() => run(() => markContactHaveAction(item))} className={`w-fit min-h-11 ${TEXT_LINK}`}>
               I already have this
             </button>
           ) : null}

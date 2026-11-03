@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { clearAlreadyHaveAction, setAlreadyHaveAction } from "@/app/(app)/already-have-actions";
 import { Icon } from "@/components/icons";
 import { ALERT, INPUT, PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles";
+import { failedMessage } from "@/lib/failure";
 
 interface Props {
   // "social:instagram"
@@ -47,7 +48,7 @@ export function AccountMark({ markKey, platformName, done, had, noun = "account"
       if (!result.ok) setError(result.message ?? "Something went wrong. Try again.");
       else setOpen(null);
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
@@ -89,7 +90,7 @@ export function AccountMark({ markKey, platformName, done, had, noun = "account"
           <input value={note} onChange={(event) => setNote(event.target.value)} maxLength={500} className={INPUT} />
         </label>
         {alert}
-        <button type="button" disabled={pending} onClick={() => run(() => setAlreadyHaveAction({ key: markKey, url, note }))} className={`${PRIMARY} w-fit`}>
+        <button data-writes type="button" disabled={pending} onClick={() => run(() => setAlreadyHaveAction({ key: markKey, url, note }))} className={`${PRIMARY} w-fit`}>
           <Icon name="check" size="sm" />
           {pending ? "Saving…" : open === "link" ? "Save link" : "Mark as set up"}
         </button>
@@ -116,7 +117,7 @@ export function AccountMark({ markKey, platformName, done, had, noun = "account"
               <span className="sr-only"> for {platformName}</span>
             </button>
             {done ? (
-              <button type="button" disabled={pending} onClick={() => run(() => clearAlreadyHaveAction(markKey))} className={`min-h-11 ${TEXT_LINK} disabled:opacity-60`}>
+              <button data-writes type="button" disabled={pending} onClick={() => run(() => clearAlreadyHaveAction(markKey))} className={`min-h-11 ${TEXT_LINK} disabled:opacity-60`}>
                 {had ? "Remove link" : "Undo"}
                 <span className="sr-only"> for {platformName}</span>
               </button>

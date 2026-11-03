@@ -132,12 +132,12 @@ export function shows(design: SiteDesign, section: SiteSection): boolean {
 }
 
 // "12", "$12.50" or "1,200" as cents; null when it isn't a plain dollar amount
-export function parseDollars(input: string): number | null {
+export function parseDollars(input: string, max = MAX_PRICE_CENTS): number | null {
   const text = input.trim().replace(/^\$/, "").replace(/,/g, "");
   if (!/^\d{1,7}(\.\d{1,2})?$/.test(text)) return null;
   const [whole, part = ""] = text.split(".");
   const cents = Number(whole) * 100 + Number(part.padEnd(2, "0"));
-  return cents <= MAX_PRICE_CENTS ? cents : null;
+  return cents <= max ? cents : null;
 }
 
 export function dollars(cents: number): string {

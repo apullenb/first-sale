@@ -10,6 +10,7 @@ import { DETAILS, displayDetail, STRUCTURE_LABELS } from "@/lib/details";
 import type { BusinessStructure } from "@/lib/domain";
 import { startingStructure } from "@/lib/structure/options";
 import { ExplainWhy, RecommendedTag } from "./explain";
+import { failedMessage } from "@/lib/failure";
 
 type Values = { structure_choice: string; name_registration_plan: string; tax_classification_plan: string };
 type Key = keyof Values;
@@ -141,7 +142,7 @@ function useDecisionState(props: Props) {
         show(false);
       }
     } catch {
-      setError("Couldn’t reach SnapStart. Check your connection and try again.");
+      setError(failedMessage());
     } finally {
       setPending(false);
     }
@@ -441,7 +442,7 @@ export function DecisionReview() {
         </p>
       ) : null}
       <div className="flex flex-wrap gap-2.5">
-        <button type="button" onClick={confirm} disabled={pending} className={PRIMARY}>
+        <button data-writes type="button" onClick={confirm} disabled={pending} className={PRIMARY}>
           <Icon name="stamp" size="sm" />
           {pending ? "Saving…" : "Record my decision"}
         </button>

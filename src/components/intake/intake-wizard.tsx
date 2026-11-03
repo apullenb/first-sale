@@ -39,6 +39,7 @@ import { IntakeReview } from "./intake-review";
 import { PlaceStep } from "./place-step";
 import { MarkBadge, QUESTION_TITLE, QuestionBlock, WhyLine } from "./question-block";
 import { SellStep } from "./sell-step";
+import { failedMessage } from "@/lib/failure";
 
 type OfferingKind = (typeof OFFERING_KINDS)[number];
 type Step = StepId | "review";
@@ -300,7 +301,7 @@ export function IntakeWizard(props: Props) {
         error: false,
       });
     } catch {
-      setAiNote({ text: "Couldn’t reach SnapStart. Check your connection and try again.", error: true });
+      setAiNote({ text: failedMessage(), error: true });
     } finally {
       setAiPending(false);
     }
@@ -324,7 +325,7 @@ export function IntakeWizard(props: Props) {
     } catch (error) {
       closed.current = false;
       const message = error instanceof Error && !(error instanceof TypeError) ? error.message : "";
-      setSaveError(message || "Couldn’t reach SnapStart. Check your connection and try again.");
+      setSaveError(message || failedMessage());
       setSaving(false);
       return;
     }
@@ -370,7 +371,7 @@ export function IntakeWizard(props: Props) {
         {editing ? "You have changes you haven’t confirmed yet, from " : "Welcome back. We kept your answers from "}
         <LocalDate iso={resumed} />.
       </p>
-      <button type="button" onClick={startOver} disabled={busy} className={SECONDARY}>
+      <button data-writes type="button" onClick={startOver} disabled={busy} className={SECONDARY}>
         {editing ? "Discard my changes" : "Start over"}
       </button>
     </div>
@@ -418,7 +419,7 @@ export function IntakeWizard(props: Props) {
                   Back
                 </button>
               )}
-              <button type="button" onClick={save} disabled={saving || unchanged} className={PRIMARY}>
+              <button data-writes type="button" onClick={save} disabled={saving || unchanged} className={PRIMARY}>
                 {saving ? "Saving…" : editing ? "Confirm these changes" : "This is right. Continue"}
                 {saving ? null : <Icon name="arrow" size="sm" />}
               </button>
