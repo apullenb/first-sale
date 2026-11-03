@@ -1,4 +1,4 @@
-import type { BrandKit } from "@/lib/brand/types";
+import type { BrandFile, BrandKit } from "@/lib/brand/types";
 
 // How the site preview looks: the owner's brand kit when they have one, the app's theme otherwise
 export interface SiteLook {
@@ -29,13 +29,27 @@ export function lookFromBrand(brand: BrandKit | null): SiteLook {
   };
 }
 
-// WCAG relative luminance; white text needs at least 4.5:1 contrast
-export function textOn(hex: string): string {
+// WCAG relative luminance
+function luminance(hex: string): number {
   const channel = (value: number) => {
     const c = value / 255;
     return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
   };
   const [r, g, b] = [1, 3, 5].map((at) => channel(parseInt(hex.slice(at, at + 2), 16)));
-  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return 1.05 / (luminance + 0.05) >= 4.5 ? "#ffffff" : "#1c2321";
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+export function contrast(a: string, b: string): number {
+  const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (light + 0.05) / (dark + 0.05);
+}
+
+// White text needs at least 4.5:1 contrast
+export function textOn(hex: string): string {
+  return contrast(hex, "#ffffff") >= 4.5 ? "#ffffff" : "#1c2321";
+}
+
+// Brand file links look like /brand/files/{id}?view=1 (brandFileUrl)
+export function brandAssetId(file: BrandFile | null): string | null {
+  return file?.url.match(/^\/brand\/files\/([^/?#]+)/)?.[1] ?? null;
 }

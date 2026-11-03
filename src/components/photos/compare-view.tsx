@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { Segmented } from "@/components/marketing/pieces";
 
 interface Shown {
   src: string;
@@ -10,9 +11,7 @@ interface Shown {
   height: number;
 }
 
-const FRAME = "rounded-xl bg-ground object-contain ring-1 ring-ink/10";
-const TOGGLE =
-  "min-h-11 rounded-lg border border-field bg-surface px-4 font-semibold aria-pressed:border-accent aria-pressed:bg-accent-tint aria-pressed:text-accent-ink";
+const FRAME = "rounded-xl border border-line bg-soft object-contain";
 
 // The original and an edit side by side, or stacked under a slider
 export function CompareView({ original, edited }: { original: Shown; edited: Shown }) {
@@ -22,14 +21,15 @@ export function CompareView({ original, edited }: { original: Shown; edited: Sho
 
   return (
     <div className="flex flex-col gap-3">
-      <div role="group" aria-label="How to compare" className="flex flex-wrap gap-2">
-        <button type="button" aria-pressed={mode === "side"} onClick={() => setMode("side")} className={TOGGLE}>
-          Side by side
-        </button>
-        <button type="button" aria-pressed={mode === "slider"} onClick={() => setMode("slider")} className={TOGGLE}>
-          Comparison slider
-        </button>
-      </div>
+      <Segmented
+        label="How to compare"
+        value={mode}
+        onChange={(value) => setMode(value as "side" | "slider")}
+        options={[
+          { value: "side", label: "Side by side" },
+          { value: "slider", label: "Comparison slider" },
+        ]}
+      />
 
       {mode === "side" ? (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -51,7 +51,7 @@ export function CompareView({ original, edited }: { original: Shown; edited: Sho
             <img
               src={original.src}
               alt={original.alt}
-              className="absolute inset-0 size-full bg-ground object-contain"
+              className="absolute inset-0 size-full bg-soft object-contain"
               style={{ clipPath: `inset(0 ${100 - split}% 0 0)` }}
             />
             <span aria-hidden="true" className="absolute inset-y-0 w-0.5 bg-surface shadow" style={{ left: `${split}%` }} />

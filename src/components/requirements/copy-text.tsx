@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Icon } from "@/components/icons";
 import { SECONDARY } from "@/components/styles";
 
 // Copies prepared text, such as a written question to an office; the text stays visible for copying by hand
@@ -19,6 +20,7 @@ export function CopyText({ text, label }: { text: string; label: string }) {
   return (
     <div className="flex flex-col items-start gap-1.5">
       <button type="button" onClick={copy} className={SECONDARY}>
+        <Icon name={copied === "yes" ? "check" : "copy"} size="sm" />
         {label}
       </button>
       <p role="status" className={copied ? "text-sm text-muted" : "sr-only"}>

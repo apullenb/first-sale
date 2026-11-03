@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useState } from "react";
+import { Icon } from "@/components/icons";
 import { SECONDARY } from "@/components/styles";
 import type { Export } from "@/lib/brand/sizes";
 
@@ -66,6 +67,7 @@ export function ExactDownload({ src, spec, fileName }: { src: string; spec: Expo
   return (
     <div className="flex flex-col items-start gap-1">
       <button type="button" onClick={download} disabled={pending} className={SECONDARY}>
+        <Icon name="download" size="sm" />
         {pending ? "Making the file…" : `Download ${spec.label}`}
       </button>
       {spec.note ? <p className="text-sm text-muted">{spec.note}</p> : null}

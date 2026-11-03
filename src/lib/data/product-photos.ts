@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, desc, eq, isNotNull, sql } from "drizzle-orm";
 import type { Db } from "@/db/client";
-import { businesses, productPhotos, productPhotoVersions } from "@/db/schema";
+import { businesses, productPhotos, productPhotoVersions, products } from "@/db/schema";
 import type { AddVersionOutcome, NewPhotoVersion } from "@/lib/photos/edit";
 import type { PhotoCategory, PhotoCheck, PhotoCrop, PhotoLook, PhotoReview } from "@/lib/photos/types";
 
@@ -218,12 +218,17 @@ export async function updatePhotoForOwner(db: Db, ownerId: string, photoId: stri
   });
 }
 
-// Removes the original and every version with it
+// Removes the original and every version with it; products showing one go back to no photo
 export async function deletePhotoForOwner(db: Db, ownerId: string, photoId: string): Promise<boolean> {
   return db.transaction(async (tx) => {
     const where = await ownedPhoto(tx, ownerId, photoId);
     if (!where) return false;
+    const [photo] = await tx.select({ businessId: productPhotos.businessId }).from(productPhotos).where(where);
     await tx.delete(productPhotos).where(where);
+    await tx
+      .update(products)
+      .set({ photo: null })
+      .where(and(eq(products.businessId, photo.businessId), sql`${products.photo}->>'source' in ('original', 'version') and ${products.photo}->>'photoId' = ${photoId}`));
     return true;
   });
 }

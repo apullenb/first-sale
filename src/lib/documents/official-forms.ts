@@ -7,7 +7,7 @@ import { readPdf } from "./pdf";
 import type { DocumentField, DocumentPage } from "./types";
 import { MAX_UPLOAD_BYTES } from "./upload";
 
-// Downloads a catalog form from its official site and checks it's the exact form First Sale knows, unchanged.
+// Downloads a catalog form from its official site and checks it's the exact form SnapStart knows, unchanged.
 
 export interface FormVerification {
   formKey: string;
@@ -56,7 +56,7 @@ export async function downloadOfficialForm(form: OfficialForm, fetchImpl: typeof
   const checks = [
     { label: `Downloaded from ${government.domain}, which the official .gov registry lists as ${government.name}`, ok: finalOwner?.domain === form.domain },
     ...form.mustContain.map((words) => ({ label: `The form says “${words}”`, ok: has(words) })),
-    { label: "It has fill-in boxes First Sale can fill", ok: reading.fields.length > 0 },
+    { label: "It has fill-in boxes SnapStart can fill", ok: reading.fields.length > 0 },
   ];
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   return {

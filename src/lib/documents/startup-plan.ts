@@ -17,7 +17,14 @@ function day(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
-export async function startupPlanPdf(input: { businessName: string; steps: readonly Step[]; now: Date }): Promise<Uint8Array> {
+// Rules that may apply but aren't settled yet: printed apart, never as steps
+export interface MaybeStep {
+  title: string;
+  why: string;
+  conditions: readonly string[];
+}
+
+export function startupPlanBlocks(input: { steps: readonly Step[]; maybe?: readonly MaybeStep[] }): PdfBlock[] {
   const blocks: PdfBlock[] = input.steps.map((step, index) => {
     const paragraphs = [`${STATUS_LABELS[step.requirementStatus ?? "needs_confirmation"]}${step.timing === "later" ? " · Later, not before your first sale" : ""}`, step.why];
     for (const condition of step.conditions ?? []) paragraphs.push(`Depends on: ${condition}`);
@@ -29,19 +36,33 @@ export async function startupPlanPdf(input: { businessName: string; steps: reado
     const bullets = [
       ...step.prepare.map((item) => `Have ready: ${item}`),
       ...step.links.map((link) => `${link.confirms ? "Official source" : "Related official page"}: ${link.url}`),
-      ...step.uncertainty.map((note) => `Still to check: ${note}`),
     ];
-    if (step.verification !== "sourced" && step.whoToCall) bullets.push(`Ask ${step.whoToCall} in writing: ${step.whatToAsk.join(" ")}`);
+    const reason = step.verification === "sourced" ? null : step.notes?.[0]?.background;
+    if (reason) paragraphs.push(`Why you need this: ${reason}`);
     return { heading: `${index + 1}. ${step.title}${PROGRESS[step.status]}`, paragraphs, bullets };
   });
+  const maybe = input.maybe ?? [];
+  if (!maybe.length) return blocks;
+  return [
+    ...blocks,
+    {
+      heading: "Waiting on your answers",
+      paragraphs: ["These depend on your plans, your business structure or where your business is. Answer in SnapStart and they’re settled."],
+    },
+    ...maybe.map((each) => ({ heading: each.title, paragraphs: [each.why, ...each.conditions.map((condition) => `Depends on: ${condition}`)].filter(Boolean) })),
+  ];
+}
+
+export async function startupPlanPdf(input: { businessName: string; steps: readonly Step[]; maybe?: readonly MaybeStep[]; now: Date }): Promise<Uint8Array> {
+  const blocks = startupPlanBlocks(input);
   const practice = input.steps.some((step) => step.simulated)
-    ? " Practice mode: built-in rules, not real research, suggested some of these steps."
+    ? " Practice mode: some of these steps are samples, not real research."
     : "";
   return writePdf({
-    title: `Startup plan for ${input.businessName}`,
-    subtitle: `Made ${day(input.now.toISOString())} with First Sale`,
-    notice: `A plan to help you get started, not legal advice. Steps marked “Still to check” weren’t confirmed on an official page.${practice}`,
+    title: `Licenses and registrations for ${input.businessName}`,
+    subtitle: `Made ${day(input.now.toISOString())} with SnapStart`,
+    notice: `A plan to help you get started, not legal advice.${practice}`,
     blocks,
-    footer: "First Sale startup plan",
+    footer: "SnapStart licenses and registrations",
   });
 }

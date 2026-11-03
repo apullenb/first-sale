@@ -1,38 +1,62 @@
-import { CARD, SECTION_TITLE } from "@/components/styles";
+import { TERM_LABELS, type TermId } from "@/lib/website/terms";
+import { StatusChip, TermTile } from "./term-marks";
 
 // Plain-words explainer for owners who've never made a website. The example address uses their own name.
 export function WebsiteBasics({ exampleDomain }: { exampleDomain: string }) {
-  const terms = [
+  const terms: { term: TermId; also?: string; text: string }[] = [
     {
-      term: "Web address (also called a URL or domain)",
-      text: `What people type to find your site, like ${exampleDomain}. The part you own is the name before “.com”. You rent it by the year from a company called a registrar, often through the site builder you choose.`,
+      term: "domain",
+      also: "domain or URL",
+      text: `What people type to find you, like ${exampleDomain}. You rent it by the year from a company that sells web addresses, often the site builder you pick.`,
     },
     {
-      term: "Hosting",
-      text: "The computers that keep your site online all day and every day, so it opens when someone visits. All three options below include hosting, so you don’t need to buy it separately.",
+      term: "hosting",
+      text: "The computers that keep your site online day and night, so it opens whenever someone visits.",
     },
     {
-      term: "Website builder",
-      text: "A service that lets you make pages by filling in boxes and dragging pieces into place, without writing code. Each option below is a builder that also hosts your site.",
+      term: "builder",
+      text: "The tool that turns your words and pictures into pages, with no code. With Square, Wix or Shopify you build it yourself; with a SnapStart site, SnapStart builds it for you.",
     },
     {
-      term: "Online store and checkout",
-      text: "The pages where customers pick what they want and pay with a card. Card payments cost a small fee on each sale, taken before the money reaches you.",
+      term: "checkout",
+      text: "Where customers pick what they want and pay. A payment provider, like Square, Stripe or PayPal, takes the card payment, keeps a small fee from each sale and pays the rest into your bank account. You never handle card numbers.",
+    },
+    {
+      term: "email",
+      text: `An address like you@${exampleDomain}. It’s separate from your web address: some hosting packages include it, and the company you bought your web address from often adds it for an extra cost.`,
     },
   ];
   return (
-    <section aria-labelledby="basics-heading" className={`${CARD} flex flex-col gap-3`}>
-      <h2 id="basics-heading" className={SECTION_TITLE}>
-        New to websites? Four words to know
-      </h2>
-      <dl className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
+      <p className="text-rule">These are the pieces you’ll need to be online, so it helps to know them before you choose a package.</p>
+      <ul className="grid gap-x-6 gap-y-4 md:grid-cols-2">
         {terms.map((item) => (
-          <div key={item.term} className="flex flex-col gap-0.5">
-            <dt className="font-bold">{item.term}</dt>
-            <dd className="text-rule">{item.text}</dd>
-          </div>
+          <li key={item.term} className="flex items-start gap-3">
+            <TermTile term={item.term} />
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <p className="font-bold">
+                {TERM_LABELS[item.term]}
+                {item.also ? <span className="font-normal text-muted"> ({item.also})</span> : null}
+              </p>
+              <p className="text-[15px] text-rule">{item.text}</p>
+            </div>
+          </li>
         ))}
-      </dl>
-    </section>
+      </ul>
+      <div className="flex flex-col gap-2 border-t border-line pt-3.5">
+        <p className="text-[15px] text-rule">Each package below marks these with the same icons:</p>
+        <ul className="flex flex-wrap gap-x-5 gap-y-2 text-[15px] text-muted">
+          <li className="flex items-center gap-2">
+            <StatusChip status="included" /> in the price
+          </li>
+          <li className="flex items-center gap-2">
+            <StatusChip status="extra" /> you pay more for it
+          </li>
+          <li className="flex items-center gap-2">
+            <StatusChip status="not_included" /> get it somewhere else
+          </li>
+        </ul>
+      </div>
+    </div>
   );
 }

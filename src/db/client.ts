@@ -2,7 +2,8 @@ import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 
-export const PGLITE_DIR = "./.pglite";
+// Override for throwaway databases, such as the e2e run
+export const PGLITE_DIR = process.env.PGLITE_DIR || "./.pglite";
 
 // Hosted Postgres when DATABASE_URL is set, otherwise local PGlite (no install needed).
 function createDb() {

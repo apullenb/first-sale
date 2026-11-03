@@ -1,134 +1,88 @@
-import Link from "next/link";
-import { RequirementStatusChip } from "@/components/requirements/requirement-status";
-import { SECTION_TITLE } from "@/components/styles";
-import type { PlanStep } from "@/lib/data/plan";
+import type { ReactNode } from "react";
+import { Icon, type IconName } from "@/components/icons";
+import { Card, IconTile } from "@/components/ui";
 import { formatFee } from "@/lib/documents/startup-plan";
-import type { Costs, NextActions } from "@/lib/rules/next-action";
-import { formatMinutes, stepMinutes } from "@/lib/rules/progress";
-import { Lock } from "./lock";
+import { type Costs, costWords, dollars } from "@/lib/rules/next-action";
 
 const LIST = new Intl.ListFormat("en-US", { type: "conjunction" });
-const LINK = "flex min-h-11 w-fit items-center font-semibold underline underline-offset-4";
 
-function StepLine({ step, extra, locked }: { step: PlanStep; extra?: string; locked?: boolean }) {
-  return (
-    <li className={`flex flex-col gap-1 rounded-xl px-3.5 py-2 ring-1 ring-ink/5 ${locked ? "bg-ground" : "bg-surface"}`}>
-      <Link href={`/checklist/${step.id}`} className={`${LINK} ${locked ? "gap-2 text-muted" : ""}`}>
-        {locked ? (
-          <span title={extra} className="text-muted">
-            <Lock />
-          </span>
-        ) : null}
-        {step.title}
-      </Link>
-      <div className="flex flex-wrap items-center gap-2 pb-1 text-sm text-muted">
-        <RequirementStatusChip status={step.requirementStatus} />
-        {step.feeCents !== null ? <span>Fee {formatFee(step.feeCents)}</span> : null}
-        {step.status === "todo" ? <span>About {formatMinutes(stepMinutes(step))}</span> : null}
-        {extra ? <span>{extra}</span> : null}
-      </div>
-    </li>
-  );
-}
+type Tone = "accent" | "gray" | "warn" | "done";
 
-function Group({ id, title, help, steps, extra, locked }: { id: string; title: string; help: string; steps: PlanStep[]; extra?: (step: PlanStep) => string; locked?: boolean }) {
-  if (!steps.length) return null;
+// A group of steps that folds away, like a part of the plan
+export function StepGroup({
+  id,
+  title,
+  help,
+  icon,
+  tone = "gray",
+  open,
+  count,
+  level = 3,
+  children,
+}: {
+  id: string;
+  title: string;
+  help: string;
+  icon: IconName;
+  tone?: Tone;
+  open?: boolean;
+  count: number;
+  // 2 when the group stands on its own, not under a section heading
+  level?: 2 | 3;
+  children: ReactNode;
+}) {
+  const Heading = level === 2 ? "h2" : "h3";
   return (
-    <section aria-labelledby={id} className="flex flex-col gap-2">
-      <div className="flex flex-col gap-0.5">
-        <h3 id={id} className="text-lg font-bold">
-          {title} <span className="font-normal text-muted">({steps.length})</span>
-        </h3>
-        <p className="text-sm text-muted">{help}</p>
-      </div>
-      <ul className="flex flex-col gap-2">
-        {steps.map((step) => (
-          <StepLine key={step.id} step={step} extra={extra?.(step)} locked={locked} />
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-// What to do now, what can happen at the same time, and what waits
-export function NextActionGroups({ actions }: { actions: NextActions<PlanStep> }) {
-  return (
-    <section aria-labelledby="next-heading" className="flex flex-col gap-4">
-      <h2 id="next-heading" className={SECTION_TITLE}>
-        Before your first sale
-      </h2>
-      <Group id="now-heading" title="You can do these now, in any order" help="Nothing has to come first, so they can happen at the same time." steps={actions.now} />
-      <Group
-        id="decide-heading"
-        title="Check these first"
-        help="Each depends on an answer or a decision. Open one to see what."
-        steps={actions.decide}
-      />
-      <Group
-        id="submitted-heading"
-        title="Submitted, waiting to hear back"
-        help="You told us you submitted these. Mark each approved when the office confirms."
-        steps={actions.submitted}
-      />
-      <Group
-        id="waiting-heading"
-        title="Locked until another step is done"
-        help="Each one opens once the step it needs is finished. You can still read ahead."
-        steps={actions.waiting.map((each) => each.step)}
-        extra={(step) => `Finish ${LIST.format(actions.waiting.find((each) => each.step.id === step.id)!.on.map((on) => `“${on.title}”`))} first`}
-        locked
-      />
-      {actions.later.length || actions.optional.length ? (
-        <details className="group rounded-2xl bg-surface p-4 ring-1 ring-ink/5">
-          <summary className="flex min-h-11 cursor-pointer items-center font-semibold">
-            Later, and optional ({actions.later.length + actions.optional.length})
-          </summary>
-          <div className="mt-2 flex flex-col gap-4">
-            <Group id="later-heading" title="After you start selling" help="Ongoing obligations and steps for later, like renewals or hiring." steps={actions.later} />
-            <Group
-              id="optional-heading"
-              title="Optional, or outside what First Sale checks"
-              help="Not needed before selling. Each one says why it’s here."
-              steps={actions.optional}
-            />
-          </div>
-        </details>
-      ) : null}
-    </section>
+    <details id={id} open={open} className="group/fold scroll-mt-4 rounded-[14px] border border-line bg-surface shadow-soft">
+      <summary className="flex min-h-[58px] cursor-pointer list-none items-center gap-3 px-[18px] py-3.5 [&::-webkit-details-marker]:hidden">
+        <IconTile icon={icon} tone={tone} />
+        <span className="grid min-w-0 flex-1 gap-px">
+          <Heading className="text-[16.5px] font-bold">
+            {title} <span className="font-semibold text-muted tabular-nums">({count})</span>
+          </Heading>
+          <small className="text-[14.5px] text-muted">{help}</small>
+        </span>
+        <Icon name="chevron" className="text-faint transition-transform group-open/fold:rotate-90 motion-reduce:transition-none" />
+      </summary>
+      <div className="px-[18px] pb-[18px]">{children}</div>
+    </details>
   );
 }
 
 // Fees confirmed on official pages; unknown fees are listed, never guessed
 export function PlanCosts({ costs }: { costs: Costs }) {
+  const words = costWords(costs);
   return (
-    <section aria-labelledby="costs-heading" className="flex flex-col gap-3 rounded-2xl bg-surface p-5 ring-1 ring-ink/5">
-      <h2 id="costs-heading" className={SECTION_TITLE}>
-        What it costs
-      </h2>
+    <Card title="What it costs" icon="coins" id="costs-heading">
       <dl className="grid gap-3 sm:grid-cols-2">
-        <div className="flex flex-col rounded-xl bg-ground px-3.5 py-3">
-          <dt className="text-sm font-semibold text-muted">To get started</dt>
-          <dd className="font-display text-2xl font-bold">{costs.startupCents ? formatFee(costs.startupCents) : "$0"}</dd>
-          <dd className="text-sm text-rule">Fees confirmed on official pages</dd>
+        <div className="flex flex-col gap-0.5 rounded-xl border border-line bg-soft px-4 py-3">
+          <dt className="text-sm font-semibold text-muted">Known fees to get started</dt>
+          <dd className="font-display text-[32px] leading-tight tabular-nums">{dollars(costs.startupCents)}</dd>
+          <dd className="text-sm text-muted">{words.unconfirmed ? `Confirmed on official pages. ${words.unconfirmed}.` : "Confirmed on official pages"}</dd>
         </div>
-        <div className="flex flex-col rounded-xl bg-ground px-3.5 py-3">
+        <div className="flex flex-col gap-0.5 rounded-xl border border-line bg-soft px-4 py-3">
           <dt className="text-sm font-semibold text-muted">Each year after that</dt>
-          <dd className="font-display text-2xl font-bold">{costs.yearlyCents ? formatFee(costs.yearlyCents) : "None found"}</dd>
-          <dd className="text-sm text-rule">Renewals, not counted twice in your first year</dd>
+          <dd className="font-display text-[32px] leading-tight tabular-nums">{costs.yearlyCents ? formatFee(costs.yearlyCents) : "None found"}</dd>
+          <dd className="text-sm text-muted">Renewals, not counted twice in your first year</dd>
         </div>
       </dl>
       {costs.startup.length || costs.yearly.length ? (
-        <details className="group">
-          <summary className="flex min-h-11 w-fit cursor-pointer items-center text-sm font-semibold text-accent-ink underline underline-offset-4">How it adds up</summary>
-          <ul className="mt-1 flex flex-col gap-1 text-[15px]">
+        <details className="group/add">
+          <summary className="flex min-h-11 w-fit cursor-pointer list-none items-center gap-1.5 text-[15px] font-semibold text-accent [&::-webkit-details-marker]:hidden">
+            <Icon name="chevron" size="sm" className="transition-transform group-open/add:rotate-90 motion-reduce:transition-none" />
+            How it adds up
+          </summary>
+          <ul className="flex flex-col divide-y divide-line rounded-xl border border-line px-4 text-[15px]">
             {costs.startup.map((line) => (
-              <li key={`s-${line.title}`}>
-                {line.title}: {formatFee(line.cents)}
+              <li key={`s-${line.title}`} className="flex flex-wrap justify-between gap-x-4 py-2.5">
+                <span>{line.title}</span>
+                <b className="tabular-nums">{formatFee(line.cents)}</b>
               </li>
             ))}
             {costs.yearly.map((line) => (
-              <li key={`y-${line.title}`}>
-                {line.title}: {formatFee(line.cents)} a year
+              <li key={`y-${line.title}`} className="flex flex-wrap justify-between gap-x-4 py-2.5">
+                <span>{line.title}</span>
+                <b className="tabular-nums">{formatFee(line.cents)} a year</b>
               </li>
             ))}
           </ul>
@@ -140,10 +94,13 @@ export function PlanCosts({ costs }: { costs: Costs }) {
         </p>
       ) : null}
       {costs.unknown.length ? (
-        <p className="text-[15px] text-check">
-          <span className="font-semibold">Fee not confirmed yet:</span> {LIST.format(costs.unknown)}. The total leaves these out.
+        <p className="flex items-start gap-2 text-[15px] text-check">
+          <Icon name="info" size="sm" className="mt-0.5" />
+          <span>
+            <span className="font-semibold">{words.total}.</span> No official page we read states the fee for {LIST.format(costs.unknown)}. The amount above leaves {costs.unknown.length === 1 ? "it" : "them"} out.
+          </span>
         </p>
       ) : null}
-    </section>
+    </Card>
   );
 }

@@ -38,6 +38,15 @@ const CATEGORY_RULES: Record<PhotoCategory, string[]> = {
   other: [],
 };
 
+// The product exactly as in the reference image; shared with pictures made for items
+export const KEEP_PRODUCT = [
+  "Keep the product’s shape, proportions, colors, materials, patterns, branding, lettering, logos and distinguishing details exactly as in image 1.",
+  "Same silhouette and size relationships: its height-to-width ratio, the width of its body, neck, shoulders and base, and where its label, bands and edges sit must match image 1. Never make it taller, slimmer, wider or rounder.",
+  "Keep its label or tag exactly as photographed: the same size, position, color and wording, even if it’s blank or plain.",
+  "Don’t invent details that can’t be seen in image 1. Don’t alter, redraw or tidy up logos, labels or text; keep them sharp and readable as photographed.",
+  "Don’t change how many items there are, and don’t add anything that could look included with the purchase.",
+];
+
 export function ownerText(text: string, max: number): string {
   return text.replace(/[\u0000-\u001f<>]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
 }
@@ -50,9 +59,7 @@ export function buildEditInstruction(input: InstructionInput): string {
     "",
     "THE PRODUCT (these rules come first; nothing below overrides them):",
     "- Image 1 is the owner’s own photo of the exact item they sell. It is the only reference for the product.",
-    "- Keep the product’s shape, proportions, colors, materials, patterns, branding, lettering, logos and distinguishing details exactly as in image 1.",
-    "- Don’t invent details that can’t be seen in image 1. Don’t alter, redraw or tidy up logos, labels or text; keep them sharp and readable as photographed.",
-    "- Don’t change how many items there are, and don’t add anything that could look included with the purchase.",
+    ...KEEP_PRODUCT.map((rule) => `- ${rule}`),
     "- Any props must stay visually separate from the product: not touching it, not overlapping it, clearly not part of it.",
     "- Keep the complete product in the frame with some space around it. Never crop any part of it.",
     "- No people or hands.",

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { requirementDraft, testProfile } from "@/test/fixtures";
-import { classify, placeConditions, placeOf, structureOf } from "./applicability";
-import { writtenInquiry } from "./inquiry";
+import { classify, intakeAnswer, placeConditions, placeGap, placeOf, structureOf } from "./applicability";
 
 const profile = testProfile({ location: { state: "OH", county: "Franklin County", city: " Columbus ", insideCityLimits: "yes" } });
 const place = placeOf(profile);
@@ -60,6 +59,30 @@ describe("classify", () => {
     expect(result.conditions[0]).toBe("Only if you sell taxable goods.");
   });
 
+  it("settles the model's condition with a yes, and keeps it open for no and not sure", () => {
+    const taxed = checked({ applicability: "conditional", condition: "Only if you sell taxable goods." });
+    expect(classify(taxed, profile, place, undecided)).toMatchObject({ status: "conditional", question: "Only if you sell taxable goods.", answer: null });
+    expect(classify(taxed, profile, place, undecided, "yes")).toMatchObject({ status: "verified", conditions: [], answer: "yes" });
+    expect(classify({ ...taxed, verification: "needs_verification" }, profile, place, undecided, "yes").status).toBe("needs_confirmation");
+    for (const answer of ["no", "unsure"] as const) {
+      expect(classify(taxed, profile, place, undecided, answer)).toMatchObject({ status: "conditional", conditions: ["Only if you sell taxable goods."], answer });
+    }
+    // A yes never settles the rules' own conditions, and an answer to nothing is ignored
+    const city = checked({ applicability: "conditional", condition: "Only if you sell taxable goods.", level: "city" });
+    expect(classify(city, profile, { ...place, insideCity: "unknown" }, undecided, "yes").status).toBe("conditional");
+    expect(classify(checked(), profile, place, undecided, "no")).toMatchObject({ status: "verified", answer: null });
+    expect(classify(checked({ applicability: "conditional" }), profile, place, undecided).question).toMatch(/couldn’t tell/);
+  });
+
+  it("never asks the owner what a government requires: that's for SnapStart to confirm", () => {
+    const rule = checked({ applicability: "conditional", condition: "Whether Aubrey requires a general business license or home-based permit for this shop", level: "city" }, "needs_verification");
+    expect(classify(rule, profile, place, undecided)).toMatchObject({ status: "needs_confirmation", question: null, conditions: [] });
+    const market = checked({ applicability: "conditional", condition: "Whether each market or city where you sell requires a vendor permit" });
+    expect(classify(market, profile, place, undecided).question).toBeNull();
+    // A fact about the owner's own business is still theirs to answer
+    expect(classify(checked({ applicability: "conditional", condition: "Will customers come to your home?" }), profile, place, undecided).question).toBe("Will customers come to your home?");
+  });
+
   it("notes registrations the owner says they already have", () => {
     const owner = testProfile({ alreadyHave: ["ein", "sales_tax"] });
     expect(classify(checked({ key: "ein", title: "Get an EIN" }), owner, place, undecided).alreadyHave).toMatch(/already have an EIN/);
@@ -79,19 +102,33 @@ describe("placeConditions", () => {
   });
 });
 
-describe("writtenInquiry", () => {
-  it("writes the question from saved answers, without an address or ID numbers, for the owner to sign", () => {
-    const inquiry = writtenInquiry({
-      title: "Home bakery registration",
-      questions: ["Do I need it for cookies?"],
-      profile: testProfile({ firstItems: "Cookies", channels: ["markets"], premises: "home", location: { county: "Franklin", city: "Columbus" } }),
-      place,
-    });
-    expect(inquiry.subject).toBe("Question from a new small business: Home bakery registration");
-    expect(inquiry.body).toContain("in Columbus, Franklin County, Ohio");
-    expect(inquiry.body).toContain("1. Do I need it for cookies?");
-    expect(inquiry.body).toContain("[Your name]");
-    expect(inquiry.body).not.toMatch(/\d{5}/);
-    expect(inquiry.body).not.toMatch(/call/i);
+describe("placeGap", () => {
+  it("says what's missing about the owner's place and how to fix it in their answers", () => {
+    const unsure = placeOf(testProfile({ location: { county: "Franklin", city: "Columbus", insideCityLimits: "unsure" } }));
+    const gap = placeGap("city", unsure)!;
+    expect(gap.action).toBe("Confirm whether you’re inside Columbus city limits");
+    expect(placeGap("county", placeOf(testProfile({ location: { county: "" } })))?.action).toBe("Add your county to your answers");
+    expect(placeGap("state", unsure)).toBeNull();
+    expect(placeGap("city", place)).toBeNull();
+  });
+});
+
+describe("intakeAnswer", () => {
+  const notNow = { hiringPlans: "not_now" as const, helpKinds: [] };
+  it("answers a hiring question from the intake instead of asking again", () => {
+    expect(intakeAnswer("Will you hire employees?", notNow)).toEqual({ answer: "no", note: null });
+    expect(intakeAnswer("Will you have employees in your first year?", notNow)).toEqual({ answer: "no", note: null });
+    expect(intakeAnswer("Will you hire employees?", { hiringPlans: "first_year", helpKinds: [] })).toEqual({ answer: "yes", note: null });
+  });
+
+  it("asks about a later time, saying so", () => {
+    expect(intakeAnswer("Do you plan to hire staff in the future?", notNow)).toEqual({ answer: null, note: "You said you’re not hiring for now. This asks about later on." });
+  });
+
+  it("leaves other questions, contractors and unsure answers to the owner", () => {
+    expect(intakeAnswer("Will you sell at farmers markets?", notNow)).toBeNull();
+    expect(intakeAnswer("Will you hire independent contractors?", notNow)).toBeNull();
+    expect(intakeAnswer("Will you hire employees?", { hiringPlans: null, helpKinds: [] })).toBeNull();
+    expect(intakeAnswer("Will you hire employees?", { hiringPlans: "not_now", helpKinds: ["unsure"] })).toBeNull();
   });
 });

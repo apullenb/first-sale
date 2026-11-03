@@ -1,5 +1,7 @@
 "use server";
 
+import { isDemoSession } from "@/lib/auth/server";
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/app/(app)/business/actions";
@@ -18,8 +20,9 @@ import {
   updateMyDocument,
 } from "@/lib/data/my-business";
 import type { CreateOutcome, StoredDocument } from "@/lib/data/documents";
-import { DETAILS, detailProblem, displayDetail, isDecisionKey, isDetailKey, looksLikeIdNumber } from "@/lib/details";
-import { draftBusinessPlan, knownNumbers, MAX_PLAN_INPUT, numberFlags, PLAN_QUESTIONS, type PlanQuestionKey } from "@/lib/documents/business-plan";
+import { DETAILS, detailProblem, isDecisionKey, isDetailKey, looksLikeIdNumber } from "@/lib/details";
+import { businessPlanPdf, draftBusinessPlan, planVersion, withEstimates } from "@/lib/documents/business-plan";
+import { answerItems, answerText, cleanAnswer, knownFacts, MAX_FACT, MAX_OTHER, type PlanAnswers, planQuestions, sellsOf, withOverrides } from "@/lib/documents/plan-facts";
 import { askAboutForm, draftAnswers, explainForm, factsFor, MAX_QUESTION, mustFillYourself } from "@/lib/documents/companion";
 import { answerSheet, fillPdfCopy } from "@/lib/documents/fill";
 import { stepGuidance } from "@/lib/documents/guidance";
@@ -34,7 +37,9 @@ import { readAndSave } from "@/lib/documents/read-and-save";
 import { isKept } from "@/lib/documents/library";
 import { readDocument } from "@/lib/documents/read";
 import { explainReceived } from "@/lib/documents/received";
+import { cleanMoney, ESTIMATES_KEY, type MoneyInputs, moneyInputsSchema } from "@/lib/rules/plan-money";
 import { runWorkflow } from "@/lib/workflow-runner";
+import { myPlanSources } from "./business-plan/sources";
 
 const NOT_FOUND = "That document wasn’t found. It may have been deleted.";
 const id = z.string().min(1).max(60);
@@ -56,6 +61,7 @@ function createFailure(outcome: Exclude<CreateOutcome, { ok: true }>): ActionRes
 const stepField = z.string().max(60).optional().transform((value) => value || null);
 
 export async function uploadDocumentAction(form: FormData): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const file = form.get("file");
   const stepId = stepField.safeParse(form.get("stepId") ?? undefined);
   if (!(file instanceof File) || !stepId.success) return { ok: false, message: "Choose a file to upload." };
@@ -84,6 +90,7 @@ export async function uploadDocumentAction(form: FormData): Promise<ActionResult
 const pasteSchema = z.object({ title: z.string().max(120), text: z.string().max(MAX_PASTE_CHARS), stepId: stepField });
 
 export async function pasteDocumentAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = pasteSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: `Paste up to ${MAX_PASTE_CHARS.toLocaleString("en-US")} characters.` };
   const text = parsed.data.text.trim();
@@ -108,11 +115,12 @@ const officialSchema = z.object({ url: z.string().max(2000), stepId: stepField }
 
 // Only PDFs on sites in the official .gov registry; the app fetches the form itself
 export async function officialFormAction(input: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = officialSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Paste the link to the form." };
   const government = governmentFor(parsed.data.url.trim());
   if (!government) {
-    return { ok: false, message: "First Sale only fetches forms from official .gov websites. Download it yourself and upload it instead." };
+    return { ok: false, message: "SnapStart only fetches forms from official .gov websites. Download it yourself and upload it instead." };
   }
   const fetched = await fetchOfficialPage(parsed.data.url.trim(), [government.domain], fetch, { pdf: true, html: false, maxBytes: MAX_UPLOAD_BYTES });
   if (!fetched.ok || !fetched.pdf) {
@@ -149,6 +157,7 @@ function fileNameOf(url: string): string {
 }
 
 export async function readAgainAction(documentId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const doc = await load(documentId);
   if (!doc || doc.origin === "generated") return { ok: false, message: NOT_FOUND };
   if (doc.origin === "paste") {
@@ -177,6 +186,7 @@ function readable(doc: StoredDocument): boolean {
 }
 
 export async function explainDocumentAction(documentId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const doc = await load(documentId);
   if (!doc || doc.origin === "generated") return { ok: false, message: NOT_FOUND };
   if (!readable(doc)) return { ok: false, message: "We don’t have this form’s text yet. Read it again, or paste its text instead." };
@@ -198,6 +208,7 @@ export async function explainDocumentAction(documentId: unknown): Promise<Action
 
 // A letter or record the owner already has: read only now that they asked, then explained
 export async function explainReceivedAction(documentId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const doc = await load(documentId);
   if (!doc || !isKept(doc)) return { ok: false, message: NOT_FOUND };
   const [file, plan] = await Promise.all([readable(doc) ? null : getMyDocumentFile(doc.id), getMyPlan()]);
@@ -227,12 +238,13 @@ export async function explainReceivedAction(documentId: unknown): Promise<Action
 const askSchema = z.object({ documentId: id, question: z.string().max(MAX_QUESTION), fieldId: z.string().max(200).nullable() });
 
 export async function askDocumentAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = askSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: `Keep your question under ${MAX_QUESTION} characters.` };
   const question = parsed.data.question.trim();
   if (question.length < 3) return { ok: false, message: "Type your question." };
   if (looksLikeIdNumber(question)) {
-    return { ok: false, message: "Leave Social Security and tax id numbers out of your question. You don’t need them to ask about a form." };
+    return { ok: false, message: "Leave Social Security and tax ID numbers out of your question. You don’t need them to ask about a form." };
   }
   const doc = await load(parsed.data.documentId);
   if (!doc || doc.origin === "generated") return { ok: false, message: NOT_FOUND };
@@ -257,6 +269,7 @@ export async function askDocumentAction(input: unknown): Promise<ActionResult> {
 // --- Draft answers
 
 export async function draftAnswersAction(documentId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const doc = await load(documentId);
   if (!doc || doc.origin === "generated") return { ok: false, message: NOT_FOUND };
   if (!doc.content.fields.length) return { ok: false, message: "We didn’t find any blanks to fill in on this form." };
@@ -293,6 +306,7 @@ const saveAnswersSchema = z.object({
 
 // The owner's review: typed values become theirs, ticked ones are confirmed
 export async function saveAnswersAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = saveAnswersSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Keep each answer under 1,000 characters." };
   const doc = await load(parsed.data.documentId);
@@ -304,7 +318,7 @@ export async function saveAnswersAction(input: unknown): Promise<ActionResult> {
     if (!edit || mustFillYourself(field)) continue;
     const value = edit.value.trim();
     if (looksLikeIdNumber(value)) {
-      return { ok: false, message: `“${field.label}”: First Sale doesn’t store Social Security or tax id numbers. Fill those in on the form yourself.` };
+      return { ok: false, message: `“${field.label}”: SnapStart doesn’t store Social Security or tax ID numbers. Fill those in on the form yourself.` };
     }
     if (value && field.kind === "choice" && field.options.length && !field.options.includes(value)) {
       return { ok: false, message: `“${field.label}”: pick one of the form’s own options.` };
@@ -362,6 +376,7 @@ function usedBy(doc: StoredDocument): Record<string, string> | null {
 }
 
 export async function fillCopyAction(documentId: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const doc = await load(documentId);
   if (!doc || doc.origin === "generated") return { ok: false, message: NOT_FOUND };
   const file = doc.mimeType === "application/pdf" ? await getMyDocumentFile(doc.id) : null;
@@ -397,6 +412,7 @@ export async function fillCopyAction(documentId: unknown): Promise<ActionResult<
 }
 
 export async function answerSheetAction(documentId: unknown): Promise<ActionResult<string>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const doc = await load(documentId);
   if (!doc || doc.origin === "generated") return { ok: false, message: NOT_FOUND };
   if (!doc.content.fields.length) return { ok: false, message: "We didn’t find any blanks on this form to list." };
@@ -432,6 +448,7 @@ export async function answerSheetAction(documentId: unknown): Promise<ActionResu
 const linkSchema = z.object({ documentId: id, stepId: z.string().max(60).nullable() });
 
 export async function linkStepAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = linkSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: NOT_FOUND };
   if (!(await updateMyDocument(parsed.data.documentId, { taskId: parsed.data.stepId }))) {
@@ -444,6 +461,7 @@ export async function linkStepAction(input: unknown): Promise<ActionResult> {
 const renameSchema = z.object({ documentId: id, title: z.string().max(120) });
 
 export async function renameDocumentAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = renameSchema.safeParse(input);
   const title = parsed.success ? cleanTitle(parsed.data.title) : "";
   if (!parsed.success || !parsed.data.title.trim()) return { ok: false, message: "Enter a name for the document." };
@@ -453,6 +471,7 @@ export async function renameDocumentAction(input: unknown): Promise<ActionResult
 }
 
 export async function deleteDocumentAction(documentId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(documentId);
   if (!parsed.success || !(await deleteMyDocument(parsed.data))) return { ok: false, message: NOT_FOUND };
   refresh();
@@ -461,44 +480,76 @@ export async function deleteDocumentAction(documentId: unknown): Promise<ActionR
 
 // --- Business plan
 
-const inputsSchema = z.record(z.string(), z.string().max(MAX_PLAN_INPUT));
+const ID_NUMBERS = "Leave Social Security and tax ID numbers out of your business plan.";
+const NO_ROOM = "There’s no room left in Documents. Delete documents you don’t need, then try again.";
+const PLAN_CHANGED = "Your plan changed in another window. Reload the page to see the latest version.";
+
+const planInputSchema = z.object({
+  picks: z.record(z.string().max(40), z.object({ picks: z.array(z.string().max(40)).max(20), other: z.string().max(MAX_OTHER * 2).nullable() })),
+  overrides: z.record(z.string().max(40), z.string().max(MAX_FACT)),
+  money: moneyInputsSchema,
+});
 
 async function currentBusinessPlan(): Promise<StoredDocument | null> {
   const docs = await listMyDocuments();
   return docs.find((doc) => doc.generatedKind === "business_plan") ?? null;
 }
 
+// Drafts the plan from what SnapStart knows, the owner's edits to it and their answers. Facts are read again here, never taken from the page.
 export async function draftBusinessPlanAction(input: unknown): Promise<ActionResult<string>> {
-  const parsed = inputsSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, message: `Keep each answer under ${MAX_PLAN_INPUT.toLocaleString("en-US")} characters.` };
-  const answers: Partial<Record<PlanQuestionKey, string>> = {};
-  for (const question of PLAN_QUESTIONS) {
-    const value = parsed.data[question.key]?.trim();
-    if (value && looksLikeIdNumber(value)) return { ok: false, message: "Leave Social Security and tax id numbers out of your business plan." };
-    if (value) answers[question.key] = value;
-  }
-  const business = await getMyBusiness();
-  if (!business?.profile) return { ok: false, message: "Tell us about your business first." };
-  const profile = business.profile;
-  const existing = await currentBusinessPlan();
+  if (await isDemoSession()) return DEMO_REFUSAL;
+  const parsed = planInputSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Keep each answer shorter, then try again." };
+  const sources = await myPlanSources();
+  if (!sources) return { ok: false, message: "Tell us about your business first." };
 
+  const known = knownFacts(sources);
+  const overrides = Object.fromEntries(
+    known.flatMap((fact) => {
+      const value = parsed.data.overrides[fact.key]?.trim();
+      return value && value !== fact.value ? [[fact.key, value]] : [];
+    }),
+  );
+  const basis = { profile: sources.profile, known: known.map((fact) => fact.key) };
+  // Which questions apply can hang on the "sells" answer, so that one is checked first
+  const sellsQuestion = planQuestions(basis).find((question) => question.key === "sells");
+  const sells = sellsQuestion ? cleanAnswer(sellsQuestion, parsed.data.picks.sells) : null;
+  const questions = planQuestions(basis, sells ? { sells } : {});
+  const picks: PlanAnswers = {};
+  for (const question of questions) {
+    const answer = cleanAnswer(question, parsed.data.picks[question.key]);
+    if (answer) picks[question.key] = answer;
+  }
+  const money = cleanMoney(parsed.data.money);
+  if ([...Object.values(overrides), ...Object.values(picks).map((answer) => answer.other ?? ""), ...moneyLabels(money)].some(looksLikeIdNumber)) return { ok: false, message: ID_NUMBERS };
+
+  const answered = questions.filter((question) => picks[question.key]);
+  const existing = await currentBusinessPlan();
   const result = await runWorkflow("business_plan", null, async () => {
-    const [plan, details] = await Promise.all([getMyPlan(), getMyDetails()]);
-    const structure = details.find((detail) => detail.key === "structure_choice");
     const sections = await draftBusinessPlan(getModel(), {
-      profile,
-      answers,
-      steps: (plan?.steps ?? []).map((step) => ({ title: step.title, done: step.status === "done" })),
-      structure: structure ? displayDetail("structure_choice", structure.value) : null,
+      facts: withOverrides(known, overrides).map(({ key, label, value }) => ({ key, label, value })),
+      answers: answered.map((question) => ({ key: question.key, question: question.title, answer: answerItems(question, picks[question.key]) })),
+      steps: sources.steps,
+      sells: sellsOf(sources.profile, picks),
+      money,
       userKey: await myAiKey(),
     });
-    const draft = { sections, inputs: answers, approvedAt: null, simulated: getModel().simulated };
+    const draft = {
+      sections,
+      // Answers as text, for marketing and the website to read back
+      inputs: Object.fromEntries(answered.map((question) => [question.key, answerText(question, picks[question.key])])),
+      answers: { picks, overrides, was: Object.fromEntries(known.filter((fact) => overrides[fact.key]).map((fact) => [fact.key, fact.value])) },
+      money,
+      approvedAt: null,
+      simulated: getModel().simulated,
+      draftedAt: new Date().toISOString(),
+    };
     if (existing) {
       await updateMyDocument(existing.id, { draft });
       return existing.id;
     }
     const created = await createMyDocument({
-      title: `Business plan for ${displayName(profile)}`.slice(0, 120),
+      title: `Business plan for ${displayName(sources.profile)}`.slice(0, 120),
       origin: "generated",
       generatedKind: "business_plan",
       mimeType: "application/pdf",
@@ -507,54 +558,79 @@ export async function draftBusinessPlanAction(input: unknown): Promise<ActionRes
       content: EMPTY_CONTENT,
       draft,
     });
-    if (!created.ok) throw new OwnerFacingError("Your document library is full. Delete documents you don’t need, then try again.");
+    if (!created.ok) throw new OwnerFacingError(NO_ROOM);
     return created.id;
   });
   refresh();
   return result;
 }
 
-const sectionsSchema = z.object({
-  documentId: id,
-  sections: z.array(z.object({ key: z.string().max(40), heading: z.string().max(120), body: z.string().max(6000) })).max(12),
-  approve: z.boolean(),
-});
+const moneyLabels = (money: MoneyInputs) => [...money.items.map((item) => item.name), ...money.monthlyExpenses.map((each) => each.label), ...money.startupCosts.map((each) => each.label)];
 
-// Saves the owner's edits; approving also makes the PDF that goes in the library
-export async function saveBusinessPlanAction(input: unknown): Promise<ActionResult> {
-  const parsed = sectionsSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, message: "Keep each section under 6,000 characters." };
-  if (parsed.data.sections.some((section) => looksLikeIdNumber(`${section.heading} ${section.body}`))) {
-    return { ok: false, message: "Leave Social Security and tax id numbers out of your business plan." };
-  }
-  const doc = await load(parsed.data.documentId);
-  if (!doc || doc.generatedKind !== "business_plan" || !doc.draft) return { ok: false, message: NOT_FOUND };
-
-  const business = await getMyBusiness();
-  const flaggedBefore = new Map(doc.draft.sections.map((section) => [section.key, section.flags]));
-  const known = knownNumbers(JSON.stringify(doc.draft.inputs) + JSON.stringify(business?.profile ?? {}));
-  const sections: PlanSection[] = parsed.data.sections.map((section) => ({
-    key: section.key,
-    heading: section.heading.trim() || "Section",
-    body: section.body.trim(),
-    // A flagged number stays flagged until it's changed or removed
-    flags: numberFlags(section.body, known).filter((flag) => (flaggedBefore.get(section.key) ?? []).includes(flag)),
-  }));
-
-  const now = new Date();
-  const approvedAt = parsed.data.approve ? now.toISOString() : null;
-  const patch: Parameters<typeof updateMyDocument>[1] = { draft: { ...doc.draft, sections, approvedAt } };
-  if (parsed.data.approve) {
-    patch.data = await writePdf({
-      title: doc.title,
-      subtitle: `Approved ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
-      notice: doc.draft.simulated ? "Practice draft: written by built-in rules, not by the AI service." : undefined,
-      blocks: sections.map((section) => ({ heading: section.heading, paragraphs: [section.body] })),
-      footer: "Business plan made with First Sale",
-    });
-    patch.mimeType = "application/pdf";
-  }
-  if (!(await updateMyDocument(doc.id, patch))) return { ok: false, message: NOT_FOUND };
+// Rewrites the plan's Financial Estimates section from new estimates, in code; the rest of the plan stays as edited
+export async function updatePlanEstimatesAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
+  const parsed = z.object({ money: moneyInputsSchema }).safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Check the amounts: whole numbers of units and months, and dollar amounts like 12.50." };
+  const money = cleanMoney(parsed.data.money);
+  if (moneyLabels(money).some(looksLikeIdNumber)) return { ok: false, message: ID_NUMBERS };
+  const doc = await currentBusinessPlan();
+  if (!doc?.draft?.sections.length) return { ok: false, message: NOT_FOUND };
+  const before = doc.draft;
+  const version = planVersion(before.sections);
+  const draft = { ...before, sections: withEstimates(before.sections, money), money, approvedAt: null };
+  if (!(await updateMyDocument(doc.id, { draft }, (current) => Boolean(current.draft) && planVersion(current.draft!.sections) === version))) return { ok: false, message: PLAN_CHANGED };
   refresh();
   return { ok: true, value: null };
+}
+
+const saveSchema = z.object({
+  documentId: id,
+  // The version the edits were made to, so a newer draft isn't overwritten
+  version: z.string().max(40),
+  sections: z.array(z.object({ key: z.string().max(40), heading: z.string().max(120), body: z.string().max(8000) })).max(12),
+  pdf: z.boolean(),
+});
+
+// Saves the owner's edits as they go; with `pdf`, also writes the PDF kept in Documents
+export async function saveBusinessPlanAction(input: unknown): Promise<ActionResult<{ version: string; savedAt: string | null }>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
+  const parsed = saveSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Keep each section under 8,000 characters." };
+  if (parsed.data.sections.some((section) => looksLikeIdNumber(`${section.heading} ${section.body}`))) return { ok: false, message: ID_NUMBERS };
+  const doc = await load(parsed.data.documentId);
+  if (!doc || doc.generatedKind !== "business_plan" || !doc.draft) return { ok: false, message: NOT_FOUND };
+  const before = doc.draft;
+  if (planVersion(before.sections) !== parsed.data.version) return { ok: false, message: PLAN_CHANGED };
+  if (parsed.data.sections.map((section) => section.key).join() !== before.sections.map((section) => section.key).join()) return { ok: false, message: PLAN_CHANGED };
+
+  const flaggedBefore = new Map(before.sections.map((section) => [section.key, section.flags]));
+  const sections: PlanSection[] = parsed.data.sections.map((section, index) => {
+    // Estimates are worked out in code, never edited as text
+    if (section.key === ESTIMATES_KEY) return before.sections[index];
+    const body = section.body.trim();
+    return {
+      key: section.key,
+      heading: section.heading.trim() || "Section",
+      body,
+      // A flagged number stays flagged until it's changed or removed
+      flags: (flaggedBefore.get(section.key) ?? []).filter((flag) => body.includes(flag.match(/“([^”]+)”/)?.[1] ?? "")),
+    };
+  });
+
+  const now = new Date();
+  const unchanged = planVersion(sections) === parsed.data.version;
+  // Saving the same text again leaves the PDF current
+  const savedAt = parsed.data.pdf ? now.toISOString() : unchanged ? before.approvedAt : null;
+  const patch: Parameters<typeof updateMyDocument>[1] = { draft: { ...before, sections, approvedAt: savedAt } };
+  if (parsed.data.pdf) {
+    patch.data = await writePdf(businessPlanPdf(doc.title, sections, now, before.simulated, before.money));
+    patch.mimeType = "application/pdf";
+  }
+  const version = parsed.data.version;
+  if (!(await updateMyDocument(doc.id, patch, (current) => Boolean(current.draft) && planVersion(current.draft!.sections) === version))) {
+    return { ok: false, message: PLAN_CHANGED };
+  }
+  if (parsed.data.pdf) refresh();
+  return { ok: true, value: { version: planVersion(sections), savedAt } };
 }

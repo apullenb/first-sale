@@ -1,104 +1,83 @@
-import { CARD, SECONDARY_LINK } from "@/components/styles";
-import { brandFileName, kindTitle as title } from "@/lib/brand/files";
-import { IMAGE_SPECS, LOGO_SPECS } from "@/lib/brand/sizes";
-import type { AssetKind, BrandFile, BrandKit } from "@/lib/brand/types";
+import Link from "next/link";
+import { saveLogoGuideAction } from "@/app/(app)/brand/actions";
+import { ActionButton } from "@/components/action-button";
+import { Icon } from "@/components/icons";
+import { SectionHead } from "@/components/marketing/pieces";
+import { TEXT_LINK } from "@/components/styles";
+import { Card, Note } from "@/components/ui";
+import { colorRows } from "@/lib/brand/colors";
+import { BRAND_IMAGES_HREF } from "@/lib/brand/library";
+import type { BrandKit } from "@/lib/brand/types";
 import { PracticeTag } from "./asset-view";
-import { ExactDownload } from "./exact-download";
+import { LogoFiles } from "./logo-files";
 
-const download = (file: BrandFile) => file.url.split("?")[0];
-
-export function KitSection({ kit }: { kit: BrandKit }) {
-  const logos: [AssetKind, BrandFile | null][] = [
-    ["logo", kit.logos.primary],
-    ["stacked", kit.logos.stacked],
-    ["profile", kit.logos.profile],
-    ["solid", kit.logos.solid],
-  ];
-  const images: [AssetKind, BrandFile | null][] = [
-    ["facebook_cover", kit.images.facebookCover],
-    ["youtube_banner", kit.images.youtubeBanner],
-    ["website_hero", kit.images.websiteHero],
-    ["link_preview", kit.images.linkPreview],
-  ];
+export function KitSection({ kit, guideId, number }: { kit: BrandKit; guideId: string | null; number: number }) {
   return (
-    <section aria-labelledby="kit-heading" className={`${CARD} flex flex-col gap-5`}>
-      <div className="flex flex-col gap-1">
-        <h2 id="kit-heading" className="font-display text-2xl font-bold">
-          7. Your brand kit
-        </h2>
-        <p className="text-rule">
-          Everything you approved for {kit.businessName}, in one place. First Sale’s website section uses these too. Every file has a plain white background: Muse Image can’t make see-through ones.
-        </p>
+    <section aria-labelledby="kit-heading" className="@container flex flex-col gap-4">
+      <SectionHead id="kit-heading" number={number} title="Your brand kit" lead={`Your logo and the versions you chose for ${kit.businessName}, with the files you’ll need. Your website and Brand Library use these too.`}>
         {kit.simulated ? (
           <p className="flex flex-wrap items-center gap-2 text-sm text-check">
             <PracticeTag /> Some files are practice previews. Don’t use them as your logo.
           </p>
         ) : null}
-      </div>
+      </SectionHead>
 
-      <div className="flex flex-col gap-2">
-        <h3 className="font-semibold">Colors</h3>
-        <ul className="flex flex-wrap gap-3">
-          {kit.colors.map((color) => (
-            <li key={color.hex} className="flex items-center gap-3 rounded-xl bg-ground py-2 pr-4 pl-2">
-              <span aria-hidden="true" className="size-10 rounded-lg ring-1 ring-ink/10" style={{ backgroundColor: color.hex }} />
-              <span className="flex flex-col">
+      <Card title="Colors" icon="palette" id="kit-colors" headingLevel={3}>
+        <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
+          Readability on white is worked out from each color’s contrast (the WCAG standard), not by AI.
+        </p>
+        {kit.colors.length === 0 ? <p className="text-[15px] text-muted">No colors saved yet. Pick your logo’s colors above, and they’ll show here.</p> : null}
+        <ul className="grid gap-2.5 @2xl:grid-cols-2">
+          {colorRows(kit.colors).map((color) => (
+            <li key={color.hex} className="flex items-start gap-3 rounded-xl border border-line bg-surface p-2.5 shadow-soft">
+              <span aria-hidden="true" className="size-12 shrink-0 rounded-lg ring-1 ring-ink/10" style={{ backgroundColor: color.hex }} />
+              <span className="flex min-w-0 flex-col">
                 <span className="font-semibold">{color.name}</span>
-                <span className="font-mono text-sm text-muted">{color.hex.toUpperCase()}</span>
+                <span className="font-mono text-sm text-muted">
+                  {color.hex} · {color.rgb}
+                </span>
+                <span className="text-sm text-rule">{color.use}</span>
               </span>
             </li>
           ))}
         </ul>
-      </div>
+      </Card>
 
-      <div className="flex flex-col gap-2">
-        <h3 className="font-semibold">Logos</h3>
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {logos.map(([kind, file]) => (
-            <li key={kind} className="flex flex-col gap-2 rounded-xl bg-ground p-3">
-              <span className="font-semibold">{title(kind)}</span>
-              {file ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={file.url} alt={`${title(kind)} logo`} width={file.width} height={file.height} loading="lazy" className="h-auto w-full rounded-lg bg-white" />
-                  <a href={download(file)} download className={SECONDARY_LINK}>
-                    Download
-                  </a>
-                  {kind === "profile"
-                    ? LOGO_SPECS.profile.exports.map((spec) => (
-                        <ExactDownload key={spec.label} src={file.url} spec={spec} fileName={brandFileName(kit.businessName, kind, kit.simulated, `${spec.width}x${spec.height}`)} />
-                      ))
-                    : null}
-                </>
-              ) : (
-                <p className="text-sm text-muted">Not approved yet.</p>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <Card title="Logo files" icon="download" id="kit-files" headingLevel={3}>
+        <LogoFiles
+          businessName={kit.businessName}
+          simulated={kit.simulated}
+          practice={kit.uploaded ? { primary: false } : undefined}
+          colors={kit.colors}
+          sources={{ primary: kit.logos.primary?.url ?? null, stacked: kit.logos.stacked?.url ?? null, profile: kit.logos.profile?.url ?? null, solid: kit.logos.solid?.url ?? null }}
+        />
+      </Card>
 
-      <div className="flex flex-col gap-2">
-        <h3 className="font-semibold">Pictures</h3>
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {images.map(([kind, file]) => (
-            <li key={kind} className="flex flex-col gap-2 rounded-xl bg-ground p-3">
-              <span className="font-semibold">{title(kind)}</span>
-              {file ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={file.url} alt={title(kind)} width={file.width} height={file.height} loading="lazy" className="h-auto w-full rounded-lg bg-white" />
-                  {IMAGE_SPECS[kind as keyof typeof IMAGE_SPECS].exports.map((spec) => (
-                    <ExactDownload key={spec.label} src={file.url} spec={spec} fileName={brandFileName(kit.businessName, kind, kit.simulated, `${spec.width}x${spec.height}`)} />
-                  ))}
-                </>
-              ) : (
-                <p className="text-sm text-muted">Not added yet.</p>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <Card title="Logo guide" icon="file" id="kit-guide" headingLevel={3}>
+        <p className="text-[15px] text-rule">
+          One printable page for you, a printer or a helper: your logo, colors with their codes, lettering, the space to leave around it, and do’s and don’ts.
+          It’s saved to your Documents{kit.simulated ? " and marked as practice" : ""}.
+        </p>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <ActionButton action={saveLogoGuideAction} label={guideId ? "Update my logo guide" : "Save my logo guide"} pendingLabel="Making your guide…" openDocument />
+          {guideId ? (
+            <Link href={`/documents/${guideId}`} className={`${TEXT_LINK} inline-flex min-h-11 items-center gap-1.5`}>
+              Open the saved guide
+              <Icon name="arrow" size="sm" />
+            </Link>
+          ) : null}
+        </div>
+      </Card>
+
+      <Note icon="image" tone="quiet">
+        <p className="text-rule">
+          Your brand images, like your website header and Facebook cover, are made and kept in{" "}
+          <Link href={BRAND_IMAGES_HREF} className={TEXT_LINK}>
+            your Brand Library
+          </Link>
+          .
+        </p>
+      </Note>
     </section>
   );
 }

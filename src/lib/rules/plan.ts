@@ -1,5 +1,7 @@
 import type { BusinessStructure, JurisdictionLevel, PlanTopic, RequirementDraft, TaskStatus, VerificationState } from "@/lib/domain";
-import type { RequirementStatus } from "@/lib/research/applicability";
+import { type Place, questionOf, type RequirementStatus } from "@/lib/research/applicability";
+import type { Contacts } from "@/lib/research/contacts";
+import { type OfficeContact, officeOf, orderLinks } from "@/lib/research/office";
 import { orderTasks } from "./checklist";
 
 // Plain code: AI drafts each requirement, these rules turn checked requirements into ordered steps.
@@ -44,6 +46,14 @@ export interface PlanTaskDraft {
   // The government whose rule it is, such as "State of Texas"
   jurisdiction: string;
   alreadyHave: string | null;
+  // The model's condition, asked of the owner on What applies to you; empty when it doesn't depend on one
+  question: string;
+  // Why SnapStart decided this applies, when no official page spells it out
+  notes?: { title: string; background: string }[];
+  // Read from the office's official pages
+  contacts?: Contacts | null;
+  // The model's read of what the owner does; stepKindOf decides
+  ownerAction?: RequirementDraft["ownerAction"];
 }
 
 // The rule-written part of a step, for plans saved before it existed
@@ -55,6 +65,7 @@ export const PLAN_DEFAULTS = {
   renewal: null,
   jurisdiction: "",
   alreadyHave: null,
+  question: "",
 } satisfies Partial<PlanTaskDraft>;
 
 type CheckedRequirement = RequirementDraft & {
@@ -66,6 +77,8 @@ type CheckedRequirement = RequirementDraft & {
   conditions?: string[];
   fitsStructure?: boolean;
   alreadyHave?: string | null;
+  // From the follow-up check; empty until it runs
+  background?: string;
 };
 
 export interface ReadSource {
@@ -98,8 +111,9 @@ export function buildPlan(
   allRequirements: readonly CheckedRequirement[],
   sources: readonly ReadSource[],
   simulated = false,
+  options: { place?: Place; offices?: readonly OfficeContact[] } = {},
 ): PlanTaskDraft[] {
-  const requirements = allRequirements.filter((requirement) => requirement.fitsStructure !== false);
+  const requirements = allRequirements.filter((requirement) => requirement.fitsStructure !== false && requirement.status !== "not_needed");
   const byId = new Map(sources.map((source) => [source.id, source]));
   const keyFor = new Map<string, string>();
   const used = new Set<string>();
@@ -115,15 +129,8 @@ export function buildPlan(
   const drafts = requirements.map((requirement, index): PlanTaskDraft => {
     const cited = requirement.sourceIds.flatMap((id) => byId.get(id) ?? []);
     const sourced = requirement.verification === "sourced";
+    // SnapStart decides; the reason it gives (notes) replaces any doubt passed on to the owner
     const uncertainty: string[] = [];
-    if (!sourced) {
-      uncertainty.push(
-        cited.length > 0
-          ? "The official page we found doesn’t confirm the details of this step."
-          : "We didn’t find an official page for this yet. That doesn’t mean it doesn’t apply.",
-      );
-    }
-    if (requirement.needsProfessional) uncertainty.push("A lawyer or accountant can help you decide how this applies to you.");
 
     return {
       key: keys[index],
@@ -132,13 +139,17 @@ export function buildPlan(
       level: requirement.level,
       why: requirement.whyItApplies,
       agency: requirement.agency,
-      links: cited.map((source) => ({
-        title: source.title,
-        url: source.url,
-        government: source.government,
-        // Only the page the quote was actually found on
-        confirms: sourced && (requirement.confirmedBy ? requirement.confirmedBy.includes(source.id) : true),
-      })),
+      // Confirming pages first, then the rule's own government's
+      links: orderLinks(
+        cited.map((source) => ({
+          title: source.title,
+          url: source.url,
+          government: source.government,
+          // Only the page the quote was actually found on
+          confirms: sourced && (requirement.confirmedBy ? requirement.confirmedBy.includes(source.id) : true),
+        })),
+        requirement.level,
+      ),
       prepare: requirement.gather,
       feeCents: requirement.feeUsd === null ? null : Math.round(requirement.feeUsd * 100),
       feeCheckedAt: requirement.feeUsd === null ? null : latest(cited.map((source) => source.retrievedAt)),
@@ -158,6 +169,10 @@ export function buildPlan(
       renewal: requirement.renewal ? { text: requirement.renewal, feeCents: requirement.renewalFeeUsd === null ? null : Math.round(requirement.renewalFeeUsd * 100) } : null,
       jurisdiction: [...new Set(cited.filter((source) => source.government).map((source) => source.government))].join(", "),
       alreadyHave: requirement.alreadyHave ?? null,
+      question: questionOf(requirement) ?? "",
+      notes: requirement.background ? [{ title: requirement.title, background: requirement.background }] : [],
+      contacts: null,
+      ownerAction: requirement.ownerAction ?? null,
     };
   });
 
@@ -179,8 +194,76 @@ export function buildPlan(
     for (const wanted of requirements[index].dependsOn) link(draft, keyFor.get(slugKey(wanted)));
   });
 
-  const byKey = new Map(drafts.map((draft) => [draft.key, draft]));
-  return orderTasks(drafts.map((draft) => ({ id: draft.key, prerequisites: draft.prerequisites }))).map((node) => byKey.get(node.id)!);
+  const steps = options.place ? askByOffice(withContacts(drafts, requirements, options.place, options.offices ?? []), requirements, options.place, options.offices ?? []) : drafts;
+  const byKey = new Map(steps.map((draft) => [draft.key, draft]));
+  return orderTasks(steps.map((draft) => ({ id: draft.key, prerequisites: draft.prerequisites }))).map((node) => byKey.get(node.id)!);
+}
+
+// Each local step carries its office's email and phone, read from the office's official pages
+function withContacts(drafts: PlanTaskDraft[], requirements: readonly CheckedRequirement[], place: Place, offices: readonly OfficeContact[]): PlanTaskDraft[] {
+  const contactsOf = new Map(offices.map((office) => [office.key, office.contacts]));
+  return drafts.map((draft, index) => (draft.level === "federal" ? draft : { ...draft, contacts: contactsOf.get(officeOf(requirements[index], place).key) ?? null }));
+}
+
+const LIST = new Intl.ListFormat("en-US", { type: "conjunction" });
+
+// Rules even the deeper look couldn't settle go to their office: one step and one message per office, never one per rule.
+// Federal rules and structure-specific filings stay as their own steps.
+function askByOffice(drafts: PlanTaskDraft[], requirements: readonly CheckedRequirement[], place: Place, offices: readonly OfficeContact[]): PlanTaskDraft[] {
+  const contactsOf = new Map(offices.map((office) => [office.key, office]));
+  const groups = new Map<string, { office: ReturnType<typeof officeOf>; members: PlanTaskDraft[] }>();
+  drafts.forEach((draft, index) => {
+    if (draft.requirementStatus !== "to_find_out" || draft.level === "federal" || draft.forStructures.length) return;
+    const office = officeOf(requirements[index], place);
+    draft.contacts = contactsOf.get(office.key)?.contacts ?? null;
+    const group = groups.get(office.key) ?? { office, members: [] };
+    group.members.push(draft);
+    groups.set(office.key, group);
+  });
+
+  const into = new Map<string, string>();
+  const asks = new Map<string, PlanTaskDraft>();
+  for (const { office, members } of groups.values()) {
+    if (members.length < 2) continue;
+    const key = `ask-${slugKey(office.name)}`;
+    const site = contactsOf.get(office.key)?.site;
+    const links = [...new Map([...(site ? [{ ...site, government: office.name, confirms: false }] : []), ...members.flatMap((member) => member.links)].map((link) => [link.url, link])).values()];
+    const name = /^(city|county|state) of /i.test(office.name) ? `the ${office.name}` : office.name;
+    asks.set(members[0].key, {
+      ...members[0],
+      key,
+      title: `Ask ${name} about ${members.length} requirements`,
+      why: `SnapStart searched ${name}’s official site and couldn’t settle ${LIST.format(members.map((member) => member.title.replace(/^./, (first) => first.toLowerCase())))}. One message to ${name} covers ${members.length === 2 ? "both" : "all of them"}.`,
+      agency: office.name,
+      links,
+      prepare: [...new Set(members.flatMap((member) => member.prepare))].slice(0, 8),
+      feeCents: null,
+      feeCheckedAt: null,
+      deadline: null,
+      needsProfessional: members.some((member) => member.needsProfessional),
+      verification: "needs_verification",
+      uncertainty: [],
+      whoToCall: office.name,
+      whatToAsk: members.flatMap((member) => member.whatToAsk.slice(0, 2)).slice(0, 6),
+      doneWhen: `${name.replace(/^./, (first) => first.toUpperCase())} answered about each requirement. If one applies, check your requirements again so it becomes a step.`,
+      prerequisites: [],
+      timing: members.some((member) => member.timing === "before_selling") ? "before_selling" : "later",
+      renewal: null,
+      jurisdiction: office.name,
+      alreadyHave: null,
+      question: "",
+      notes: members.flatMap((member) => member.notes ?? []),
+      ownerAction: "contact",
+    });
+    for (const member of members) into.set(member.key, key);
+  }
+  if (!into.size) return drafts;
+
+  return drafts.flatMap((draft) => {
+    if (into.has(draft.key)) return asks.has(draft.key) ? [asks.get(draft.key)!] : [];
+    const prerequisites = [...new Set(draft.prerequisites.map((key) => into.get(key) ?? key))];
+    return [{ ...draft, prerequisites }];
+  });
 }
 
 // True when `from` already depends on `to`, directly or through other steps
@@ -203,6 +286,19 @@ function latest(dates: readonly string[]): string | null {
 }
 
 // Steps that wait on this one
+// The step that chooses a structure, done on Business structure. Filings, like forming an LLC, name a structure or carry a fee.
+export function choosesStructure(step: { topic?: string; forStructures?: readonly string[] | null; feeCents?: number | null }): boolean {
+  return step.topic === "structure" && !step.forStructures?.length && !step.feeCents;
+}
+
+// A known structure, chosen or already registered, settles that step; saying "not decided yet" leaves it open
+export function settleStructureChoice<T extends { topic?: string; forStructures?: readonly string[] | null; feeCents?: number | null; status: string }>(
+  steps: readonly T[],
+  known: boolean,
+): T[] {
+  return steps.map((step) => (known && choosesStructure(step) && step.status !== "done" ? { ...step, status: "done" } : step));
+}
+
 export function followingSteps<T extends { key: string; prerequisites: readonly string[] }>(tasks: readonly T[], key: string): T[] {
   return tasks.filter((task) => task.prerequisites.includes(key));
 }

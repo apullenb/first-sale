@@ -6,7 +6,9 @@ import { buildPlan } from "@/lib/rules/plan";
 import { createTestDb } from "@/test/db";
 import { researchedRequirement, retrievedPage, testProfile } from "@/test/fixtures";
 import { createBusinessForOwner } from "./businesses";
-import { getResearchForOwner, saveResearchForOwner } from "./research";
+import { placeOf } from "@/lib/research/applicability";
+import { officeOf } from "@/lib/research/office";
+import { getResearchForOwner, saveFollowUpForOwner, saveResearchForOwner } from "./research";
 
 const profile = testProfile({ name: null });
 
@@ -161,5 +163,67 @@ describe("research kept for returning owners", () => {
     });
     expect(saved?.requirements[0]).toMatchObject({ status: "optional", conditions: ["Only if"], timing: "later", renewal: "every year", renewalFeeCents: 500 });
     expect(await getResearchForOwner(db, "owner-b")).toBeNull();
+  });
+});
+
+describe("follow-up", () => {
+  const cityProfile = testProfile({ name: null, location: { state: "TX", county: "Denton County", city: "Aubrey", insideCityLimits: "yes" } });
+  const place = placeOf(cityProfile);
+  const checkedAt = new Date("2026-10-26T15:00:00Z");
+  const open = (key: string) =>
+    researchedRequirement({ key, title: `Rule ${key}`, level: "city", agency: "City clerk", whatToAsk: [`Does ${key} apply?`], verification: "needs_verification" });
+
+  async function saveOpenRules() {
+    const reqs = [open("license"), open("home"), open("sign")];
+    const pages = [retrievedPage({ text: "…" })];
+    const result = { ...research("Get an EIN", checkedAt), requirements: reqs, plan: buildPlan(reqs, pages, true, { place }) };
+    await saveResearchForOwner(db, "owner-a", result, "key-1");
+  }
+
+  const office = officeOf({ level: "city", agency: "" }, place);
+
+  it("confirms what a new page backs, decides the rest with a reason, and leaves out what isn't needed", async () => {
+    await saveOpenRules();
+    const page = retrievedPage({ id: "fu-license-1", text: "A license is required.", url: "https://www.example.gov/license" });
+    const outcome = await saveFollowUpForOwner(
+      db,
+      "owner-a",
+      checkedAt,
+      {
+        pages: [page],
+        confirmed: [{ ...open("license"), sourceIds: ["fu-license-1"], evidence: "A license is required.", verification: "sourced", problems: [] }],
+        notes: [
+          { key: "home", verdict: "applies", background: "Home bakeries here usually need this.", sourceIds: [], evidence: null, questions: [] },
+          { key: "sign", verdict: "not_needed", background: "Small home businesses without a sign don’t need this.", sourceIds: [], evidence: null, questions: [] },
+        ],
+        answers: [],
+        offices: [{ ...office, contacts: { emails: [{ value: "clerk@example.gov", url: page.url }], phones: [] }, site: null }],
+      },
+      cityProfile,
+      [],
+    );
+    expect(outcome).toBe("applied");
+
+    const saved = await getResearchForOwner(db, "owner-a");
+    expect(saved?.followedUpAt).toBeInstanceOf(Date);
+    expect(saved?.sources.map((source) => source.key)).toContain("fu-license-1");
+    const byKey = new Map(saved!.requirements.map((row) => [row.key, row]));
+    expect(byKey.get("license")).toMatchObject({ verification: "sourced", evidence: "A license is required.", background: "", verdict: "applies" });
+    expect(byKey.get("home")).toMatchObject({ verdict: "applies", background: "Home bakeries here usually need this." });
+    expect(byKey.get("sign")).toMatchObject({ verdict: "not_needed", status: "not_needed" });
+
+    // What applies is a step with its reason and the office's contacts; what isn't needed leaves the plan
+    const tasks = await db.select().from(checklistTasks);
+    expect(tasks.map((task) => task.key).sort()).toEqual(["home", "license"]);
+    const home = tasks.find((task) => task.key === "home")!;
+    expect(home.notes).toEqual([{ title: "Rule home", background: "Home bakeries here usually need this." }]);
+    expect(home.contacts).toEqual({ emails: [{ value: "clerk@example.gov", url: page.url }], phones: [] });
+  });
+
+  it("does nothing when a newer check replaced the one it followed", async () => {
+    await saveOpenRules();
+    const outcome = await saveFollowUpForOwner(db, "owner-a", new Date("2026-10-25T00:00:00Z"), { pages: [], confirmed: [], notes: [], answers: [], offices: [] }, cityProfile, []);
+    expect(outcome).toBe("stale");
+    expect((await getResearchForOwner(db, "owner-a"))?.followedUpAt).toBeNull();
   });
 });

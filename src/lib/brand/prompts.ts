@@ -1,23 +1,27 @@
 import { ownerText } from "@/lib/photos/instructions";
-import { IMAGE_SPECS } from "./sizes";
-import { BRIEF_LIMITS, type BrandBrief, type BrandImageKind, type ConceptKind, type ConceptReply, type VersionKind } from "./types";
+import { type ImageStyle, imageStyle } from "./image-style";
+import { IMAGE_SPECS, LOGO_SPECS } from "./sizes";
+import { MAX_LOGO_WORDS } from "./library";
+import { type AssetCheck, BRIEF_LIMITS, type BrandBrief, type BrandImageKind, type ConceptKind, type ConceptReply, type ImageMedium, type PaletteColor, type VersionKind } from "./types";
 import { LEANINGS, type LeaningKey } from "./vibes";
 
 // Muse Image instructions, built by code from the brief and a concept. The owner never writes one.
 
 export const MAX_CHANGE = 300;
 
-export const CONCEPT_KINDS_TEXT: Record<ConceptKind, { label: string; describe: string }> = {
-  wordmark: { label: "Wordmark", describe: "A wordmark: the business name itself in distinctive custom lettering, with no separate symbol" },
-  monogram: { label: "Monogram", describe: "A monogram: the business’s initials formed into one distinctive mark, with the full name beside or below it" },
-  emblem: { label: "Badge", describe: "An emblem: the name and a simple symbol together inside a badge, seal or stamp shape" },
-  illustrative: { label: "Drawn symbol", describe: "A simple drawn symbol next to the business name" },
-  abstract: { label: "Abstract symbol", describe: "A simple abstract shape that suggests the idea, next to the business name" },
-  lettermark_symbol: { label: "Letter and symbol", describe: "One letter of the name combined with a simple symbol, next to the full name" },
+// label and plain are owner-facing; describe goes to Muse Image
+export const CONCEPT_KINDS_TEXT: Record<ConceptKind, { label: string; plain: string; describe: string }> = {
+  wordmark: { label: "Wordmark", plain: "Just your name, in special lettering", describe: "A wordmark: the business name itself in distinctive custom lettering, with no separate symbol" },
+  monogram: { label: "Monogram", plain: "Your initials made into a mark", describe: "A monogram: the business’s initials formed into one distinctive mark, with the full name beside or below it" },
+  emblem: { label: "Badge", plain: "Your name inside a badge or stamp", describe: "An emblem: the name and a simple symbol together inside a badge, seal or stamp shape" },
+  illustrative: { label: "Drawn symbol", plain: "A small drawing beside your name", describe: "A simple drawn symbol next to the business name" },
+  abstract: { label: "Abstract symbol", plain: "A simple shape beside your name", describe: "A simple abstract shape that suggests the idea, next to the business name" },
+  lettermark_symbol: { label: "Letter and symbol", plain: "One letter combined with a little picture", describe: "One letter of the name combined with a simple symbol, next to the full name" },
 };
 
 export const QUALITY_RULES = [
   "Simple and distinctive, built on one clear idea. It must still be recognizable as a tiny 32-pixel browser icon.",
+  "Any symbol is big and bold, about as tall as the lettering, and reads at a glance as exactly what’s described: never a tiny accent or a vague shape.",
   "Flat, vector-style artwork: solid shapes, a strong silhouette and balanced negative space.",
   "Use 1 to 3 of the listed colors, and make sure the design would also work in a single color.",
   "One logo, centered on a plain white background, with generous empty margins on every side.",
@@ -36,11 +40,18 @@ export function spellOut(name: string): string {
     .join(" ");
 }
 
-function lettering(brief: BrandBrief): string[] {
+// Versions and edits keep image 1's letter case; models drift to Title Case unless told
+export const KEEP_LETTERING =
+  "Keep the lettering exactly as drawn in image 1: the same capital and lowercase letters, letter shapes, typeface, weight and spacing. Don’t switch it to Title Case, all capitals or all lowercase.";
+
+// caseFrom "image": the case is already set by the logo in image 1
+function lettering(brief: BrandBrief, caseFrom: "style" | "image" = "style"): string[] {
   const name = clean(brief.name, BRIEF_LIMITS.name);
   const tagline = clean(brief.tagline, BRIEF_LIMITS.tagline);
   return [
-    `Business name, spelled exactly: “${name}” (letter by letter: ${spellOut(name)}). Letter case may follow the lettering style, but every letter must be there, in this order.`,
+    caseFrom === "style"
+      ? `Business name, spelled exactly: “${name}” (letter by letter: ${spellOut(name)}). Letter case may follow the lettering style, but every letter must be there, in this order.`
+      : `Business name, spelled exactly: “${name}” (letter by letter: ${spellOut(name)}), in the same capitals and lowercase as image 1.`,
     tagline ? `Tagline, smaller than the name and spelled exactly: “${tagline}” (${spellOut(tagline)}).` : "No tagline.",
     `The only words are the business name${tagline ? " and the tagline" : ""}. No other letters, numbers, dates, slogans or “est.” lines.`,
   ];
@@ -54,8 +65,9 @@ export function leaningWords(brief: BrandBrief): string[] {
   });
 }
 
-export function feel(brief: BrandBrief): string[] {
-  const leanings = leaningWords(brief);
+// A photo leaves out the line-drawing leaning, which would pull it toward an illustration
+export function feel(brief: BrandBrief, photo = false): string[] {
+  const leanings = leaningWords(photo ? { ...brief, leanings: { ...brief.leanings, finish: null } } : brief);
   const story = clean(brief.story, BRIEF_LIMITS.story);
   return [
     brief.vibes.length ? `Feel: ${brief.vibes.join(", ")}.` : null,
@@ -82,7 +94,9 @@ function colors(brief: BrandBrief, concept: ConceptReply): string[] {
 function design(concept: ConceptReply): string[] {
   return [
     `Concept “${clean(concept.title, 60)}”: ${clean(concept.idea, 400)}`,
-    concept.symbol ? `Symbol: ${clean(concept.symbol, 240)}` : "No separate symbol: the lettering is the logo.",
+    concept.symbol
+      ? `Symbol: ${clean(concept.symbol, 240)}. Someone seeing it for the first time should be able to say what it is.`
+      : "No separate symbol: the lettering is the logo. Design the lettering itself with the distinctive feature the concept describes, so it’s clearly a custom wordmark, not a plain typeface.",
     `Lettering: ${clean(concept.typography, 240)}`,
   ];
 }
@@ -109,85 +123,194 @@ export function logoPrompt(brief: BrandBrief, concept: ConceptReply): string {
     .join("\n");
 }
 
-// Image 1 is the draft being changed
-export function refinePrompt(brief: BrandBrief, concept: ConceptReply, change: string): string {
+// Edits came back too subtle, or changed things no one asked for
+export const EDIT_RULES = [
+  "Make the requested change clearly visible at a glance: someone comparing the two side by side should see it right away. Don’t make a subtle or token change. For example, “bolder lettering” means clearly heavier, thicker strokes.",
+  "Change only what was asked. Everything else stays identical to image 1: the same layout, shapes, colors, spelling and background.",
+] as const;
+
+// Image 1 is the draft being changed: in the owner's words, or a one-click change written by code (refine.ts)
+export function refinePrompt(brief: BrandBrief, concept: ConceptReply, change: string | string[]): string {
+  // A one-click lettering change redraws the lettering on purpose
+  const restyles = Array.isArray(change) && change.some((line) => /^Redraw only the lettering/.test(line));
   return [
-    "Image 1 is a logo draft. Change it as the owner asks below, and keep everything else about the design the same.",
-    `The owner’s change: “${clean(change, MAX_CHANGE)}”`,
+    "Image 1 is a logo draft. Change it as described below, and keep everything else about the design the same.",
+    ...(typeof change === "string" ? [`The owner’s change: “${clean(change, MAX_CHANGE)}”`] : change),
+    ...EDIT_RULES,
+    restyles ? null : `${KEEP_LETTERING} The only exception is a change to the lettering that is asked for above.`,
     "",
-    ...lettering(brief),
+    ...lettering(brief, restyles ? "style" : "image"),
     "",
     ...design(concept),
     ...colors(brief, concept),
     "",
     ...rules(QUALITY_RULES),
-  ].join("\n");
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\n");
 }
 
-const VERSION_LAYOUT: Record<VersionKind, (concept: ConceptReply) => string[]> = {
+// An uploaded logo wasn't drawn from an idea, so whether it has a symbol isn't known
+const VERSION_LAYOUT: Record<VersionKind, (concept: ConceptReply | null) => string[]> = {
   stacked: (concept) => [
     "Make the stacked version of this logo for square spaces.",
-    concept.symbol
-      ? "Put the same symbol centered on top, with the business name centered underneath it."
-      : "Put the logo’s first letter, drawn in the logo’s own lettering style, centered on top as a symbol, with the full business name centered underneath it.",
+    !concept
+      ? "If the logo has a symbol, put that same symbol centered on top, with the lettering centered underneath it. If it is lettering only, put its first letter, drawn in the logo’s own lettering style, centered on top, with the full lettering underneath."
+      : concept.symbol
+        ? "Put the same symbol centered on top, with the business name centered underneath it."
+        : "Put the logo’s first letter, drawn in the logo’s own lettering style, centered on top as a symbol, with the full business name centered underneath it.",
     "Square layout, centered on plain white, with generous margins.",
   ],
   profile: (concept) => [
     "Make the profile-picture version of this logo, for social media, where it gets cropped to a circle.",
-    concept.symbol
-      ? "Show only the symbol, without the business name or tagline."
-      : "Show only the logo’s first letter, drawn in the logo’s own lettering style, with no other words.",
+    !concept
+      ? "Show only the logo’s symbol, without any words. If the logo is lettering only, show just its first letter, drawn in the logo’s own lettering style."
+      : concept.symbol
+        ? "Show only the symbol, without the business name or tagline."
+        : "Show only the logo’s first letter, drawn in the logo’s own lettering style, with no other words.",
     "Center it in a square on plain white, and keep all of it inside the middle 70% of the width and height, so nothing is lost when it’s cropped to a circle.",
+    "No border, frame, box, outline, tile or circle behind or around it: just the symbol on plain white, with white all the way to the edges.",
   ],
   solid: () => [
     "Make the one-color version of this logo, for stamps, stickers and embroidery.",
     "Draw the whole logo, symbol and name, in one single solid color: the darkest color in the logo. Plain white background.",
+    "Keep every shape, including the small details and the gaps between shapes: where two colors meet in image 1, leave a thin white gap so the shapes stay separate. Don’t merge shapes into a blob or leave any out.",
     "No second color, no tints, no outlines in another color, no shading.",
   ],
 };
 
-// Image 1 is the chosen logo; only the arrangement or color changes
-export function versionPrompt(brief: BrandBrief, concept: ConceptReply, kind: VersionKind): string {
+// A second try of a version: what the app's check found wrong with the first, to fix this time
+export function retryLines(check: AssetCheck): string[] {
+  const found = [...check.drift.map((flag) => clean(flag.detail, 300)), ...(check.lettering?.problems ?? []).map((problem) => clean(problem, 300))];
+  return ["", "A first try had these problems. Fix them this time, and match image 1 exactly:", ...found.map((line) => `- ${line}`)];
+}
+
+// An uploaded logo's words, as the owner typed them, or none stated
+function uploadedLettering(words: string): string[] {
+  const text = clean(words, MAX_LOGO_WORDS);
+  return text
+    ? [`The words in the logo, spelled exactly: “${text}” (letter by letter: ${spellOut(text)}). Keep them exactly as they are in image 1, with the same capitals and lowercase.`, "No other letters, numbers or words."]
+    : ["Keep every word and letter exactly as it is in image 1. Add no other words."];
+}
+
+// Image 1 is the chosen logo; only the arrangement or color changes. words: set for an uploaded logo.
+export function versionPrompt(brief: BrandBrief, concept: ConceptReply | null, kind: VersionKind, words?: string): string {
   return [
     "Image 1 is a business’s approved logo. Make a version of exactly this logo.",
     ...VERSION_LAYOUT[kind](concept),
     "Keep the design identical: the same symbol, the same letter shapes and lettering style, the same proportions and the same colors (unless asked for one color). Don’t redraw or reinterpret it.",
+    ...(kind === "profile" ? [] : [KEEP_LETTERING]),
     "",
-    ...(kind === "profile" ? [] : lettering(brief)),
+    ...(kind === "profile" ? [] : concept ? lettering(brief, "image") : uploadedLettering(words ?? "")),
     "",
-    ...rules([QUALITY_RULES[1], QUALITY_RULES[4]]),
+    ...rules([QUALITY_RULES[1], QUALITY_RULES[4], "No border, frame or box around the logo."]),
   ].join("\n");
+}
+
+// Image 1 is the owner's own logo, uploaded or an edit of one; the new file changes only what they asked
+export function ownLogoEditPrompt(words: string, change: string): string {
+  return [
+    "Image 1 is a small business’s own logo. Make a new copy of it with the change described below.",
+    `The owner’s change: “${clean(change, MAX_CHANGE)}”`,
+    EDIT_RULES[0],
+    "Keep everything else exactly as it is in image 1: the same symbol, letter shapes, letter case, layout, colors and background.",
+    "",
+    ...uploadedLettering(words),
+    "",
+    "Don’t add mockups, 3D, shadows, textures or effects that aren’t in image 1.",
+  ].join("\n");
+}
+
+// What a picture edit needs to know about the logo it was made from
+export interface EditBase {
+  brief: BrandBrief;
+  concept: ConceptReply | null;
+  words?: string;
+}
+
+// Image 1 is a version or brand image made earlier; image 2 is the chosen logo it must still match
+export function pictureEditPrompt(kind: VersionKind | BrandImageKind, change: string, base: EditBase): string {
+  const image = kind in IMAGE_SPECS ? IMAGE_SPECS[kind as BrandImageKind] : null;
+  const what = image ? `their ${image.title.toLowerCase()}` : `the ${LOGO_SPECS[kind as VersionKind].title.toLowerCase()} version of their logo`;
+  const words = kind === "profile" ? [] : base.concept ? lettering(base.brief, "image") : uploadedLettering(base.words ?? "");
+  return [
+    `Image 1 is ${what}, made for a small business. Image 2 is the business’s approved logo.`,
+    "Make a new copy of image 1 with the change described below.",
+    `The owner’s change: “${clean(change, MAX_CHANGE)}”`,
+    ...EDIT_RULES,
+    image ? "Keep the same kind of picture as image 1 (a photo stays a photo, an illustration stays an illustration), the same scene, framing and safe areas, unless the change asks otherwise." : null,
+    "",
+    "Wherever the logo, its symbol or its lettering appears, keep it exactly as in image 2: the same shapes, lettering, letter case, spelling and colors. Don’t redraw it.",
+    ...words,
+    image ? "No words other than the ones in the logo." : null,
+    image ? null : "No mockups, 3D, gradients or drop shadows.",
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\n");
 }
 
 const IMAGE_PLACEMENT: Record<BrandImageKind, string> = {
   facebook_cover:
-    "Keep the important parts in a band across the middle: Facebook cuts off the top and bottom on phones, and the Page’s profile picture covers part of the left side.",
+    "Keep everything important in a band across the middle third of the height: Facebook cuts off the top and bottom on phones, and the Page’s profile picture covers the lower-left corner. Put the logo in the right half of that band, large enough to read on a phone: about a quarter of the picture’s width.",
   youtube_banner:
-    "Keep the logo small: it must fit inside the middle 60% of the width and the middle 28% of the height, the only part every device shows. Fill the whole banner with the background artwork.",
-  website_hero: "Keep the middle calm and simple, with most of the detail toward the edges, so a headline can sit on top of it.",
-  link_preview: "Put the logo in the center, about half the width of the picture, with plenty of space around it.",
+    "Put the logo inside the safe area: the middle 60% of the width and the middle 28% of the height, the only part every device shows. Make it big there, filling most of that area’s height, so it reads on a phone. Fill the whole banner, edge to edge, with the scene, kept a little calmer right behind the logo so it stays readable.",
+  website_hero:
+    "Leave a calm, uncluttered area across the middle or one side, softly out of focus or plain, where the owner’s headline will go. Put the logo small but clear in the top-left corner, about a sixth of the width, so visitors know whose site it is.",
+  link_preview: "Put the logo in the center, about half the width of the picture, on a calm part of the scene with plenty of space around it.",
 };
 
-// Image 1 is the chosen logo: placed as is, or used only for colors and style
-export function brandImagePrompt(brief: BrandBrief, concept: ConceptReply, kind: BrandImageKind, change: string | null): string {
+// Photo or illustration, from the owner's switch or brand answers (image-style.ts)
+function styleLines(style: ImageStyle, palette: string): string[] {
+  if (style.medium === "illustration") {
+    return [
+      `Style: a polished, flat illustrated scene in the logo’s colors${palette} and drawing style, with simple shapes and motifs.`,
+      "No 3D, gradients or drop shadows, and no photos.",
+    ];
+  }
+  return [
+    `Style: a photorealistic, professionally styled lifestyle and product photograph, as if from the brand’s own photo shoot: ${style.light}, shallow depth of field, real textures and materials, with props and a setting that fit the business.`,
+    style.lively
+      ? "Make it bright, punchy and colorful: saturated colors, high energy and fun, playful props, like a bold lifestyle campaign. Still a real photograph."
+      : null,
+    "Real-looking people only where they suit the business, such as hands holding what they sell or someone using the service: natural and tasteful, never the main focus.",
+    `Carry the brand’s colors${palette} through the props, fabrics, surfaces and background.`,
+    "Not an illustration, cartoon, flat vector art or 3D render. No collage, frames or borders.",
+  ].filter((line): line is string => line !== null);
+}
+
+// Pasted-on logos looked fake in photos: there the logo is a real object in the scene; an illustration may overlay it
+export function logoPlacement(medium: "photo" | "illustration"): string[] {
+  const exact = "Keep the logo exactly as in image 1: the same shapes, lettering, letter case, spelling and colors. Don’t redraw it.";
+  return medium === "photo"
+    ? [
+        "Show the logo from image 1 as a real object in the scene, printed, painted or stitched on something that belongs there: a shop sign, a hang tag, a product label, an apron, a box, a window decal or fabric.",
+        "It takes on that surface’s perspective, curve, lighting, shadows and texture, like everything else in the photo. Never a floating sticker or badge laid over the photo, and never on a plain white card or rectangle.",
+        "Where the placement below says where the logo goes, put the object that carries it in that part of the picture.",
+        exact,
+      ]
+    : ["Place the logo from image 1 as a clean, flat overlay in the position described below, with no box or card behind it.", exact];
+}
+
+// Image 1 is the chosen logo; image 2, when given, the approved example the others match. An uploaded logo may have no colors listed.
+// chosen: the owner's Photo / Illustration switch; null leaves it to the rule
+export function brandImagePrompt(brief: BrandBrief, colors: PaletteColor[], kind: BrandImageKind, change: string | null, example?: BrandImageKind, chosen: ImageMedium | null = null): string {
   const spec = IMAGE_SPECS[kind];
+  const style = imageStyle(brief, chosen);
   const name = clean(brief.name, BRIEF_LIMITS.name);
   const sells = clean(brief.sells, BRIEF_LIMITS.sells);
-  const palette = concept.palette.map((color) => color.hex).join(", ");
+  const palette = colors.length ? ` (${colors.map((color) => color.hex).join(", ")})` : "";
   return [
-    spec.withLogo
-      ? `Image 1 is the approved logo of “${name}”, a small business. Make their ${spec.title.toLowerCase()}: ${spec.purpose}`
-      : `Image 1 is the logo of “${name}”, a small business. Use it only for its colors and drawing style. Make their ${spec.title.toLowerCase()}: ${spec.purpose}`,
+    `Image 1 is the approved logo of “${name}”, a small business. Make their ${spec.title.toLowerCase()}: ${spec.purpose}`,
+    example
+      ? `Image 2 is the business’s approved ${IMAGE_SPECS[example].title.toLowerCase()}. Match its look exactly, as if from the same shoot: the same kind of picture, light, colors, setting, props and mood. Make a new composition for this shape; don’t copy or crop image 2.`
+      : null,
     "",
-    spec.withLogo
-      ? "Place the logo from image 1 exactly as it is: the same shapes, lettering, spelling and colors. Don’t redraw it."
-      : "Don’t include the logo, its symbol, or any letters, words or numbers.",
+    `The picture must make it obvious at a glance what “${name}” sells (${sells}) and feel unmistakably like this brand. Show only the kinds of things they actually sell, plain and unbranded apart from the logo; never invent other products, prices or offers.`,
+    ...logoPlacement(style.medium),
     IMAGE_PLACEMENT[kind],
-    `Background: simple flat artwork in the logo’s colors (${palette}) and drawing style: shapes, patterns, simple motifs or a simple illustrated scene that capture the brand and suggest what they sell (${sells}).`,
-    ...feel(brief),
-    "Not a photo, and no pictures of specific products, so nothing looks like something they don’t sell.",
-    spec.withLogo ? "No words other than the ones in the logo." : null,
-    "No mockups, 3D, gradients or drop shadows.",
+    ...styleLines(style, palette),
+    ...feel(brief, style.medium === "photo"),
+    "The only words anywhere are the ones in the logo. No other text, and no other signs or labels with words, numbers or slogans.",
     change ? `The owner’s change: “${clean(change, MAX_CHANGE)}”` : null,
   ]
     .filter((line): line is string => line !== null)

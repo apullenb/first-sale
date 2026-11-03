@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { uploadRecordAction } from "@/app/(app)/documents/form-actions";
-import { INPUT, SECONDARY } from "@/components/styles";
+import { Icon } from "@/components/icons";
+import { ALERT, INPUT, SECONDARY } from "@/components/styles";
 
 const ROLES = [
   ["receipt", "A receipt or filing confirmation"],
@@ -35,7 +36,7 @@ export function RecordUpload({ stepId, accept }: { stepId: string; accept: strin
         router.refresh();
       }
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }
@@ -64,16 +65,24 @@ export function RecordUpload({ stepId, accept }: { stepId: string; accept: strin
         required
         accept={accept}
         onChange={() => (requestKey.current = null)}
-        className="min-h-11 max-w-full text-sm"
+        className="min-h-11 max-w-full rounded-[10px] border border-line-strong bg-soft p-2 text-sm file:mr-3 file:min-h-9 file:rounded-lg file:border file:border-line-strong file:bg-surface file:px-3 file:font-semibold"
       />
       <button type="submit" disabled={pending} className={`${SECONDARY} w-fit`}>
+        <Icon name="upload" size="sm" />
         {pending ? "Saving…" : "Save to this step"}
       </button>
-      <p role="status" className={saved ? "text-sm font-semibold text-accent-ink" : "sr-only"}>
-        {saved ? "Saved to your documents." : ""}
+      <p role="status" className={saved ? "flex items-center gap-1.5 text-sm font-semibold text-done" : "sr-only"}>
+        {saved ? (
+          <>
+            <Icon name="check" size="sm" />
+            Saved to your documents.
+          </>
+        ) : (
+          ""
+        )}
       </p>
       {error ? (
-        <p role="alert" className="rounded-lg bg-check-tint px-3 py-2.5 text-sm text-check">
+        <p role="alert" className={ALERT}>
           {error}
         </p>
       ) : null}

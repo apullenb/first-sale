@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { orderTasks, taskReadiness } from "./checklist";
+import { orderTasks } from "./checklist";
 
 const tasks = [
   { id: "bank-account", prerequisites: ["ein"] },
@@ -40,17 +40,5 @@ describe("orderTasks", () => {
         { id: "a", prerequisites: [] },
       ]),
     ).toThrow(/unique/);
-  });
-});
-
-describe("taskReadiness", () => {
-  it("splits tasks into done, ready, and waiting", () => {
-    expect(taskReadiness(tasks, new Set(["name-search"]))).toEqual([
-      { id: "bank-account", state: "waiting", waitingOn: ["ein"] },
-      { id: "file-llc", state: "ready" },
-      { id: "name-search", state: "done" },
-      { id: "ein", state: "waiting", waitingOn: ["file-llc"] },
-      { id: "insurance", state: "ready" },
-    ]);
   });
 });

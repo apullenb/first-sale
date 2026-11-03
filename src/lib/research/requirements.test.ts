@@ -111,7 +111,7 @@ describe("placeQuestions", () => {
     const place = testProfile({ location: { county: "Franklin", city: "Columbus", insideCityLimits: "yes" } });
     expect(placeQuestions(place, gaps, true)).toEqual([
       {
-        question: "We couldn’t find an official page about registering a business name in Ohio. That doesn’t mean there are no rules, so ask.",
+        question: "We couldn’t find an official page about registering a business name in Ohio. That doesn’t mean nothing applies, so ask.",
         whoToCall: "Ohio’s state government",
       },
       {
@@ -119,7 +119,7 @@ describe("placeQuestions", () => {
         whoToCall: "Franklin County offices",
       },
       {
-        question: "We couldn’t find an official page about business licenses in Columbus. That doesn’t mean there are no rules, so ask.",
+        question: "We couldn’t find an official page about business licenses in Columbus. That doesn’t mean nothing applies, so ask.",
         whoToCall: "Columbus city hall",
       },
     ]);
@@ -231,6 +231,9 @@ describe("researchRequirements", () => {
     });
     expect(plan.get("structure")!.index).toBeLessThan(plan.get("ein")!.index);
     expect(plan.get("ein")!.index).toBeLessThan(plan.get("sales-tax")!.index);
+    // What the owner does travels with each step, for stepKindOf
+    expect(plan.get("structure")!.ownerAction).toBe("decision");
+    expect(plan.get("cottage-food")!.ownerAction).toBe("compliance");
 
     // No search in practice mode: one "not searched yet" question a topic, after the city-limits question
     expect(result.openQuestions[0].question).toMatch(/inside the city limits of Columbus/);
@@ -244,6 +247,29 @@ describe("researchRequirements", () => {
       "We haven’t searched official sites about business licenses in Columbus yet.",
       "We haven’t searched official sites about running a business from home in Columbus yet.",
     ]);
+  });
+
+  it("adds a practice formation step for an LLC or corporation outside Texas, with nothing stated from memory", async () => {
+    for (const [choice, key, kind] of [
+      ["llc", "llc-formation", "LLC"],
+      ["corporation", "corporation-formation", "corporation"],
+    ] as const) {
+      const result = await researchRequirements(createMockProvider(), profile, {
+        fetchImpl: officialSites(),
+        now: NOW,
+        packs: FEDERAL,
+        details: [{ key: "structure_choice", value: choice }],
+      });
+      expect(result.simulated).toBe(true);
+      const step = result.requirements.find((r) => r.key === key)!;
+      expect(step).toMatchObject({ title: `Form your ${kind} with the state of Ohio`, feeUsd: null, verification: "needs_verification" });
+      expect(step.whyItApplies).toMatch(/^Practice step:/);
+      expect(step.whyItApplies).toMatch(/fee and timing are unknown/);
+      // The plan's own rule: an EIN waits for the company to exist
+      expect(result.plan.find((each) => each.key === "ein")!.prerequisites).toContain(key);
+    }
+    const none = await researchRequirements(createMockProvider(), profile, { fetchImpl: officialSites(), now: NOW, packs: FEDERAL });
+    expect(none.requirements.some((r) => r.key.endsWith("-formation"))).toBe(false);
   });
 
   it("reads the pages search found, and lets a state page back a state requirement", async () => {
@@ -324,7 +350,7 @@ describe("researchRequirements", () => {
     // Code's questions first: city limits, then topics search found nothing for, then the model's own
     expect(result.openQuestions[0].question).toMatch(/city limits/);
     expect(result.openQuestions[1].question).toBe(
-      "We couldn’t find an official page about forming an LLC or other business entity in Ohio. That doesn’t mean there are no rules, so ask.",
+      "We couldn’t find an official page about forming an LLC or other business entity in Ohio. That doesn’t mean nothing applies, so ask.",
     );
     expect(result.openQuestions.at(-1)).toEqual({ question: "Do you need a vendor license?", whoToCall: "Columbus city hall" });
     expect(result.openQuestions.some((q) => q.question.includes("registering a business name in Ohio"))).toBe(false);

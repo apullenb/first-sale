@@ -17,11 +17,11 @@ type Watched = { what: string; affects: string; read: (profile: BusinessProfile)
 const WATCHED: Watched[] = [
   {
     what: "Where your business is",
-    affects: "Which state, county and city rules apply",
+    affects: "Which state, county and city requirements apply",
     read: (profile) => `${placeLabel(placeOf(profile))}${profile.location.insideCityLimits === "yes" ? " (inside city limits)" : profile.location.insideCityLimits === "no" ? " (outside city limits)" : ""}`,
   },
-  { what: "What you sell", affects: "Licenses, permits, food rules and sales tax", read: (profile) => [profile.category, [...profile.offeringKinds].sort(), [...profile.productTags].sort(), profile.firstItems] },
-  { what: "Whether your food needs refrigeration", affects: "Cottage food and home bakery rules", read: (profile) => profile.foodNeedsCold },
+  { what: "What you sell", affects: "Licenses, permits, food safety laws and sales tax", read: (profile) => [profile.category, [...profile.offeringKinds].sort(), [...profile.productTags].sort(), profile.firstItems] },
+  { what: "Whether your food needs refrigeration", affects: "Cottage food and home bakery laws", read: (profile) => profile.foodNeedsCold },
   {
     what: "How you sell and hand things over",
     affects: "Zoning, vendor licenses and sales tax",
@@ -33,7 +33,7 @@ const WATCHED: Watched[] = [
   { what: "Your business name", affects: "Name registration", read: (profile) => [profile.name, profile.nameIsLegalName] },
   { what: "Help you’ll have", affects: "Steps for hiring", read: (profile) => [profile.hiringPlans, [...profile.helpKinds].sort()] },
   { what: "What you already have", affects: "Steps you may have finished", read: (profile) => [...profile.alreadyHave].sort() },
-  { what: "What you make", affects: "Product safety rules", read: (profile) => [profile.makesForKids, profile.foodContact, [...profile.inventorySources].sort()] },
+  { what: "What you make", affects: "Product safety requirements", read: (profile) => [profile.makesForKids, profile.foodContact, [...profile.inventorySources].sort()] },
 ];
 
 export function answerChanges(

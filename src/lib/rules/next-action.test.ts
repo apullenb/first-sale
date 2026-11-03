@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type ActionStep, nextActions, planCosts } from "./next-action";
+import { type ActionStep, costWords, planCosts } from "./next-action";
 
 const step = (key: string, overrides: Partial<ActionStep> = {}): ActionStep => ({
   key,
@@ -11,30 +11,6 @@ const step = (key: string, overrides: Partial<ActionStep> = {}): ActionStep => (
   feeCents: null,
   renewal: null,
   ...overrides,
-});
-
-describe("nextActions", () => {
-  it("separates what can happen now from what waits, what's later and what's optional", () => {
-    const actions = nextActions([
-      step("structure", { status: "done" }),
-      step("name", { prerequisites: ["structure"] }),
-      step("vendor"),
-      step("ein", { prerequisites: ["llc"] }),
-      step("llc", { status: "submitted" }),
-      step("bakery", { requirementStatus: "conditional" }),
-      step("renewal-reminder", { timing: "later" }),
-      step("kids-rules", { requirementStatus: "outside_coverage" }),
-      step("ein-optional", { requirementStatus: "optional" }),
-    ]);
-    expect(actions.now.map((each) => each.key)).toEqual(["name", "vendor"]);
-    expect(actions.decide.map((each) => each.key)).toEqual(["bakery"]);
-    expect(actions.submitted.map((each) => each.key)).toEqual(["llc"]);
-    // Submitted isn't approved, so the EIN still waits
-    expect(actions.waiting.map((each) => [each.step.key, each.on.map((on) => on.key)])).toEqual([["ein", ["llc"]]]);
-    expect(actions.later.map((each) => each.key)).toEqual(["renewal-reminder"]);
-    expect(actions.optional.map((each) => each.key)).toEqual(["kids-rules", "ein-optional"]);
-    expect(actions.first?.key).toBe("name");
-  });
 });
 
 describe("planCosts", () => {
@@ -76,3 +52,28 @@ describe("planCosts: one form, several steps", () => {
   });
 });
 
+
+describe("planCosts: what has a fee to find", () => {
+  it("counts a company filing's unknown fee, but not a decision or a rule to follow", () => {
+    const costs = planCosts([
+      step("Operate as a sole proprietorship", { topic: "structure" }),
+      step("Form your LLC with the state of Ohio", { topic: "structure", forStructures: ["llc"] }),
+      step("Label your cottage foods the way Texas requires", { topic: "license_permit" }),
+    ]);
+    expect(costs.unknown).toEqual(["Form your LLC with the state of Ohio"]);
+  });
+});
+
+describe("costWords", () => {
+  it("never calls a total free while a fee is unknown", () => {
+    const words = costWords({ startupCents: 0, unknown: ["a", "b", "c", "d"] });
+    expect(words).toEqual({ known: "Known fees: $0", unconfirmed: "4 costs still unconfirmed", total: "Your total startup cost isn’t known yet" });
+    expect(Object.values(words).join(" ")).not.toMatch(/free/i);
+  });
+
+  it("gives a total only once every fee is known", () => {
+    expect(costWords({ startupCents: 2550, unknown: ["a"] })).toMatchObject({ known: "Known fees: $25.50", unconfirmed: "1 cost still unconfirmed" });
+    expect(costWords({ startupCents: 2500, unknown: [] })).toEqual({ known: "Known fees: $25", unconfirmed: null, total: "Total known startup fees: $25" });
+    expect(costWords({ startupCents: 0, unknown: [] }).total).toBe("No startup fees found on official pages");
+  });
+});

@@ -5,8 +5,11 @@ import { type FormEvent, useId, useLayoutEffect, useRef, useState } from "react"
 import type { ActionResult } from "@/app/(app)/business/actions";
 import { explainReceivedAction, officialFormAction, pasteDocumentAction, uploadDocumentAction } from "@/app/(app)/documents/actions";
 import { uploadRecordAction } from "@/app/(app)/documents/form-actions";
-import { ActorChip } from "@/components/actor-chip";
-import { AI_BUTTON, ALERT, CARD, INPUT, PRIMARY, SECONDARY, SECTION_TITLE } from "@/components/styles";
+import Link from "next/link";
+import { Icon } from "@/components/icons";
+import { AI_BUTTON, ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
+import { Working } from "@/components/working";
+import { Card } from "@/components/ui";
 
 // "have": a paper the owner already has or got in the mail; "fill": a form to fill in
 export type AddKind = "have" | "fill";
@@ -34,8 +37,11 @@ const MODES: { value: AddMode; label: string }[] = [
 const SHRINK_OVER_BYTES = 3_500_000;
 const MAX_WIDTH = 2400;
 
+const CHOICES = "grid grid-cols-[repeat(auto-fill,minmax(min(100%,230px),1fr))] gap-2";
 const CHOICE =
-  "flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-field bg-surface px-3.5 font-semibold has-checked:border-accent has-checked:bg-accent-tint has-checked:text-accent-ink has-focus-visible:ring-2 has-focus-visible:ring-accent";
+  "flex min-h-[50px] cursor-pointer items-center gap-3 rounded-xl border border-line-strong bg-surface px-3.5 py-2.5 font-semibold leading-snug shadow-soft transition hover:border-muted has-checked:border-accent has-checked:ring-[3px] has-checked:ring-accent-tint has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent";
+const LABEL = "text-[15.5px] font-semibold";
+const HINT = "text-[14.5px] text-muted";
 
 interface Props {
   steps: { id: string; title: string }[];
@@ -45,9 +51,11 @@ interface Props {
   acceptedTypes: string[];
   maxUploadBytes: number;
   maxPasteChars: number;
+  // Where Close goes; no Close button without it
+  closeHref?: string;
 }
 
-export function AddFormPanel({ steps, initialStep, initialKind, initialMode, acceptedTypes, maxUploadBytes, maxPasteChars }: Props) {
+export function AddFormPanel({ steps, initialStep, initialKind, initialMode, acceptedTypes, maxUploadBytes, maxPasteChars, closeHref }: Props) {
   const uid = useId();
   const router = useRouter();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -119,243 +127,241 @@ export function AddFormPanel({ steps, initialStep, initialKind, initialMode, acc
       if (fileInput.current) fileInput.current.value = "";
       router.push(`/documents/${result.value}`);
     } catch {
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setStatus(null);
     }
   }
 
   return (
-    <section aria-labelledby={`${uid}-heading`} id="add-form" className={`${CARD} flex flex-col gap-4`}>
-      <div className="flex flex-col gap-1.5">
-        <h2 id={`${uid}-heading`} className={SECTION_TITLE}>
-          Add to your library
-        </h2>
-        {kind === "have" ? (
-          <>
+    <div id="add-form" className="scroll-mt-4">
+      <Card
+        title="Add to your library"
+        icon="upload"
+        id={`${uid}-heading`}
+        action={
+          closeHref ? (
+            <Link href={closeHref} className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] px-2.5 text-[15px] font-semibold text-muted hover:bg-wash hover:text-ink">
+              <Icon name="close" size="sm" />
+              Close
+            </Link>
+          ) : null
+        }
+      >
+        <div className="flex flex-col gap-2.5">
+          {kind === "have" ? (
             <p className="text-rule">
-              Upload papers you already have, like your LLC certificate or EIN letter, or a letter you got in the mail and aren’t sure about.
-              First Sale can explain what it is, what it means, and anything you need to do.
+              Upload papers you already have, like your LLC certificate or the IRS letter with your EIN (tax ID number), or a letter you got in the mail and aren’t sure about. SnapStart can
+              explain what it is, what it means, and anything you need to do.
             </p>
-            <p className="flex items-start gap-2.5 text-sm text-rule">
-              <ActorChip actor="ai" />
-              <span>AI reads it only if you ask for an explanation. Social Security, tax ID and card numbers are left out of the explanation.</span>
-            </p>
-          </>
-        ) : (
-          <>
+          ) : (
             <p className="text-rule">
-              Add a form you need to fill in, such as a registration or permit application. First Sale reads it, explains it, and helps you
-              draft answers.
+              Add a form you need to fill in, such as a registration or permit application. SnapStart reads it, explains it, and helps you draft answers.
             </p>
-            <p className="flex items-start gap-2.5 text-sm text-rule">
-              <ActorChip actor="ai" />
-              <span>AI reads the form and finds the blanks to fill in. First Sale never files or submits anything for you.</span>
-            </p>
-          </>
-        )}
-      </div>
+          )}
+        </div>
 
-      <form onSubmit={submit} className="flex flex-col gap-4">
-        <fieldset className="flex flex-col gap-2">
-          <legend className="mb-2 font-semibold">What are you adding?</legend>
-          <div className="flex flex-wrap gap-2">
-            {KINDS.map((option) => (
-              <label key={option.value} className={CHOICE}>
-                <input
-                  type="radio"
-                  name={`${uid}-kind`}
-                  value={option.value}
-                  checked={kind === option.value}
-                  onChange={() => {
-                    setKind(option.value);
-                    setError(null);
-                  }}
-                  className="size-4 accent-accent"
-                />
-                {option.label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        {kind === "have" ? (
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={`${uid}-role`} className="font-semibold">
-              What is it?
-            </label>
-            <select id={`${uid}-role`} value={role} onChange={(event) => {
-                setRole(event.target.value as typeof role);
-                requestKey.current = null;
-              }} className={INPUT}>
-              {KEPT_ROLES.map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : (
+        <form onSubmit={submit} className="mt-2 flex flex-col gap-5 border-t border-line pt-5">
           <fieldset className="flex flex-col gap-2">
-            <legend className="mb-2 font-semibold">How would you like to add it?</legend>
-            <div className="flex flex-wrap gap-2">
-              {MODES.map((option) => (
+            <legend className={`mb-2 ${LABEL}`}>What are you adding?</legend>
+            <div className={CHOICES}>
+              {KINDS.map((option) => (
                 <label key={option.value} className={CHOICE}>
                   <input
                     type="radio"
-                    name={`${uid}-mode`}
+                    name={`${uid}-kind`}
                     value={option.value}
-                    checked={mode === option.value}
+                    checked={kind === option.value}
                     onChange={() => {
-                      setMode(option.value);
+                      setKind(option.value);
                       setError(null);
                     }}
-                    className="size-4 accent-accent"
+                    className="size-[18px] shrink-0 accent-accent"
                   />
                   {option.label}
                 </label>
               ))}
             </div>
           </fieldset>
-        )}
 
-        {kind === "have" || mode === "upload" ? (
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={`${uid}-file`} className="font-semibold">
-              {kind === "have" ? "The document, as a PDF or photo" : "The form, as a PDF or photo"}
-            </label>
-            <input
-              id={`${uid}-file`}
-              ref={fileInput}
-              type="file"
-              accept={acceptedTypes.join(",")}
-              onChange={(event) => {
-                setFile(event.target.files?.[0] ?? null);
-                requestKey.current = null;
-              }}
-              className="min-h-12 w-full rounded-lg border border-field bg-surface px-3 py-2.5 text-base file:mr-3 file:min-h-9 file:rounded-md file:border-0 file:bg-accent-tint file:px-3 file:font-semibold file:text-accent-ink"
-              aria-describedby={`${uid}-file-help`}
-            />
-            <div id={`${uid}-file-help`} className="flex flex-col gap-1 text-sm text-muted">
-              <p>PDFs and photos (PNG, JPEG or WebP), up to {maxMb}. Large photos are made smaller before they’re sent.</p>
-              <p>
-                iPhone photos saved as HEIC only work if your browser converts them. If yours doesn’t, take a screenshot of
-                the photo and upload that.
-              </p>
-            </div>
-          </div>
-        ) : null}
-
-        {kind === "fill" && mode === "paste" ? (
-          <>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor={`${uid}-title`} className="font-semibold">
-                Name for this form <span className="font-normal text-muted">(optional)</span>
-              </label>
-              <input
-                id={`${uid}-title`}
-                type="text"
-                maxLength={120}
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="For example: Sales tax permit application"
-                className={INPUT}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor={`${uid}-text`} className="font-semibold">
-                The form’s text
-              </label>
-              <textarea
-                id={`${uid}-text`}
-                rows={8}
-                maxLength={maxPasteChars}
-                value={text}
-                onChange={(event) => setText(event.target.value)}
-                className={INPUT}
-                aria-describedby={`${uid}-text-help`}
-              />
-              <p id={`${uid}-text-help`} className="text-sm text-muted">
-                Copy the form’s questions and instructions from the website or document, and paste them here. Up to{" "}
-                {maxPasteChars.toLocaleString("en-US")} characters ({text.length.toLocaleString("en-US")} so far).
-              </p>
-            </div>
-          </>
-        ) : null}
-
-        {kind === "fill" && mode === "official" ? (
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={`${uid}-url`} className="font-semibold">
-              Link to the form
-            </label>
-            <input
-              id={`${uid}-url`}
-              type="url"
-              inputMode="url"
-              maxLength={2000}
-              value={url}
-              onChange={(event) => setUrl(event.target.value)}
-              placeholder="https://www.example.gov/forms/application.pdf"
-              className={INPUT}
-              aria-describedby={`${uid}-url-help`}
-            />
-            <p id={`${uid}-url-help`} className="text-sm text-muted">
-              First Sale only fetches PDF forms from official government websites, usually ending in .gov. If the form is
-              filled in online, paste its questions instead.
-            </p>
-          </div>
-        ) : null}
-
-        {steps.length ? (
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={`${uid}-step`} className="font-semibold">
-              Which step in your plan is it for? <span className="font-normal text-muted">(optional)</span>
-            </label>
-            <select
-              id={`${uid}-step`}
-              value={stepId}
-              onChange={(event) => {
-                setStepId(event.target.value);
-                requestKey.current = null;
-              }}
-              className={INPUT}
-            >
-              <option value="">Not linked to a step</option>
-              {steps.map((step) => (
-                <option key={step.id} value={step.id}>
-                  {step.title}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : null}
-
-        <div className="flex flex-col items-start gap-2">
           {kind === "have" ? (
-            <div className="flex flex-wrap gap-2">
-              <button type="submit" value="explain" disabled={pending} className={AI_BUTTON}>
-                {pending ? "Working…" : "Save and explain it"}
-              </button>
-              <button type="submit" value="save" disabled={pending} className={SECONDARY}>
-                Just save it
-              </button>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor={`${uid}-role`} className={LABEL}>
+                What is it?
+              </label>
+              <select id={`${uid}-role`} value={role} onChange={(event) => {
+                  setRole(event.target.value as typeof role);
+                  requestKey.current = null;
+                }} className={INPUT}>
+                {KEPT_ROLES.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
             </div>
           ) : (
-            <button type="submit" disabled={pending} className={PRIMARY}>
-              {pending ? "Adding…" : "Add this form"}
-            </button>
+            <fieldset className="flex flex-col gap-2">
+              <legend className={`mb-2 ${LABEL}`}>How would you like to add it?</legend>
+              <div className={CHOICES}>
+                {MODES.map((option) => (
+                  <label key={option.value} className={CHOICE}>
+                    <input
+                      type="radio"
+                      name={`${uid}-mode`}
+                      value={option.value}
+                      checked={mode === option.value}
+                      onChange={() => {
+                        setMode(option.value);
+                        setError(null);
+                      }}
+                      className="size-[18px] shrink-0 accent-accent"
+                    />
+                    {option.label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
           )}
-          <p role="status" className={pending ? "text-sm text-muted" : "sr-only"}>
-            {status ?? ""}
-          </p>
-          {error ? (
-            <p role="alert" className={ALERT}>
-              {error}
-            </p>
+
+          {kind === "have" || mode === "upload" ? (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor={`${uid}-file`} className={LABEL}>
+                {kind === "have" ? "The document, as a PDF or photo" : "The form, as a PDF or photo"}
+              </label>
+              <input
+                id={`${uid}-file`}
+                ref={fileInput}
+                type="file"
+                accept={acceptedTypes.join(",")}
+                onChange={(event) => {
+                  setFile(event.target.files?.[0] ?? null);
+                  requestKey.current = null;
+                }}
+                className="min-h-12 w-full rounded-[10px] border border-dashed border-line-strong bg-soft px-3 py-2.5 text-base shadow-soft file:mr-3 file:min-h-9 file:cursor-pointer file:rounded-lg file:border file:border-line-strong file:bg-surface file:px-3 file:font-semibold file:text-ink focus-visible:border-accent"
+                aria-describedby={`${uid}-file-help`}
+              />
+              <div id={`${uid}-file-help`} className={`flex flex-col gap-1 ${HINT}`}>
+                <p>PDFs and photos (PNG, JPEG or WebP), up to {maxMb}. Large photos are made smaller before they’re sent.</p>
+                <p>
+                  iPhone photos saved as HEIC only work if your browser converts them. If yours doesn’t, take a screenshot of
+                  the photo and upload that.
+                </p>
+              </div>
+            </div>
           ) : null}
-        </div>
-      </form>
-    </section>
+
+          {kind === "fill" && mode === "paste" ? (
+            <>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor={`${uid}-title`} className={LABEL}>
+                  Name for this form <span className="font-normal text-muted">(optional)</span>
+                </label>
+                <input
+                  id={`${uid}-title`}
+                  type="text"
+                  maxLength={120}
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="For example: Sales tax permit application"
+                  className={INPUT}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor={`${uid}-text`} className={LABEL}>
+                  The form’s text
+                </label>
+                <textarea
+                  id={`${uid}-text`}
+                  rows={8}
+                  maxLength={maxPasteChars}
+                  value={text}
+                  onChange={(event) => setText(event.target.value)}
+                  className={INPUT}
+                  aria-describedby={`${uid}-text-help`}
+                />
+                <p id={`${uid}-text-help`} className={HINT}>
+                  Copy the form’s questions and instructions from the website or document, and paste them here. Up to{" "}
+                  {maxPasteChars.toLocaleString("en-US")} characters ({text.length.toLocaleString("en-US")} so far).
+                </p>
+              </div>
+            </>
+          ) : null}
+
+          {kind === "fill" && mode === "official" ? (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor={`${uid}-url`} className={LABEL}>
+                Link to the form
+              </label>
+              <input
+                id={`${uid}-url`}
+                type="url"
+                inputMode="url"
+                maxLength={2000}
+                value={url}
+                onChange={(event) => setUrl(event.target.value)}
+                placeholder="https://www.example.gov/forms/application.pdf"
+                className={INPUT}
+                aria-describedby={`${uid}-url-help`}
+              />
+              <p id={`${uid}-url-help`} className={HINT}>
+                SnapStart only fetches PDF forms from official government websites, usually ending in .gov. If the form is
+                filled in online, paste its questions instead.
+              </p>
+            </div>
+          ) : null}
+
+          {steps.length ? (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor={`${uid}-step`} className={LABEL}>
+                Which step in your plan is it for? <span className="font-normal text-muted">(optional)</span>
+              </label>
+              <select
+                id={`${uid}-step`}
+                value={stepId}
+                onChange={(event) => {
+                  setStepId(event.target.value);
+                  requestKey.current = null;
+                }}
+                className={INPUT}
+              >
+                <option value="">Not linked to a step</option>
+                {steps.map((step) => (
+                  <option key={step.id} value={step.id}>
+                    {step.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
+          <div className="flex flex-col items-start gap-2">
+            {kind === "have" ? (
+              <div className="flex flex-wrap gap-2">
+                <button type="submit" value="explain" disabled={pending} className={AI_BUTTON}>
+                  <Icon name="sparkles" size="sm" />
+                  {pending ? "Working…" : "Save and explain it"}
+                </button>
+                <button type="submit" value="save" disabled={pending} className={SECONDARY}>
+                  Just save it
+                </button>
+              </div>
+            ) : (
+              <button type="submit" disabled={pending} className={PRIMARY}>
+                <Icon name="upload" size="sm" />
+                {pending ? "Adding…" : "Add this form"}
+              </button>
+            )}
+            <Working label={status ?? ""} active={pending} />
+            {error ? (
+              <p role="alert" className={ALERT}>
+                {error}
+              </p>
+            ) : null}
+          </div>
+        </form>
+      </Card>
+    </div>
   );
 }
 
@@ -369,7 +375,7 @@ async function prepareUpload(file: File, acceptedTypes: string[], maxBytes: numb
   }
   const accepted = acceptedTypes.includes(file.type);
   if (!accepted && !file.type.startsWith("image/") && !/\.(png|jpe?g|webp|heic|heif)$/i.test(file.name)) {
-    return { ok: false, message: "First Sale can read PDFs and photos (PNG, JPEG or WebP). Try one of those." };
+    return { ok: false, message: "SnapStart can read PDFs and photos (PNG, JPEG or WebP). Try one of those." };
   }
 
   let bitmap: ImageBitmap;

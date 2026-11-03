@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { flushSync } from "react-dom";
+import { ALERT, EYEBROW, PRIMARY, SECONDARY, TEXT_LINK } from "@/components/styles";
 import { authClient } from "@/lib/auth/client";
 import { authErrorMessage, isValidEmail, NETWORK_ERROR_MESSAGE } from "@/lib/auth/rules";
 import { TextField } from "./text-field";
 
 export function LogInForm() {
   const [values, setValues] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const [tried, setTried] = useState(false);
   const [pending, setPending] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -57,8 +59,12 @@ export function LogInForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Welcome back</h1>
+    <form onSubmit={onSubmit} noValidate className="my-auto flex flex-col gap-5">
+      <div className="flex flex-col gap-1.5">
+        <p className={EYEBROW}>Log in</p>
+        <h1 className="font-display text-[30px] leading-[1.15] tracking-[-0.01em] sm:text-[34px]">Welcome back</h1>
+        <p className="text-muted">Pick up where you left off.</p>
+      </div>
       <TextField
         id="login-email"
         label="Email"
@@ -71,27 +77,38 @@ export function LogInForm() {
       <TextField
         id="login-password"
         label="Password"
-        type="password"
+        type={showPassword ? "text" : "password"}
         autoComplete="current-password"
         value={values.password}
         onChange={(e) => setValues((v) => ({ ...v, password: e.target.value }))}
         error={tried ? problems.password : null}
+        addon={
+          <button
+            type="button"
+            onClick={() => setShowPassword((shown) => !shown)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-controls="login-password"
+            className={`${SECONDARY} min-w-18`}
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        }
       />
       {formError ? (
-        <p ref={errorRef} role="alert" tabIndex={-1} className="rounded-lg bg-check-tint px-3 py-2.5 text-sm text-check">
+        <p ref={errorRef} role="alert" tabIndex={-1} className={ALERT}>
           {formError}
         </p>
       ) : null}
       <button
         type="submit"
         disabled={pending}
-        className="min-h-12 rounded-lg bg-accent px-5 font-bold text-white hover:bg-accent-ink disabled:opacity-60"
+        className={`${PRIMARY} w-full`}
       >
         {pending ? "Logging in…" : "Log in"}
       </button>
-      <p className="text-[15px]">
+      <p className="border-t border-line pt-4 text-[15px] text-muted">
         New here?{" "}
-        <Link href="/signup" className="inline-flex min-h-11 items-center font-bold text-accent-ink underline underline-offset-4">
+        <Link href="/signup" className={`inline-flex min-h-11 items-center ${TEXT_LINK}`}>
           Create an account
         </Link>
       </p>

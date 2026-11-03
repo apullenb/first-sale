@@ -6,9 +6,15 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   // PGlite loads its WebAssembly files from disk, which breaks when bundled
   serverExternalPackages: ["@electric-sql/pglite"],
+  // PDF fonts are read from disk at run time
+  outputFileTracingIncludes: { "/**": ["src/lib/documents/fonts/*.ttf"] },
   experimental: {
     // Room for a 4 MB document upload plus the form's own overhead
     serverActions: { bodySizeLimit: "4.5mb" },
+  },
+  // The overview of every step is /start; task pages stay at /checklist/<id>
+  async redirects() {
+    return [{ source: "/checklist", destination: "/start", permanent: false }];
   },
   async headers() {
     return [
@@ -29,6 +35,10 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/brand/files/:id",
+        headers: [{ key: "Content-Security-Policy", value: "sandbox; frame-ancestors 'none'" }],
+      },
+      {
+        source: "/brand-library/files/:id",
         headers: [{ key: "Content-Security-Policy", value: "sandbox; frame-ancestors 'none'" }],
       },
       {

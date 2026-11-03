@@ -16,6 +16,8 @@ const TAG = new RegExp(`^[${MARK}${TARGET}](\\d)${MARK}`);
 
 export interface PageText {
   title: string;
+  // The page's main heading, or the linked section's
+  heading: string;
   // Null when the link's #section isn't on the page
   text: string | null;
 }
@@ -28,11 +30,14 @@ export function pageText(html: string, fragment = ""): PageText {
 
   const title = clean(root.querySelector("title")?.text ?? "");
   if (fragment) {
+    const anchor = root.querySelectorAll("[id]").find((element) => element.id === fragment);
+    const heading = clean(anchor ? (HEADING.test(anchor.tagName) ? anchor : (anchor.closest(HEADINGS) ?? headingAfterEmpty(anchor)))?.text ?? "" : "");
     const section = sectionText(root, fragment);
-    return { title, text: section === null ? null : truncate(section) };
+    return { title, heading, text: section === null ? null : truncate(section) };
   }
   const main = root.querySelector("main") ?? root.querySelector("[role=main]") ?? root.querySelector("body") ?? root;
-  return { title, text: truncate(blockText(main)) };
+  const heading = clean((main.querySelector("h1") ?? root.querySelector("h1") ?? main.querySelector("h2"))?.text ?? "");
+  return { title, heading, text: truncate(blockText(main)) };
 }
 
 // From a heading with this id to the next heading at the same level or higher, wherever the markup nests them
@@ -84,4 +89,35 @@ function truncate(text: string): string {
   if (text.length <= MAX_SOURCE_CHARS) return text;
   const cut = text.lastIndexOf("\n", MAX_SOURCE_CHARS);
   return text.slice(0, cut > MAX_SOURCE_CHARS / 2 ? cut : MAX_SOURCE_CHARS);
+}
+
+const GENERIC = /^(home|index|untitled|page|welcome|default|document|main|details?)$/i;
+const STOP = new Set(["about", "your", "with", "from", "this", "that", "what", "when", "where", "which", "have", "will", "page", "official", "website", "site", "home", "gov"]);
+
+// Content words, roughly stemmed, so "names" matches "name"
+function words(text: string): string[] {
+  return text
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9 ]+/g, " ")
+    .split(/\s+/)
+    .filter((word) => word.length > 3 && !STOP.has(word))
+    .map((word) => word.replace(/(ies|es|s|ed|ing)$/, "") || word);
+}
+
+// Share of a label's words found in the page's own text
+function describes(label: string, body: ReadonlySet<string>): number {
+  const own = words(label);
+  return own.length ? own.filter((word) => body.has(word)).length / own.length : 0;
+}
+
+// The label a source shows: its title, unless the page's heading describes the page better
+export function sourceTitle(input: { title: string; heading: string; text: string }): string {
+  const title = clean(input.title);
+  const heading = clean(input.heading).slice(0, 120);
+  if (!heading) return title;
+  if (!title || GENERIC.test(title)) return heading;
+  const body = new Set(words(input.text.slice(0, 6000)));
+  const fit = describes(title, body);
+  return fit < 0.5 && describes(heading, body) > fit ? heading : title;
 }

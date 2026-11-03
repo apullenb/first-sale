@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { officialForm } from "@/data/official-forms";
-import { type FilingInput, filingSteps } from "./filing";
+import { type FilingInput, filingPaths, filingSteps, formNextSteps } from "./filing";
 
 const input = (overrides: Partial<FilingInput> = {}): FilingInput => ({
   title: "File your assumed name",
@@ -38,7 +38,7 @@ describe("filingSteps", () => {
     const cost = lines(steps, "cost");
     expect(cost[0]).toMatchObject({ text: "Fee: $25 to file.", source: { url: "https://www.sos.texas.gov/corp/forms/503_boc.pdf", checkedOn: "2026-10-27" } });
     expect(cost[1].text).toBe("Deadline: none found on an official page.");
-    expect(lines(steps, "submit").at(-1)!.text).toMatch(/First Sale never files anything/);
+    expect(lines(steps, "submit").at(-1)!.text).toMatch(/SnapStart never files anything/);
     expect(lines(steps, "after").at(-1)!.text).toBe("Then you can start “Get an EIN”.");
   });
 
@@ -69,5 +69,54 @@ describe("filingSteps", () => {
     const permit = filingSteps(input({ form: officialForm("tx-sales-tax-permit") }));
     expect(lines(permit, "form").some((line) => line.link?.checkedByHand)).toBe(false);
     expect(lines(permit, "submit").some((line) => line.source?.byHand)).toBe(false);
+  });
+});
+
+describe("filingPaths", () => {
+  it("splits a form into a paper way and an online way, each with only its own ways to send", () => {
+    const paths = filingPaths(officialForm("irs-ss4")!);
+    expect(paths.paper!.send.map((line) => line.text.split(".")[0])).toEqual([
+      "Fax the signed form to the IRS at 855-641-6935 (for businesses in the 50 states and DC)",
+      "Mail the signed form at least 4 to 5 weeks before you need the EIN",
+      "A paper form must be signed and dated by you",
+      "Not filed: you sign and send it yourself",
+    ]);
+    expect(paths.online).toMatchObject({ url: "https://sa.www4.irs.gov/modiein/individual/index.jsp", checkedByHand: "2026-10-27" });
+    expect(paths.online!.send.at(-1)!.text).toMatch(/SnapStart never files anything/);
+  });
+
+  it("gives the mailing address of a form that's otherwise filed online", () => {
+    const paper = filingPaths(officialForm("tx-llc-205")!).paper!.send;
+    expect(paper[0]).toMatchObject({ address: ["Secretary of State", "P.O. Box 13697", "Austin, TX 78711-3697"] });
+  });
+});
+
+describe("formNextSteps", () => {
+  const base = officialForm("tx-llc-205")!;
+
+  it("ends with marking it submitted and never files", () => {
+    const steps = formNextSteps(base, { guide: false, stepId: "s1" });
+    expect(steps.at(-1)?.title).toBe("Mark it submitted");
+    expect(steps.flatMap((step) => step.lines).some((line) => line.text.includes("never files"))).toBe(true);
+  });
+
+  it("says the fee is unconfirmed when the catalog has none", () => {
+    const steps = formNextSteps({ ...base, fee: null }, { guide: false, stepId: null });
+    expect(steps.flatMap((step) => step.lines).find((line) => line.unknown)?.text).toMatch(/isn’t confirmed/);
+  });
+
+  it("keeps a signed-and-kept form instead of sending it", () => {
+    const kept = { text: "Sign and keep it.", quote: "", sourceTitle: "Page", sourceUrl: "https://www.sos.state.tx.us/", checkedOn: "2026-10-27" };
+    const steps = formNextSteps({ ...base, kept }, { guide: false, stepId: null });
+    expect(steps.map((step) => step.title)).toEqual(["Check every answer", "Sign it", "Keep it with your records"]);
+  });
+
+  it("points an answer guide at the online application", () => {
+    const steps = formNextSteps(base, { guide: true, stepId: null });
+    expect(steps.some((step) => step.lines.some((line) => line.link?.label === "Open the official application"))).toBe(true);
+  });
+
+  it("gives plain steps for a form not in the catalog", () => {
+    expect(formNextSteps(null, { guide: false, stepId: null }).map((step) => step.title)).toContain("Send it to the office");
   });
 });

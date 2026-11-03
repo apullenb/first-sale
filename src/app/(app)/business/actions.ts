@@ -1,9 +1,10 @@
 "use server";
 
+import { DEMO_REFUSAL } from "@/lib/demo";
 import { refresh } from "next/cache";
 import { getDb } from "@/db/client";
-import { getModel } from "@/lib/ai";
-import { getCurrentUser } from "@/lib/auth/server";
+import { getModel, practiceMode } from "@/lib/ai";
+import { getCurrentUser, isDemoSession } from "@/lib/auth/server";
 import { takeAiRequest } from "@/lib/data/ai-quota";
 import {
   createMyBusinessFromIntake,
@@ -21,19 +22,22 @@ import { changeSummary, profileImpact } from "@/lib/intake/impact";
 import { placeOptions, type PlaceOptions } from "@/lib/intake/places";
 import { DESCRIPTION_MAX_LENGTH, suggestIntakeAnswers } from "@/lib/intake/suggest";
 import type { IntakeSuggestion } from "@/lib/intake/suggestion-schema";
+import type { JobRef } from "@/lib/workflows";
 
-export type ActionResult<T = null> = { ok: true; value: T } | { ok: false; message: string };
+// `busy`: the same job is already running, maybe in another tab; the page watches it instead of failing
+export type ActionResult<T = null> = { ok: true; value: T } | { ok: false; message: string; busy?: JobRef };
 
 const INVALID_PROFILE = "Some answers are missing or too long. Check them and try again.";
 const NO_BUSINESS = "Your business wasn’t found. Reload the page and try again.";
 
 // `simulated`: practice mode, where word matching stands in for AI
 export async function suggestAnswersAction(description: unknown): Promise<ActionResult<IntakeSuggestion & { simulated: boolean }>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const user = await getCurrentUser();
   if (typeof description !== "string" || !description.trim() || description.length > DESCRIPTION_MAX_LENGTH) {
     return { ok: false, message: `Describe your idea in up to ${DESCRIPTION_MAX_LENGTH.toLocaleString("en-US")} characters.` };
   }
-  const quota = await takeAiRequest(getDb(), user.id);
+  const quota = practiceMode() ? "ok" : await takeAiRequest(getDb(), user.id);
   if (quota !== "ok") {
     return {
       ok: false,
@@ -53,6 +57,7 @@ export async function suggestAnswersAction(description: unknown): Promise<Action
 }
 
 export async function createBusinessAction(profile: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = businessProfileSchema.safeParse(profile);
   if (!parsed.success) return { ok: false, message: INVALID_PROFILE };
   const business = await createMyBusinessFromIntake(parsed.data);
@@ -63,6 +68,7 @@ export async function createBusinessAction(profile: unknown): Promise<ActionResu
 
 // The owner confirmed these changes after seeing what they affect; the history records each one
 export async function updateBusinessAction(profile: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = businessProfileSchema.safeParse(profile);
   if (!parsed.success) return { ok: false, message: INVALID_PROFILE };
   const current = await getMyBusiness();
@@ -78,12 +84,14 @@ export async function updateBusinessAction(profile: unknown): Promise<ActionResu
 
 // Autosave while answering; false when the draft no longer fits, such as after saving in another tab
 export async function saveIntakeDraftAction(input: unknown): Promise<ActionResult<{ saved: boolean }>> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = intakeDraftSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Your progress couldn’t be saved. Keep going; we’ll try again." };
   return { ok: true, value: { saved: await saveMyIntakeDraft(parsed.data) } };
 }
 
 export async function discardIntakeDraftAction(): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   await deleteMyIntakeDraft();
   refresh();
   return { ok: true, value: null };
@@ -97,6 +105,7 @@ export async function placeOptionsAction(state: unknown): Promise<ActionResult<P
 
 // The owner typed or picked this themselves, so it's saved as theirs
 export async function saveDetailAction(input: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = detailInputSchema.safeParse(input);
   if (!parsed.success || !isDetailKey(parsed.data.key) || isDecisionKey(parsed.data.key)) {
     return { ok: false, message: "That detail can’t be saved. Reload the page and try again." };
@@ -109,6 +118,7 @@ export async function saveDetailAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteDetailAction(key: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
   if (typeof key !== "string" || !isDetailKey(key) || isDecisionKey(key)) return { ok: false, message: "That detail wasn’t found." };
   if (!(await deleteMyDetail(key))) return { ok: false, message: NO_BUSINESS };
   refresh();

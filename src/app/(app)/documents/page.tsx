@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { ActorChip } from "@/components/actor-chip";
 import { type AddKind, AddFormPanel, type AddMode } from "@/components/documents/add-form-panel";
 import { AgreementCard } from "@/components/documents/agreement-card";
 import { HowDocumentsAreHandled } from "@/components/documents/how-handled";
 import { formatBytes } from "@/components/documents/labels";
 import { LibraryList } from "@/components/documents/library-list";
+import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
-import { CARD, EYEBROW, PAGE_TITLE, PRIMARY_LINK, SECONDARY_LINK, SECTION_TITLE } from "@/components/styles";
+import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
+import { Card, Chip, PageHead } from "@/components/ui";
 import { DOCUMENT_LIMITS, type StoredDocument } from "@/lib/data/documents";
 import { getMyBusiness, getMyDetails, getMyPlan, listMyDocuments } from "@/lib/data/my-business";
 import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
@@ -24,15 +25,17 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export default function DocumentsPage({ searchParams }: { searchParams: SearchParams }) {
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
-        <p className={EYEBROW}>Start your business · Step 5</p>
-        <h1 className={PAGE_TITLE}>My Business Library</h1>
-        <p className="text-lg text-muted">
-          Official forms, your drafted and reviewed answers, receipts, approvals and letters you received, kept by plan step. Originals are never
-          changed.
-        </p>
-      </div>
+    <div className="flex max-w-[1000px] flex-col gap-6">
+      <PageHead
+        kicker={
+          <span className="inline-flex items-center gap-2">
+            <Icon name="book" size="sm" />
+            Documents
+          </span>
+        }
+        title="Documents"
+        lead="Official forms, your drafted and reviewed answers, receipts, approvals and letters you received, kept by plan step. Originals are never changed."
+      />
       <Suspense fallback={<p className="text-muted">Loading your documents…</p>}>
         <Library searchParams={searchParams} />
       </Suspense>
@@ -46,12 +49,12 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
 
   if (!business) {
     return (
-      <section className={`${CARD} flex flex-col gap-3`}>
-        <p>Tell us about your business first. Then you can add forms and get help with them here.</p>
+      <Card title="Start with your business" icon="store" id="no-business-heading">
+        <p className="text-rule">Tell us about your business first. Then you can add forms and get help with them here.</p>
         <Link href="/business/new" className={PRIMARY_LINK}>
           Tell us about your business
         </Link>
-      </section>
+      </Card>
     );
   }
 
@@ -62,6 +65,8 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
   const initialMode: AddMode = params.add === "paste" || params.add === "official" ? params.add : "upload";
   // Links for a step's form ask for a form; otherwise papers the owner has come first
   const initialKind: AddKind = params.add === "have" ? "have" : params.add || requestedStep ? "fill" : "have";
+  // The add form opens, first on the page, when a link asks for it
+  const adding = Boolean(params.add || requestedStep);
 
   const businessPlan = documents.find((doc) => doc.generatedKind === "business_plan") ?? null;
   const facts = business.profile ? autofillFacts(business.profile, details) : [];
@@ -72,21 +77,56 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
 
   return (
     <>
-      {/* Remounts when a link asks for a different step or way in */}
-      <AddFormPanel
-        key={`${initialStep ?? ""}:${initialKind}:${initialMode}`}
-        steps={steps}
-        initialStep={initialStep}
-        initialKind={initialKind}
-        initialMode={initialMode}
-        acceptedTypes={Object.keys(ACCEPTED_TYPES)}
-        maxUploadBytes={MAX_UPLOAD_BYTES}
-        maxPasteChars={MAX_PASTE_CHARS}
-      />
+      {adding ? (
+        // Remounts when a link asks for a different step or way in
+        <AddFormPanel
+          key={`${initialStep ?? ""}:${initialKind}:${initialMode}`}
+          steps={steps}
+          initialStep={initialStep}
+          initialKind={initialKind}
+          initialMode={initialMode}
+          acceptedTypes={Object.keys(ACCEPTED_TYPES)}
+          maxUploadBytes={MAX_UPLOAD_BYTES}
+          maxPasteChars={MAX_PASTE_CHARS}
+          closeHref="/documents"
+        />
+      ) : null}
 
-      <LibraryList documents={documents} steps={allSteps} outdated={outdated} />
+      <div className="grid gap-5 lg:grid-cols-2">
+        <Card title="Got a letter or form you’re not sure about?" icon="file" id="add-card-heading" className="flex flex-col" bodyClassName="flex-1">
+          <p className="text-rule">
+            Add it and SnapStart explains what it is and what to do. Add papers you already have, like your LLC certificate or the IRS letter with your EIN (tax ID number), and forms you
+            need to fill in.
+          </p>
+          <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
+            <Link href="/documents?add=have#add-form" className={PRIMARY_LINK}>
+              <Icon name="upload" size="sm" />
+              Add a document
+            </Link>
+            <span className="text-[15px] text-muted">
+              Or{" "}
+              <Link href="/documents?add=upload#add-form" className={`${TEXT_LINK} inline-flex min-h-11 items-center`}>
+                add a form to fill in
+              </Link>
+            </span>
+          </div>
+        </Card>
+        <BusinessPlanCard plan={businessPlan} />
+      </div>
 
-      <BusinessPlanCard plan={businessPlan} />
+
+      <Card
+        title="Your documents"
+        icon="checklist"
+        id="library-heading"
+        action={documents.length ? <Chip tone="gray">{documents.length === 1 ? "1 document" : `${documents.length} documents`}</Chip> : null}
+      >
+        <LibraryList documents={documents} steps={allSteps} outdated={outdated} />
+        <p className="border-t border-line pt-3 text-[14.5px] text-muted">
+          Your library holds up to {DOCUMENT_LIMITS.count} documents and {formatBytes(DOCUMENT_LIMITS.totalBytes)} in all. You’re using {documents.length}{" "}
+          {documents.length === 1 ? "document" : "documents"} and {formatBytes(usedBytes)}.
+        </p>
+      </Card>
 
       {agreementFor && business.profile ? (
         <AgreementCard
@@ -96,50 +136,32 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
           outdated={agreement ? (outdated.get(agreement.id) ?? []) : []}
         />
       ) : null}
-
-      <p className="text-sm text-muted">
-        Your library holds up to {DOCUMENT_LIMITS.count} documents and {formatBytes(DOCUMENT_LIMITS.totalBytes)} in all.
-        You’re using {documents.length} {documents.length === 1 ? "document" : "documents"} and {formatBytes(usedBytes)}.
-      </p>
     </>
   );
 }
 
 function BusinessPlanCard({ plan }: { plan: StoredDocument | null }) {
-  const approvedAt = plan?.draft?.approvedAt ?? null;
+  const savedAt = plan?.hasFile ? (plan.draft?.approvedAt ?? null) : null;
+  const drafted = Boolean(plan?.draft?.sections.length);
   return (
-    <section aria-labelledby="plan-card-heading" className={`${CARD} flex flex-col gap-3`}>
-      <h2 id="plan-card-heading" className={SECTION_TITLE}>
-        Your business plan
-      </h2>
+    <Card title="Your business plan" icon="book" id="plan-card-heading" className="flex flex-col" bodyClassName="flex-1">
       <p className="text-rule">
-        A business plan describes what you sell, who buys it, and how you’ll run the business. Banks, lenders and
-        programs that help new businesses often ask for one, and writing it helps you think things through.
+        A formal plan that describes what you sell, who buys it, and how you’ll run the business. Banks, lenders and programs that help new businesses often ask
+        for one. SnapStart fills in what it already knows and asks only what’s missing.
       </p>
-      <ul className="flex flex-col gap-2 text-sm text-rule">
-        <li className="flex items-start gap-2.5">
-          <ActorChip actor="ai" />
-          <span>AI drafts it from your answers.</span>
-        </li>
-        <li className="flex items-start gap-2.5">
-          <ActorChip actor="owner" />
-          <span>You edit and approve it.</span>
-        </li>
-      </ul>
-      {plan ? (
-        <p className="text-sm text-muted">
-          {approvedAt ? (
-            <>
-              Approved <LocalDate iso={approvedAt} />
-            </>
-          ) : (
-            "Draft, not approved yet"
-          )}
-        </p>
+      {savedAt ? (
+        <Chip tone="accent" icon="check">
+          Saved as a PDF <LocalDate iso={savedAt} />
+        </Chip>
+      ) : plan?.hasFile ? (
+        <Chip tone="warn">Changed since the PDF was saved</Chip>
+      ) : drafted ? (
+        <Chip tone="gray">Drafted, not saved as a PDF yet</Chip>
       ) : null}
-      <Link href="/documents/business-plan" className={plan ? SECONDARY_LINK : PRIMARY_LINK}>
-        {plan ? "Open your business plan" : "Start your business plan"}
+      <Link href="/documents/business-plan" className={`${SECONDARY_LINK} mt-auto`}>
+        <Icon name={drafted ? "pencil" : "sparkles"} size="sm" />
+        {drafted ? "Open your business plan" : "Generate your business plan"}
       </Link>
-    </section>
+    </Card>
   );
 }

@@ -13,7 +13,7 @@ describe("structure options", () => {
   });
 
   it("never state a fee: fees come only from the owner's own research", () => {
-    const text = STRUCTURE_OPTIONS.flatMap((option) => [option.meaning, ...option.why, ...option.setup, ...option.ongoing(1), ...option.pros, ...option.cons])
+    const text = STRUCTURE_OPTIONS.flatMap((option) => [option.meaning, ...option.why, ...option.setup, ...option.ongoing(1), ...option.cons])
       .map((line) => line.text)
       .join(" ");
     expect(text).not.toMatch(/\$\d/);
@@ -52,7 +52,7 @@ describe("suggestPath", () => {
 
   it("asks married co-owners' tax question for a professional, not as an answer", () => {
     const path = suggestPath(testProfile({ owners: { count: 2 }, ownerRelation: "spouse" }));
-    expect(path.askAProfessional.join(" ")).toMatch(/married couple/);
+    expect(path.askAProfessional.join(" ")).toMatch(/married to each other/);
   });
 
   it("counts employees only when the owner picked them", () => {

@@ -6,7 +6,9 @@ import { FormStatus } from "@/components/documents/form-status";
 import { FormView } from "@/components/documents/form-view";
 import { GeneratedView } from "@/components/documents/generated-view";
 import { ReceivedView } from "@/components/documents/received-view";
-import { CARD, PRIMARY_LINK } from "@/components/styles";
+import { Icon } from "@/components/icons";
+import { PRIMARY_LINK } from "@/components/styles";
+import { PageHead } from "@/components/ui";
 import type { StoredDocument } from "@/lib/data/documents";
 import { getMyBusiness, getMyDetails, getMyDocument, getMyPlan, lastMyRun, listMyDocuments } from "@/lib/data/my-business";
 import { autofillFacts, outdatedFacts } from "@/lib/documents/autofill";
@@ -37,13 +39,13 @@ async function DocumentView({ params }: { params: Promise<{ id: string }> }) {
 
 function Missing() {
   return (
-    <section className={`${CARD} flex max-w-2xl flex-col gap-3`}>
-      <h1 className="font-display text-2xl font-bold">That document wasn’t found</h1>
-      <p className="text-rule">It may have been deleted.</p>
+    <div className="flex max-w-2xl flex-col gap-5">
+      <PageHead title="That document wasn’t found" lead="It may have been deleted." />
       <Link href="/documents" className={PRIMARY_LINK}>
+        <Icon name="book" size="sm" />
         Go to your documents
       </Link>
-    </section>
+    </div>
   );
 }
 
@@ -114,7 +116,7 @@ async function Form({ doc }: { doc: StoredDocument }) {
       printedText: field.printedText,
       lowConfidence: field.confidence === "low",
       fillYourself,
-      note: answer?.note || "First Sale leaves this one for you. Fill it in on the form yourself.",
+      note: answer?.note || "SnapStart leaves this one for you. Fill it in on the form yourself.",
       value: fillYourself ? "" : (answer?.value ?? ""),
       source: fillYourself ? "" : (answer?.source ?? ""),
       confirmed: answer?.state === "confirmed",

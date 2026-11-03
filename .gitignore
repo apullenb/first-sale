@@ -43,3 +43,12 @@ next-env.d.ts
 
 # local database
 /.pglite/
+
+# benchmark output
+/bench/results/
+.neon
+
+# end-to-end tests
+/.pglite-e2e/
+/e2e/.results/
+/e2e/.report/

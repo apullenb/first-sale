@@ -1,0 +1,11 @@
+node_modules
+.next
+.pglite
+/.c*
+.env*
+!.env.example
+.neon
+shots
+redesign-demos
+bench/results
+tsconfig.tsbuildinfo

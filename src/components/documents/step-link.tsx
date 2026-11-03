@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useId, useLayoutEffect, useState } from "react";
 import { linkStepAction } from "@/app/(app)/documents/actions";
+import { Icon } from "@/components/icons";
 import { ALERT, INPUT, TEXT_LINK } from "@/components/styles";
 
 interface Props {
@@ -32,7 +33,7 @@ export function StepLink({ documentId, stepId, steps }: Props) {
       }
     } catch {
       setValue(previous);
-      setError("Couldn’t reach First Sale. Check your connection and try again.");
+      setError("Couldn’t reach SnapStart. Check your connection and try again.");
     } finally {
       setPending(false);
     }
@@ -40,7 +41,7 @@ export function StepLink({ documentId, stepId, steps }: Props) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={`${uid}-step`} className="font-semibold">
+      <label htmlFor={`${uid}-step`} className="text-[15.5px] font-semibold">
         Plan step this is for
       </label>
       <select
@@ -57,11 +58,12 @@ export function StepLink({ documentId, stepId, steps }: Props) {
           </option>
         ))}
       </select>
-      <p role="status" className={pending ? "text-sm text-muted" : "sr-only"}>
+      <p role="status" className={pending ? "text-[14.5px] text-muted" : "sr-only"}>
         {pending ? "Saving…" : ""}
       </p>
       {stepId && !pending ? (
-        <Link href={`/checklist/${encodeURIComponent(stepId)}`} className={`${TEXT_LINK} flex min-h-11 w-fit items-center`}>
+        <Link href={`/checklist/${encodeURIComponent(stepId)}`} className={`${TEXT_LINK} inline-flex min-h-11 w-fit items-center gap-1.5`}>
+          <Icon name="flag" size="sm" />
           Open this step in your plan
         </Link>
       ) : null}

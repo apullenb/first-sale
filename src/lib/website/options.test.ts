@@ -3,8 +3,8 @@ import type { CompletionRequest, WebSearchHit } from "@/lib/ai";
 import { createMockProvider } from "@/lib/ai/providers/mock";
 import { OwnerFacingError } from "@/lib/errors";
 import { testProfile } from "@/test/fixtures";
-import { PLATFORM_DATA } from "@/data/website-platforms";
-import { checkOptions, explainOption, explanationKey, findMoreOptions, isCurrentExplanation, platformFacts } from "./options";
+import { PLATFORM_DATA, PLATFORM_ORDER } from "@/data/website-platforms";
+import { checkOptions, explainOption, explanationKey, findMoreOptions, hasMoney, isCurrentExplanation, platformFacts, withoutMoney } from "./options";
 
 const hits: WebSearchHit[] = [
   { title: "Squarespace pricing", url: "https://www.squarespace.com/pricing", snippet: "Personal plan $16 a month, billed yearly.", cited: true },
@@ -108,30 +108,34 @@ describe("explainOption", () => {
   it("flags numbers that aren't in the option's facts", async () => {
     const model = createMockProvider((request: CompletionRequest) =>
       request.responseFormat
+        ? JSON.stringify({ overview: "A store builder.", whatItsLike: "Most owners set it up in 4 days.", goodFit: "You ship.", watchOut: "Easy.", stillNeed: ["A web address"] })
+        : "",
+    );
+    const explanation = await explainOption(model, { profile: testProfile(), name: "Shopify", facts: { trial: "3 days free" } });
+    expect(explanation.flags).toEqual(["Check “4”: it isn’t in this option’s facts."]);
+    expect(explanation.factsKey).toBe(explanationKey(testProfile(), { trial: "3 days free" }));
+  });
+
+  it("drops every amount of money the model writes, since money comes only from code", async () => {
+    const model = createMockProvider((request: CompletionRequest) =>
+      request.responseFormat
         ? JSON.stringify({
-            overview: "A store builder.",
-            whatItsLike: "Easy.",
-            goodFit: "You ship.",
-            watchOut: "Fees add up: about $45 a month in apps.",
-            firstYear: "$29 × 12 = $348.",
-            stillNeed: ["A web address"],
+            overview: "A store builder. The first year is $29 × 12 = $348.",
+            whatItsLike: "Easy to start.",
+            goodFit: "You ship. Cards cost 2.9% each.",
+            watchOut: "Apps add up to 40 dollars. Designs are limited.",
+            stillNeed: ["A web address", "Email for $6 a month"],
           })
         : "",
     );
-    const explanation = await explainOption(model, { profile: testProfile(), name: "Shopify", facts: { price: "$29 a month" } });
-    // A year of a monthly price is its own arithmetic, so $348 isn't flagged
-    expect(explanation.flags).toEqual(["Check “$45”: it isn’t in this option’s facts."]);
-    expect(explanation.factsKey).toBe(explanationKey(testProfile(), { price: "$29 a month" }));
+    const explanation = await explainOption(model, { profile: testProfile(), name: "Shopify", facts: platformFacts(PLATFORM_DATA.shopify) });
+    expect(explanation).toMatchObject({ overview: "A store builder.", goodFit: "You ship.", watchOut: "Designs are limited.", stillNeed: ["A web address"] });
+    expect(JSON.stringify(explanation)).not.toMatch(/\$|%|dollars/);
   });
 
-  it("knows a built-in option's first-year total, so it isn't flagged", async () => {
-    const facts = platformFacts(PLATFORM_DATA.shopify);
-    const model = createMockProvider((request: CompletionRequest) =>
-      request.responseFormat
-        ? JSON.stringify({ overview: "", whatItsLike: "", goodFit: "", watchOut: "", firstYear: "$348 + $9 = $357.", stillNeed: [] })
-        : "",
-    );
-    expect((await explainOption(model, { profile: testProfile(), name: "Shopify", facts })).flags).toEqual([]);
+  it("gives the model a built-in option's facts with no prices", () => {
+    for (const id of PLATFORM_ORDER) expect(hasMoney(JSON.stringify(platformFacts(PLATFORM_DATA[id])))).toBe(false);
+    expect(withoutMoney("Free to start. Then $49 a month. No ads.")).toBe("Free to start. No ads.");
   });
 
   it("reuses an explanation only for the same facts and answers, and not a practice one once the AI is connected", async () => {
@@ -149,9 +153,9 @@ describe("explainOption", () => {
     const explanation = await explainOption(createMockProvider(), {
       profile: testProfile(),
       name: "Square",
-      facts: { oneLine: "A free store.", notIncluded: [{ item: "Your own web address" }] },
+      facts: { oneLine: "A free store.", youDo: ["Add your items"] },
     });
-    expect(explanation).toMatchObject({ simulated: true, stillNeed: ["Your own web address"] });
+    expect(explanation).toMatchObject({ simulated: true, stillNeed: ["Add your items"] });
     expect(explanation.overview).toMatch(/Practice mode/);
   });
 });

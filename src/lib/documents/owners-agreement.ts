@@ -3,7 +3,8 @@ import { displayDetail, looksLikeIdNumber } from "@/lib/details";
 import type { BusinessProfile, BusinessStructure, PlanTopic } from "@/lib/domain";
 import type { Fact } from "./companion";
 import type { CheckedFact } from "./form-catalog";
-import { type PdfSpec, unprintable } from "./pdf-writer";
+import { unprintable } from "./pdf-text";
+import type { PdfSpec } from "./pdf-writer";
 import type { PlanSection } from "./types";
 
 // The owners' agreement for an LLC (Texas calls it a company agreement) or a partnership.
@@ -111,7 +112,7 @@ export function ownerNames(value: string | undefined): string[] {
 export function agreementReadiness(profile: BusinessProfile, facts: ReadonlyMap<string, Fact>, structure: BusinessStructure | null): AgreementReadiness {
   if (!structure) return { kind: "none", why: "Record your business structure first. The agreement depends on it." };
   if (structure === "sole_proprietorship") return { kind: "none", why: "A sole proprietorship has one owner, so there’s no owners’ agreement to sign." };
-  if (structure === "corporation") return { kind: "none", why: "A corporation adopts bylaws instead. First Sale doesn’t prepare bylaws yet." };
+  if (structure === "corporation") return { kind: "none", why: "A corporation adopts bylaws instead. SnapStart doesn’t prepare bylaws yet." };
 
   const value = (id: string) => facts.get(id)?.value ?? null;
   const owners = ownerNames(value("detail.owner_names") ?? undefined);
@@ -187,7 +188,7 @@ export function checkChoices(basis: AgreementBasis, input: ChoicesInput): { ok: 
   for (const [index, name] of basis.owners.entries()) {
     const typed = input.members[index];
     const contribution = typed.contribution.replace(/[\s.]+$/, "").trim();
-    if (looksLikeIdNumber(contribution)) return { ok: false, message: "Leave Social Security and tax id numbers out of the agreement." };
+    if (looksLikeIdNumber(contribution)) return { ok: false, message: "Leave Social Security and tax ID numbers out of the agreement." };
     if (single) {
       members.push({ name, basisPoints: 10_000, contribution });
       continue;
@@ -203,13 +204,13 @@ export function checkChoices(basis: AgreementBasis, input: ChoicesInput): { ok: 
   if (!single && !input.decisions) return { ok: false, message: "Choose how the owners make decisions." };
   const manager = input.manager.trim();
   if (basis.managed === "manager" && !manager) return { ok: false, message: "Enter the name of the person who manages the LLC." };
-  if (looksLikeIdNumber(manager)) return { ok: false, message: "Leave Social Security and tax id numbers out of the agreement." };
+  if (looksLikeIdNumber(manager)) return { ok: false, message: "Leave Social Security and tax ID numbers out of the agreement." };
   const choices = { members, decisions: single ? null : input.decisions, manager: basis.managed === "manager" ? manager : null };
 
   // A signed document can't have names with letters swapped for "?"
   const letters = unprintable([basis.name, ...basis.owners, basis.purpose ?? "", basis.address ?? "", choices.manager ?? "", ...members.map((member) => member.contribution)].join(" "));
   if (letters.length) {
-    return { ok: false, message: `First Sale’s PDFs can’t print ${letters.join(" ")} yet, so it can’t make this agreement without changing a name or detail. Ask a lawyer to prepare it for now.` };
+    return { ok: false, message: `SnapStart’s PDFs can’t print ${letters.join(" ")} yet, so it can’t make this agreement without changing a name or detail. Ask a lawyer to prepare it for now.` };
   }
   return { ok: true, choices };
 }
@@ -404,7 +405,7 @@ export function agreementPdf(built: BuiltAgreement, preparedOn: string, approved
   return {
     title: built.title,
     subtitle: `Prepared ${preparedOn} · Approved ${approvedOn}`,
-    notice: `Prepared by First Sale from your answers. It’s a starting point, not legal advice: have a lawyer review it${multiple ? ", especially with more than one owner" : ""}. It isn’t filed with the state: ${multiple ? `every ${built.owner} signs it` : `the ${built.owner} signs it`}, and the business keeps it with its records.`,
+    notice: `Prepared by SnapStart from your answers. It’s a starting point, not legal advice: have a lawyer review it${multiple ? ", especially with more than one owner" : ""}. It isn’t filed with the state: ${multiple ? `every ${built.owner} signs it` : `the ${built.owner} signs it`}, and the business keeps it with its records.`,
     blocks: [
       ...built.sections.map((section) => ({ heading: section.heading, paragraphs: [section.body] })),
       ...(multiple
@@ -425,6 +426,6 @@ export function agreementPdf(built: BuiltAgreement, preparedOn: string, approved
         entries: built.signers.map((name) => ({ label: name, value: "Signature: ____________________________    Date: ______________" })),
       },
     ],
-    footer: "Prepared with First Sale",
+    footer: "Prepared with SnapStart",
   };
 }

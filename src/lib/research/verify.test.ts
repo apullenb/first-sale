@@ -88,6 +88,7 @@ describe("verifyRequirements", () => {
     forStructures: [],
     renewal: null,
     renewalFeeUsd: null,
+    ownerAction: null,
     ...overrides,
   });
 
@@ -314,6 +315,7 @@ describe("verifyRequirements: the quote's government", () => {
     forStructures: [],
     renewal: null,
     renewalFeeUsd: null,
+    ownerAction: null,
   };
 
   it("doesn't count a quote from another government's page", () => {

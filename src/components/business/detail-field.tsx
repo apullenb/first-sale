@@ -2,10 +2,12 @@
 
 import { useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { deleteDetailAction, saveDetailAction } from "@/app/(app)/business/actions";
+import { Icon } from "@/components/icons";
+import { TILE, TILE_OFF, TILE_ON, TileMark } from "@/components/intake/choices";
 import { ALERT, DANGER, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { DETAILS, displayDetail, type DetailKey, type DetailSpec } from "@/lib/details";
 
-const OFFLINE = "Couldn’t reach First Sale. Check your connection and try again.";
+const OFFLINE = "Couldn’t reach SnapStart. Check your connection and try again.";
 const INPUT_TYPES: Partial<Record<DetailKey, string>> = { business_email: "email", business_phone: "tel" };
 
 interface Props {
@@ -87,29 +89,31 @@ export function DetailField({ detailKey, value, origin }: Props) {
     </p>
   ) : null;
 
-  return (
-    <div className="flex flex-col gap-2">
+  const heading = (
+    <div className="flex flex-col gap-0.5">
       <h3 id={labelId} className="font-bold">
         {spec.label}
       </h3>
-      <p id={helpId} className="text-[15px] text-rule">
+      <p id={helpId} className="text-[15px] text-muted">
         {spec.help}
       </p>
+    </div>
+  );
 
-      {editing ? (
-        <form ref={formRef} onSubmit={submit} className="flex flex-col gap-2.5">
+  if (editing) {
+    return (
+      <div className="flex flex-col gap-2.5">
+        {heading}
+        <form ref={formRef} onSubmit={submit} className="flex flex-col gap-3">
           {spec.kind === "choice" ? (
-            <fieldset aria-labelledby={labelId} aria-describedby={describedBy} className="flex flex-col">
+            <fieldset aria-labelledby={labelId} aria-describedby={describedBy} className="grid grid-cols-1 gap-2 sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
               {spec.options?.map(([option, text]) => (
-                <label key={option} className="flex min-h-11 items-center gap-2.5">
-                  <input
-                    type="radio"
-                    name={`${uid}-choice`}
-                    value={option}
-                    checked={draft === option}
-                    onChange={() => setDraft(option)}
-                    className="size-5 accent-accent"
-                  />
+                <label
+                  key={option}
+                  className={`${TILE} min-h-[50px] w-full cursor-pointer items-center px-3.5 py-2.5 font-semibold has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${draft === option ? TILE_ON : TILE_OFF}`}
+                >
+                  <input type="radio" name={`${uid}-choice`} value={option} checked={draft === option} onChange={() => setDraft(option)} className="sr-only" />
+                  <TileMark on={draft === option} multiple={false} />
                   {text}
                 </label>
               ))}
@@ -147,38 +151,46 @@ export function DetailField({ detailKey, value, origin }: Props) {
             </button>
           </div>
         </form>
-      ) : (
-        <>
-          <p className={value ? "whitespace-pre-line" : "text-muted"}>{value ? displayDetail(detailKey, value) : "Not added yet"}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="flex min-w-0 flex-col gap-1.5">
+          {heading}
+          <p className={value ? "whitespace-pre-line font-semibold" : "text-muted"}>{value ? displayDetail(detailKey, value) : "Not added yet"}</p>
           {value ? origin : null}
-          <div className="flex flex-wrap gap-2">
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <button
+            ref={editRef}
+            id={`${uid}-edit`}
+            type="button"
+            onClick={open}
+            disabled={pending !== null}
+            aria-labelledby={`${uid}-edit ${labelId}`}
+            className={SECONDARY}
+          >
+            <Icon name={value ? "pencil" : "plus"} size="sm" />
+            {value ? "Edit" : "Add"}
+          </button>
+          {value ? (
             <button
-              ref={editRef}
-              id={`${uid}-edit`}
+              id={`${uid}-remove`}
               type="button"
-              onClick={open}
+              onClick={() => run("remove")}
               disabled={pending !== null}
-              aria-labelledby={`${uid}-edit ${labelId}`}
-              className={SECONDARY}
+              aria-labelledby={`${uid}-remove ${labelId}`}
+              className={DANGER}
             >
-              {value ? "Edit" : "Add"}
+              {pending === "remove" ? "Removing…" : "Remove"}
             </button>
-            {value ? (
-              <button
-                id={`${uid}-remove`}
-                type="button"
-                onClick={() => run("remove")}
-                disabled={pending !== null}
-                aria-labelledby={`${uid}-remove ${labelId}`}
-                className={DANGER}
-              >
-                {pending === "remove" ? "Removing…" : "Remove"}
-              </button>
-            ) : null}
-          </div>
-          {alert}
-        </>
-      )}
+          ) : null}
+        </div>
+      </div>
+      {alert}
     </div>
   );
 }

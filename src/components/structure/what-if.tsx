@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { Icon } from "@/components/icons";
 import { SECONDARY } from "@/components/styles";
 import { STRUCTURE_LABELS } from "@/lib/details";
 import type { BusinessProfile } from "@/lib/domain";
@@ -40,13 +41,10 @@ export function WhatIfPanel({ profile }: { profile: BusinessProfile }) {
   const then = suggestPath(applyWhatIf(profile, whatIf));
 
   return (
-    <section aria-labelledby={`${uid}-title`} className="flex flex-col gap-4 rounded-2xl bg-surface p-5 ring-1 ring-ink/5">
-      <div className="flex flex-col gap-1">
-        <h2 id={`${uid}-title`} className="font-display text-2xl font-bold">
-          Try a what-if
-        </h2>
-        <p className="text-rule">See how the suggestion would change. Nothing here changes your saved answers.</p>
-      </div>
+    <section aria-labelledby={`${uid}-title`} className="flex flex-col gap-3">
+      <h4 id={`${uid}-title`} className="sr-only">
+        What-if changes
+      </h4>
       <div role="group" aria-labelledby={`${uid}-title`} className="flex flex-wrap gap-2">
         {toggles.map((toggle) => {
           const pressed = on.includes(toggle.key);
@@ -56,9 +54,13 @@ export function WhatIfPanel({ profile }: { profile: BusinessProfile }) {
               type="button"
               aria-pressed={pressed}
               onClick={() => setOn(pressed ? on.filter((k) => k !== toggle.key) : [...on, toggle.key])}
-              className={`min-h-11 rounded-full border px-3.5 py-2 text-[15px] font-semibold ${pressed ? "border-ai bg-ai-tint text-ai-ink" : "border-field bg-surface hover:border-muted"}`}
+              className={`inline-flex min-h-11 items-center gap-2 rounded-[10px] border px-3.5 py-2 text-[15px] font-semibold shadow-soft transition motion-reduce:transition-none ${
+                pressed ? "border-accent bg-accent-tint text-accent-ink shadow-[0_0_0_3px_var(--color-accent-tint)]" : "border-line-strong bg-surface hover:border-muted"
+              }`}
             >
-              {pressed ? <span aria-hidden="true">✓ </span> : null}
+              <span aria-hidden="true" className={`grid size-[18px] place-items-center rounded-[5px] border-[1.5px] ${pressed ? "border-accent bg-accent text-white" : "border-line-strong bg-surface"}`}>
+                {pressed ? <Icon name="check" size="xs" strokeWidth={3} /> : null}
+              </span>
               {toggle.label}
             </button>
           );
@@ -86,7 +88,7 @@ export function WhatIfPanel({ profile }: { profile: BusinessProfile }) {
 function Result({ title, path, compare, whatIf }: { title: string; path: PathSuggestion; compare?: PathSuggestion; whatIf?: boolean }) {
   const changed = (a: string, b: string | undefined) => compare !== undefined && a !== b;
   return (
-    <div className={`flex flex-col gap-2 rounded-xl p-4 ${whatIf ? "bg-ai-tint/40 ring-1 ring-ai/30" : "bg-ground"}`}>
+    <div className={`flex flex-col gap-2 rounded-xl border p-4 ${whatIf ? "border-accent-ring bg-surface shadow-[0_0_0_3px_var(--color-accent-tint)]" : "border-line bg-soft"}`}>
       <h3 className="font-bold">{title}</h3>
       <p>
         <span className="font-semibold">Suggested: </span>
@@ -109,5 +111,5 @@ function Result({ title, path, compare, whatIf }: { title: string; path: PathSug
 }
 
 function Badge() {
-  return <span className="ml-1.5 rounded-full bg-ai-tint px-2 py-0.5 text-xs font-bold text-ai">Changes</span>;
+  return <span className="ml-1.5 inline-flex rounded-md border border-accent-ring bg-accent-tint px-1.5 py-0.5 align-middle text-xs font-bold text-accent-ink">Changes</span>;
 }

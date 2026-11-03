@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { emitAIEvent } from "./telemetry";
 import type { ChatMessage, CompletionResult, Effort, ModelProvider } from "./types";
 
 export interface GenerateObjectOptions<T> {
@@ -62,13 +63,18 @@ export async function generateObject<T>(
       cacheKey: options.name,
       retainCache: options.retainCache,
     });
-    logUsage(options.name, result.usage, Date.now() - started);
+    const ms = Date.now() - started;
+    logUsage(options.name, result.usage, ms);
+    const report = (outcome: "ok" | "invalid" | "cut_off", problem: string | null = null) =>
+      emitAIEvent({ type: "attempt", name: options.name, attempt, ms, finishReason: result.finishReason, usage: result.usage, outcome, problem });
 
     if (result.finishReason === "length") {
+      report("cut_off");
       throw new StructuredOutputError(options.name, "reply was cut off at the output token limit", result.text);
     }
 
     const outcome = validate(options.schema, result.text);
+    report(outcome.ok ? "ok" : "invalid", outcome.ok ? null : outcome.error.slice(0, 300));
     if (outcome.ok) return outcome.value;
     if (attempt >= maxRepairs) {
       throw new StructuredOutputError(options.name, outcome.error, result.text);
