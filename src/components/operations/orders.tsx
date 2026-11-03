@@ -149,7 +149,7 @@ export function OrdersPanel({
         >
           Upload invoice or email
         </button>
-        <Link className={SECONDARY} href="/email">
+        <Link className={SECONDARY} href="/email/demo">
           Customer email
         </Link>
       </div>
@@ -477,32 +477,32 @@ function OrderDetails({
               Refunded: {dollars(summary.refunded)}
             </p>
           ) : null}
+          {!order.isDemo || order.emailSample ? (
+            <div className="flex flex-wrap gap-2">
+              {statusesFor(order.workType, order.fulfillment)
+                .slice(
+                  statusesFor(order.workType, order.fulfillment).indexOf(
+                    order.status,
+                  ) + 1,
+                )
+                .filter(() => order.status !== "cancelled")
+                .map((status) => (
+                  <button
+                    data-writes
+                    key={status}
+                    disabled={pending}
+                    className={SECONDARY}
+                    onClick={() =>
+                      run(() => progressTrackedOrder({ id: order.id, status }))
+                    }
+                  >
+                    Mark {statusText(status, order.workType).toLowerCase()}
+                  </button>
+                ))}
+            </div>
+          ) : null}
           {!order.isDemo ? (
             <>
-              <div className="flex flex-wrap gap-2">
-                {statusesFor(order.workType, order.fulfillment)
-                  .slice(
-                    statusesFor(order.workType, order.fulfillment).indexOf(
-                      order.status,
-                    ) + 1,
-                  )
-                  .filter(() => order.status !== "cancelled")
-                  .map((status) => (
-                    <button
-                      data-writes
-                      key={status}
-                      disabled={pending}
-                      className={SECONDARY}
-                      onClick={() =>
-                        run(() =>
-                          progressTrackedOrder({ id: order.id, status }),
-                        )
-                      }
-                    >
-                      Mark {statusText(status, order.workType).toLowerCase()}
-                    </button>
-                  ))}
-              </div>
               {(!order.lines.length || order.totalCents === null) &&
               order.status !== "cancelled" ? (
                 <details>

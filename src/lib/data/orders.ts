@@ -21,6 +21,7 @@ import {
   restoreStock,
 } from "@/lib/rules/inventory";
 import {
+  canProgressSample,
   canTransition,
   paymentSummary,
   validPayment,
@@ -29,6 +30,7 @@ import {
   type WorkType,
 } from "@/lib/rules/order-tracking";
 import { readOptions, variantKey } from "@/lib/rules/products";
+import { isEmailDemoKey } from "./email-demo-orders";
 
 // Owner-scoped like products.ts. Prices and stock come from rules/inventory.ts.
 
@@ -79,6 +81,8 @@ export interface OrderView {
   }[];
   id: string;
   isDemo: boolean;
+  // A DEMO order from the email demo; only its progress can change
+  emailSample: boolean;
   customerName: string;
   fulfillment: (typeof FULFILLMENT_METHODS)[number];
   requestedDate: string | null;
@@ -361,6 +365,7 @@ export async function listOrdersForOwner(
       })),
     id: row.id,
     isDemo: row.isDemo,
+    emailSample: row.isDemo && isEmailDemoKey(row.requestKey),
     customerName: row.customerName,
     fulfillment: row.fulfillment,
     requestedDate: row.requestedDate,
@@ -486,10 +491,16 @@ export async function progressOrderForOwner(
       .from(orders)
       .where(and(eq(orders.id, id), eq(orders.businessId, businessId)))
       .for("update");
+    const sample = !!row?.isDemo && isEmailDemoKey(row.requestKey);
     if (
       !row ||
-      row.isDemo ||
-      !canTransition(row.status, status, row.workType, row.fulfillment)
+      (row.isDemo && !sample) ||
+      !(sample ? canProgressSample : canTransition)(
+        row.status,
+        status,
+        row.workType,
+        row.fulfillment,
+      )
     )
       return false;
     await tx

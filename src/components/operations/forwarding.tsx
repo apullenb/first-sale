@@ -30,7 +30,7 @@ export interface ForwardingState {
   reading: boolean;
 }
 
-function useCopy() {
+export function useCopy() {
   const [copied, setCopied] = useState<string | null>(null);
   async function copy(key: string, text: string) {
     try {
@@ -45,7 +45,7 @@ function useCopy() {
 }
 
 // Accessible tabs: arrow keys move between them
-function Tabs<T extends string>({
+export function Tabs<T extends string>({
   label,
   tabs,
   value,
@@ -112,7 +112,7 @@ function Sources({ sources, unstated }: { sources: ForwardSource[]; unstated?: s
   );
 }
 
-function Numbered({ steps }: { steps: ReactNode[] }) {
+export function Numbered({ steps }: { steps: ReactNode[] }) {
   return (
     <ol className="flex flex-col gap-2.5">
       {steps.map((step, index) => (
@@ -130,9 +130,7 @@ function Numbered({ steps }: { steps: ReactNode[] }) {
 export function ForwardingSetup({ state }: { state: ForwardingState }) {
   const [pending, start] = useTransition(),
     [message, setMessage] = useState(""),
-    [tab, setTab] = useState<"one" | "auto" | "test">("one"),
-    [one, setOne] = useState<(typeof FORWARD_ONE)[number]["id"]>("gmail-app"),
-    [auto, setAuto] = useState<(typeof FORWARD_AUTO)[number]["id"]>("gmail");
+    [tab, setTab] = useState<SetupTab>("one");
   const router = useRouter();
   const job = useJobWatch();
   const { copied, copy } = useCopy();
@@ -200,8 +198,6 @@ export function ForwardingSetup({ state }: { state: ForwardingState }) {
       {copied === key ? "Copied!" : "Copy address"}
     </button>
   );
-  const oneGuide = FORWARD_ONE.find((item) => item.id === one)!;
-  const autoGuide = FORWARD_AUTO.find((item) => item.id === auto)!;
 
   return (
     <>
@@ -288,68 +284,11 @@ export function ForwardingSetup({ state }: { state: ForwardingState }) {
         </details>
       </Card>
 
-      <Card title="Set it up" id="email-setup" icon="checklist">
-        <Tabs
-          label="How to send emails to SnapStart"
-          value={tab}
-          onChange={setTab}
-          tabs={[
-            { id: "one", label: <>Forward one email <span className="text-sm font-normal">· 30 seconds</span></> },
-            { id: "auto", label: "Forward automatically" },
-            { id: "test", label: "Test it" },
-          ]}
-        />
-
-        {tab === "one" ? (
-          <div role="tabpanel" className="flex flex-col gap-4">
-            <p>Works on your phone. Do this whenever a customer emails you about an order.</p>
-            <Tabs label="Your email app" small value={one} onChange={setOne} tabs={FORWARD_ONE.map((guide) => ({ id: guide.id, label: guide.label }))} />
-            <ol className="flex flex-col gap-3">
-              {oneGuide.steps.map((step, index) => (
-                <li key={index} className="flex items-start gap-3 rounded-xl border border-line p-3">
-                  <span aria-hidden="true" className="grid size-7 shrink-0 place-items-center rounded-full bg-accent text-sm font-bold text-white">
-                    {index + 1}
-                  </span>
-                  <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-accent-ring bg-accent-tint text-accent">
-                    <Icon name={STEP_ICONS[step.icon]} />
-                  </span>
-                  <span className="flex flex-col gap-2 pt-1">
-                    {step.text}
-                    {step.icon === "paste" ? copyAddress("step", `${SECONDARY} w-fit`) : null}
-                  </span>
-                </li>
-              ))}
-            </ol>
-            <Sources sources={[oneGuide.source]} unstated={oneGuide.unstated} />
-          </div>
-        ) : tab === "auto" ? (
-          <div role="tabpanel" className="flex flex-col gap-4">
-            <p>Set it once and new emails come to SnapStart on their own. Pick your email:</p>
-            <Tabs label="Your email service" small value={auto} onChange={setAuto} tabs={FORWARD_AUTO.map((guide) => ({ id: guide.id, label: guide.label }))} />
-            {autoGuide.where ? <p className={ALERT}>{autoGuide.where}</p> : null}
-            {autoGuide.needsPlan ? <p className={ALERT}>{autoGuide.needsPlan}</p> : null}
-            {autoGuide.filter ? (
-              <p className="rounded-xl border border-accent-ring bg-accent-tint px-3.5 py-3 text-[15px] text-accent-ink">
-                <strong>Tip:</strong> to keep personal email private, forward only emails about orders. The steps are below.
-              </p>
-            ) : null}
-            <Numbered steps={autoGuide.steps} />
-            {autoGuide.confirms ? <p className="font-semibold">{autoGuide.confirms}</p> : null}
-            {autoGuide.filter ? (
-              <details className="rounded-xl border border-line p-4">
-                <summary className="cursor-pointer font-semibold text-accent">
-                  Recommended: {autoGuide.filter.title.toLowerCase()}
-                </summary>
-                <div className="mt-3 flex flex-col gap-3">
-                  <p>Only emails with words like order, quote or booking go to SnapStart. Everything else stays private.</p>
-                  <Numbered steps={autoGuide.filter.steps} />
-                  <Sources sources={[autoGuide.filter.source]} unstated={autoGuide.filter.unstated} />
-                </div>
-              </details>
-            ) : null}
-            <Sources sources={autoGuide.sources} unstated={autoGuide.unstated} />
-          </div>
-        ) : (
+      <SetupGuide
+        tab={tab}
+        onTab={setTab}
+        copyAddress={copyAddress}
+        test={
           <div role="tabpanel" className="flex flex-col gap-4">
             {state.firstAt && state.firstFrom ? (
               <p className="flex items-center gap-2 rounded-xl border border-done/25 bg-done-tint p-4 text-lg font-bold text-done">
@@ -380,8 +319,95 @@ export function ForwardingSetup({ state }: { state: ForwardingState }) {
               <a href="#email-import" className={TEXT_LINK}>paste the email instead</a>.
             </p>
           </div>
-        )}
-      </Card>
+        }
+      />
     </>
+  );
+}
+
+export type SetupTab = "one" | "auto" | "test";
+
+// The three ways to send emails to SnapStart; `test` fills the last tab
+export function SetupGuide({
+  tab,
+  onTab,
+  copyAddress,
+  test,
+}: {
+  tab: SetupTab;
+  onTab: (tab: SetupTab) => void;
+  copyAddress: (key: string, className: string) => ReactNode;
+  test: ReactNode;
+}) {
+  const [one, setOne] = useState<(typeof FORWARD_ONE)[number]["id"]>("gmail-app"),
+    [auto, setAuto] = useState<(typeof FORWARD_AUTO)[number]["id"]>("gmail");
+  const oneGuide = FORWARD_ONE.find((item) => item.id === one)!;
+  const autoGuide = FORWARD_AUTO.find((item) => item.id === auto)!;
+  return (
+    <Card title="Set it up" id="email-setup" icon="checklist">
+      <Tabs
+        label="How to send emails to SnapStart"
+        value={tab}
+        onChange={onTab}
+        tabs={[
+          { id: "one", label: <>Forward one email <span className="text-sm font-normal">· 30 seconds</span></> },
+          { id: "auto", label: "Forward automatically" },
+          { id: "test", label: "Test it" },
+        ]}
+      />
+
+      {tab === "one" ? (
+        <div role="tabpanel" className="flex flex-col gap-4">
+          <p>Works on your phone. Do this whenever a customer emails you about an order.</p>
+          <Tabs label="Your email app" small value={one} onChange={setOne} tabs={FORWARD_ONE.map((guide) => ({ id: guide.id, label: guide.label }))} />
+          <ol className="flex flex-col gap-3">
+            {oneGuide.steps.map((step, index) => (
+              <li key={index} className="flex items-start gap-3 rounded-xl border border-line p-3">
+                <span aria-hidden="true" className="grid size-7 shrink-0 place-items-center rounded-full bg-accent text-sm font-bold text-white">
+                  {index + 1}
+                </span>
+                <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-accent-ring bg-accent-tint text-accent">
+                  <Icon name={STEP_ICONS[step.icon]} />
+                </span>
+                <span className="flex flex-col gap-2 pt-1">
+                  {step.text}
+                  {step.icon === "paste" ? copyAddress("step", `${SECONDARY} w-fit`) : null}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <Sources sources={[oneGuide.source]} unstated={oneGuide.unstated} />
+        </div>
+      ) : tab === "auto" ? (
+        <div role="tabpanel" className="flex flex-col gap-4">
+          <p>Set it once and new emails come to SnapStart on their own. Pick your email:</p>
+          <Tabs label="Your email service" small value={auto} onChange={setAuto} tabs={FORWARD_AUTO.map((guide) => ({ id: guide.id, label: guide.label }))} />
+          {autoGuide.where ? <p className={ALERT}>{autoGuide.where}</p> : null}
+          {autoGuide.needsPlan ? <p className={ALERT}>{autoGuide.needsPlan}</p> : null}
+          {autoGuide.filter ? (
+            <p className="rounded-xl border border-accent-ring bg-accent-tint px-3.5 py-3 text-[15px] text-accent-ink">
+              <strong>Tip:</strong> to keep personal email private, forward only emails about orders. The steps are below.
+            </p>
+          ) : null}
+          <Numbered steps={autoGuide.steps} />
+          {autoGuide.confirms ? <p className="font-semibold">{autoGuide.confirms}</p> : null}
+          {autoGuide.filter ? (
+            <details className="rounded-xl border border-line p-4">
+              <summary className="cursor-pointer font-semibold text-accent">
+                Recommended: {autoGuide.filter.title.toLowerCase()}
+              </summary>
+              <div className="mt-3 flex flex-col gap-3">
+                <p>Only emails with words like order, quote or booking go to SnapStart. Everything else stays private.</p>
+                <Numbered steps={autoGuide.filter.steps} />
+                <Sources sources={[autoGuide.filter.source]} unstated={autoGuide.filter.unstated} />
+              </div>
+            </details>
+          ) : null}
+          <Sources sources={autoGuide.sources} unstated={autoGuide.unstated} />
+        </div>
+      ) : (
+        test
+      )}
+    </Card>
   );
 }
