@@ -1,5 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState, useTransition } from "react";
+import { confirmEmailSample, restartEmailDemo } from "@/app/(app)/email/demo/actions";
+import { useDemo } from "@/components/demo-mode";
 import { Icon } from "@/components/icons";
 import { INPUT, OUTSIDE_LINK, PRIMARY, SECONDARY } from "@/components/styles";
 import { Card, Chip } from "@/components/ui";
@@ -7,9 +10,30 @@ import { Working } from "@/components/working";
 import { DEMO_EMAILS, DEMO_OWNER_EMAIL, type DemoEmail } from "@/data/email-demo";
 import { replySubject } from "@/lib/email/mailto";
 
-// Client-side only: nothing here is saved, sent or read by AI; a reload starts over
-export function EmailDemo() {
-  const [round, setRound] = useState(0);
+// Nothing is sent or read by AI; confirmed orders and quotes become DEMO records in Orders & jobs
+export function EmailDemo({ added: saved }: { added: string[] }) {
+  const [round, setRound] = useState(0),
+    [added, setAdded] = useState(saved),
+    [message, setMessage] = useState(""),
+    [pending, start] = useTransition(),
+    demo = useDemo();
+  function confirm(id: string) {
+    start(async () => {
+      const result = await confirmEmailSample({ sampleId: id });
+      setMessage(result.ok ? "" : result.message);
+      if (result.ok) setAdded((list) => (list.includes(id) ? list : [...list, id]));
+    });
+  }
+  function reset() {
+    start(async () => {
+      // Demo sessions saved nothing, so only the page resets
+      const result = demo ? { ok: true, message: "" } : await restartEmailDemo();
+      setMessage(result.ok ? "" : result.message);
+      if (!result.ok) return;
+      setAdded([]);
+      setRound((value) => value + 1);
+    });
+  }
   return (
     <div className="flex flex-col gap-5">
       <Card title="Coming soon" id="email-coming-soon" icon="clock" tone="pick">
@@ -17,7 +41,15 @@ export function EmailDemo() {
           Connecting your email is coming soon. Here’s how it will work once your inbox is connected — try it with sample emails.
         </p>
       </Card>
-      <DemoBody key={round} onReset={() => setRound((value) => value + 1)} />
+      <DemoBody key={round} added={added} pending={pending} onConfirm={confirm} />
+      <p role="status" className="text-danger empty:hidden">
+        {message}
+      </p>
+      <button type="button" className={`${SECONDARY} w-fit`} disabled={pending} onClick={reset}>
+        <Icon name="refresh" size="sm" />
+        Start the demo over
+      </button>
+      <p className="text-sm text-muted">Starting over removes the DEMO orders this demo added. Your own orders aren’t touched.</p>
     </div>
   );
 }
@@ -25,10 +57,9 @@ export function EmailDemo() {
 const Sample = () => <Chip tone="pick">Sample</Chip>;
 const Demo = () => <Chip tone="warn">DEMO</Chip>;
 
-function DemoBody({ onReset }: { onReset: () => void }) {
+function DemoBody({ added, pending, onConfirm }: { added: string[]; pending: boolean; onConfirm: (id: string) => void }) {
   const [reading, setReading] = useState<number | null>(null),
-    [read, setRead] = useState(false),
-    [confirmed, setConfirmed] = useState<string[]>([]);
+    [read, setRead] = useState(false);
 
   // Reads the samples one by one, so it feels like the real thing
   useEffect(() => {
@@ -42,8 +73,6 @@ function DemoBody({ onReset }: { onReset: () => void }) {
     }, 450);
     return () => window.clearTimeout(timer);
   }, [reading]);
-
-  const orders = DEMO_EMAILS.filter((email) => confirmed.includes(email.id) && GOES_TO_ORDERS.has(email.result.kind));
 
   return (
     <>
@@ -73,8 +102,9 @@ function DemoBody({ onReset }: { onReset: () => void }) {
             <ResultCard
               key={email.id}
               email={email}
-              confirmed={confirmed.includes(email.id)}
-              onConfirm={() => setConfirmed((list) => [...list, email.id])}
+              confirmed={added.includes(email.id)}
+              pending={pending}
+              onConfirm={() => onConfirm(email.id)}
             />
           ) : (
             <EmailRow key={email.id} email={email} active={reading === index} />
@@ -82,33 +112,6 @@ function DemoBody({ onReset }: { onReset: () => void }) {
         )}
       </Card>
 
-      <Card title="Orders & jobs" id="demo-orders" icon="receipt" action={<Demo />}>
-        {orders.length ? (
-          <ul className="flex flex-col gap-2">
-            {orders.map((email) => (
-              <li key={email.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-line p-3">
-                <span className="min-w-0 flex-1">
-                  <b className="block">DEMO · {email.result.title}</b>
-                  <span className="text-sm text-muted">
-                    {email.fromName} · {email.result.when}
-                  </span>
-                </span>
-                <Chip tone={email.result.kind === "order" ? "done" : "accent"} icon={email.result.kind === "order" ? "check" : "question"}>
-                  {email.result.kind === "order" ? "Confirmed" : "Quote to send"}
-                </Chip>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-muted">Confirm an order or quote request above and it shows up here.</p>
-        )}
-        <p className="text-sm text-muted">Demo only: nothing here is saved, and it doesn’t change your real orders.</p>
-      </Card>
-
-      <button type="button" className={`${SECONDARY} w-fit`} onClick={onReset}>
-        <Icon name="refresh" size="sm" />
-        Start the demo over
-      </button>
     </>
   );
 }
@@ -155,7 +158,7 @@ function EmailRow({ email, active }: { email: DemoEmail; active: boolean }) {
   );
 }
 
-function ResultCard({ email, confirmed, onConfirm }: { email: DemoEmail; confirmed: boolean; onConfirm: () => void }) {
+function ResultCard({ email, confirmed, pending, onConfirm }: { email: DemoEmail; confirmed: boolean; pending: boolean; onConfirm: () => void }) {
   const { result } = email;
   return (
     <article aria-labelledby={`demo-${email.id}`} className="flex flex-col gap-3 rounded-xl border border-line p-4 shadow-soft">
@@ -210,8 +213,13 @@ function ResultCard({ email, confirmed, onConfirm }: { email: DemoEmail; confirm
           <p className="whitespace-pre-wrap break-words text-sm">{email.body}</p>
         </div>
       </details>
-      {confirmed || !GOES_TO_ORDERS.has(result.kind) ? null : (
-        <button type="button" className={`${SECONDARY} w-fit`} onClick={onConfirm}>
+      {!GOES_TO_ORDERS.has(result.kind) ? null : confirmed ? (
+        <Link href="/orders" className={`${SECONDARY} w-fit`}>
+          <Icon name="receipt" size="sm" />
+          Open Orders &amp; jobs
+        </Link>
+      ) : (
+        <button type="button" data-writes className={`${SECONDARY} w-fit`} disabled={pending} onClick={onConfirm}>
           <Icon name="check" size="sm" />
           Review and confirm
         </button>

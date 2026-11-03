@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Icon } from "@/components/icons";
 import { EmailDemo } from "@/components/operations/email-demo";
 import { PageHead } from "@/components/ui";
+import { listMyEmailDemoSamples } from "@/lib/data/my-business";
 import { sectionMetadata } from "@/lib/sections";
 
 export const metadata = sectionMetadata("/email/demo");
@@ -19,7 +21,13 @@ export default function EmailDemoPage() {
         title="Connect your email"
         lead="SnapStart reads your customer emails and turns them into orders, quote requests and ready-to-send replies for you to check."
       />
-      <EmailDemo />
+      <Suspense fallback={<p className="text-muted">Loading the demo…</p>}>
+        <Loaded />
+      </Suspense>
     </div>
   );
+}
+
+async function Loaded() {
+  return <EmailDemo added={await listMyEmailDemoSamples()} />;
 }
