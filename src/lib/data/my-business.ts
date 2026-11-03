@@ -871,75 +871,36 @@ export async function dismissMyCustomerMessage(id: string) {
   const user = await writer();
   return (await import("./customer-messages")).dismissMessageForOwner(getDb(), user.id, id);
 }
-export async function beginMyEmailConnection() {
+// The owner's forwarding address, made on first use
+export async function getMyForwardingAddress() {
   const user = await writer();
-  const { randomBytes } = await import("node:crypto");
-  const config = (await import("@/lib/email/client")).emailConfig();
-  const state = randomBytes(32).toString("hex"), binding = createHash("sha256").update(user.id).digest("hex");
-  const url = new URL(`${config.base}/v3/connect/auth`);
-  url.search = new URLSearchParams({ client_id: config.clientId, redirect_uri: config.redirectUri, response_type: "code", access_type: "offline", state }).toString();
-  return { url: url.toString(), state, binding };
+  return (await import("./email-inbox")).ensureInboxForOwner(getDb(), user.id);
 }
-export async function finishMyEmailConnection(code: string, binding: string) {
+// A new address; the old one stops working
+export async function newMyForwardingAddress() {
   const user = await writer();
-  if (createHash("sha256").update(user.id).digest("hex") !== binding) throw new Error("Account changed during connection");
-  const { emailApi, emailConfig } = await import("@/lib/email/client");
-  const config = emailConfig();
-  const raw = await emailApi("/connect/token", { method: "POST", body: JSON.stringify({ client_id: config.clientId, client_secret: config.apiKey, grant_type: "authorization_code", code, redirect_uri: config.redirectUri }) });
-  const { z } = await import("zod");
-  const grant = z.object({ grant_id: z.string().min(1).max(500), email: z.email() }).parse(raw);
-  const data = await import("./customer-messages");
-  const previous = await data.connectionForOwner(getDb(), user.id);
-  const connected = await data.connectEmailForOwner(getDb(), user.id, grant.grant_id, grant.email);
-  // The old grant goes only once the new one is saved
-  if (connected && previous && previous.grantId !== grant.grant_id) await deleteGrant(previous.grantId);
-  return connected;
+  return (await import("./email-inbox")).ensureInboxForOwner(getDb(), user.id, true);
 }
-// Brings in new mail from the owner's inbox and reads it, as one job
-export async function importMyEmail() {
+export async function clearMyForwardingConfirmation() {
+  const user = await writer();
+  return (await import("./email-inbox")).clearConfirmationForOwner(getDb(), user.id);
+}
+// Reads forwarded emails waiting for the owner, as one job
+export async function readMyNewEmail() {
   const user = await writer();
   const { runWorkflow } = await import("@/lib/workflow-runner");
   const { practiceMode } = await import("@/lib/ai");
   const { takeAiRequest } = await import("./ai-quota");
-  const { importEmailForOwner } = await import("@/lib/email/import");
+  const { readNewEmailForOwner } = await import("@/lib/email/read");
   return runWorkflow("email_import", null, () =>
-    importEmailForOwner(user.id, async () => practiceMode() || (await takeAiRequest(getDb(), user.id)) === "ok"),
+    readNewEmailForOwner(user.id, async () => practiceMode() || (await takeAiRequest(getDb(), user.id)) === "ok"),
   );
 }
-export async function disconnectMyEmail() {
+export async function markMyReplySent(id: string, reply: string) {
   const user = await writer();
-  const data = await import("./customer-messages");
-  const connection = await data.connectionForOwner(getDb(), user.id);
-  if (connection) await deleteGrant(connection.grantId);
-  await data.removeEmailForOwner(getDb(), user.id);
+  return (await import("./customer-messages")).markReplySentForOwner(getDb(), user.id, id, reply);
 }
 
-// A grant already gone at the provider (revoked or expired) counts as deleted
-async function deleteGrant(grantId: string) {
-  const { EmailApiError, emailApi } = await import("@/lib/email/client");
-  try {
-    await emailApi(`/grants/${encodeURIComponent(grantId)}`, { method: "DELETE" });
-  } catch (error) {
-    if (!(error instanceof EmailApiError && error.status === 404)) throw error;
-  }
-}
-export async function sendMyCustomerReply(id: string, reply: string) {
-  const user = await writer();
-  const data = await import("./customer-messages");
-  const reserved = await data.reserveReplyForOwner(getDb(), user.id, id, reply);
-  if (!reserved) return { ok: false, message: "This reply cannot be sent. Check for a newer message, a disconnected inbox or an earlier send." };
-  try {
-    const { z } = await import("zod");
-    if (!z.email().safeParse(reserved.message.sender).success) throw new Error("Missing recipient");
-    const escaped = reply.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\n", "<br>");
-    await (await import("@/lib/email/client")).emailApi(`/grants/${encodeURIComponent(reserved.connection.grantId)}/messages/send`, { method: "POST", body: JSON.stringify({ subject: `Re: ${reserved.message.subject}`, body: escaped, to: [{ email: reserved.message.sender }], reply_to_message_id: reserved.message.providerMessageId }) });
-    await data.finishReplyForOwner(getDb(), user.id, id, "sent");
-    return { ok: true, message: "Reply sent." };
-  } catch {
-    await data.finishReplyForOwner(getDb(), user.id, id, "uncertain");
-    return { ok: false, message: "Sending could not be confirmed. Check Sent mail before replying again; automatic retry is blocked." };
-  }
-}
 
 export async function setMyOrderTotal(id: string, totalCents: number) {
   const user = await writer();

@@ -19,9 +19,9 @@ export default function RunPage() {
       </Suspense>
       <Card title="You stay in charge" id="in-charge">
         <p>
-          Imported emails become orders and requests for your review. You
-          confirm stock changes, record payments and approve every reply before
-          it’s sent.
+          Emails you forward become orders and requests for your review. You
+          confirm stock changes, record payments and send every reply yourself,
+          from your own email.
         </p>
       </Card>
     </div>
@@ -39,23 +39,18 @@ async function Workflows() {
     <div className="grid gap-5 md:grid-cols-2">
       <Card title="Customer email" icon="file" id="workflow-email">
         <Chip
-          tone={
-            email.connection?.status === "connected"
-              ? "done"
-              : email.connection
-                ? "warn"
-                : "gray"
-          }
+          tone={email.waiting ? "accent" : email.inbox ? "done" : "gray"}
         >
-          {email.connection
-            ? email.connection.status === "connected"
-              ? "Connected"
-              : "Reconnect needed"
-            : "Connect your inbox"}
+          {email.waiting
+            ? `${email.waiting} new email${email.waiting === 1 ? "" : "s"} waiting`
+            : email.inbox
+              ? "Your address is ready"
+              : "Get your SnapStart address"}
         </Chip>
         <p className="text-muted">
-          Connect your inbox, import new emails, turn them into orders or
-          requests, and reply.
+          Forward customer emails to your own SnapStart address. SnapStart
+          turns them into orders or requests for you to check, and drafts
+          replies you send from your own email.
         </p>
         <Link href="/email" className={PRIMARY_LINK}>
           Open customer email
@@ -69,7 +64,7 @@ async function Workflows() {
         </Chip>
         <p className="text-muted">
           Track work, due dates, payments and balances. Add work yourself,
-          upload invoices or create it from imported email.
+          upload invoices or create it from forwarded email.
         </p>
         <Link href="/orders" className={PRIMARY_LINK}>
           Open orders & jobs

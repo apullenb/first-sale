@@ -28,7 +28,7 @@ const WRITES = [
   "setMyItemWearer", "deleteMyUnusedItemPictures", "saveMyPriceCheck", "createMyProduct", "updateMyProduct", "deleteMyProduct",
   "saveMyIntakeDraft", "deleteMyIntakeDraft", "createMyBusinessFromIntake", "updateMyProfileWithHistory", "recordMyDecisions",
   "replanMyPlan", "saveMyStructureAdvice", "saveMyInsights", "markMyInsight", "setMyJourneyMark", "clearMyJourneyMark",
-  "setMyOrderTotal", "progressMyOrder", "recordMyPayment", "scheduleMyOrder", "addMyCustomerMessage", "processMyCustomerMessage", "retryMyCustomerMessage", "dismissMyCustomerMessage", "beginMyEmailConnection", "finishMyEmailConnection", "importMyEmail", "disconnectMyEmail", "sendMyCustomerReply",
+  "setMyOrderTotal", "progressMyOrder", "recordMyPayment", "scheduleMyOrder", "addMyCustomerMessage", "processMyCustomerMessage", "retryMyCustomerMessage", "dismissMyCustomerMessage", "getMyForwardingAddress", "newMyForwardingAddress", "clearMyForwardingConfirmation", "readMyNewEmail", "markMyReplySent",
   "saveMyOperationSetup", "pauseMyOperationSetup", "recordMyOrder", "cancelMyOrder",
 ];
 

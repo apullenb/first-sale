@@ -37,7 +37,6 @@ test.describe("products and product photos", () => {
     // Products: price, cost and stock; what's left from each sale is worked out in code
     await open(page, "/products");
     await expect(page.getByRole("heading", { level: 1, name: "Add your products" })).toBeVisible();
-    await expectPracticeBanner(page);
     const form = page.getByRole("region", { name: "Add a product" });
     for (const [index, product] of candles.products.entries()) {
       // After the first, the form folds away behind “Add a product”
@@ -95,7 +94,6 @@ test.describe("products and product photos", () => {
   test("candles: suggestions from answers, a description from a photo, a picture from a description, and prices nearby", async ({ browser }) => {
     const { page } = await newOwner(browser, candles, "candles-ai");
     await open(page, "/products");
-    await expectPracticeBanner(page);
 
     // Suggested from intake: names only, a labeled practice draft, no price
     const suggest = page.getByRole("region", { name: "Start from your answers" });
@@ -105,6 +103,8 @@ test.describe("products and product photos", () => {
     const suggested = list.getByRole("article", { name: "Hand-poured soy candles" });
     await expect(suggested).toContainText("Suggested", { timeout: 30_000 });
     await expect(suggested).toContainText("Practice draft, not written by AI");
+    // Practice items on the page bring the practice banner
+    await expectPracticeBanner(page);
     await expect(suggested).toContainText("No price yet");
     // Not confirmed yet, so the step isn't about managing yet
     await expect(page.getByRole("heading", { level: 1, name: "Add your products" })).toBeVisible();
