@@ -63,7 +63,6 @@ export default function WebsitePage() {
 const view = (file: BrandFile | null) => (file ? { src: file.url, width: file.width, height: file.height } : null);
 // Brand links open in the browser with ?view=1; without it they download
 const download = (file: BrandFile | null) => (file ? file.url.replace(/\?view=1$/, "") : null);
-const photoUrl = (photoId: string, versionId: string, inline: boolean) => `/photos/${photoId}/versions/${versionId}/file${inline ? "?view=1" : ""}`;
 
 async function WebsitePlanView() {
   const [site, run, optionsRun, marks] = await Promise.all([loadSite(), lastMyRun("website_copy", null), lastMyRun("website_options", null), listMyJourneyMarks()]);
@@ -224,6 +223,7 @@ async function WebsitePlanView() {
                 {content.simulated ? <PracticeBanner what="This site uses words drafted in practice mode." /> : null}
                 <SiteStudio
                   name={name}
+                  draftedAt={content.generatedAt}
                   copy={copyOf(content)}
                   saved={site.design}
                   images={{ logo: view(brand?.logos.primary ?? null), hero: view(brand?.images.websiteHero ?? null), favicon: view(brand?.logos.profile ?? null) }}
@@ -232,7 +232,7 @@ async function WebsitePlanView() {
                       versionId: photo.id,
                       photoId: photo.photoId,
                       title: photo.title,
-                      src: photoUrl(photo.photoId, photo.id, true),
+                      src: photo.src,
                       width: photo.width,
                       height: photo.height,
                       simulated: photo.simulated,
@@ -446,7 +446,7 @@ function BuildSteps({ site, platformId }: { site: LoadedSite; platformId: Platfo
           practice: { logo: site.brandPractice.logo, icon: site.brandPractice.icon },
         }
       : null,
-    photos: Object.fromEntries(site.library.map((photo) => [photo.id, { href: photoUrl(photo.photoId, photo.id, false), practice: photo.simulated }])),
+    photos: Object.fromEntries(site.library.map((photo) => [photo.id, { href: photo.src, practice: photo.simulated }])),
     domain: plan?.domain ?? null,
     domainSetup: platform.domainSetup,
   };

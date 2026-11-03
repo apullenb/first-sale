@@ -19,6 +19,7 @@ export interface Workflow {
 const MINUTE = 60_000;
 
 export const WORKFLOWS = {
+  website_theme: { title: "Design my website theme", summary: "Creates a website theme from your brand for you to review.", actor: "ai", usesAi: true, timeLimitMs: 180_000, offeredFor: [] },
   customer_intake: { title: "Read a customer request", summary: "Reads email or an invoice and prepares an order or job for review.", actor: "ai", usesAi: true, timeLimitMs: 5 * MINUTE, offeredFor: [] },
   email_import: { title: "Import new emails", summary: "Brings in new customer emails and prepares orders and requests for review.", actor: "ai", usesAi: true, timeLimitMs: 6 * MINUTE, offeredFor: [] },
   square_description: {

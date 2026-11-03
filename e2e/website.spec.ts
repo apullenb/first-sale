@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { groomer, tacos } from "./scenarios";
-import { newOwner, open, sidebar } from "./support";
+import { candles, groomer, tacos } from "./scenarios";
+import { newOwner, open, pngBuffer, sidebar } from "./support";
 
 const PACKAGES = ["SnapStart site", "Square", "Wix", "Shopify"];
 
@@ -50,6 +50,51 @@ test.describe("create your website", () => {
     }
     await design.getByRole("button", { name: "Save design", exact: true }).click();
     await expect(design.getByRole("button", { name: "Save design", exact: true })).toBeDisabled();
+    await page.context().close();
+  });
+
+  test("brand library images, product photos, AI theme and page edits persist", async ({ browser }) => {
+    const { page } = await newOwner(browser, candles);
+    await open(page, "/brand-library");
+    const upload = page.getByRole("region", { name: "Add a picture" });
+    for (const [name, width, height] of [["Candle header", 1200, 600], ["Candle product", 600, 600]] as const) {
+      await upload.locator("input[type=file]").setInputFiles({ name: `${name}.png`, mimeType: "image/png", buffer: pngBuffer(width, [160, 130, 100], height) });
+      await upload.getByRole("textbox", { name: "Name (optional)" }).fill(name);
+      await upload.getByRole("button", { name: "Add to my Brand Library" }).click();
+      await expect(page.getByText(name, { exact: true }).first()).toBeVisible();
+    }
+    await open(page, "/products");
+    const form = page.getByRole("region", { name: "Add a product", exact: true });
+    await form.getByRole("textbox", { name: "Name", exact: true }).fill("Library candle");
+    await form.getByRole("textbox", { name: "Short description (optional)" }).fill("A candle from the product library.");
+    await form.getByRole("textbox", { name: "Price", exact: true }).fill("18");
+    await form.getByText("Candle product", { exact: true }).click();
+    await form.getByRole("button", { name: "Add product", exact: true }).click();
+    await expect(page.getByRole("article", { name: "Library candle", exact: true })).toBeVisible();
+    await open(page, "/website");
+    await page.getByRole("button", { name: "Choose SnapStart site", exact: true }).click();
+    await page.getByRole("button", { name: "Write my own words", exact: true }).click();
+    const design = page.getByRole("region", { name: "Step 4: Design it and see it live" });
+    await expect(design.getByLabel("Header image", { exact: true })).toHaveValue(/^library:/);
+    await design.getByRole("button", { name: "Design theme from my brand" }).click();
+    await expect(design.getByText("Editorial studio", { exact: true })).toBeVisible();
+    await design.getByRole("combobox", { name: "Layout", exact: true }).selectOption("cover");
+    await design.getByText("Edit page text", { exact: true }).click();
+    await design.getByRole("textbox", { name: "Headline", exact: true }).fill("Light for everyday rituals");
+    await design.getByRole("button", { name: "Save design", exact: true }).click();
+    await expect(design.getByRole("button", { name: "Save design", exact: true })).toBeDisabled();
+    await page.reload();
+    await expect(design.getByRole("combobox", { name: "Layout", exact: true })).toHaveValue("cover");
+    await design.getByRole("button", { name: "View full-screen preview" }).click();
+    const dialog = page.getByRole("dialog");
+    const frame = dialog.frameLocator("iframe");
+    await expect(frame.getByRole("heading", { name: "Light for everyday rituals", exact: true })).toBeVisible();
+    await expect(frame.getByRole("heading", { name: "Library candle", exact: true })).toBeVisible();
+    await expect(frame.getByText("$18", { exact: true })).toBeVisible();
+    await expect(frame.locator(".hero-image")).toHaveAttribute("src", /brand-library/);
+    await expect(frame.locator(".item-photo")).toHaveAttribute("src", /brand-library/);
+    await expect.poll(() => frame.locator(".hero-image").evaluate((img) => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await expect.poll(() => frame.locator(".item-photo").evaluate((img) => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
     await page.context().close();
   });
 
