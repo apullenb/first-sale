@@ -169,6 +169,8 @@ export function orderAttention(
     return "closed";
   if (order.status === "new" || order.status === "needs_review")
     return "review";
+  // The owner's part is done once it ships, so its date can't make it late
+  if (order.status === "shipped") return "upcoming";
   return order.requestedDate && order.requestedDate < today
     ? "overdue"
     : order.requestedDate === today

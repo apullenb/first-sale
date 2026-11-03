@@ -64,6 +64,12 @@ describe("business-specific work", () => {
         "2026-11-03",
       ),
     ).toBe("closed");
+    expect(
+      orderAttention(
+        { status: "shipped", requestedDate: "2026-10-01" },
+        "2026-11-03",
+      ),
+    ).toBe("upcoming");
   });
 });
 describe("payment ledger", () => {
