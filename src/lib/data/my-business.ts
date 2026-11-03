@@ -895,6 +895,16 @@ export async function finishMyEmailConnection(code: string, binding: string) {
   if (connected && previous && previous.grantId !== grant.grant_id) await deleteGrant(previous.grantId);
   return connected;
 }
+// Sync now: new mail from the owner's inbox, then read what's waiting, inside one request's time
+export async function syncMyEmail() {
+  const user = await writer();
+  const data = await import("./customer-messages");
+  const connection = await data.connectionForOwner(getDb(), user.id);
+  if (!connection || connection.paused || connection.status !== "connected") return null;
+  const worker = await import("@/lib/email/worker");
+  await worker.pollCustomerEmail(user.id);
+  return worker.workCustomerMessages(user.id, 60_000);
+}
 export async function pauseMyEmail(paused: boolean) {
   const user = await writer();
   return (await import("./customer-messages")).changeEmailForOwner(getDb(), user.id, paused);

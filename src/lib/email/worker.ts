@@ -70,7 +70,8 @@ export async function enqueueEmailEvent(event: unknown) {
     subject: "Incoming customer email",
   });
 }
-export async function pollCustomerEmail() {
+// Every inbox by default; one owner's for their Sync now button
+export async function pollCustomerEmail(ownerId?: string) {
   const db = getDb();
   const connections = await db
     .select({ connection: emailConnections, ownerId: businesses.ownerId })
@@ -81,6 +82,7 @@ export async function pollCustomerEmail() {
         eq(emailConnections.paused, false),
         eq(emailConnections.status, "connected"),
         eq(businesses.isDemo, false),
+        ownerId ? eq(businesses.ownerId, ownerId) : undefined,
       ),
     )
     .orderBy(asc(emailConnections.syncSince))
@@ -156,7 +158,10 @@ export async function pollCustomerEmail() {
     }
   }
 }
-export async function workCustomerMessages() {
+export async function workCustomerMessages(
+  ownerId?: string,
+  budgetMs = WORK_BUDGET_MS,
+) {
   const db = getDb();
   await db
     .update(customerMessages)
@@ -172,7 +177,7 @@ export async function workCustomerMessages() {
   // Each message once per run, so one that stays eligible can't spend AI requests over and over
   const tried = new Set<string>();
   // One at a time, oldest first, until the time runs out or nothing is left
-  while (Date.now() - started < WORK_BUDGET_MS) {
+  while (Date.now() - started < budgetMs) {
     const pending = await db
       .select({ id: customerMessages.id, ownerId: businesses.ownerId })
       .from(customerMessages)
@@ -184,6 +189,7 @@ export async function workCustomerMessages() {
       .where(
         and(
           eq(businesses.isDemo, false),
+          ownerId ? eq(businesses.ownerId, ownerId) : undefined,
           or(
             sql`${customerMessages.connectionId} is null`,
             and(
@@ -232,8 +238,12 @@ export async function workCustomerMessages() {
   const [remaining] = await db
     .select({ count: sql<number>`count(*)`.mapWith(Number) })
     .from(customerMessages)
+    .innerJoin(businesses, eq(businesses.id, customerMessages.businessId))
     .where(
-      inArray(customerMessages.state, ["pending", "failed", "processing"]),
+      and(
+        inArray(customerMessages.state, ["pending", "failed", "processing"]),
+        ownerId ? eq(businesses.ownerId, ownerId) : undefined,
+      ),
     );
   return { processed, remaining: remaining.count };
 }
