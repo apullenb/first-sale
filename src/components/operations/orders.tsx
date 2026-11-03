@@ -149,7 +149,7 @@ export function OrdersPanel({
         >
           Upload invoice or email
         </button>
-        <Link className={SECONDARY} href="/email">
+        <Link className={SECONDARY} href="/email/demo">
           Customer email
         </Link>
       </div>
