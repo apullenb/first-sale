@@ -155,7 +155,7 @@ Each step comes with numbered instructions, and every fee and method links to th
 
 <img src="docs/media/nav/register-your-business.webp" alt="Menu link: Register your business" width="177" height="32">
 
-For an LLC or a partnership, SnapStart prepares the owners' agreement (a company agreement in Texas) from carefully written standard wording, filled in with the owners, their shares, what each puts in and how they'll make decisions. It's saved as a PDF with a signature line for each owner, ready to sign and keep with the business records.
+For an LLC or a partnership, SnapStart prepares the owners' agreement when required by the user's state, using carefully written standard wording filled in with the owners, their shares, what each puts in and how they'll make decisions. It's saved as a PDF with a signature line for each owner, ready to sign and keep with the business records.
 
 ### Documents and the paperwork companion
 
@@ -207,7 +207,7 @@ Products get a price, a cost and stock. Options like size or scent each carry th
 
 ### Connect your Square products
 
-Connect Square to import products, photos, options and selling prices into your SnapStart library. Keep Square products separate from unpublished items, review and publish changes when you're ready, and see when each product was last pushed. For description changes, SnapStart drafts the words, the owner reviews them, and code validates the approved update before sending it to Square.
+Connect Square to import products, photos, options and selling prices into your SnapStart library. Keep Square products separate from unpublished items, review and publish changes when you're ready, and see when each product was last pushed. For description changes, SnapStart drafts the words, the owner reviews them, and approved updates are validated before being sent to Square.
 
 <p align="center"><img src="docs/media/square-products.webp" alt="Square product integration: connect an account, load products, and import Lavender Candle and Cedar Candle with photos into the product library" width="1000"></p>
 
