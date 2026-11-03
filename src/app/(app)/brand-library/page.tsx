@@ -188,15 +188,6 @@ async function Library() {
         ))}
       </nav>
 
-      <Card title="Add a picture" icon="upload" id="add-heading">
-        <p className="text-[15px] text-rule">Add your own pictures, such as your storefront, your team or work in progress, or logo and brand files you already have.</p>
-        <LibraryUpload groups={LIBRARY_GROUPS} initialGroup="other" maxBytes={MAX_UPLOAD_BYTES} />
-        <p className="text-sm text-muted">
-          You can add up to {LIBRARY_LIMITS.files} pictures and {formatBytes(LIBRARY_LIMITS.totalBytes)} in all. You’ve added {usage.count} {usage.count === 1 ? "picture" : "pictures"}{usage.count ? <> ({formatBytes(usage.bytes)})</> : null}. Files made or uploaded
-          elsewhere in SnapStart don’t count toward this.
-        </p>
-      </Card>
-
       {LIBRARY_GROUPS.map((group) =>
         group === "brand_images" ? (
           <Group key={group} group={group} items={groups[group]} count={counts[group]} uploadsTitle="Brand images you added">
@@ -220,6 +211,15 @@ async function Library() {
         </Link>
         .
       </p>
+
+      <Card title="Add a picture" icon="upload" id="add-heading">
+        <p className="text-[15px] text-rule">Add your own pictures, such as your storefront, your team or work in progress, or logo and brand files you already have.</p>
+        <LibraryUpload groups={LIBRARY_GROUPS} initialGroup="other" maxBytes={MAX_UPLOAD_BYTES} />
+        <p className="text-sm text-muted">
+          You can add up to {LIBRARY_LIMITS.files} pictures and {formatBytes(LIBRARY_LIMITS.totalBytes)} in all. You’ve added {usage.count} {usage.count === 1 ? "picture" : "pictures"}{usage.count ? <> ({formatBytes(usage.bytes)})</> : null}. Files made or uploaded
+          elsewhere in SnapStart don’t count toward this.
+        </p>
+      </Card>
     </>
   );
 }
@@ -244,7 +244,7 @@ function Group({ group, items, count, uploadsTitle, children }: { group: Library
           </ul>
         ) : (
           <div className="flex flex-col items-start gap-2 rounded-xl border border-dashed border-line-strong bg-soft px-4 py-5">
-            <p className="text-muted">{empty?.text ?? "Nothing added yet. Use “Add a picture” above."}</p>
+            <p className="text-muted">{empty?.text ?? "Nothing added yet. Use “Add a picture” below."}</p>
             {empty ? (
               <Link href={empty.href} className={TEXT_LINK}>
                 {empty.label}
