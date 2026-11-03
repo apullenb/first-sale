@@ -2,16 +2,17 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import {
-  changeCustomerEmail,
   connectCustomerEmail,
+  disconnectCustomerEmail,
   dismissCustomerMessage,
+  importCustomerEmail,
   retryCustomerMessage,
   sendCustomerReply,
-  setEmailReminder,
-  syncCustomerEmail,
 } from "@/app/(app)/email/actions";
 import { importCustomerRequest } from "@/app/(app)/orders/tracking-actions";
 import { Card, Chip } from "@/components/ui";
+import { JobWatch, RUNNING_ELSEWHERE, useJobWatch } from "@/components/job-watch";
+import { Working } from "@/components/working";
 import { INPUT, PRIMARY, SECONDARY } from "@/components/styles";
 import { PracticeBanner } from "@/components/practice-banner";
 import type { ExtractedRequest } from "@/lib/orders/extract";
@@ -85,23 +86,17 @@ export function CustomerInbox({
   messages,
   connection,
   available,
-  now,
-  reminderDays = 2,
+  importing,
 }: {
   messages: InboxMessage[];
-  connection: {
-    email: string;
-    paused: boolean;
-    status: string;
-    reminderDays: number;
-  } | null;
+  connection: { email: string; status: string } | null;
   available: boolean;
-  now: string;
-  reminderDays?: number;
+  importing: boolean;
 }) {
   const [pending, start] = useTransition(),
     [message, setMessage] = useState(""),
     [showResolved, setShowResolved] = useState(false);
+  const job = useJobWatch();
   function run(action: () => Promise<{ ok: boolean; message: string }>) {
     start(async () => {
       try {
@@ -111,6 +106,20 @@ export function CustomerInbox({
       }
     });
   }
+  function importNew() {
+    start(async () => {
+      try {
+        const result = await importCustomerEmail();
+        if (result.busy) {
+          setMessage("");
+          job.watch([result.busy]);
+        } else setMessage(result.message);
+      } catch {
+        setMessage("Could not import your emails. Try again.");
+      }
+    });
+  }
+  const connected = connection?.status === "connected";
   const visible = messages.filter(
     (item) => showResolved || item.state !== "dismissed",
   );
@@ -120,86 +129,51 @@ export function CustomerInbox({
         {connection ? (
           <>
             <p className="font-semibold">{connection.email}</p>
-            <Chip
-              tone={
-                connection.paused || connection.status !== "connected"
-                  ? "warn"
-                  : "done"
-              }
-            >
-              {connection.status !== "connected"
-                ? "Reconnect needed"
-                : connection.paused
-                  ? "Paused"
-                  : "Connected"}
+            <Chip tone={connected ? "done" : "warn"}>
+              {connected ? "Connected" : "Reconnect needed"}
             </Chip>
             <p className="text-muted">
-              Press Sync now to bring in new messages. Orders and jobs are added
-              for review automatically. Every reply waits for your approval.
+              Import new emails to bring in customer messages. Orders and
+              requests are added for your review, and every reply waits for
+              your approval.
             </p>
             <div className="flex flex-wrap gap-2">
-              {!connection.paused && connection.status === "connected" ? (
+              {connected ? (
                 <button
                   data-writes
                   className={PRIMARY}
-                  disabled={pending}
-                  onClick={() => run(syncCustomerEmail)}
+                  disabled={pending || job.watching}
+                  onClick={importNew}
                 >
-                  {pending ? "Syncing…" : "Sync now"}
+                  {pending || job.watching
+                    ? "Importing…"
+                    : "Import new emails"}
                 </button>
               ) : null}
               <button
                 data-writes
                 className={SECONDARY}
                 disabled={pending}
-                onClick={() =>
-                  run(() =>
-                    changeCustomerEmail(connection.paused ? "resume" : "pause"),
-                  )
-                }
-              >
-                {connection.paused ? "Resume" : "Pause"}
-              </button>
-              <button
-                data-writes
-                className={SECONDARY}
-                disabled={pending}
-                onClick={() => run(() => changeCustomerEmail("disconnect"))}
+                onClick={() => run(disconnectCustomerEmail)}
               >
                 Disconnect
               </button>
             </div>
+            {job.watching ? (
+              <Working label={RUNNING_ELSEWHERE} active />
+            ) : importing && !pending ? (
+              <JobWatch
+                jobs={[{ workflow: "email_import", subjectId: null }]}
+                what="Importing your emails"
+              />
+            ) : null}
           </>
         ) : (
           <p className="text-muted">
-            Connect your business inbox to automatically find customer orders
-            and jobs, keep conversations together and prepare replies.
+            Connect your business inbox to import customer emails, turn them
+            into orders or requests, and reply from here.
           </p>
         )}
-        {connection ? (
-          <label className="flex flex-col gap-2 font-semibold">
-            Flag unanswered messages after
-            <select
-              data-writes
-              className={INPUT}
-              disabled={pending}
-              value={connection.reminderDays}
-              onChange={(event) =>
-                run(() => setEmailReminder(Number(event.target.value)))
-              }
-            >
-              {[1, 2, 3, 7].map((days) => (
-                <option key={days} value={days}>
-                  {days} day{days === 1 ? "" : "s"}
-                </option>
-              ))}
-            </select>
-            <span className="text-sm font-normal text-muted">
-              Follow-up flags appear here. No reminder email is sent
-              automatically.
-            </span>
-          </label>
-        ) : null}
         {available ? (
           <button
             data-writes
@@ -217,8 +191,7 @@ export function CustomerInbox({
           </button>
         ) : (
           <p className="text-sm text-muted">
-            Live email needs administrator setup. You can use invoice uploads,
-            pasted messages and manual entry now.
+            Connecting an inbox isn’t set up on this site yet.
           </p>
         )}
         <p role="status" className="text-sm text-accent">
@@ -244,17 +217,11 @@ export function CustomerInbox({
               item={item}
               pending={pending}
               run={run}
-              overdue={
-                item.sendState === "draft" &&
-                item.state !== "dismissed" &&
-                Date.parse(now) - Date.parse(item.createdAt) >=
-                  (connection?.reminderDays ?? reminderDays) * 86_400_000
-              }
             />
           ))
         ) : (
           <p className="text-muted">
-            No messages waiting. Incoming orders will also appear in{" "}
+            No messages yet. Orders and requests from email also appear in{" "}
             <Link href="/orders" className="font-semibold text-accent">
               Orders & jobs
             </Link>
@@ -269,12 +236,10 @@ function Message({
   item,
   pending,
   run,
-  overdue,
 }: {
   item: InboxMessage;
   pending: boolean;
   run: (action: () => Promise<{ ok: boolean; message: string }>) => void;
-  overdue: boolean;
 }) {
   const [reply, setReply] = useState(item.reply),
     [approve, setApprove] = useState(false);
@@ -282,16 +247,18 @@ function Message({
     <article className="flex flex-col gap-3 rounded-xl border border-line p-4">
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="font-bold">{item.subject}</h3>
-        <Chip tone={item.state === "failed" || overdue ? "warn" : "gray"}>
+        <Chip tone={item.state === "failed" ? "warn" : "gray"}>
           {item.state === "failed"
             ? "Needs another look"
-            : item.state === "pending" || item.state === "processing"
-              ? "Reading"
-              : item.state === "dismissed"
-                ? "Resolved"
-                : overdue
-                  ? "Follow up"
-                  : "For review"}
+            : item.state === "pending"
+              ? "Waiting to be read"
+              : item.state === "processing"
+                ? "Reading"
+                : item.state === "dismissed"
+                  ? "Resolved"
+                  : item.sendState === "sent"
+                    ? "Replied"
+                    : "For review"}
         </Chip>
       </div>
       {item.sender ? (

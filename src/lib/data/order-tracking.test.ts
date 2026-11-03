@@ -22,6 +22,7 @@ import {
   completeMessageForOwner,
   connectEmailForOwner,
   emailStateForOwner,
+  messageForOwner,
   reserveReplyForOwner,
   connectionForOwner,
   finishReplyForOwner,
@@ -47,6 +48,9 @@ const extraction = (reference = ""): ExtractedRequest => ({
   warnings: [],
 });
 
+const claimedAt = async (id: string) =>
+  (await messageForOwner(db, "owner-a", id))!.updatedAt;
+
 describe("customer intake", () => {
   it("creates one review record per event and does not trust invoice payments or prices", async () => {
     const input = {
@@ -68,7 +72,6 @@ describe("customer intake", () => {
         extraction(),
         false,
         input.body,
-        1,
         new Date(0),
       ),
     ).toBeNull();
@@ -79,6 +82,7 @@ describe("customer intake", () => {
       extraction(),
       false,
       input.body,
+      await claimedAt(id),
     );
     expect(orderId).toBeTruthy();
     expect(
@@ -89,6 +93,7 @@ describe("customer intake", () => {
         extraction(),
         false,
         input.body,
+        await claimedAt(id),
       ),
     ).toBeNull();
     const [saved] = (await listOrdersForOwner(db, "owner-a")).filter(
@@ -121,6 +126,7 @@ describe("customer intake", () => {
           extraction("INV-44"),
           false,
           "invoice",
+          await claimedAt(id),
         ),
       );
     }
@@ -141,6 +147,7 @@ describe("customer intake", () => {
       extraction(),
       true,
       "sample",
+      await claimedAt(id),
     ))!;
     expect(
       await recordOrderForOwner(db, "owner-a", {
@@ -178,6 +185,7 @@ describe("orders, stock and payments", () => {
       extraction(),
       false,
       "Order",
+      await claimedAt(id),
     ))!;
     const input = {
       id: orderId,
@@ -308,6 +316,7 @@ describe("reviewed sending", () => {
       { ...extraction(), category: "question" },
       false,
       "question",
+      await claimedAt(id),
     );
     expect(await reserveReplyForOwner(db, "owner-b", id, "Hello")).toBeNull();
     const reserved = await reserveReplyForOwner(
@@ -346,6 +355,7 @@ describe("reviewed sending", () => {
       { ...extraction(), category: "question" },
       false,
       "first",
+      await claimedAt(first),
     );
     await addMessageForOwner(db, "owner-a", {
       source: "email",

@@ -1,1 +1,0 @@
-ALTER TABLE "email_connections" ADD COLUMN "reminder_days" integer DEFAULT 2 NOT NULL;
