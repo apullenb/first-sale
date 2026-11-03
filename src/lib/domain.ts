@@ -213,7 +213,7 @@ export type GeneratedKind = (typeof GENERATED_KINDS)[number];
 export const DRAFT_KINDS = ["listing", "social_post", "order_reply", "role_description"] as const;
 export const DRAFT_STATUSES = ["draft", "approved", "exported"] as const;
 export const FULFILLMENT_METHODS = ["pickup", "shipping", "delivery"] as const;
-export const ORDER_STATUSES = ["new", "confirmed", "needs_review", "fulfilled", "cancelled"] as const;
+export const ORDER_STATUSES = ["new", "confirmed", "needs_review", "in_progress", "ready", "shipped", "fulfilled", "cancelled"] as const;
 // Who did each step, shown on every order's timeline
 export const ACTORS = ["rule", "ai", "owner"] as const;
 export type Actor = (typeof ACTORS)[number];
