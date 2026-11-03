@@ -63,6 +63,7 @@ export type SiteTheme = z.infer<typeof themeSchema>;
 
 export const siteDesignSchema = z.object({
   labels: z.object({ catalog: z.string().max(60), about: z.string().max(60), order: z.string().max(60), contact: z.string().max(60) }).optional(),
+  heroComposition: z.enum(["collection", "single"]).optional(),
   imagePosition: z.enum(["center", "top", "bottom"]).optional(),
   theme: themeSchema.optional(),
   heroImage: photoRef.nullable().optional(),
@@ -103,6 +104,7 @@ export function readDesign(raw: unknown, color: string): SiteDesign {
     return parsed.success ? (parsed.data as SiteDesign[K]) : base[key];
   };
   return {
+    ...(stored.heroComposition ? { heroComposition: field("heroComposition") } : {}),
     ...(stored.labels ? { labels: field("labels") } : {}),
     ...(stored.imagePosition ? { imagePosition: field("imagePosition") } : {}),
     ...(stored.theme ? { theme: field("theme") } : {}),

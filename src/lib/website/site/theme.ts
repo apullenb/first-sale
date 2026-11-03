@@ -18,13 +18,14 @@ FIRST UNDERSTAND THE BRAND
 Read the saved brand brief, customer, offering, personality, lettering and palette as a single creative brief. Express its specific character. A calm music studio, an expressive ceramics shop and a precise home service should look different. Respect the owner's color dislikes and design request. Keep recognizable approved colors, adapting supporting tones for clarity. Do not default every business to cream, beige, oversized serif headings or green buttons.
 
 DESIGN A PAGE, NOT A PALETTE
+The quality bar is an image-led independent boutique storefront: a confident, recognizable logo, an art-directed opening, substantial real product photography and a browsable collection visible early. Avoid the look of an empty document with a title and a few evenly spaced text blocks. The renderer gives a split hero a composed photo collection when several product photos exist. Use that to show the range; choose cover only when one scene is strong enough to carry the opening. For three or more physical products with photos, prefer grid with portrait or square imagery and offerings first in sectionOrder. Use featured for one or two products; use list for services where descriptions matter more than a product photograph. Carry the palette across contrasting sections, giving the story a different surface from the collection. Pair expressive headings with restrained body text. Pick a clear visual rhythm rather than making every section feel identical.
 Choose one deliberate concept and give it a short useful name. Explain the two or three concrete decisions that connect it to this brand. Choose a readable heading family: sans for clarity and contemporary confidence; serif for quiet craft or established character; editorial for expressive, literary sophistication. Set a restrained titleScale: 0.75–0.95 normally; reserve larger values for very short headlines. Keep foreground readable against background AND surface. Accent is the action color, not a color to paint every word.
 
 Choose layout from the actual assets:
 - split: a strong scene or product image beside focused copy; a versatile default when imagery needs room.
 - cover: only a genuine wide photograph with enough visual space for text. Avoid cover for logos, text-heavy artwork, portrait thumbnails, packaging labels or a busy scene.
 - centered: concise, confident editorial opening; useful without a suitable image, or when a wide image deserves its own row. Never use a giant decorative initial as a substitute for a real image.
-Choose heroId from the provided image IDs only. Prefer the selected brand header, then a suitable business/lifestyle scene, then a relevant product image. Look at attached references when available. Never use a logo as the hero. Use null when no image is appropriate. Images are the owner's actual assets: do not invent photography.
+A real image is required whenever the library contains a suitable non-logo photograph. Do not return null just to create a minimalist text-only page. Choose heroId from the provided image IDs only. Prefer the selected brand header, then a suitable business/lifestyle scene, then a relevant product image. Look at attached references when available. Never use a logo as the hero. Use null when no image is appropriate. Images are the owner's actual assets: do not invent photography.
 
 COMMERCE AND INFORMATION HIERARCHY
 Use catalogLayout grid for a collection, list for information-rich services, featured for one or two flagship offerings. Use imageShape appropriate to the available photographs. Use balanced density by default; airy should feel intentional, not like a page of empty space. Choose sectionOrder from the permitted sections, each at most once: products or services should be easy to find, the story should establish context, ordering should be straightforward, and contact should be actionable. Do not fabricate testimonials, reviews, ratings, statistics, certifications, discounts, availability, guarantees or years in business.
@@ -63,6 +64,11 @@ export async function designBrandTheme(model: ModelProvider, facts: ThemeFacts, 
   }
   const result = await generateObject(model, { name: NAME, schema: replySchema, effort: "medium", maxOutputTokens: 9000, timeoutMs: 150_000, userKey,
     messages: [{ role: "system", content: THEME_SYSTEM }, { role: "user", content }] });
+  const available = facts.images.filter((image) => image.purpose !== "logo");
+  const selected = available.find((image) => image.id === result.heroId);
+  const header = selected ?? available.find((image) => image.purpose === "selected header" || image.purpose === "brand header") ?? available.find((image) => image.width >= image.height * 1.2) ?? available.find((image) => image.purpose === "product photo") ?? available[0];
+  const theme = validateTheme({ ...result.theme, simulated: model.simulated });
+  if (theme.layout === "cover" && header && (header.width < header.height * 1.2 || header.purpose === "product photo")) theme.layout = "split";
   const safeCopy = result.heroCopy && !/\d|\$|%|guarantee|certified|award|best[- ]selling|five[- ]star|rated|free shipping/i.test(`${result.heroCopy.headline} ${result.heroCopy.subheadline}`) ? result.heroCopy : null;
-  return { theme: validateTheme({ ...result.theme, simulated: model.simulated }), heroId: facts.images.some((image) => image.id === result.heroId && image.purpose !== "logo") ? result.heroId : null, heroCopy: safeCopy };
+  return { theme, heroId: header?.id ?? null, heroCopy: safeCopy };
 }
