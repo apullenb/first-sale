@@ -895,19 +895,16 @@ export async function finishMyEmailConnection(code: string, binding: string) {
   if (connected && previous && previous.grantId !== grant.grant_id) await deleteGrant(previous.grantId);
   return connected;
 }
-// Sync now: new mail from the owner's inbox, then read what's waiting, inside one request's time
-export async function syncMyEmail() {
+// Brings in new mail from the owner's inbox and reads it, as one job
+export async function importMyEmail() {
   const user = await writer();
-  const data = await import("./customer-messages");
-  const connection = await data.connectionForOwner(getDb(), user.id);
-  if (!connection || connection.paused || connection.status !== "connected") return null;
-  const worker = await import("@/lib/email/worker");
-  await worker.pollCustomerEmail(user.id);
-  return worker.workCustomerMessages(user.id, 60_000);
-}
-export async function pauseMyEmail(paused: boolean) {
-  const user = await writer();
-  return (await import("./customer-messages")).changeEmailForOwner(getDb(), user.id, paused);
+  const { runWorkflow } = await import("@/lib/workflow-runner");
+  const { practiceMode } = await import("@/lib/ai");
+  const { takeAiRequest } = await import("./ai-quota");
+  const { importEmailForOwner } = await import("@/lib/email/import");
+  return runWorkflow("email_import", null, () =>
+    importEmailForOwner(user.id, async () => practiceMode() || (await takeAiRequest(getDb(), user.id)) === "ok"),
+  );
 }
 export async function disconnectMyEmail() {
   const user = await writer();
@@ -930,7 +927,7 @@ export async function sendMyCustomerReply(id: string, reply: string) {
   const user = await writer();
   const data = await import("./customer-messages");
   const reserved = await data.reserveReplyForOwner(getDb(), user.id, id, reply);
-  if (!reserved) return { ok: false, message: "This reply cannot be sent. Check for a newer message, a paused connection or an earlier send." };
+  if (!reserved) return { ok: false, message: "This reply cannot be sent. Check for a newer message, a disconnected inbox or an earlier send." };
   try {
     const { z } = await import("zod");
     if (!z.email().safeParse(reserved.message.sender).success) throw new Error("Missing recipient");
@@ -944,29 +941,7 @@ export async function sendMyCustomerReply(id: string, reply: string) {
   }
 }
 
-// Provider and worker entry points authenticate before looking up stored owner identities.
-export async function acceptCustomerEmailEvent(body: string, signature: string | null) {
-  const { validSignature } = await import("@/lib/email/client");
-  if (!validSignature(body, signature)) return false;
-  const worker = await import("@/lib/email/worker");
-  await worker.enqueueEmailEvent(JSON.parse(body));
-  // Reads waiting mail after the provider has its answer; the daily job is only a safety net on the Hobby plan
-  const { after } = await import("next/server");
-  after(() => worker.workCustomerMessages());
-  return true;
-}
-export async function runScheduledCustomerWork(authorization: string | null, mode: "process" | "sync" = "process") {
-  if (!(await import("@/lib/email/client")).workerAuthorized(authorization)) return null;
-  const worker = await import("@/lib/email/worker");
-  if (mode === "sync") { await worker.pollCustomerEmail(); return { synced: true }; }
-  return worker.workCustomerMessages();
-}
 export async function setMyOrderTotal(id: string, totalCents: number) {
   const user = await writer();
   return (await import("./orders")).setOrderTotalForOwner(getDb(), user.id, id, totalCents);
-}
-
-export async function setMyEmailReminder(days: number) {
-  const user = await writer();
-  return (await import("./customer-messages")).reminderForOwner(getDb(), user.id, days);
 }

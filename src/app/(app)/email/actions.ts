@@ -8,13 +8,13 @@ import {
   beginMyEmailConnection,
   disconnectMyEmail,
   dismissMyCustomerMessage,
-  pauseMyEmail,
+  importMyEmail,
   processMyCustomerMessage,
   retryMyCustomerMessage,
   sendMyCustomerReply,
-  syncMyEmail,
 } from "@/lib/data/my-business";
 import { OwnerFacingError } from "@/lib/errors";
+import type { JobRef } from "@/lib/workflows";
 
 export async function connectCustomerEmail(): Promise<{
   ok: boolean;
@@ -51,43 +51,38 @@ export async function connectCustomerEmail(): Promise<{
     };
   }
 }
-// Instead of a job checking often: the owner asks for new mail when they want it
-export async function syncCustomerEmail() {
+export async function importCustomerEmail(): Promise<{
+  ok: boolean;
+  message: string;
+  busy?: JobRef;
+}> {
   if (await isDemoSession()) return DEMO_REFUSAL;
-  try {
-    const result = await syncMyEmail();
-    if (!result)
-      return { ok: false, message: "Connect or resume your email first." };
-    refresh();
-    return {
-      ok: true,
-      message: result.remaining
-        ? `Checked your inbox and read ${result.processed}. ${result.remaining} still waiting; sync again to keep going.`
-        : `Checked your inbox${result.processed ? ` and read ${result.processed}` : ""}. You’re up to date.`,
-    };
-  } catch (error) {
-    return {
-      ok: false,
-      message:
-        error instanceof OwnerFacingError
-          ? error.message
-          : "Could not check your inbox. Try again.",
-    };
-  }
+  const result = await importMyEmail();
+  refresh();
+  if (!result.ok) return result;
+  const { added, read, failed, remaining, more } = result.value;
+  const parts = [
+    added
+      ? `Imported ${added} new email${added === 1 ? "" : "s"}.`
+      : "No new emails.",
+  ];
+  if (more) parts.push("More arrived than one import brings in; the newest were imported.");
+  if (read) parts.push(`Read ${read}.`);
+  if (failed) parts.push(`${failed} need another look.`);
+  if (remaining)
+    parts.push(`${remaining} still waiting; import again to read them.`);
+  return { ok: true, message: parts.join(" ") };
 }
-export async function changeCustomerEmail(input: unknown) {
+export async function disconnectCustomerEmail() {
   if (await isDemoSession()) return DEMO_REFUSAL;
-  const parsed = z.enum(["pause", "resume", "disconnect"]).safeParse(input);
-  if (!parsed.success) return { ok: false, message: "Choose an action." };
   try {
-    if (parsed.data === "disconnect") await disconnectMyEmail();
-    else await pauseMyEmail(parsed.data === "pause");
+    await disconnectMyEmail();
     refresh();
-    return { ok: true, message: "Email connection updated." };
+    return { ok: true, message: "Email disconnected." };
   } catch {
     return {
       ok: false,
-      message: "Could not update your connection. Try again.",
+      message: "Could not disconnect your inbox. Try again.",
     };
   }
 }
@@ -127,25 +122,4 @@ export async function sendCustomerReply(input: unknown) {
   const result = await sendMyCustomerReply(parsed.data.id, parsed.data.reply);
   refresh();
   return result;
-}
-
-export async function setEmailReminder(input: unknown) {
-  if (await isDemoSession()) return DEMO_REFUSAL;
-  const parsed = z
-    .number()
-    .int()
-    .refine((value) => [1, 2, 3, 7].includes(value))
-    .safeParse(input);
-  if (!parsed.success)
-    return { ok: false, message: "Choose a follow-up interval." };
-  const ok = await (
-    await import("@/lib/data/my-business")
-  ).setMyEmailReminder(parsed.data);
-  refresh();
-  return {
-    ok,
-    message: ok
-      ? "Follow-up preference saved. Reminders appear in your inbox."
-      : "Connect email first.",
-  };
 }

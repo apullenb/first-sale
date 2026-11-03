@@ -1,5 +1,4 @@
 import "server-only";
-import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { OwnerFacingError } from "@/lib/errors";
 
@@ -13,7 +12,7 @@ export function emailConfig() {
       : "https://api.us.nylas.com";
   if (!apiKey || !clientId || !redirectUri)
     throw new OwnerFacingError(
-      "Email connection setup is not finished. You can still upload invoices or paste messages.",
+      "Connecting an inbox isn’t set up on this site yet. You can still paste emails or upload invoices.",
     );
   const url = new URL(redirectUri);
   if (
@@ -26,10 +25,7 @@ export function emailConfig() {
 export function emailAvailable() {
   try {
     emailConfig();
-    return (
-      !!process.env.NYLAS_WEBHOOK_SECRET &&
-      (process.env.CRON_SECRET?.length ?? 0) >= 32
-    );
+    return true;
   } catch {
     return false;
   }
@@ -58,25 +54,9 @@ export async function emailApi(path: string, init: RequestInit = {}) {
   if (response.status === 204) return {};
   return response.json();
 }
-export function validSignature(
-  body: string,
-  signature: string | null,
-  secret = process.env.NYLAS_WEBHOOK_SECRET,
-): boolean {
-  if (!secret || !signature || !/^[a-f0-9]{64}$/i.test(signature)) return false;
-  const expected = createHmac("sha256", secret).update(body).digest();
-  return timingSafeEqual(expected, Buffer.from(signature, "hex"));
-}
-export function workerAuthorized(header: string | null): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || secret.length < 32 || !header) return false;
-  const expected = Buffer.from(`Bearer ${secret}`),
-    actual = Buffer.from(header);
-  return expected.length === actual.length && timingSafeEqual(expected, actual);
-}
 export const emailMessageSchema = z.object({
   id: z.string().min(1).max(500),
-  thread_id: z.string().max(500).optional(),
+  thread_id: z.string().max(500).nullish(),
   subject: z
     .string()
     .max(1000)

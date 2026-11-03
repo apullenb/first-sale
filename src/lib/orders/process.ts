@@ -102,7 +102,7 @@ export async function processCustomerMessage(ownerId: string, id: string) {
       if (
         !connection ||
         connection.id !== message.connectionId ||
-        connection.paused
+        connection.status !== "connected"
       )
         throw new Error("connection unavailable");
       const result = await emailApi(
@@ -116,7 +116,7 @@ export async function processCustomerMessage(ownerId: string, id: string) {
             person.email.toLowerCase() === connection.email.toLowerCase(),
         )
       ) {
-        await ignoreIncomingForOwner(db, ownerId, id, message.leaseUntil!);
+        await ignoreIncomingForOwner(db, ownerId, id, message.updatedAt);
         return { orderId: null };
       }
       await fetchedMessageForOwner(db, ownerId, id, {
@@ -178,18 +178,11 @@ export async function processCustomerMessage(ownerId: string, id: string) {
         extraction,
         model.simulated,
         body,
-        message.attempts,
-        message.leaseUntil ?? undefined,
+        message.updatedAt,
       ),
     };
   } catch (error) {
-    await failMessageForOwner(
-      db,
-      ownerId,
-      id,
-      message.attempts,
-      message.leaseUntil ?? undefined,
-    );
+    await failMessageForOwner(db, ownerId, id, message.updatedAt);
     throw error;
   }
 }

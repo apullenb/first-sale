@@ -1,4 +1,3 @@
-import { LiveOperations } from "./live";
 import Link from "next/link";
 import { Suspense } from "react";
 import { OrdersPanel } from "@/components/operations/orders";
@@ -11,7 +10,7 @@ import { Card, PageHead } from "@/components/ui";
 import {
   getMyBusiness,
   getMyEmailState,
-  listMyOperationSetups,
+  lastMyRun,
   listMyOrders,
   listMyProducts,
 } from "@/lib/data/my-business";
@@ -53,10 +52,10 @@ async function Setup({
   kind: OperationKind;
   selectedOrder?: Promise<{ order?: string }>;
 }) {
-  const [business, setups, items, orders, email, selection] = await Promise.all(
+  const [business, importRun, items, orders, email, selection] = await Promise.all(
     [
       getMyBusiness(),
-      listMyOperationSetups(),
+      kind === "email" ? lastMyRun("email_import", null) : null,
       kind === "requests" ? listMyProducts() : [],
       kind === "requests" ? listMyOrders() : [],
       getMyEmailState(),
@@ -129,14 +128,6 @@ async function Setup({
   );
   return (
     <>
-      <LiveOperations
-        enabled={
-          (!!email.connection && !email.connection.paused) ||
-          messages.some((message) =>
-            ["pending", "processing"].includes(message.state),
-          )
-        }
-      />
       {kind === "requests" ? (
         <OrdersPanel
           key={`${business.id}:${selection.order ?? ""}`}
@@ -159,11 +150,7 @@ async function Setup({
           messages={messages}
           connection={email.connection}
           available={emailAvailable()}
-          now={now.toISOString()}
-          reminderDays={Number(
-            setups.find((setup) => setup.kind === "email")?.config.reminder ??
-              2,
-          )}
+          importing={importRun?.status === "running"}
         />
       )}
     </>
