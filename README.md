@@ -389,7 +389,7 @@ Every long AI job goes through one runner (`src/lib/workflow-runner.ts`) and a w
 
 - **Owner-scoped by design.** Each owner has one business and sees only their own. Pages, actions and route handlers read data through `my-business.ts`, which takes the owner from the verified session.
 - **Cache Components.** Session reads sit inside `<Suspense>` boundaries, and sign-in, sign-up and log-out do a full page load so each owner starts fresh.
-- **One database, two drivers.** `postgres-js` against Neon in production, PGlite (Postgres in WebAssembly) locally and in tests, with the same Drizzle schema and migrations.
+- **One database, two drivers.** `pg` against Neon in production, PGlite (Postgres in WebAssembly) locally and in tests, with the same Drizzle schema and migrations.
 
 ---
 
