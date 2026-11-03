@@ -232,6 +232,23 @@ export function restoreStock(items: readonly OrderItem[], taken: readonly Option
   return { stock: moved(byId, movements), movements, skipped };
 }
 
+// Movements added up per item and option; zero sums dropped
+export function sumMovements(movements: readonly OptionMovement[]): OptionMovement[] {
+  const sums = new Map<string, OptionMovement>();
+  for (const movement of movements) {
+    const key = keyOf(movement.productId, movement.values);
+    const found = sums.get(key);
+    if (found) found.delta += movement.delta;
+    else sums.set(key, { productId: movement.productId, values: movement.values, delta: movement.delta });
+  }
+  return [...sums.values()].filter((movement) => movement.delta !== 0);
+}
+
+// What an order still holds, after any edits gave some back
+export function netTaken(movements: readonly OptionMovement[]): OptionMovement[] {
+  return sumMovements(movements).filter((movement) => movement.delta < 0);
+}
+
 // What the owner reads when an order can't be saved
 export function orderIssueText(issue: PlaceOrderIssue, nameOf: (productId: string) => string): string {
   if (issue.kind === "empty_order") return "Add at least one item to the order.";
