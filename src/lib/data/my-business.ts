@@ -782,6 +782,21 @@ export async function cancelMyOrder(orderId: string) {
   return cancelOrderForOwner(getDb(), user.id, orderId);
 }
 
+export async function listMyEmailDemoSamples() {
+  const user = await getCurrentUser();
+  return (await import("./email-demo-orders")).listEmailDemoSamplesForOwner(getDb(), user.id);
+}
+
+export async function addMyEmailDemoOrder(sampleId: string) {
+  const user = await writer();
+  return (await import("./email-demo-orders")).addEmailDemoOrderForOwner(getDb(), user.id, sampleId);
+}
+
+export async function clearMyEmailDemoOrders() {
+  const user = await writer();
+  return (await import("./email-demo-orders")).clearEmailDemoOrdersForOwner(getDb(), user.id);
+}
+
 export async function getMySquareState() {
   const user = await getCurrentUser();
   return (await import("./square")).squareStateForOwner(getDb(), user.id);

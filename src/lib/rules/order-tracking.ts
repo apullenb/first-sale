@@ -108,6 +108,17 @@ export function canTransition(
   const steps = statusesFor(type, fulfillment);
   return steps.includes(from) && steps.indexOf(to) > steps.indexOf(from);
 }
+// Email-demo samples have no editor, so one still in review moves straight to a step
+export function canProgressSample(
+  from: TrackingStatus,
+  to: TrackingStatus,
+  type: WorkType,
+  fulfillment: string,
+): boolean {
+  return from === "new" || from === "needs_review"
+    ? statusesFor(type, fulfillment).includes(to)
+    : canTransition(from, to, type, fulfillment);
+}
 
 export interface PaymentEntry {
   amountCents: number;
