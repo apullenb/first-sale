@@ -4,7 +4,7 @@ import { completeIntake, logIn, logOut, open, PASSWORD, sidebar, signUp, uniqueE
 
 test.describe("accounts", () => {
   test("signed-out visitors are sent to log in", async ({ page }) => {
-    for (const path of ["/", "/structure", "/website", "/documents"]) {
+    for (const path of ["/", "/structure", "/website", "/website/editor", "/documents"]) {
       await page.goto(path);
       await expect(page).toHaveURL(/\/login$/);
     }

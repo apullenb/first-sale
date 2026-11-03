@@ -15,9 +15,8 @@ test("connect the actual Square sandbox and import its products", async ({ brows
   await completeIntake(page, candles);
   console.log("Recording setup: recording the existing Square site");
   await open(page, "/website");
-  await page.getByRole("button", { name: "I already have a website", exact: true }).first().click();
+  await page.getByRole("button", { name: "Choose Square", exact: true }).click();
   const site = page.getByRole("region", { name: "Connect the website you already have" });
-  await site.getByRole("button", { name: "Square", exact: true }).click();
   await site.getByRole("textbox", { name: "Your site’s address" }).fill("sandbox-demo.square.site");
   await site.getByRole("button", { name: "Save Square website", exact: true }).click();
   await expect(site).toHaveCount(0);

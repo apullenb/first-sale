@@ -26,7 +26,7 @@ test.describe("sidebar and Today", () => {
     await markHave(page, "/social", "I already have my social media set up");
 
     await open(page, "/website");
-    await page.getByRole("button", { name: "I already have a website" }).click();
+    await page.getByRole("button", { name: "Choose Square", exact: true }).click();
     await page.getByRole("region", { name: "Connect the website you already have" }).getByRole("button", { name: "I don’t want to connect it" }).click();
     await expect(page.getByText("You already have a website.")).toBeVisible();
 
