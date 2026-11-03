@@ -205,6 +205,12 @@ Products get a price, a cost and stock. Options like size or scent each carry th
 
 <p align="center"><img src="docs/media/products.webp" alt="Recording of Add your products: a candle with 8 oz and 12 oz options, each with its own price and stock, shown as $24 to $32 with 35 in stock, a second product with its margin worked out, then a comparison of prices nearby" width="900"></p>
 
+### Connect your Square products
+
+Connect Square to import products, photos, options and selling prices into your SnapStart library. Keep Square products separate from unpublished items, review and publish changes when you're ready, and see when each product was last pushed. For description changes, SnapStart drafts the words, the owner reviews them, and code validates the approved update before sending it to Square.
+
+<p align="center"><img src="docs/media/square-products.webp" alt="Square product integration: connect an account, load products, and import Lavender Candle and Cedar Candle with photos into the product library" width="1000"></p>
+
 ### Services, priced your way
 
 <img src="docs/media/nav/manage-your-services.webp" alt="Menu link: Manage your services" width="201" height="32">
