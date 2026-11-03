@@ -20,8 +20,10 @@ const added = async (owner: string, id: string) => {
 };
 
 describe("email demo orders", () => {
-  it("turn a sample order into a DEMO custom-work order with no stock, total or invented date", async () => {
-    await added("owner-a", "breakfast");
+  it("turn a sample order into a DEMO order with custom lines, its date worked out, and no stock or total", async () => {
+    // A Tuesday
+    const result = await addEmailDemoOrderForOwner(db, "owner-a", "breakfast", "2026-11-03");
+    if (!result.ok) throw new Error(result.reason);
     const [order] = await listOrdersForOwner(db, "owner-a");
     expect(order).toMatchObject({
       isDemo: true,
@@ -33,12 +35,23 @@ describe("email demo orders", () => {
       title: "Office breakfast for Northwind",
       fulfillment: "pickup",
       jobTime: "07:30",
-      requestedDate: null,
+      requestedDate: "2026-11-06",
       totalCents: null,
-      lines: [],
     });
-    expect(order.notes).toContain("3 dozen × Assorted muffins");
-    expect(order.notes).toContain("When: Pickup Friday, 7:30 am");
+    expect(order.lines.map(({ productId, name, quantity, unitPriceCents }) => ({ productId, name, quantity, unitPriceCents }))).toEqual([
+      { productId: null, name: "Assorted muffins (dozen)", quantity: 3, unitPriceCents: null },
+      { productId: null, name: "Cinnamon coffee cake", quantity: 1, unitPriceCents: null },
+    ]);
+    expect(order.notes).toContain("Timing as written: Pickup Friday, 7:30 am");
+    expect(order.notes).not.toContain("muffins");
+  });
+
+  it("date only what the wording fixes, and keep shipping details", async () => {
+    for (const id of ["pies", "tins", "favors", "cake"]) await addEmailDemoOrderForOwner(db, "owner-a", id, "2026-11-03");
+    const dates = Object.fromEntries((await listOrdersForOwner(db, "owner-a")).map((row) => [row.customerName, row.requestedDate]));
+    expect(dates).toEqual({ "Gene Okafor": "2026-11-25", "Rosa Alvarez": "2026-12-15", "Alicia & Ben": "2027-06-06", "Marcus Lee": "2026-11-21" });
+    const tins = (await listOrdersForOwner(db, "owner-a")).find((row) => row.customerName === "Rosa Alvarez")!;
+    expect(tins).toMatchObject({ fulfillment: "shipping", location: "1420 Elm St, Denver, CO 80206" });
   });
 
   it("put a quote request in review, and only order or quote samples count", async () => {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ORDER_STATUSES, type BusinessProfile } from "@/lib/domain";
+import { FULFILLMENT_METHODS, ORDER_STATUSES, type BusinessProfile, type FulfillmentMethod } from "@/lib/domain";
 
 export const WORK_TYPES = ["products", "made_to_order", "services"] as const;
 export type WorkType = (typeof WORK_TYPES)[number];
@@ -31,7 +31,7 @@ export const trackingInputSchema = z.object({
   customerPhone: z.string().trim().max(40),
   workType: z.enum(WORK_TYPES),
   title: z.string().trim().min(1, "Describe the order or job.").max(160),
-  fulfillment: z.enum(["pickup", "delivery", "shipping"]),
+  fulfillment: z.enum(FULFILLMENT_METHODS),
   requestedDate: z.union([z.literal(""), z.iso.date()]),
   jobTime: z.union([
     z.literal(""),
@@ -187,4 +187,141 @@ export function orderAttention(
     : order.requestedDate === today
       ? "today"
       : "upcoming";
+}
+
+// Presenting the tracker: tabs, next steps, due dates and sorting
+
+export const STATUS_TABS = ["active", "review", "todo", "in_progress", "ready", "done", "cancelled"] as const;
+export type StatusTab = (typeof STATUS_TABS)[number];
+export const TAB_TEXT: Record<StatusTab, string> = {
+  active: "All active",
+  review: "Needs review",
+  todo: "To do",
+  in_progress: "In progress",
+  ready: "Ready",
+  done: "Done",
+  cancelled: "Cancelled",
+};
+// Shipped sits with Ready: the owner's part is finished, the customer's isn't yet
+export function tabOf(status: TrackingStatus): Exclude<StatusTab, "active"> {
+  switch (status) {
+    case "new":
+    case "needs_review":
+      return "review";
+    case "confirmed":
+      return "todo";
+    case "in_progress":
+      return "in_progress";
+    case "ready":
+    case "shipped":
+      return "ready";
+    case "fulfilled":
+      return "done";
+    case "cancelled":
+      return "cancelled";
+  }
+}
+export function inTab(status: TrackingStatus, tab: StatusTab): boolean {
+  return tab === "active" ? !["fulfilled", "cancelled"].includes(status) : tabOf(status) === tab;
+}
+
+interface Tracked {
+  status: TrackingStatus;
+  workType: WorkType;
+  fulfillment: string;
+}
+// Steps the owner can move to now, nearest first; samples in review may go to any step
+export function laterSteps(order: Tracked, sample = false): TrackingStatus[] {
+  const steps = statusesFor(order.workType, order.fulfillment);
+  if (order.status === "cancelled") return [];
+  if (order.status === "new" || order.status === "needs_review") return sample ? steps : [];
+  const at = steps.indexOf(order.status);
+  return at < 0 ? [] : steps.slice(at + 1);
+}
+export function nextStep(order: Tracked, sample = false): TrackingStatus | null {
+  return laterSteps(order, sample)[0] ?? null;
+}
+// Button text for moving to a step: "Start work", "Mark ready", "Mark completed"
+export function stepAction(status: TrackingStatus, type: WorkType): string {
+  if (status === "confirmed") return type === "services" ? "Mark scheduled" : "Mark confirmed";
+  if (status === "in_progress") return type === "made_to_order" ? "Start making" : "Start work";
+  if (status === "fulfilled") return "Mark completed";
+  return `Mark ${STATUS_TEXT[status].toLowerCase()}`;
+}
+
+export const FULFILLMENT_TEXT: Record<FulfillmentMethod, string> = {
+  pickup: "Pickup",
+  delivery: "Delivery",
+  shipping: "Shipping",
+  at_customer: "At the customer’s place",
+  at_business: "At your place",
+};
+export const LOCATION_TEXT: Record<FulfillmentMethod, string> = {
+  pickup: "Pickup place (optional)",
+  delivery: "Delivery address",
+  shipping: "Shipping address",
+  at_customer: "Customer’s address",
+  at_business: "Where (optional)",
+};
+// A new way to hand it over must still have the order's current step
+export function fulfillmentFits(status: TrackingStatus, type: WorkType, fulfillment: string): boolean {
+  return ["new", "needs_review", "cancelled"].includes(status) || statusesFor(type, fulfillment).includes(status);
+}
+
+const DAY = 86_400_000;
+const utc = (date: string) => Date.parse(`${date}T00:00:00Z`);
+export function daysBetween(from: string, to: string): number {
+  return Math.round((utc(to) - utc(from)) / DAY);
+}
+// "10:00" -> "10 am", "07:30" -> "7:30 am"
+export function timeText(time: string): string {
+  const match = /^(\d{2}):(\d{2})$/.exec(time);
+  if (!match) return "";
+  const hour = Number(match[1]);
+  const twelve = hour % 12 || 12;
+  return `${twelve}${match[2] === "00" ? "" : `:${match[2]}`} ${hour < 12 ? "am" : "pm"}`;
+}
+export function dateText(date: string, today: string): string {
+  const options: Intl.DateTimeFormatOptions = { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" };
+  if (date.slice(0, 4) !== today.slice(0, 4)) options.year = "numeric";
+  return new Date(utc(date)).toLocaleDateString("en-US", options);
+}
+export function relativeDays(date: string, today: string): string {
+  const days = daysBetween(today, date);
+  if (days === 0) return "today";
+  if (days === 1) return "tomorrow";
+  if (days === -1) return "yesterday";
+  return days > 0 ? `in ${days} days` : `${-days} days ago`;
+}
+// "Sat, Nov 7 · 10 am" and "in 4 days"; overdue only while the owner still has work to do
+export function dueText(order: { status: TrackingStatus; requestedDate: string | null; jobTime: string }, today: string) {
+  if (!order.requestedDate) return { date: "No due date", relative: "", overdue: false, today: false };
+  const attention = orderAttention(order, today);
+  const time = timeText(order.jobTime);
+  return {
+    date: `${dateText(order.requestedDate, today)}${time ? ` · ${time}` : ""}`,
+    relative: relativeDays(order.requestedDate, today),
+    overdue: attention === "overdue",
+    today: attention === "today",
+  };
+}
+
+export const ORDER_SORTS = ["due", "newest", "customer"] as const;
+export type OrderSort = (typeof ORDER_SORTS)[number];
+export const SORT_TEXT: Record<OrderSort, string> = { due: "Due date", newest: "Newest", customer: "Customer" };
+interface Sortable {
+  requestedDate: string | null;
+  jobTime: string;
+  createdAt: string;
+  customerName: string;
+}
+// Due date: soonest first, undated last; ties by time, then newest
+export function sortOrders<T extends Sortable>(rows: readonly T[], sort: OrderSort): T[] {
+  const newest = (a: T, b: T) => b.createdAt.localeCompare(a.createdAt);
+  return [...rows].sort((a, b) => {
+    if (sort === "newest") return newest(a, b);
+    if (sort === "customer") return a.customerName.localeCompare(b.customerName, "en", { sensitivity: "base" }) || newest(a, b);
+    const byDate = (a.requestedDate ?? "9999-99-99").localeCompare(b.requestedDate ?? "9999-99-99");
+    return byDate || (a.jobTime || "99:99").localeCompare(b.jobTime || "99:99") || newest(a, b);
+  });
 }
