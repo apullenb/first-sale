@@ -200,10 +200,10 @@ describe("publishReadiness", () => {
   });
 
   it("blocks words that aren't approved, finished or written for this site", () => {
-    expect(publishReadiness(check({ approved: false })).blockers).toEqual(["Approve your words in step 3."]);
+    expect(publishReadiness(check({ approved: false })).blockers).toEqual(["Approve your words in Page content."]);
     expect(publishReadiness(check({ content: { ...content, about: "[Add your story] and [more]" } })).blockers[0]).toMatch(/2 \[bracketed\] notes/);
     expect(publishReadiness(check({ content: { ...content, platform: "wix" } })).blockers[0]).toMatch(/another platform/);
-    expect(publishReadiness(check({ content: null })).blockers).toEqual(["Draft your words in step 3."]);
+    expect(publishReadiness(check({ content: null })).blockers).toEqual(["Build a draft or add page content in the website editor."]);
     expect(publishReadiness(check({ platform: "square" })).blockers[0]).toMatch(/SnapStart site/);
     expect(publishReadiness(check({ named: false })).blockers).toEqual(["Give your business a name in your answers first."]);
   });

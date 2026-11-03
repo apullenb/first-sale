@@ -129,7 +129,7 @@ export function DomainFinder({ ideas, checks, chosen }: Props) {
 
       <p className="text-sm text-muted">
         “Not registered yet” means no one owned it when we asked the official registry. That can change, so buy it soon.
-        Each option in step 1 says what a web address costs with it.
+        Register the address when you are ready to launch.
       </p>
       {error ? (
         <p role="alert" className={ALERT}>

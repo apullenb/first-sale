@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getModel, MUSE_DEFAULTS } from "./registry";
+import { getModel, getWebsiteDesignModel, MUSE_DEFAULTS } from "./registry";
 
 describe("getModel", () => {
   it("defaults to the mock provider", () => {
@@ -19,6 +19,12 @@ describe("getModel", () => {
     });
     expect(model.simulated).toBe(false);
     expect(model.webSearch).toBeTypeOf("function");
+  });
+
+  it("uses Muse for website art direction without a model choice in the feature", () => {
+    expect(getWebsiteDesignModel({ NODE_ENV: "production", AI_PROVIDER: "openai-compatible", MUSE_API_KEY: "k" }).name).toBe("Meta Muse");
+    expect(getWebsiteDesignModel({ NODE_ENV: "development", AI_PROVIDER: "mock" }).simulated).toBe(true);
+    expect(() => getWebsiteDesignModel({ NODE_ENV: "production", AI_PROVIDER: "mock" })).toThrow(/MUSE_API_KEY/);
   });
 
   it("requires a Muse API key", () => {

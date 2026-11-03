@@ -193,7 +193,7 @@ Owners click a few feel words, answer some this-or-that questions and pick color
 
 <img src="docs/media/nav/create-your-website.webp" alt="Menu link: Create your website" width="201" height="32">
 
-Build a SnapStart site or connect an existing Square site. **Muse Spark** designs the website theme from the saved brand brief, palette, audience and lettering, and drafts copy checked against the owner’s saved prices. Products and their photos flow in from the product library; header images and other pictures come from the Brand Library. Owners can refine the theme with AI or edit the layout, typography, colors, images and page text themselves, with a full-screen live preview. Wix and Shopify are marked Coming Soon.
+Choose a platform and web address in a focused two-step setup, then open the dedicated website builder with **Build it for me** or **Edit website**. **Muse Spark** designs the theme from the saved brand brief, palette, audience, lettering and real imagery. Products and photos flow in from the product library, with header images from the Brand Library. Owners can click the live page to edit, refine the theme with AI, arrange sections, adjust typography and colors, choose images and manage website product details. Changes support undo, redo and saved drafts, with desktop, phone and full-screen previews. Existing Square sites can be connected; Wix and Shopify are marked Coming Soon.
 
 <p align="center"><img src="docs/media/website.webp" alt="Recording of the website builder: the package comparison with cost summaries, the start screen for the SnapStart site, the drafted words, the design step, then the live preview at computer and phone width, and 'Your website is ready'" width="900"></p>
 

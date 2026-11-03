@@ -34,13 +34,13 @@ export function publishReadiness(check: PublishCheck): Readiness {
   if (check.platform !== "first_sale") blockers.push("Choose “SnapStart site” in step 1 to finish it here.");
   if (!check.named) blockers.push("Give your business a name in your answers first.");
   if (!content) {
-    blockers.push("Draft your words in step 3.");
+    blockers.push("Build a draft or add page content in the website editor.");
     return { blockers, notes };
   }
-  if (content.platform !== "first_sale") blockers.push("Your words were written for another platform. Draft them again in step 3.");
+  if (content.platform !== "first_sale") blockers.push("Your words were written for another platform. Rebuild your draft in the website editor.");
   const left = placeholderCount(content);
-  if (left) blockers.push(`Fill in or delete ${left} [bracketed] ${left === 1 ? "note" : "notes"} in step 3.`);
-  if (!check.approved) blockers.push("Approve your words in step 3.");
+  if (left) blockers.push(`Fill in or delete ${left} [bracketed] ${left === 1 ? "note" : "notes"} in Page content.`);
+  if (!check.approved) blockers.push("Approve your words in Page content.");
   blockers.push(...check.conflicts);
   if (content.flags.length) notes.push(`${content.flags.length} ${content.flags.length === 1 ? "number in your words wasn’t" : "numbers in your words weren’t"} in your answers. Make sure ${content.flags.length === 1 ? "it’s" : "they’re"} right.`);
 

@@ -28,6 +28,11 @@ export function getModel(env: Env = process.env): ModelProvider {
   return model;
 }
 
+// The website art director uses Muse; local offline runs keep their registered fixtures.
+export function getWebsiteDesignModel(env: Env = process.env): ModelProvider {
+  return getModel({ ...env, AI_PROVIDER: env.NODE_ENV !== "production" && env.AI_PROVIDER === "mock" ? "mock" : "muse" });
+}
+
 // Practice mode (the mock model) costs nothing, so it never counts toward or hits the AI limit
 export function practiceMode(env: Env = process.env): boolean {
   try {

@@ -15,10 +15,10 @@ import { failedMessage } from "@/lib/failure";
 const SMALL = `${SECONDARY} text-[15px]`;
 
 // "I already have a website": connect it (a demo, no passwords or keys), or just record its address
-export function ExistingSitePanel({ connected, marked }: { connected: ExistingSite | null; marked: { url: string | null; note: string | null } | null }) {
+export function ExistingSitePanel({ connected, marked, startOpen = false, initialPlatform = null }: { connected: ExistingSite | null; marked: { url: string | null; note: string | null } | null; startOpen?: boolean; initialPlatform?: ExistingPlatform | null }) {
   const uid = useId();
-  const [open, setOpen] = useState(false);
-  const [platform, setPlatform] = useState<ExistingPlatform | null>(connected?.platform ?? null);
+  const [open, setOpen] = useState(startOpen);
+  const [platform, setPlatform] = useState<ExistingPlatform | null>(connected?.platform ?? initialPlatform);
   const [url, setUrl] = useState(connected?.url ?? marked?.url ?? "");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +74,7 @@ export function ExistingSitePanel({ connected, marked }: { connected: ExistingSi
               <span className="sr-only"> (opens in a new tab)</span>
             </a>
           </span>
+          <button type="button" onClick={() => setOpen(true)} className={`min-h-11 ${TEXT_LINK}`}>Edit website address</button>
           <button type="button" data-writes disabled={pending} onClick={() => run(disconnectExistingSiteAction)} className={`ml-auto min-h-11 ${TEXT_LINK} disabled:opacity-60`}>
             Disconnect
           </button>

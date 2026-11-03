@@ -1,64 +1,65 @@
+import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
-import { candles, groomer, tacos } from "./scenarios";
-import { newOwner, open, pngBuffer, sidebar } from "./support";
+import { candles, tacos } from "./scenarios";
+import { newOwner, open } from "./support";
 
-const PACKAGES = ["SnapStart site", "Square", "Wix", "Shopify"];
-
-test.describe("create your website", () => {
-  test("choose a site, write your words, explore three templates and preview full-screen", async ({ browser }, testInfo) => {
-    const owner = await newOwner(browser, tacos);
-    const context = process.env.WEBSITE_RECORDING === "1" ? await browser.newContext({ storageState: await owner.page.context().storageState(), viewport: { width: 1440, height: 1000 }, recordVideo: { dir: testInfo.outputPath("video"), size: { width: 1440, height: 1000 } } }) : owner.page.context();
-    const page = context === owner.page.context() ? owner.page : await context.newPage();
-    if (page !== owner.page) await owner.page.context().close();
+test.describe("website setup and visual editor", () => {
+  test("setup contains only two steps, completed choices collapse, and editing has its own workspace", async ({ browser }) => {
+    const { page } = await newOwner(browser, tacos);
     await open(page, "/website");
-    const choose = page.getByRole("region", { name: "Step 1: Choose a package" });
-    for (const name of PACKAGES) await expect(choose.getByRole("article", { name, exact: true })).toBeVisible();
+    const options = page.getByRole("region", { name: "How you’ll build it" });
+    for (const name of ["SnapStart site", "Square", "Wix", "Shopify"]) await expect(options.getByRole("article", { name, exact: true })).toBeVisible();
     for (const name of ["Wix", "Shopify"]) {
-      const card = choose.getByRole("article", { name, exact: true });
+      const card = options.getByRole("article", { name, exact: true });
       await expect(card).toContainText("Coming Soon");
       await expect(card.getByRole("button")).toHaveCount(0);
-      await expect(card.getByRole("list")).toHaveCount(0);
     }
-    await expect(choose.getByRole("article", { name: "Square", exact: true })).toContainText("Set up your site on Square first");
-    const first = choose.getByRole("article", { name: "SnapStart site", exact: true });
-    await expect(first).not.toContainText(/demo/i);
-    await first.getByRole("button", { name: "Choose SnapStart site", exact: true }).click();
-    const words = page.getByRole("region", { name: "Step 3: Write your pages" });
-    await words.getByRole("button", { name: "Write my own words", exact: true }).click();
-    await words.getByRole("textbox", { name: "Headline", exact: true }).fill("Fresh tacos. Good company.");
-    await words.getByRole("textbox", { name: "Line under the headline", exact: true }).fill("Street tacos and aguas frescas.");
-    await words.getByRole("textbox", { name: "Your story", exact: true }).fill("We share our favorite recipes with our neighbors.");
-    await words.getByRole("textbox", { name: "How to reach you", exact: true }).fill("Message us to plan your order.");
-    await words.getByRole("button", { name: "Add an item", exact: true }).click();
-    await words.getByRole("textbox", { name: "Item 1 name", exact: true }).fill("Carne asada taco");
-    await words.getByRole("textbox", { name: "Item 1 description", exact: true }).fill("A taco made to order.");
-    await words.getByRole("button", { name: "Save changes", exact: true }).click();
-    await words.getByRole("button", { name: "Approve these words", exact: true }).click();
-    const design = page.getByRole("region", { name: "Step 4: Design it and see it live" });
-    for (const template of ["Studio", "Statement", "Atelier"]) {
-      await design.getByRole("group", { name: "Look", exact: true }).getByRole("button", { name: new RegExp(`^${template}`) }).click();
-      await design.getByRole("button", { name: "View full-screen preview" }).click();
-      const dialog = page.getByRole("dialog", { name: `Full-screen preview of ${tacos.businessName}`, exact: true });
-      await expect(dialog).toBeVisible();
-      const frame = dialog.frameLocator("iframe");
-      await expect(frame.getByRole("heading", { name: "Fresh tacos. Good company.", exact: true })).toBeVisible();
-      await expect(frame.getByRole("heading", { name: "Carne asada taco", exact: true })).toBeVisible();
-      await expect(frame.locator("script")).toHaveCount(0);
-      if (process.env.WEBSITE_RECORDING === "1") await page.waitForTimeout(1800);
-      await dialog.getByRole("button", { name: "Close preview" }).click();
-      await expect(dialog).toHaveCount(0);
-    }
-    await design.getByRole("button", { name: "Save design", exact: true }).click();
-    await expect(design.getByRole("button", { name: "Save design", exact: true })).toBeDisabled();
+    await expect(page.getByRole("heading", { name: /Step 3|Step 4|Write your pages|Design it and see it live/ })).toHaveCount(0);
+    await options.getByRole("button", { name: "Choose SnapStart site", exact: true }).click();
+    await expect(options).toContainText("SnapStart website · Built around your brand");
+    await expect(options.getByRole("article")).toHaveCount(0);
+    await options.getByRole("button", { name: "Edit option" }).click();
+    await expect(options.getByRole("article", { name: "Square", exact: true })).toBeVisible();
+    await options.getByRole("button", { name: "Done", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Build it for me", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Edit website", exact: true }).click();
+    await page.waitForURL("**/website/editor");
+    const editor = page.getByRole("region", { name: "Website editor", exact: true });
+    await expect(editor).toBeVisible();
+    await editor.getByRole("button", { name: "Page content", exact: true }).click();
+    await editor.getByRole("textbox", { name: "Headline", exact: true }).fill("Tacos worth gathering for.");
+    await editor.getByRole("textbox", { name: "Supporting sentence", exact: true }).fill("Street tacos and good company.");
+    await editor.getByRole("button", { name: "Save draft", exact: true }).click();
+    await expect(editor.getByRole("button", { name: "Save draft", exact: true })).toBeDisabled();
+    await page.reload();
+    await editor.getByRole("button", { name: "Page content", exact: true }).click();
+    await expect(editor.getByRole("textbox", { name: "Headline", exact: true })).toHaveValue("Tacos worth gathering for.");
+    await editor.getByRole("textbox", { name: "Headline", exact: true }).fill("A different headline");
+    await editor.getByRole("button", { name: "Undo change", exact: true }).click();
+    await expect(editor.getByRole("textbox", { name: "Headline", exact: true })).toHaveValue("Tacos worth gathering for.");
+    await editor.getByRole("button", { name: "Redo change", exact: true }).click();
+    await expect(editor.getByRole("textbox", { name: "Headline", exact: true })).toHaveValue("A different headline");
+    await editor.getByRole("button", { name: "Undo change", exact: true }).click();
+    await editor.getByRole("button", { name: "Preview", exact: false }).first().click();
+    const dialog = page.getByRole("dialog", { name: `Full-screen preview of ${tacos.businessName}`, exact: true });
+    await expect(dialog.frameLocator("iframe").getByRole("heading", { name: "Tacos worth gathering for.", exact: true })).toBeVisible();
+    await dialog.getByRole("button", { name: "Close preview" }).click();
+    const canvas = editor.frameLocator('iframe[title^="Canvas"]');
+    await canvas.getByRole("heading", { name: "Tacos worth gathering for.", exact: true }).click();
+    await expect(editor.getByRole("textbox", { name: "Headline", exact: true })).toBeFocused();
+    await editor.getByRole("button", { name: "Back to website setup", exact: true }).click();
+    await page.waitForURL("**/website");
+    await expect(page.getByRole("button", { name: "Edit website", exact: true })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Headline", exact: true })).toHaveCount(0);
     await page.context().close();
   });
 
-  test("brand library images, product photos, AI theme and page edits persist", async ({ browser }) => {
+  test("build it for me, library images, catalog photos, theme refinement and saved page edits", async ({ browser }, testInfo) => {
     const { page } = await newOwner(browser, candles);
     await open(page, "/brand-library");
     const upload = page.getByRole("region", { name: "Add a picture" });
-    for (const [name, width, height] of [["Candle header", 1200, 600], ["Candle product", 600, 600]] as const) {
-      await upload.locator("input[type=file]").setInputFiles({ name: `${name}.png`, mimeType: "image/png", buffer: pngBuffer(width, [160, 130, 100], height) });
+    for (const [name, file] of [["Candle header", "lavender"], ["Candle product", "cedar"]] as const) {
+      await upload.locator("input[type=file]").setInputFiles({ name: `${name}.png`, mimeType: "image/png", buffer: readFileSync(`e2e/fixtures/square-candles/${file}.png`) });
       await upload.getByRole("textbox", { name: "Name (optional)" }).fill(name);
       await upload.getByRole("button", { name: "Add to my Brand Library" }).click();
       await expect(page.getByText(name, { exact: true }).first()).toBeVisible();
@@ -73,59 +74,50 @@ test.describe("create your website", () => {
     await expect(page.getByRole("article", { name: "Library candle", exact: true })).toBeVisible();
     await open(page, "/website");
     await page.getByRole("button", { name: "Choose SnapStart site", exact: true }).click();
-    await page.getByRole("button", { name: "Write my own words", exact: true }).click();
-    const design = page.getByRole("region", { name: "Step 4: Design it and see it live" });
-    await expect(design.getByLabel("Header image", { exact: true })).toHaveValue(/^library:/);
-    await design.getByRole("button", { name: "Design theme from my brand" }).click();
-    await expect(design.getByText("Editorial studio", { exact: true })).toBeVisible();
-    await design.getByRole("combobox", { name: "Layout", exact: true }).selectOption("cover");
-    await design.getByText("Edit page text", { exact: true }).click();
-    await design.getByRole("textbox", { name: "Headline", exact: true }).fill("Light for everyday rituals");
-    await design.getByRole("button", { name: "Save design", exact: true }).click();
-    await expect(design.getByRole("button", { name: "Save design", exact: true })).toBeDisabled();
+    await page.getByRole("button", { name: "Build it for me", exact: true }).click();
+    await page.waitForURL("**/website/editor", { timeout: 120000 });
+    const editor = page.getByRole("region", { name: "Website editor", exact: true });
+    await expect(editor.getByRole("button", { name: "Design my theme from brand", exact: true })).toBeVisible();
+    await expect(editor.getByRole("combobox", { name: /model|provider|muse/i })).toHaveCount(0);
+    await editor.getByRole("textbox", { name: "Design brief", exact: true }).fill("A clean editorial candle shop with our header photo.");
+    await editor.getByRole("button", { name: "Design my theme from brand", exact: true }).click();
+    await expect(editor.getByRole("button", { name: "Design my theme from brand", exact: true })).toBeEnabled();
+    await editor.getByRole("button", { name: "Images", exact: true }).click();
+    await editor.getByRole("button", { name: "Use Candle header for header image", exact: true }).click();
+    await editor.getByRole("button", { name: "Design", exact: true }).click();
+    await editor.getByRole("button", { name: "Photo cover", exact: true }).click();
+    await editor.getByRole("combobox", { name: "Heading style", exact: true }).selectOption("serif");
+    await editor.getByRole("button", { name: "Page content", exact: true }).click();
+    await editor.getByRole("textbox", { name: "Headline", exact: true }).fill("Light for everyday rituals");
+    await editor.getByRole("button", { name: "Products", exact: true }).click();
+    await editor.getByText("Library candle", { exact: true }).last().click();
+    await editor.getByRole("textbox", { name: "Website description", exact: true }).fill("A warm little ritual for your room.");
+    await editor.getByRole("textbox", { name: "Website price", exact: true }).fill("18.50");
+    await editor.getByRole("button", { name: "Save draft", exact: true }).click();
+    await expect(editor.getByRole("button", { name: "Save draft", exact: true })).toBeDisabled();
     await page.reload();
-    await expect(design.getByRole("combobox", { name: "Layout", exact: true })).toHaveValue("cover");
-    await design.getByRole("button", { name: "View full-screen preview" }).click();
-    const dialog = page.getByRole("dialog");
-    const frame = dialog.frameLocator("iframe");
+    await editor.getByRole("button", { name: "Page content", exact: true }).click();
+    await expect(editor.getByRole("textbox", { name: "Headline", exact: true })).toHaveValue("Light for everyday rituals");
+    await editor.getByRole("button", { name: "Preview", exact: false }).first().click();
+    const frame = page.getByRole("dialog").frameLocator("iframe");
     await expect(frame.getByRole("heading", { name: "Light for everyday rituals", exact: true })).toBeVisible();
     await expect(frame.getByRole("heading", { name: "Library candle", exact: true })).toBeVisible();
-    await expect(frame.getByText("$18", { exact: true })).toBeVisible();
+    await expect(frame.getByText("$18.50", { exact: true })).toBeVisible();
+    await expect(frame.getByText("A warm little ritual for your room.", { exact: true })).toBeVisible();
     await expect(frame.locator(".hero-image")).toHaveAttribute("src", /brand-library/);
     await expect(frame.locator(".item-photo")).toHaveAttribute("src", /brand-library/);
-    await expect.poll(() => frame.locator(".hero-image").evaluate((img) => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
-    await expect.poll(() => frame.locator(".item-photo").evaluate((img) => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await expect.poll(() => frame.locator(".hero-image").evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await expect.poll(() => frame.locator(".item-photo").evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await expect(frame.locator("script")).toHaveCount(0);
+    await page.getByRole("dialog").getByRole("button", { name: "Close preview" }).click();
+    await editor.getByRole("button", { name: "Design", exact: true }).click();
+    await page.screenshot({ path: testInfo.outputPath("website-editor-desktop.png") });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await editor.getByRole("button", { name: "Show canvas", exact: true }).click();
+    await expect(editor.getByRole("region", { name: "Website canvas", exact: true })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath("website-editor-phone.png") });
+
     await page.context().close();
   });
-
-  test("groomer: connect the website they already have, disconnect, then say they don’t want to connect it", async ({ browser }) => {
-    const { page } = await newOwner(browser, groomer);
-    await open(page, "/website");
-    await page.getByRole("button", { name: "I already have a website" }).click();
-    const form = page.getByRole("region", { name: "Connect the website you already have" });
-    await expect(form).toContainText("Saving your website records its platform and address.");
-    await expect(form.locator("input[type=password]")).toHaveCount(0);
-
-    // Both a platform and an address are needed to connect
-    await form.getByRole("button", { name: "Save my site website" }).click();
-    await expect(form.getByRole("alert")).toContainText("Pick where your site is built.");
-    await form.getByRole("button", { name: "Square" }).click();
-    await form.getByRole("button", { name: "Save Square website" }).click();
-    await expect(form.getByRole("alert")).toContainText("Type your site’s address");
-    await form.getByRole("textbox", { name: "Your site’s address" }).fill("sudsypaws.example");
-    await form.getByRole("button", { name: "Save Square website" }).click();
-
-    await expect(page.getByText("Website saved")).toBeVisible();
-    await expect(page.getByRole("link", { name: /sudsypaws\.example/ })).toBeVisible();
-    await expect(sidebar(page).getByRole("link", { name: /^Create your website , done/ })).toBeVisible();
-
-    await page.getByRole("button", { name: "Disconnect" }).click();
-    await page.getByRole("button", { name: "I already have a website" }).click();
-    await form.getByRole("button", { name: "I don’t want to connect it" }).click();
-    await expect(page.getByText("You already have a website.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Connect it" })).toBeVisible();
-    await page.getByRole("button", { name: "Undo" }).click();
-    await expect(page.getByRole("button", { name: "I already have a website" })).toBeVisible();
-  });
-
 });

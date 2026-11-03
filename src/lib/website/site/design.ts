@@ -38,6 +38,7 @@ export const siteItemSchema = z.object({
   buyUrl: z.string().trim().max(500),
   photo: photoRef.nullable(),
   hidePhoto: z.boolean().optional(),
+  description: z.string().max(300).optional(),
 });
 export type SiteItem = z.infer<typeof siteItemSchema>;
 
@@ -52,11 +53,17 @@ export const themeSchema = z.object({
   accent: z.string().regex(HEX),
   radius: z.number().int().min(0).max(40),
   titleScale: z.number().min(0.7).max(1.2),
+  density: z.enum(["airy", "balanced", "compact"]).optional(),
+  catalogLayout: z.enum(["grid", "list", "featured"]).optional(),
+  imageShape: z.enum(["square", "portrait", "landscape"]).optional(),
+  sectionOrder: z.array(z.enum(SITE_SECTIONS)).max(5).optional(),
   simulated: z.boolean().optional(),
 });
 export type SiteTheme = z.infer<typeof themeSchema>;
 
 export const siteDesignSchema = z.object({
+  labels: z.object({ catalog: z.string().max(60), about: z.string().max(60), order: z.string().max(60), contact: z.string().max(60) }).optional(),
+  imagePosition: z.enum(["center", "top", "bottom"]).optional(),
   theme: themeSchema.optional(),
   heroImage: photoRef.nullable().optional(),
   style: z.enum(SITE_STYLES),
@@ -96,6 +103,8 @@ export function readDesign(raw: unknown, color: string): SiteDesign {
     return parsed.success ? (parsed.data as SiteDesign[K]) : base[key];
   };
   return {
+    ...(stored.labels ? { labels: field("labels") } : {}),
+    ...(stored.imagePosition ? { imagePosition: field("imagePosition") } : {}),
     ...(stored.theme ? { theme: field("theme") } : {}),
     ...(stored.heroImage ? { heroImage: field("heroImage") } : {}),
     style: field("style"),
@@ -145,7 +154,7 @@ export function withProducts(copy: WebsiteCopy, products: SiteProduct[], design:
     if (item) return [{ ...item, priceCents: item.priceCents ?? price, photo: item.hidePhoto ? null : item.photo ?? photo }];
     return price !== null || photo ? [{ name: offering.name, priceCents: price, buyUrl: "", photo }] : [];
   });
-  return { copy: { ...copy, offerings }, design: { ...design, items } };
+  return { copy: { ...copy, offerings: offerings.map((offering) => ({ ...offering, description: itemFor({ ...design, items }, offering.name)?.description ?? offering.description })) }, design: { ...design, items } };
 }
 
 // A saved product's price for an item with the same name

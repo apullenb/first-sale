@@ -1,5 +1,5 @@
 export { registerMockFixture } from "./providers/mock";
-export { getImageModel, getModel, MUSE_DEFAULTS, MUSE_IMAGE_DEFAULTS, practiceMode } from "./registry";
+export { getImageModel, getModel, getWebsiteDesignModel, MUSE_DEFAULTS, MUSE_IMAGE_DEFAULTS, practiceMode } from "./registry";
 export { generateObject, StructuredOutputError } from "./structured";
 export { AIProviderError } from "./types";
 export { onAIEvent } from "./telemetry";
