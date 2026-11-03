@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
+import { and, asc, count, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { brandLibraryFiles, businesses, orderLines, productPhotos, productPhotoVersions, productPictures, productPriceChecks, products } from "@/db/schema";
 import type { PictureView, Wearer } from "@/lib/rules/picture-views";
@@ -291,7 +291,7 @@ export async function approvePictureForOwner(db: Db, ownerId: string, productId:
       .update(productPictures)
       .set({ approvedAt: null })
       .where(and(eq(productPictures.productId, productId), eq(productPictures.view, found.view), ne(productPictures.id, found.id)));
-    await tx.update(productPictures).set({ approvedAt: sql`coalesce(${productPictures.approvedAt}, ${now})` }).where(eq(productPictures.id, found.id));
+    await tx.update(productPictures).set({ approvedAt: now }).where(and(eq(productPictures.id, found.id), isNull(productPictures.approvedAt)));
     if (found.view === "main") await tx.update(products).set({ photo: { source: "generated", pictureId: found.id } }).where(eq(products.id, productId));
     return true;
   });
