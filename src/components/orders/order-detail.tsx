@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { LocalDateTime } from "@/components/local-date";
 import { cancelOrderAction, saveOrderDetailsAction, saveOrderLinesAction } from "@/app/(app)/orders/actions";
 import { progressTrackedOrder, recordTrackedPayment, setTrackedTotal } from "@/app/(app)/orders/tracking-actions";
 import { Icon } from "@/components/icons";
@@ -160,7 +161,7 @@ export function OrderDetail({
                 <li key={index} className="relative flex gap-3 pb-3 pl-5 before:absolute before:top-2 before:left-1 before:size-2 before:rounded-full before:bg-accent-ring last:pb-0">
                   <span className="min-w-0 flex-1">{event.summary}</span>
                   <time dateTime={event.createdAt} className="shrink-0 text-sm text-muted">
-                    {new Date(event.createdAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "UTC" })} UTC
+                    <LocalDateTime iso={new Date(event.createdAt).toISOString()} />
                   </time>
                 </li>
               ))}
@@ -469,7 +470,7 @@ function Payments({ order, today, editable }: { order: OrderRow; today: string; 
           {order.payments.map((payment) => (
             <li key={payment.id} className="flex justify-between gap-2 py-2">
               <span>
-                {payment.kind === "refund" ? "Refund" : "Payment"} · {payment.paidOn}
+                {payment.kind === "refund" ? "Refund" : "Payment"} · {new Date(`${payment.paidOn}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
                 {payment.note ? <span className="block text-muted">{payment.note}</span> : null}
               </span>
               <strong>{payment.kind === "refund" ? "−" : ""}{dollars(payment.amountCents)}</strong>
