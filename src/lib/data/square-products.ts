@@ -8,6 +8,9 @@ import { catalogDescription, itemSchema, listCatalogItems, retrieveItem, squareR
 import { importSquareProduct, squareProductObject, syncFingerprint, type ProductSyncStatus } from "@/lib/rules/square-products";
 import { PRODUCT_LIMITS } from "@/lib/rules/products";
 
+import { retrieveProductPhoto } from "@/lib/square/images";
+import { createPhotoForOwner } from "./product-photos";
+
 const scoped = (businessId: string, productId: string) => and(eq(products.businessId, businessId), eq(products.id, productId));
 const project = (item: SquareItem) => JSON.stringify({ name: item.item_data.name, description: catalogDescription(item), variations: (item.item_data.variations as { item_variation_data: { name: string; price_money?: unknown } }[] ?? []).map((variation) => ({ name: variation.item_variation_data.name, price: variation.item_variation_data.price_money })) });
 const problem = (error: unknown) => error instanceof Error && error.name !== "ZodError" ? error.message : "Only fixed-price USD products with supported options can be synced.";
@@ -64,6 +67,16 @@ export async function pullProductsForOwner(db: Db, owner: string, forceProductId
       } else {
         await tx.insert(products).values({ id: productId, businessId, name: values.name, description: values.description, descriptionBy: "owner", kind: values.kind, priceCents: values.priceCents, options: values.options, status: "confirmed" });
         used++; report.imported++;
+      }
+      if (!product?.photo) {
+        try {
+          const photo = await retrieveProductPhoto(tokens.access_token, item);
+          if (photo) {
+            const created = await createPhotoForOwner(tx, owner, photo);
+            if (!created.ok) throw new Error("Your photo library is full.");
+            await tx.update(products).set({ photo: { source: "original", photoId: created.id } }).where(scoped(businessId, productId));
+          }
+        } catch { report.skipped.push(`${item.item_data.name}: product saved, but its photo could not be imported. Add a photo or try again.`); }
       }
       const patch = { remote: item, fingerprint: syncFingerprint(values), importedAt: new Date(), pending: null };
       await tx.insert(squareProductLinks).values({ productId, businessId, merchantId: connection.merchantId!, environment: connection.environment, remoteId: item.id, origin: "imported", ...patch })

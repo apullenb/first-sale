@@ -1,0 +1,63 @@
+import { expect, test } from "@playwright/test";
+import { candles } from "./scenarios";
+import { completeIntake, open, signUp, uniqueEmail } from "./support";
+
+test.skip(process.env.SQUARE_SANDBOX_RECORDING !== "1", "Manual recording against a configured local Square sandbox.");
+
+test("connect the actual Square sandbox and import its products", async ({ browser }, testInfo) => {
+  const setup = await browser.newContext({ baseURL: "http://localhost:3000" });
+  setup.setDefaultNavigationTimeout(90000);
+  setup.setDefaultTimeout(30000);
+  const page = await setup.newPage();
+  console.log("Recording setup: creating a local test account");
+  await signUp(page, candles.ownerName, uniqueEmail("square-sandbox-recording"));
+  console.log("Recording setup: completing business intake");
+  await completeIntake(page, candles);
+  console.log("Recording setup: recording the existing Square site");
+  await open(page, "/website");
+  await page.getByRole("button", { name: "I already have a website", exact: true }).first().click();
+  const site = page.getByRole("region", { name: "Connect the website you already have" });
+  await site.getByRole("button", { name: "Square", exact: true }).click();
+  await site.getByRole("textbox", { name: "Your site’s address" }).fill("sandbox-demo.square.site");
+  await site.getByRole("button", { name: "Save Square website", exact: true }).click();
+  await expect(site).toHaveCount(0);
+  await open(page, "/products/square");
+  await open(page, "/products");
+  const recording = await browser.newContext({ baseURL: "http://localhost:3000", storageState: await setup.storageState(), viewport: { width: 1280, height: 900 }, recordVideo: { dir: testInfo.outputPath("video"), size: { width: 1280, height: 900 } } });
+  const recorded = await recording.newPage();
+  console.log("Recording: connecting the real Square sandbox");
+  await open(recorded, "/products/square");
+  await expect(recorded.getByRole("button", { name: "Connect Square", exact: true })).toBeVisible();
+  await recorded.waitForTimeout(1000);
+  await recorded.getByRole("button", { name: "Connect Square", exact: true }).click();
+  await expect(recorded.getByRole("status", { name: "Square connection status" })).toContainText("Square account connected.");
+  await recorded.getByRole("button", { name: "Load Square products", exact: true }).click();
+  await expect(recorded.getByRole("status", { name: "Square connection status" })).toContainText("Products loaded.");
+  await expect(recorded.getByLabel("Square product")).toContainText("Lavender Candle");
+  await expect(recorded.getByLabel("Square product")).toContainText("Cedar Candle");
+  const labels = await recorded.getByLabel("Square product").locator("option").allTextContents();
+  const candleLabel = labels.find((label) => label.startsWith("Lavender Candle ("));
+  expect(candleLabel).toBeTruthy();
+  await recorded.getByLabel("Square product").selectOption({ label: candleLabel! });
+  await recorded.screenshot({ path: testInfo.outputPath("square-connected.png") });
+  await recorded.waitForTimeout(1000);
+  await recorded.getByRole("link", { name: "Back to your products", exact: true }).click();
+  await recorded.getByRole("button", { name: "Get products from Square", exact: true }).click();
+  await expect(recorded.getByRole("status", { name: "Square import status" })).toContainText("2 imported");
+  await expect(recorded.getByRole("article", { name: "Lavender Candle", exact: true })).toBeVisible();
+  await expect(recorded.getByRole("article", { name: "Cedar Candle", exact: true })).toBeVisible();
+  await expect(recorded.getByRole("heading", { name: "Pulled from Square", exact: true })).toBeVisible();
+  for (const name of ["Lavender Candle", "Cedar Candle"]) {
+    const image = recorded.getByRole("article", { name, exact: true }).getByRole("img", { name: `Photo of ${name}` });
+    await expect(image).toBeVisible();
+    await expect.poll(() => image.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  }
+  await recorded.getByRole("article", { name: "Cedar Candle", exact: true }).scrollIntoViewIfNeeded();
+  await recorded.screenshot({ path: testInfo.outputPath("square-imported.png"), fullPage: true });
+  await recorded.waitForTimeout(1500);
+  await recorded.reload();
+  await expect(recorded.getByRole("article", { name: "Lavender Candle", exact: true })).toBeVisible();
+  await expect(recorded.getByRole("article", { name: "Cedar Candle", exact: true })).toBeVisible();
+  await recording.close();
+  await setup.close();
+});

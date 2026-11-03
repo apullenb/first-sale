@@ -8,9 +8,9 @@ export const SITE_STYLES = ["clean", "bold", "warm"] as const;
 export type SiteStyle = (typeof SITE_STYLES)[number];
 
 export const STYLE_LABELS: Record<SiteStyle, { name: string; hint: string }> = {
-  clean: { name: "Clean", hint: "White page, your color on buttons and headings" },
-  bold: { name: "Bold", hint: "A wide band of your color across the top" },
-  warm: { name: "Warm", hint: "Cream page, rounded corners and classic headings" },
+  clean: { name: "Studio", hint: "Crisp editorial layout, generous space and a bold feature image" },
+  bold: { name: "Statement", hint: "Dramatic dark canvas, oversized type and vivid accents" },
+  warm: { name: "Atelier", hint: "Warm paper tones, elegant serif type and soft shapes" },
 };
 
 export const SITE_SECTIONS = ["offerings", "about", "howToBuy", "faq", "contact"] as const;

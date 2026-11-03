@@ -14,6 +14,7 @@ const wrappers = (await import("./my-business")) as unknown as Record<string, un
 
 // Every write wrapper; a new export must be listed here or in READS
 const WRITES = [
+  "connectMySquareSandbox",
   "beginMySquareConnection", "finishMySquareConnection", "listMySquareItems", "draftMySquareDescription", "editMySquareDraft",
   "approveMySquareDraft", "disconnectMySquare", "pullMySquareProducts", "pushMySquareProduct",
   "saveMyFollowUp", "saveMyResearch", "setMyConditionAnswer", "setMyStepStatus", "saveMyDetails", "deleteMyDetail",

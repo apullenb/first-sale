@@ -14,7 +14,7 @@ export function SquareLibraryControls({ connected }: { connected: boolean }) {
   return <section className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4" aria-label="Square product library">
     <h2 className="font-display text-[22px]">Square and your product library</h2>
     <p>Get products from Square to save them in your library. Local edits stay here until you choose to publish or push them.</p>
-    <p className="text-sm text-muted">Sync includes names, descriptions, options and selling prices. Stock, costs, photos and service details stay local. Publishing adds a catalog item; Square Online availability may still need setup in Square.</p>
+    <p className="text-sm text-muted">Sync includes names, descriptions, options and selling prices. Import also brings in Square photos. Photo edits, stock, costs and service details stay local. Publishing adds a catalog item; Square Online availability may still need setup in Square.</p>
     <div className="flex flex-wrap gap-3"><Link href="/products/square" className={TEXT_LINK}>{connected ? "Manage Square connection and description drafts" : "Connect Square"}</Link>
       <button className={SECONDARY} disabled={!connected || pending} onClick={() => start(async () => {
         try {

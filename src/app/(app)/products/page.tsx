@@ -17,6 +17,7 @@ import { LIBRARY_GROUP_TEXT, libraryFileUrl } from "@/lib/brand/library";
 import {
   getMyBusiness,
   getMyProductSync,
+  getMyWebsitePlan,
   listMyItemPictures,
   listMyItems,
   listMyJourneyMarks,
@@ -25,6 +26,7 @@ import {
   listMyPhotos,
   listMyPriceChecks,
 } from "@/lib/data/my-business";
+import { hasSquareSite } from "@/lib/website/existing-site";
 import { itemsStepTitle, sellsWhat, suggestedItems } from "@/lib/products/autofill";
 import { MAX_PICTURE_CHANGE } from "@/lib/products/picture";
 import { MAX_PHOTO_NAME } from "@/lib/photos/upload";
@@ -71,7 +73,7 @@ async function Products() {
     );
   }
   const profile = business.profile;
-  const [items, approved, originals, uploads, marks, pictures, checks, squareSync] = await Promise.all([
+  const [items, approved, originals, uploads, marks, pictures, checks, squareSync, websitePlan] = await Promise.all([
     listMyItems(),
     listMyPhotoLibrary(),
     listMyPhotos(),
@@ -80,8 +82,10 @@ async function Products() {
     listMyItemPictures(),
     listMyPriceChecks(),
     getMyProductSync(),
+    getMyWebsitePlan(),
   ]);
   const mark = marks.find((each) => each.key === "products") ?? null;
+  const squareSite = hasSquareSite(websitePlan?.existingSite, marks.find((each) => each.key === "website"));
   const practice = practiceMode();
   const confirmed = items.filter((item) => item.status === "confirmed");
   const what = sellsWhat(profile, items);
@@ -162,9 +166,9 @@ async function Products() {
               : "List what you sell, with a short description, the price you charge and a photo. Add what each one costs you to see what’s left from every sale."
         }
       />
-      {practice ? <PracticeBanner what="Drafted descriptions, pictures and price comparisons on this page are practice samples." /> : null}
+      {practice && (items.some((item) => item.descriptionBy === "practice") || pictures.some((picture) => picture.simulated)) ? <PracticeBanner what="Some drafted descriptions or pictures on this page are practice samples." /> : null}
 
-      <SquareLibraryControls connected={squareSync.connected} />
+      {squareSite || squareSync.connected ? <SquareLibraryControls connected={squareSync.connected} /> : null}
 
       <AlreadyHave
         markKey="products"

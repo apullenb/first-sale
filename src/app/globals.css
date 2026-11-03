@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source("../");
 
 /* Laptop screens about 768px tall: the menu tightens so Start your business fits open */
 @custom-variant short {

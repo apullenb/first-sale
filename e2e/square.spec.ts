@@ -1,9 +1,36 @@
 import { expect, test } from "@playwright/test";
 import { candles } from "./scenarios";
-import { newOwner, open } from "./support";
+import { completeIntake, open, signUp, uniqueEmail } from "./support";
 
-test("Square description entry point and safe unconfigured connection", async ({ browser }) => {
-  const { page } = await newOwner(browser, candles);
+test.use({ video: { mode: "on", size: { width: 1280, height: 720 } } });
+
+test("Square description entry point and safe unconfigured connection", async ({ page }) => {
+  await signUp(page, candles.ownerName, uniqueEmail("square"));
+  await completeIntake(page, candles);
+  await open(page, "/products");
+  await expect(page.getByRole("link", { name: "Connect Square", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Get products from Square" })).toHaveCount(0);
+  await open(page, "/products/square");
+  await expect(page.getByRole("button", { name: "Connect Square", exact: true })).toHaveCount(0);
+  await open(page, "/website");
+  await page.getByRole("button", { name: "I already have a website", exact: true }).first().click();
+  let site = page.getByRole("region", { name: "Connect the website you already have" });
+  await site.getByRole("button", { name: "Wix", exact: true }).click();
+  await site.getByRole("textbox", { name: "Your site’s address" }).fill("candles.example");
+  await site.getByRole("button", { name: "Save Wix website", exact: true }).click();
+  await expect(site).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Connect Square to review and update product descriptions", exact: true })).toHaveCount(0);
+  await open(page, "/products");
+  await expect(page.getByRole("link", { name: "Connect Square", exact: true })).toHaveCount(0);
+  await open(page, "/website");
+  await page.getByRole("button", { name: "Disconnect", exact: true }).first().click();
+  await page.getByRole("button", { name: "I already have a website", exact: true }).first().click();
+  site = page.getByRole("region", { name: "Connect the website you already have" });
+  await site.getByRole("button", { name: "Square", exact: true }).click();
+  await site.getByRole("textbox", { name: "Your site’s address" }).fill("candles.square.site");
+  await site.getByRole("button", { name: "Save Square website", exact: true }).click();
+  await expect(site).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Connect Square to review and update product descriptions", exact: true }).first()).toBeVisible();
   await open(page, "/products");
   await expect(page.getByRole("button", { name: "Get products from Square" })).toBeDisabled();
   const form = page.getByRole("region", { name: "Add a product" });
@@ -22,5 +49,4 @@ test("Square description entry point and safe unconfigured connection", async ({
   await expect(page.getByRole("button", { name: "Approve and update Square" })).toHaveCount(0);
   await page.reload();
   await expect(page.getByRole("button", { name: "Connect Square", exact: true })).toBeVisible();
-  await page.context().close();
 });

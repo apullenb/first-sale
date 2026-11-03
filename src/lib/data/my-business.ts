@@ -944,3 +944,8 @@ export async function setMyEmailReminder(days: number) {
   const user = await writer();
   return (await import("./customer-messages")).reminderForOwner(getDb(), user.id, days);
 }
+
+export async function connectMySquareSandbox() {
+  const user = await writer();
+  return (await import("./square")).connectSandboxTokenForOwner(getDb(), user.id);
+}

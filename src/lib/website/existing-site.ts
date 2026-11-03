@@ -1,4 +1,4 @@
-import type { ExistingPlatform } from "./types";
+import type { ExistingSite, ExistingPlatform } from "./types";
 
 // A site the owner already has. Connecting is a demo: only the platform and address are kept.
 
@@ -27,4 +27,8 @@ export function siteAddress(text: string): string | null {
   // A real host has a dot, like risebakery.com
   if (!/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(url.hostname)) return null;
   return url.toString().replace(/\/$/, "");
+}
+
+export function hasSquareSite(existing: ExistingSite | null | undefined, marked?: { note: string | null } | null): boolean {
+  return existing ? existing.platform === "square" : marked?.note === "Built with Square";
 }
