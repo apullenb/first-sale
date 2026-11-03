@@ -39,7 +39,7 @@ export async function takeAiRequest(
     const [mine] = await tx
       .select({
         day: count(),
-        // gt() maps the Date through the column; postgres-js rejects a bare Date param
+        // gt() maps the Date through the column
         hour: sql<number>`count(*) filter (where ${gt(aiRequests.createdAt, hourAgo)})`.mapWith(Number),
       })
       .from(aiRequests)
