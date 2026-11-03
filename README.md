@@ -247,7 +247,7 @@ Everything the brand is made of lives in one place: the chosen logo and its vers
 
 <img src="docs/media/nav/run-your-business.webp" alt="Menu link: Run your business" width="225" height="32"> <img src="docs/media/nav/connect-your-email.webp" alt="Menu link: Connect your email" width="201" height="32"> <img src="docs/media/nav/orders-and-requests.webp" alt="Menu link: Orders & requests" width="201" height="32">
 
-Customer email and a shared order/job tracker. Owners connect their business inbox, press **Import new emails** to bring in what's new, and each email becomes an order or request for review. They can also paste an email, upload an invoice or enter work themselves. The tracker adapts to products, made-to-order work and services, with due dates, progress, payments and balances; confirming applies catalog prices and takes stock once. Replies are drafted for the owner to edit and approve, then sent from their inbox. Provider setup: [Customer operations](docs/CUSTOMER-OPERATIONS.md).
+Customer email and a shared order/job tracker. Each business gets its own private SnapStart email address. Owners forward a customer's email there (or set their email to forward automatically), press **Read new emails**, and each email becomes an order or request for review. They can also paste an email, upload an invoice or enter work themselves. The tracker adapts to products, made-to-order work and services, with due dates, progress, payments and balances; confirming applies catalog prices and takes stock once. Replies are drafted for the owner to edit, then open in the owner's own email app to send. Setup: [Customer operations](docs/CUSTOMER-OPERATIONS.md).
 
 <p align="center"><img src="docs/media/run.webp" alt="The Run your business page: Connect your email and Track orders and customer requests, each ready to set up" width="900"></p>
 
@@ -499,7 +499,7 @@ To use a different OpenAI-compatible model instead, set `AI_PROVIDER=openai-comp
 | `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Sessions; sign-in accepts requests from `BETTER_AUTH_URL` |
 | `BETTER_AUTH_TRUSTED_ORIGINS` | Extra sign-in origins (Vercel previews are added automatically) |
 | `DEMO_OWNER_EMAIL` | Optional open demo: `/demo` shows this account's business read-only, no sign-in needed |
-| `NYLAS_API_KEY`, `NYLAS_CLIENT_ID`, `NYLAS_REGION`, `NYLAS_REDIRECT_URI` | Optional customer email connection through Nylas; see [Customer operations](docs/CUSTOMER-OPERATIONS.md) |
+| `POSTMARK_INBOUND_ADDRESS`, `INBOUND_WEBHOOK_USER`, `INBOUND_WEBHOOK_PASSWORD` | Optional customer email by forwarding, through Postmark inbound; see [Customer operations](docs/CUSTOMER-OPERATIONS.md) |
 
 PGlite allows one process at a time, so stop `npm run dev` before `db:migrate`. See [docs/GUIDE.md](docs/GUIDE.md#quick-start) for more.
 

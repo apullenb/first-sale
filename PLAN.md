@@ -162,10 +162,10 @@ Decided 2026-10-26: a **guided workspace**, direction A in the clickable prototy
 - **Customer operations (`/run`, `/email`, `/orders`)**
   - Adaptive product, made-to-order and service-job workspaces, with list, board and dated schedule views.
   - Manual work, uploaded invoices and customer emails enter the same tracker. Imported work needs owner confirmation before stock changes.
-  - Nylas hosted authorization; the owner presses Import new emails to bring in and read new mail through `runWorkflow`. Setup in `docs/CUSTOMER-OPERATIONS.md`.
-  - Invoice/email facts keep exact source excerpts. Unsupported facts are omitted; invoices never establish payment. Practice results are labeled and cannot change stock or send replies.
+  - Each business has a private forwarding address (Postmark inbound). The webhook stores forwarded mail without AI; the owner presses Read new emails to read it through `runWorkflow`. Setup in `docs/CUSTOMER-OPERATIONS.md`.
+  - Invoice/email facts keep exact source excerpts. Unsupported facts are omitted; invoices never establish payment. Practice results are labeled and cannot change stock.
   - Payments and refunds use an append-only ledger; code calculates paid amounts and balances independently of fulfillment. Overdue work is flagged in the tracker.
-  - Replies are conservative code-built drafts from checked extracted facts, editable by the owner, and require explicit approval before sending. Uncertain sends cannot retry automatically.
+  - Replies are conservative code-built drafts from checked extracted facts, editable by the owner, opened in the owner's own email (`mailto:`) or copied. SnapStart sends nothing; the owner marks a reply "I sent it".
   - Catalog orders snapshot names and prices and update stock transactionally. Custom work has an owner-confirmed total; completed or shipped work cannot restore stock through cancellation.
 
 ## Architecture

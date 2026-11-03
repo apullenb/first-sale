@@ -170,7 +170,7 @@ export const SECTIONS: Section[] = [
     group: "Run your business",
     step: null,
     milestone: 6,
-    summary: "Connect your inbox, import new emails, turn them into orders or requests, and reply.",
+    summary: "Forward customer emails to your own SnapStart address. They become orders or requests for you to check, with replies you send from your own email.",
   },
   {
     href: "/orders",
