@@ -109,6 +109,15 @@ describe("site design rules", () => {
 });
 
 describe("renderSite", () => {
+  it("renders AI themes independently of the previously chosen preset", () => {
+    const theme = { name: "Brand studio", rationale: "Brand-led", layout: "centered" as const, font: "sans" as const, background: "#faf3e0", foreground: "#203340", surface: "#ffffff", accent: "#35566e", radius: 8, titleScale: 0.9 };
+    const warm = renderSite(input({ design: design({ style: "warm", theme }) }));
+    const bold = renderSite(input({ design: design({ style: "bold", theme }) }));
+    expect(warm).toBe(bold);
+    expect(warm).toContain("font-style:normal");
+    expect(warm).not.toContain(".contact h2{font-style:italic}");
+  });
+
   it("escapes every piece of the owner's text and runs no scripts", () => {
     const html = renderSite(input({ name: `Rise <script>alert("x")</script>`, copy: { ...copy, about: `<img src=x onerror=alert(1)>` } }));
     expect(html).not.toMatch(/<script/i);
