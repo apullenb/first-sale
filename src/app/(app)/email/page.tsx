@@ -1,7 +1,9 @@
+import type { Metadata } from "next";
 import { OperationPage } from "@/components/operations/page";
-import { sectionMetadata } from "@/lib/sections";
+import { OPERATIONS } from "@/lib/operations/catalog";
 
-export const metadata = sectionMetadata("/email");
+// Real forwarding page; the menu links to /email/demo until inbound email opens to owners
+export const metadata: Metadata = { title: OPERATIONS.email.title, description: OPERATIONS.email.description };
 // Importing reads up to ten emails with AI
 export const maxDuration = 300;
 

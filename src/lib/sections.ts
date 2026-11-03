@@ -165,7 +165,7 @@ export const SECTIONS: Section[] = [
     summary: "Track customer conversations, orders, jobs and payments.",
   },
   {
-    href: "/email",
+    href: "/email/demo",
     title: "Connect your email",
     group: "Run your business",
     step: null,
