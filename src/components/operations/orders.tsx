@@ -148,7 +148,7 @@ export function OrdersPanel({ items, orders }: { items: OrderableItem[]; orders:
                   </p>
                   {order.notes ? <p className="text-sm">{order.notes}</p> : null}
                   {order.events.length ? <p className="text-sm text-muted">{order.events.map((event) => event.summary).join(" · ")}</p> : null}
-                  {order.status !== "cancelled" ? <button className={`${SECONDARY} w-fit`} disabled={pending} onClick={() => cancel(order.id)}>Cancel order<span className="sr-only"> for {order.customerName}</span></button> : null}
+                  {order.status !== "cancelled" ? <button data-writes className={`${SECONDARY} w-fit`} disabled={pending} onClick={() => cancel(order.id)}>Cancel order<span className="sr-only"> for {order.customerName}</span></button> : null}
                 </li>
               );
             })}

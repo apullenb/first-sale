@@ -215,11 +215,11 @@ export function ProfileEditor({ platform, platformName, facts, initial, handles,
       <div className={drafting ? "flex flex-col" : "flex flex-wrap items-start gap-3"}>
         {drafting ? null : (
           <>
-            <button type="button" disabled={pending !== null} onClick={() => save(true)} className={PRIMARY}>
+            <button data-writes type="button" disabled={pending !== null} onClick={() => save(true)} className={PRIMARY}>
               <Icon name="check" size="sm" />
               {pending === "approve" ? "Approving…" : "Approve"}
             </button>
-            <button type="button" disabled={pending !== null} onClick={() => save(false)} className={SECONDARY}>
+            <button data-writes type="button" disabled={pending !== null} onClick={() => save(false)} className={SECONDARY}>
               {pending === "save" ? "Saving…" : "Save without approving"}
             </button>
           </>

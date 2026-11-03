@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/lib/auth/server";
+import { DemoGuard } from "./demo-mode";
 import { StartOwnButton } from "./start-own-button";
 
 // Every page of a demo session says so, with the way out to a real account
@@ -11,6 +12,7 @@ export async function DemoBanner() {
         You’re exploring the SnapStart demo business. Look around — changes aren’t saved.
       </p>
       <StartOwnButton />
+      <DemoGuard />
     </div>
   );
 }

@@ -170,7 +170,7 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
               </button>
             )}
             {/* aria-disabled, not disabled: a disabled button drops focus */}
-            <button type="button" onClick={suggest} aria-disabled={busy} aria-label="Suggest taglines from your brand" className={`${AI_BUTTON} shrink-0 px-3.5 aria-disabled:opacity-60`}>
+            <button type="button" data-writes onClick={suggest} aria-disabled={busy} aria-label="Suggest taglines from your brand" className={`${AI_BUTTON} shrink-0 px-3.5 aria-disabled:opacity-60`}>
               <Icon name="sparkles" size="sm" />
               {phase === "suggesting" || taglineWatch.watching ? "Suggesting…" : "Suggest"}
             </button>
@@ -241,7 +241,7 @@ export function LogoChoices({ initial, practice, blocked, hasIdeas, number }: Pr
             </span>
           </p>
           {blocked ? <p className={ALERT}>{blocked}</p> : null}
-          <button type="button" onClick={generate} disabled={busy || Boolean(blocked)} className={`${AI_BUTTON} w-fit`}>
+          <button type="button" data-writes onClick={generate} disabled={busy || Boolean(blocked)} className={`${AI_BUTTON} w-fit`}>
             <Icon name="sparkles" size="sm" />
             {phase === "writing" || watcher.watching ? "Writing ideas…" : phase === "drawing" ? "Drawing logos…" : hasIdeas ? "Generate new logo ideas" : "Generate logo ideas"}
           </button>

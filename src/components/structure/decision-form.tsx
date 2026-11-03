@@ -441,7 +441,7 @@ export function DecisionReview() {
         </p>
       ) : null}
       <div className="flex flex-wrap gap-2.5">
-        <button type="button" onClick={confirm} disabled={pending} className={PRIMARY}>
+        <button data-writes type="button" onClick={confirm} disabled={pending} className={PRIMARY}>
           <Icon name="stamp" size="sm" />
           {pending ? "Saving…" : "Record my decision"}
         </button>

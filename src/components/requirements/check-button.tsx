@@ -77,7 +77,7 @@ export function CheckRequirementsButton({
   return (
     <div className="flex flex-col items-start gap-2">
       {auto && !error ? null : (
-        <button type="button" onClick={() => run(from)} disabled={pending} className={STYLES[variant]}>
+        <button type="button" data-writes onClick={() => run(from)} disabled={pending} className={STYLES[variant]}>
           <Icon name={variant === "primary" ? "search" : "refresh"} size="sm" />
           {pending ? "Checking official sources…" : error && auto ? "Try again" : label}
         </button>

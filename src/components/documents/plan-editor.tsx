@@ -486,7 +486,7 @@ function SaveArea({
       ) : (
         <p className="text-[15px] text-muted">When it reads the way you want, save it. The PDF goes in Documents, replacing any earlier copy.</p>
       )}
-      <button type="button" onClick={onSave} disabled={pdf.status === "saving" || editing} className={`${PRIMARY} w-fit`}>
+      <button type="button" data-writes onClick={onSave} disabled={pdf.status === "saving" || editing} className={`${PRIMARY} w-fit`}>
         <Icon name="filecheck" size="sm" />
         {pdf.status === "saving" ? "Saving your business plan…" : "Save my business plan"}
       </button>

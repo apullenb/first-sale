@@ -71,7 +71,7 @@ export function PriceCompare({ items, checks, noun }: { items: ComparedItem[]; c
                 {items.length > 1 ? <option value="all">All confirmed items (up to 5)</option> : null}
               </select>
             </div>
-            <button type="button" onClick={() => void run()} disabled={pending || job.watching} className={`${AI_BUTTON} self-start @md:self-end`}>
+            <button type="button" data-writes onClick={() => void run()} disabled={pending || job.watching} className={`${AI_BUTTON} self-start @md:self-end`}>
               <Icon name="search" size="sm" />
               {pending ? "Searching…" : "Compare prices"}
             </button>

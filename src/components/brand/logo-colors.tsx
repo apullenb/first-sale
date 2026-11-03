@@ -140,7 +140,7 @@ export function LogoColors({ assetId, src, saved }: { assetId: string; src: stri
         )}
       </div>
 
-      <button type="button" disabled={busy || !changed} onClick={save} className={`${PRIMARY} w-fit`}>
+      <button data-writes type="button" disabled={busy || !changed} onClick={save} className={`${PRIMARY} w-fit`}>
         <Icon name="check" size="sm" />
         {busy ? "Saving…" : "Save my colors"}
       </button>

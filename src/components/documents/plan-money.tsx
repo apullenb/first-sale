@@ -176,7 +176,7 @@ export function PlanMoney({ form, onChange, hasDraft }: { form: MoneyForm; onCha
 
       {hasDraft ? (
         <div className="flex flex-col items-start gap-2 border-t border-line pt-4">
-          <button type="button" onClick={update} disabled={status === "saving"} className={SECONDARY}>
+          <button type="button" data-writes onClick={update} disabled={status === "saving"} className={SECONDARY}>
             <Icon name="refresh" size="sm" />
             {status === "saving" ? "Updating…" : "Update the estimates in my plan"}
           </button>

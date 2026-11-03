@@ -147,7 +147,7 @@ export function BrandRunButton({ intent, label, pendingLabel, working, variant =
           />
         </div>
       ) : null}
-      <button type="button" onClick={async () => (await run(change)) && setChange("")} disabled={pending !== null || watching || Boolean(blocked)} className={variant === "ai" ? AI_BUTTON : SECONDARY}>
+      <button data-writes type="button" onClick={async () => (await run(change)) && setChange("")} disabled={pending !== null || watching || Boolean(blocked)} className={variant === "ai" ? AI_BUTTON : SECONDARY}>
         <Icon name={variant === "ai" ? "sparkles" : "refresh"} size="sm" />
         {pending || watching ? pendingLabel : label}
       </button>
@@ -182,6 +182,7 @@ export function PlusTile({ intent, label, sketch, ratio, working, hint, blocked 
   return (
     <div className="flex flex-col gap-2">
       <button
+        data-writes
         type="button"
         onClick={() => run()}
         disabled={busy || Boolean(blocked)}
@@ -410,7 +411,7 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
       <div className="flex flex-col gap-2">
         <h4 className={LABEL}>Simpler</h4>
         <p className="text-sm text-muted">Fewer details and thicker lines, so it still reads when it’s small.</p>
-        <button type="button" onClick={() => send({ refinement: { kind: "simpler" } })} disabled={busy} className={`${SECONDARY} w-fit`}>
+        <button data-writes type="button" onClick={() => send({ refinement: { kind: "simpler" } })} disabled={busy} className={`${SECONDARY} w-fit`}>
           Make it simpler
         </button>
       </div>
@@ -465,6 +466,7 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
           ) : null}
           {lightCustom ? <p className="text-sm text-check">These colors are all light, so your name may be hard to read on white.</p> : null}
           <button
+            data-writes
             type="button"
             onClick={() => family && send({ refinement: { kind: "colors", colors: family === "custom" ? { hexes } : { family } } })}
             disabled={busy || !family}
@@ -484,7 +486,7 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
               <PickOption key={key} type="radio" name={`${uid}-lettering`} checked={style === key} onChange={() => setStyle(key)} label={LETTERING_STYLES[key].label} layout="word" />
             ))}
           </div>
-          <button type="button" onClick={() => style && send({ refinement: { kind: "lettering", style } })} disabled={busy || !style} className={`${SECONDARY} w-fit`}>
+          <button data-writes type="button" onClick={() => style && send({ refinement: { kind: "lettering", style } })} disabled={busy || !style} className={`${SECONDARY} w-fit`}>
             Change the lettering
           </button>
         </fieldset>
@@ -498,6 +500,7 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
         <input id={`${uid}-tagline`} type="text" value={tagline} maxLength={BRIEF_LIMITS.tagline} onChange={(event) => setTagline(event.target.value)} className={INPUT} />
         <div className="flex flex-wrap gap-3">
           <button
+            data-writes
             type="button"
             onClick={() => send({ refinement: { kind: "tagline", text: tagline } })}
             disabled={busy || !tagline.trim() || tagline.trim() === current.tagline}
@@ -506,7 +509,7 @@ export function RefineLogo({ assetId, hint, current, ownerTagline, pickedFamilie
             {current.tagline ? "Use this tagline instead" : "Add this tagline"}
           </button>
           {current.tagline ? (
-            <button type="button" onClick={() => send({ refinement: { kind: "tagline", text: "" } })} disabled={busy} className={SECONDARY}>
+            <button data-writes type="button" onClick={() => send({ refinement: { kind: "tagline", text: "" } })} disabled={busy} className={SECONDARY}>
               Remove the tagline
             </button>
           ) : null}

@@ -48,7 +48,7 @@ export function AdviceRunner() {
           <p role="alert" className={ALERT}>
             {error}
           </p>
-          <button type="button" onClick={run} className={SECONDARY}>
+          <button type="button" data-writes onClick={run} className={SECONDARY}>
             Try again
           </button>
         </>

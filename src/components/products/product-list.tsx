@@ -242,7 +242,7 @@ function ProductRow({
               <Icon name="image" size="sm" />
               Pictures<span className="sr-only"> of {product.name}</span>
             </button>
-            <button type="button" onClick={remove} disabled={pending} className={DANGER}>
+            <button data-writes type="button" onClick={remove} disabled={pending} className={DANGER}>
               <Icon name="trash" size="sm" />
               {pending ? "Removing…" : "Remove"}
               <span className="sr-only"> {product.name}</span>
@@ -434,7 +434,7 @@ function ProductEditor({
             {pending ? "Saving…" : !id ? `Add ${noun.one}` : suggested ? "Confirm" : "Save changes"}
           </button>
           {suggested ? (
-            <button type="button" disabled={pending} onClick={() => void save(false)} className={SECONDARY}>
+            <button data-writes type="button" disabled={pending} onClick={() => void save(false)} className={SECONDARY}>
               Save as a suggestion
             </button>
           ) : null}

@@ -382,7 +382,7 @@ export function SiteStudio(props: Props) {
                 {status === "saved" && !dirty ? "Saved." : dirty ? "You have changes that aren’t saved yet." : ""}
               </p>
               <div className="flex flex-wrap gap-2">
-                <button type="button" disabled={pending || !dirty} onClick={save} className={PRIMARY}>
+                <button type="button" data-writes disabled={pending || !dirty} onClick={save} className={PRIMARY}>
                   <Icon name="check" size="sm" />
                   {status === "saving" ? "Saving…" : "Save design"}
                 </button>
@@ -515,7 +515,7 @@ function FinishControls({
       ) : null}
       {dirty ? <p className="text-sm text-check">Save your design changes first, so you finish what you see.</p> : null}
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" disabled={blocked || dirty || pending || Boolean(finished?.upToDate)} onClick={onFinish} className={PRIMARY}>
+        <button type="button" data-writes disabled={blocked || dirty || pending || Boolean(finished?.upToDate)} onClick={onFinish} className={PRIMARY}>
           <Icon name="flag" size="sm" />
           {finishing ? "Finishing…" : finished ? "Finish again (demo)" : "Finish my site (demo)"}
         </button>

@@ -70,7 +70,7 @@ export function PickAccounts({ include, social }: { include: MarketingPlatformId
           {error}
         </p>
       ) : null}
-      <button type="button" disabled={pending || !picked.length} onClick={save} className={`${PRIMARY} w-fit`}>
+      <button type="button" data-writes disabled={pending || !picked.length} onClick={save} className={`${PRIMARY} w-fit`}>
         <Icon name="check" size="sm" />
         {pending ? "Saving…" : "Set up these accounts"}
       </button>

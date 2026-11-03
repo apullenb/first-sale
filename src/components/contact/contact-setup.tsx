@@ -88,7 +88,7 @@ function ItemSetup({ item, view, openGuide }: { item: ContactItem; view: Contact
               Change<span className="sr-only"> your {spec.label.toLowerCase()}</span>
             </button>
           ) : (
-            <button type="button" disabled={pending} onClick={() => run(() => undoContactHaveAction(item))} className={`min-h-11 ${TEXT_LINK}`}>
+            <button type="button" data-writes disabled={pending} onClick={() => run(() => undoContactHaveAction(item))} className={`min-h-11 ${TEXT_LINK}`}>
               Undo<span className="sr-only">: I already have a {spec.label.toLowerCase()}</span>
             </button>
           )}
@@ -104,7 +104,7 @@ function ItemSetup({ item, view, openGuide }: { item: ContactItem; view: Contact
                   ["later", "Do this later"],
                 ] as const
               ).map(([key, label]) => (
-                <button key={key} type="button" aria-pressed={choice === key} disabled={pending} onClick={() => pick(key)} className={choice === key ? PRIMARY : SECONDARY}>
+                <button key={key} type="button" data-writes={key === "have" ? undefined : ""} aria-pressed={choice === key} disabled={pending} onClick={() => pick(key)} className={choice === key ? PRIMARY : SECONDARY}>
                   {label}
                 </button>
               ))}
@@ -158,7 +158,7 @@ function ItemSetup({ item, view, openGuide }: { item: ContactItem; view: Contact
           ) : null}
 
           {view.state === "todo" ? (
-            <button type="button" disabled={pending} onClick={() => run(() => markContactHaveAction(item))} className={`w-fit min-h-11 ${TEXT_LINK}`}>
+            <button type="button" data-writes disabled={pending} onClick={() => run(() => markContactHaveAction(item))} className={`w-fit min-h-11 ${TEXT_LINK}`}>
               I already have this
             </button>
           ) : null}

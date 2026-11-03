@@ -106,7 +106,7 @@ export function PlanInputs({ facts, basis, initial, money, hasDraft, privacy }: 
         )}
 
         <div className="flex flex-col items-start gap-2 border-t border-line pt-5">
-          <button type="button" onClick={draft} disabled={status === "drafting" || job.watching} className={AI_BUTTON}>
+          <button data-writes type="button" onClick={draft} disabled={status === "drafting" || job.watching} className={AI_BUTTON}>
             <Icon name="sparkles" size="sm" />
             {status === "drafting" ? "Drafting your plan…" : hasDraft ? "Draft my plan again" : "Draft my plan"}
           </button>
@@ -190,6 +190,7 @@ function FactRow({ fact, saved, onSave, onReset }: { fact: KnownFact & { edited:
       <dd className="col-span-2 row-start-2 flex min-w-0 flex-col gap-1.5 sm:col-span-1 sm:col-start-2 sm:row-start-1">
         {editing ? (
           <form
+            data-demo-ok
             className="flex flex-col gap-2"
             onSubmit={(event) => {
               event.preventDefault();

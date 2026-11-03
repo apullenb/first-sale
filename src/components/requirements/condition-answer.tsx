@@ -53,6 +53,7 @@ export function AnswerButtons({ stepKey, condition, current = null, labelledBy }
       <div role="group" aria-labelledby={labelledBy} className="flex flex-wrap gap-2">
         {CHOICES.map((choice) => (
           <button
+            data-writes
             key={choice.value}
             type="button"
             aria-pressed={current === choice.value}
@@ -88,7 +89,7 @@ export function UndoAnswer({ stepKey, condition, title }: { stepKey: string; con
   const { pending, error, save } = useAnswer(stepKey, condition);
   return (
     <span className="flex flex-col items-start gap-1">
-      <button type="button" disabled={pending} onClick={() => save(null)} className={LINK}>
+      <button data-writes type="button" disabled={pending} onClick={() => save(null)} className={LINK}>
         {pending ? "Undoing…" : "Undo"}
         <span className="sr-only"> your “no” for {title}</span>
       </button>

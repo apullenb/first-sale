@@ -93,7 +93,7 @@ export function StepStatus({ stepId, title, status, note, submittedAt, submissio
           </p>
         ) : null}
         {note ? <p className="text-rule">Your note: {note}</p> : null}
-        <button type="button" disabled={pending} onClick={() => save("todo")} className={UNDO}>
+        <button data-writes type="button" disabled={pending} onClick={() => save("todo")} className={UNDO}>
           {pending ? "Saving…" : "Mark as not done"}
         </button>
         {alert}
@@ -112,11 +112,11 @@ export function StepStatus({ stepId, title, status, note, submittedAt, submissio
         {confirm(kind === "contact" ? "The office answered in writing." : "The office approved it, or sent what I applied for.")}
         {noteField(kind === "contact" ? "For example: the planning office replied on May 10" : "For example: license number arrived by email on May 10")}
         <div className="flex flex-wrap gap-2.5">
-          <button type="button" disabled={pending || !confirmed} onClick={() => save("done")} className={PRIMARY}>
+          <button data-writes type="button" disabled={pending || !confirmed} onClick={() => save("done")} className={PRIMARY}>
             <Icon name="check" size="sm" />
             {pending ? "Saving…" : kind === "contact" ? "Mark as answered" : "Mark as approved"}
           </button>
-          <button type="button" disabled={pending} onClick={() => save("todo")} className={SECONDARY}>
+          <button data-writes type="button" disabled={pending} onClick={() => save("todo")} className={SECONDARY}>
             {kind === "contact" ? "I haven’t sent it" : "I haven’t submitted it"}
           </button>
         </div>
@@ -130,12 +130,12 @@ export function StepStatus({ stepId, title, status, note, submittedAt, submissio
       {confirm(words.confirm)}
       {noteField(words.placeholder)}
       <div className="flex flex-wrap gap-2.5">
-        <button type="button" disabled={pending || !confirmed} onClick={() => save(sends ? "submitted" : "done")} className={PRIMARY}>
+        <button data-writes type="button" disabled={pending || !confirmed} onClick={() => save(sends ? "submitted" : "done")} className={PRIMARY}>
           <Icon name="check" size="sm" />
           {pending ? "Saving…" : words.button}
         </button>
         {sends ? (
-          <button type="button" disabled={pending || !confirmed} onClick={() => save("done")} className={SECONDARY}>
+          <button data-writes type="button" disabled={pending || !confirmed} onClick={() => save("done")} className={SECONDARY}>
             {kind === "contact" ? "Done, they already answered" : "Done, nothing to wait for"}
           </button>
         ) : null}
@@ -164,7 +164,7 @@ export function AcknowledgeDecision({ stepId, title, ready }: { stepId: string; 
   }
   return (
     <div className="flex flex-col items-start gap-3">
-      <button type="button" disabled={pending || !ready} onClick={acknowledge} className={PRIMARY}>
+      <button data-writes type="button" disabled={pending || !ready} onClick={acknowledge} className={PRIMARY}>
         <Icon name="check" size="sm" />
         {pending ? "Saving…" : "Got it, mark this done"}
       </button>
