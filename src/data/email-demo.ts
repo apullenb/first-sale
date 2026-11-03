@@ -1,4 +1,4 @@
-// Sample customer emails for the forwarding demo (/email/demo). Made up; nothing here is real or saved.
+// Sample customer emails for the email demo (/email/demo). Made up; confirmed ones become DEMO orders.
 
 export const DEMO_BUSINESS = "Maple & Crumb Bakery";
 export const DEMO_ADDRESS = "maple-crumb+sample@inbound.example";
@@ -24,6 +24,10 @@ export interface DemoEmail {
     items: { name: string; quantity: string }[];
     when: string;
     notes?: string;
+    // Tracker fields the email states exactly; anything looser stays in "when"
+    fulfillment?: "pickup" | "delivery" | "shipping";
+    jobTime?: string;
+    location?: string;
     reply: string;
   };
 }
@@ -42,6 +46,7 @@ export const DEMO_EMAILS: DemoEmail[] = [
       items: [{ name: "Chocolate chip cookies", quantity: "2 dozen" }],
       when: "Pickup Saturday, about 10 am",
       notes: "No nuts, for a soccer team",
+      fulfillment: "pickup",
       reply:
         "Hi Dana,\n\nThanks for your order! 2 dozen chocolate chip cookies (no nuts) will be ready for pickup Saturday at 10 am.\n\nSee you then,\nMaple & Crumb Bakery",
     },
@@ -80,6 +85,8 @@ export const DEMO_EMAILS: DemoEmail[] = [
         { name: "Cinnamon coffee cake", quantity: "1" },
       ],
       when: "Pickup Friday, 7:30 am",
+      fulfillment: "pickup",
+      jobTime: "07:30",
       reply:
         "Hi Priya,\n\nThanks for thinking of us! 3 dozen assorted muffins and a cinnamon coffee cake will be ready Friday at 7:30 am.\n\nMaple & Crumb Bakery",
     },
@@ -100,6 +107,7 @@ export const DEMO_EMAILS: DemoEmail[] = [
         { name: "Butter croissants", quantity: "4 dozen" },
       ],
       when: "Delivery Tuesday, before 7 am",
+      fulfillment: "delivery",
       notes: "Read from the attached PO-1182.pdf",
       reply:
         "Hi Hilltop team,\n\nGot PO 1182: 6 sourdough loaves and 4 dozen croissants for Tuesday before 7 am. We’ll have them there.\n\nThanks,\nMaple & Crumb Bakery",
@@ -117,6 +125,8 @@ export const DEMO_EMAILS: DemoEmail[] = [
       title: "2 holiday cookie tins, shipped",
       items: [{ name: "Holiday cookie tin, 24 cookies", quantity: "2" }],
       when: "Ship to Denver, CO, arriving by December 15",
+      fulfillment: "shipping",
+      location: "1420 Elm St, Denver, CO 80206",
       notes: "Ships to 1420 Elm St, Denver, CO 80206",
       reply:
         "Hi Rosa,\n\nThank you! 2 holiday cookie tins (24 cookies each) will ship to Denver in time for December 15. I’ll email you the tracking number as soon as they’re on their way.\n\nMaple & Crumb Bakery",
@@ -137,6 +147,7 @@ export const DEMO_EMAILS: DemoEmail[] = [
         { name: "Apple crumb pie", quantity: "1" },
       ],
       when: "Pickup Wednesday the 25th, after 4 pm",
+      fulfillment: "pickup",
       reply:
         "Hi Gene,\n\nYou’re all set: 2 pumpkin pies and 1 apple crumb pie, ready for pickup Wednesday the 25th after 4 pm. Happy Thanksgiving!\n\nMaple & Crumb Bakery",
     },
@@ -153,6 +164,8 @@ export const DEMO_EMAILS: DemoEmail[] = [
       title: "150 wedding favor cookies",
       items: [{ name: "Decorated sugar cookies, individually wrapped, A & B initials in sage green", quantity: "150" }],
       when: "Delivery June 6, morning, Oak Hollow Barn",
+      fulfillment: "delivery",
+      location: "Oak Hollow Barn",
       notes: "Asks for a quote",
       reply:
         "Hi Alicia and Ben,\n\nCongratulations! We’d be honored to make your favors. For 150 individually wrapped sugar cookies with sage green initials, delivered to Oak Hollow Barn on June 6, I’ll put together a quote and send it over by Friday.\n\nMaple & Crumb Bakery",

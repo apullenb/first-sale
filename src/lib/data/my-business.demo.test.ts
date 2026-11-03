@@ -29,7 +29,7 @@ const WRITES = [
   "saveMyIntakeDraft", "deleteMyIntakeDraft", "createMyBusinessFromIntake", "updateMyProfileWithHistory", "recordMyDecisions",
   "replanMyPlan", "saveMyStructureAdvice", "saveMyInsights", "markMyInsight", "setMyJourneyMark", "clearMyJourneyMark",
   "setMyOrderTotal", "progressMyOrder", "recordMyPayment", "scheduleMyOrder", "addMyCustomerMessage", "processMyCustomerMessage", "retryMyCustomerMessage", "dismissMyCustomerMessage", "getMyForwardingAddress", "newMyForwardingAddress", "clearMyForwardingConfirmation", "readMyNewEmail", "markMyReplySent",
-  "saveMyOperationSetup", "pauseMyOperationSetup", "recordMyOrder", "cancelMyOrder",
+  "saveMyOperationSetup", "pauseMyOperationSetup", "recordMyOrder", "cancelMyOrder", "addMyEmailDemoOrder", "clearMyEmailDemoOrders",
 ];
 
 const READS = [
@@ -42,7 +42,7 @@ const READS = [
   "listMyLibraryFiles", "getMyLibraryFile", "myLibraryUsage", "listMyProducts", "listMyItems", "getMyProduct", "listMyItemPictures",
   "getMyItemPictureFile", "findMyItemPictureByRequest", "myItemPictureRoom", "listMyPriceChecks", "getMyIntakeDraft",
   "listMyHistory", "getMyStructureAdvice", "getMyInsights", "listMyJourneyMarks", "getMySidebarFacts", "listMyOperationSetups",
-  "listMyOrders", "getMyEmailState",
+  "listMyOrders", "listMyEmailDemoSamples", "getMyEmailState",
 ];
 
 type Call = (...args: unknown[]) => Promise<unknown>;
