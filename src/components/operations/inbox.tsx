@@ -139,6 +139,7 @@ export function CustomerInbox({
             </p>
             <div className="flex flex-wrap gap-2">
               <button
+                data-writes
                 className={SECONDARY}
                 disabled={pending}
                 onClick={() =>
@@ -150,6 +151,7 @@ export function CustomerInbox({
                 {connection.paused ? "Resume" : "Pause"}
               </button>
               <button
+                data-writes
                 className={SECONDARY}
                 disabled={pending}
                 onClick={() => run(() => changeCustomerEmail("disconnect"))}
@@ -168,6 +170,7 @@ export function CustomerInbox({
           <label className="flex flex-col gap-2 font-semibold">
             Flag unanswered messages after
             <select
+              data-writes
               className={INPUT}
               disabled={pending}
               value={connection.reminderDays}
@@ -189,6 +192,7 @@ export function CustomerInbox({
         ) : null}
         {available ? (
           <button
+            data-writes
             disabled={pending}
             className={`${PRIMARY} w-fit`}
             onClick={() =>
@@ -320,8 +324,10 @@ function Message({
         </Link>
       ) : null}
       {item.issue ? <p className="text-sm text-check">{item.issue}</p> : null}
-      {item.state === "failed" || item.state === "pending" ? (
+      {(item.state === "failed" || item.state === "pending") &&
+      !(item.source === "email" && !item.connectionId && !item.body) ? (
         <button
+          data-writes
           disabled={pending}
           className={`${SECONDARY} w-fit`}
           onClick={() => run(() => retryCustomerMessage(item.id))}
@@ -359,6 +365,7 @@ function Message({
                 I reviewed this reply to {item.sender} and approve sending it.
               </label>
               <button
+                data-writes
                 className={`${PRIMARY} w-fit`}
                 disabled={pending || !approve || !reply.trim()}
                 onClick={() => {
@@ -384,6 +391,7 @@ function Message({
       ) : null}
       {item.state === "ready" ? (
         <button
+          data-writes
           disabled={pending}
           className={`${SECONDARY} w-fit`}
           onClick={() => run(() => dismissCustomerMessage(item.id))}

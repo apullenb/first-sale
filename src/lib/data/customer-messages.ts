@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lt, ne, or, sql } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import {
   businesses,
@@ -142,6 +142,9 @@ export async function connectEmailForOwner(
         email,
         status: "connected",
         paused: false,
+        // A reconnected inbox starts a fresh sync; an old cursor may no longer be valid
+        syncCursor: null,
+        syncStarted: null,
       },
     });
   return true;
@@ -306,7 +309,8 @@ export async function completeMessageForOwner(
           title: extraction.title || message.subject.slice(0, 160),
           workType:
             extraction.category === "job" ||
-            mine.profile.offeringKinds.every((kind) => kind === "services")
+            (mine.profile.offeringKinds.length > 0 &&
+              mine.profile.offeringKinds.every((kind) => kind === "services"))
               ? "services"
               : mine.profile.offeringKinds.includes("handmade") ||
                   mine.profile.offeringKinds.includes("food")
@@ -399,6 +403,12 @@ export async function retryMessageForOwner(
         eq(customerMessages.businessId, mine.id),
         eq(customerMessages.id, id),
         eq(customerMessages.state, "failed"),
+        // An email from a disconnected inbox has no text left to read again
+        or(
+          ne(customerMessages.source, "email"),
+          sql`${customerMessages.connectionId} is not null`,
+          ne(customerMessages.body, ""),
+        ),
       ),
     )
     .returning();

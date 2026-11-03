@@ -15,6 +15,7 @@ import {
   WORK_TYPES,
   type TrackingInput,
   type WorkType,
+  MAX_ORDER_CENTS,
 } from "@/lib/rules/order-tracking";
 import type { OrderRow } from "./orders";
 import type { ExtractedRequest } from "@/lib/orders/extract";
@@ -131,7 +132,9 @@ export function OrderEditor({
       onSubmit={(event) => {
         event.preventDefault();
         start(async () => {
-          const totalCents = total.trim() ? parseDollars(total) : null;
+          const totalCents = total.trim()
+            ? parseDollars(total, MAX_ORDER_CENTS)
+            : null;
           if (total.trim() && totalCents === null) {
             setMessage("Enter the total in dollars and cents.");
             return;

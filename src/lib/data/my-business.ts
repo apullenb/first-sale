@@ -890,8 +890,10 @@ export async function finishMyEmailConnection(code: string, binding: string) {
   const grant = z.object({ grant_id: z.string().min(1).max(500), email: z.email() }).parse(raw);
   const data = await import("./customer-messages");
   const previous = await data.connectionForOwner(getDb(), user.id);
-  if (previous && previous.grantId !== grant.grant_id) await emailApi(`/grants/${encodeURIComponent(previous.grantId)}`, { method: "DELETE" });
-  return data.connectEmailForOwner(getDb(), user.id, grant.grant_id, grant.email);
+  const connected = await data.connectEmailForOwner(getDb(), user.id, grant.grant_id, grant.email);
+  // The old grant goes only once the new one is saved
+  if (connected && previous && previous.grantId !== grant.grant_id) await deleteGrant(previous.grantId);
+  return connected;
 }
 export async function pauseMyEmail(paused: boolean) {
   const user = await writer();
@@ -901,8 +903,18 @@ export async function disconnectMyEmail() {
   const user = await writer();
   const data = await import("./customer-messages");
   const connection = await data.connectionForOwner(getDb(), user.id);
-  if (connection) await (await import("@/lib/email/client")).emailApi(`/grants/${encodeURIComponent(connection.grantId)}`, { method: "DELETE" });
+  if (connection) await deleteGrant(connection.grantId);
   await data.removeEmailForOwner(getDb(), user.id);
+}
+
+// A grant already gone at the provider (revoked or expired) counts as deleted
+async function deleteGrant(grantId: string) {
+  const { EmailApiError, emailApi } = await import("@/lib/email/client");
+  try {
+    await emailApi(`/grants/${encodeURIComponent(grantId)}`, { method: "DELETE" });
+  } catch (error) {
+    if (!(error instanceof EmailApiError && error.status === 404)) throw error;
+  }
 }
 export async function sendMyCustomerReply(id: string, reply: string) {
   const user = await writer();
@@ -926,7 +938,11 @@ export async function sendMyCustomerReply(id: string, reply: string) {
 export async function acceptCustomerEmailEvent(body: string, signature: string | null) {
   const { validSignature } = await import("@/lib/email/client");
   if (!validSignature(body, signature)) return false;
-  await (await import("@/lib/email/worker")).enqueueEmailEvent(JSON.parse(body));
+  const worker = await import("@/lib/email/worker");
+  await worker.enqueueEmailEvent(JSON.parse(body));
+  // Reads waiting mail after the provider has its answer; the daily job is only a safety net on the Hobby plan
+  const { after } = await import("next/server");
+  after(() => worker.workCustomerMessages());
   return true;
 }
 export async function runScheduledCustomerWork(authorization: string | null, mode: "process" | "sync" = "process") {
