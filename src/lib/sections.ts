@@ -162,7 +162,7 @@ export const SECTIONS: Section[] = [
     step: null,
     overview: true,
     milestone: 6,
-    summary: "Choose help with daily work, set your preferences, and try a workflow before connecting your tools.",
+    summary: "Track customer conversations, orders, jobs and payments.",
   },
   {
     href: "/email",
@@ -174,11 +174,11 @@ export const SECTIONS: Section[] = [
   },
   {
     href: "/orders",
-    title: "Orders & requests",
+    title: "Orders & jobs",
     group: "Run your business",
     step: null,
     milestone: 6,
-    summary: "Set up tracking for orders and customer requests, with follow-up reminders and your review at every step.",
+    summary: "Track orders and service jobs from email, invoices or manual entry, with due dates, progress and balances.",
   },
 ];
 

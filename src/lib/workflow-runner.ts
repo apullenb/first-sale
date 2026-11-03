@@ -54,3 +54,23 @@ export async function runWorkflow<T>(workflow: WorkflowId, subjectId: string | n
   }
 }
 
+
+// Worker identity comes from the stored connection, never from a request's owner id.
+export async function runBackgroundWorkflow<T>(ownerId: string, subjectId: string, job: () => Promise<T>): Promise<RunResult<T>> {
+  const db = getDb();
+  const { getBusinessForOwner } = await import("@/lib/data/businesses");
+  const { startRunForOwner, finishRun } = await import("@/lib/data/workflow-runs");
+  const business = await getBusinessForOwner(db, ownerId);
+  if (!business || business.isDemo) return DEMO_REFUSAL;
+  if (!practiceMode() && await takeAiRequest(db, ownerId) !== "ok") return { ok: false, message: "AI help is paused. Try again later." };
+  const started = await startRunForOwner(db, ownerId, "customer_intake", subjectId);
+  if (!started.ok) return { ok: false, message: ALREADY_RUNNING };
+  try {
+    const value = await job();
+    await finishRun(db, started.runId, "succeeded", null);
+    return { ok: true, value };
+  } catch {
+    await finishRun(db, started.runId, "failed", GENERIC);
+    return { ok: false, message: GENERIC };
+  }
+}

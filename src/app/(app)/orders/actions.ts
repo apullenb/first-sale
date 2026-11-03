@@ -32,7 +32,7 @@ export async function recordOrderAction(input: unknown): Promise<{ ok: boolean; 
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Check the order." };
   const result = await recordMyOrder({ ...parsed.data, requestedDate: parsed.data.requestedDate || null });
   if (!result.ok) {
-    if (result.reason === "no_business") return { ok: false, message: "Tell us about your business first." };
+    if (result.reason !== "needs_review") return { ok: false, message: "Tell us about your business first." };
     return { ok: false, message: result.issues.map((issue) => orderIssueText(issue, (id) => result.names[id] ?? "That item")).join(" ") };
   }
   refresh();
@@ -45,6 +45,7 @@ export async function cancelOrderAction(input: unknown): Promise<{ ok: boolean; 
   if (!parsed.success) return { ok: false, message: "Choose an order." };
   const result = await cancelMyOrder(parsed.data.orderId);
   if (result === "not_found") return { ok: false, message: "Order not found. Reload and try again." };
+  if (result === "completed") return { ok: false, message: "Shipped or completed work cannot be cancelled. Record a refund separately if needed." };
   refresh();
   return { ok: true, message: result === "already_cancelled" ? "That order was already cancelled." : "Order cancelled. What it took from stock is back." };
 }

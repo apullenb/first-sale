@@ -1,160 +1,749 @@
 "use client";
-
+import { useLocalToday } from "./live";
+import Link from "next/link";
 import { useState, useTransition } from "react";
-import { cancelOrderAction, recordOrderAction } from "@/app/(app)/orders/actions";
-import { INPUT, PRIMARY, SECONDARY } from "@/components/styles";
+import { cancelOrderAction } from "@/app/(app)/orders/actions";
+import {
+  progressTrackedOrder,
+  recordTrackedPayment,
+  scheduleTrackedOrder,
+  setTrackedTotal,
+} from "@/app/(app)/orders/tracking-actions";
 import { Card, Chip } from "@/components/ui";
-import { FULFILLMENT_METHODS } from "@/lib/domain";
+import { INPUT, PRIMARY, SECONDARY } from "@/components/styles";
+import { PracticeBanner } from "@/components/practice-banner";
+import { dollars, variantLabel } from "@/lib/rules/products";
+import { parseDollars } from "@/lib/website/site/design";
 import { orderTotalCents } from "@/lib/rules/inventory";
-import { dollars, type ItemOptions, variantLabel } from "@/lib/rules/products";
+import {
+  orderAttention,
+  paymentSummary,
+  statusText,
+  statusesFor,
+  type TrackingStatus,
+  type WorkType,
+} from "@/lib/rules/order-tracking";
+import type { OrderView } from "@/lib/data/orders";
+import { Field, OrderEditor, type OrderableItem } from "./order-editor";
+import { RequestImport, type InboxMessage } from "./inbox";
 
-export interface OrderableItem {
-  id: string;
-  name: string;
-  kind: "product" | "service";
-  priceCents: number | null;
-  priceText: string;
-  quantity: number | null;
-  options: ItemOptions;
-}
-
-export interface OrderRow {
-  id: string;
-  isDemo: boolean;
-  customerName: string;
-  fulfillment: (typeof FULFILLMENT_METHODS)[number];
-  requestedDate: string | null;
-  notes: string;
-  status: string;
+export type { OrderableItem } from "./order-editor";
+export type OrderRow = Omit<OrderView, "createdAt" | "events"> & {
   createdAt: string;
-  lines: { productId: string; name: string; kind: "product" | "service"; priceText: string; values: string[]; quantity: number; unitPriceCents: number | null }[];
-  events: { summary: string }[];
-}
-
-type Line = { productId: string; values: string[]; quantity: number };
-
-const FULFILLMENT_LABELS: Record<OrderRow["fulfillment"], string> = { pickup: "Pickup", shipping: "Shipping", delivery: "Delivery" };
-const STATUS_LABELS: Record<string, string> = { new: "New", confirmed: "Confirmed", needs_review: "Needs review", fulfilled: "Fulfilled", cancelled: "Cancelled" };
-
-// "Candle (12 oz / Lavender)"
-export function lineName(name: string, values: readonly string[]): string {
+  events: { summary: string; createdAt: string }[];
+};
+export function lineName(name: string, values: readonly string[]) {
   return values.length ? `${name} (${variantLabel(values)})` : name;
 }
-
-function choiceLabel(item: OrderableItem, index: number): string {
-  const variant = item.options.variants[index];
-  const price = variant.priceCents ?? item.priceCents;
-  return [variantLabel(variant.values), price === null ? null : dollars(price), variant.quantity === null ? null : `${variant.quantity} in stock`].filter(Boolean).join(" · ");
-}
-
-function priceOf(line: OrderRow["lines"][number]): string {
-  if (line.unitPriceCents === null) return line.priceText ? `Price: ${line.priceText}` : "No price set";
-  return `${dollars(line.unitPriceCents)} each · ${dollars(orderTotalCents([line]) ?? 0)}`;
-}
-
-export function OrdersPanel({ items, orders }: { items: OrderableItem[]; orders: OrderRow[] }) {
-  const [customerName, setCustomerName] = useState("");
-  const [fulfillment, setFulfillment] = useState<OrderRow["fulfillment"]>("pickup");
-  const [requestedDate, setRequestedDate] = useState("");
-  const [notes, setNotes] = useState("");
-  const [lines, setLines] = useState<Line[]>([]);
-  const [productId, setProductId] = useState(items[0]?.id ?? "");
-  const [choice, setChoice] = useState("");
-  const [quantity, setQuantity] = useState("1");
-  const [message, setMessage] = useState("");
-  const [pending, startTransition] = useTransition();
-  const item = items.find((each) => each.id === productId);
-  const nameOf = (id: string) => items.find((each) => each.id === id)?.name ?? "Item";
-
-  function addLine() {
-    if (!item) return;
-    const count = Number(quantity);
-    if (!/^\d+$/.test(quantity.trim()) || count < 1) { setMessage("Type how many as a whole number."); return; }
-    if (item.options.variants.length && choice === "") { setMessage(`Choose which option of ${item.name} was ordered.`); return; }
-    const values = item.options.variants.length ? item.options.variants[Number(choice)].values : [];
-    setLines([...lines, { productId: item.id, values, quantity: count }]);
-    setChoice("");
-    setQuantity("1");
-    setMessage("");
-  }
-
-  function save() {
-    startTransition(async () => {
+export function OrdersPanel({
+  items,
+  orders,
+  workType,
+  messages,
+  today: serverToday,
+  initialOrder,
+}: {
+  items: OrderableItem[];
+  orders: OrderRow[];
+  workType: WorkType;
+  messages: InboxMessage[];
+  today: string;
+  initialOrder?: string;
+}) {
+  const today = useLocalToday(serverToday);
+  const [adding, setAdding] = useState<"manual" | "import" | null>(null),
+    [filter, setFilter] = useState("active"),
+    [query, setQuery] = useState(""),
+    [view, setView] = useState("list"),
+    [selectedId, setSelectedId] = useState<string | null>(initialOrder ?? null);
+  const [pending, start] = useTransition(),
+    [message, setMessage] = useState("");
+  const selected = orders.find((order) => order.id === selectedId);
+  const totalOf = (order: OrderRow) =>
+    order.totalCents ??
+    (order.lines.length ? orderTotalCents(order.lines) : null);
+  const visible = orders
+    .filter((order) => {
+      const attention = orderAttention(order, today),
+        summary = paymentSummary(totalOf(order), order.payments);
+      return (
+        `${order.customerName} ${order.title} ${order.customerEmail}`
+          .toLowerCase()
+          .includes(query.toLowerCase()) &&
+        (filter === "all" ||
+          (filter === "active" && attention !== "closed") ||
+          filter === attention ||
+          (filter === "balance" &&
+            order.status !== "cancelled" &&
+            (summary.balance ?? 0) > 0))
+      );
+    })
+    .sort((a, b) =>
+      (a.requestedDate ?? "9999").localeCompare(b.requestedDate ?? "9999"),
+    );
+  function run(action: () => Promise<{ ok: boolean; message: string }>) {
+    start(async () => {
       try {
-        const result = await recordOrderAction({ customerName, fulfillment, requestedDate, notes, lines });
-        setMessage(result.message);
-        if (result.ok) { setCustomerName(""); setRequestedDate(""); setNotes(""); setLines([]); }
-      } catch { setMessage("The order could not be saved. Try again."); }
+        setMessage((await action()).message);
+      } catch {
+        setMessage("Could not save this change. Try again.");
+      }
     });
   }
-
-  function cancel(orderId: string) {
-    startTransition(async () => {
-      try { setMessage((await cancelOrderAction({ orderId })).message); } catch { setMessage("That order could not be cancelled. Try again."); }
-    });
-  }
-
+  const balance = orders
+    .filter(
+      (order) =>
+        order.status !== "cancelled" &&
+        !["new", "needs_review"].includes(order.status),
+    )
+    .reduce(
+      (sum, order) =>
+        sum + (paymentSummary(totalOf(order), order.payments).balance ?? 0),
+      0,
+    );
   return (
     <div className="flex flex-col gap-5">
-      <Card title="Enter an order" id="enter-order">
-        {items.length ? (
-          <form className="flex flex-col gap-4" onSubmit={(event) => { event.preventDefault(); save(); }}>
-            <p className="text-muted">Each option is priced and counted on its own. Saving takes stock from the option ordered.</p>
-            <label className="flex flex-col gap-2 font-semibold">Customer name<input className={INPUT} required maxLength={80} value={customerName} onChange={(event) => setCustomerName(event.target.value)} /></label>
-            <fieldset className="flex flex-col gap-3 rounded-xl border border-line p-3">
-              <legend className="px-1 font-semibold">Add an item</legend>
-              <label className="flex flex-col gap-2 font-semibold">Item<select className={INPUT} value={productId} onChange={(event) => { setProductId(event.target.value); setChoice(""); }}>{items.map((each) => <option key={each.id} value={each.id}>{each.name}</option>)}</select></label>
-              {item?.options.variants.length ? (
-                <label className="flex flex-col gap-2 font-semibold">Option<select className={INPUT} value={choice} onChange={(event) => setChoice(event.target.value)}><option value="">Choose an option</option>{item.options.variants.map((variant, index) => <option key={variantLabel(variant.values)} value={String(index)}>{choiceLabel(item, index)}</option>)}</select></label>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          [
+            "Needs review",
+            orders.filter((order) => orderAttention(order, today) === "review")
+              .length,
+            "review",
+          ],
+          [
+            "Due today",
+            orders.filter((order) => orderAttention(order, today) === "today")
+              .length,
+            "today",
+          ],
+          [
+            "Overdue",
+            orders.filter((order) => orderAttention(order, today) === "overdue")
+              .length,
+            "overdue",
+          ],
+          ["Balance owed", dollars(balance), "balance"],
+        ].map(([label, value, key]) => (
+          <button
+            key={key}
+            className="rounded-xl border border-line bg-surface p-4 text-left hover:border-accent"
+            onClick={() => setFilter(String(key))}
+          >
+            <span className="block text-sm text-muted">{label}</span>
+            <strong className="mt-1 block text-2xl">{value}</strong>
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-3">
+        <button
+          className={PRIMARY}
+          onClick={() => setAdding(adding === "manual" ? null : "manual")}
+        >
+          Add {workType === "services" ? "job" : "order"}
+        </button>
+        <button
+          className={SECONDARY}
+          onClick={() => setAdding(adding === "import" ? null : "import")}
+        >
+          Upload invoice or email
+        </button>
+        <Link className={SECONDARY} href="/email">
+          Customer email
+        </Link>
+      </div>
+      {adding ? (
+        <Card
+          title={
+            adding === "manual"
+              ? workType === "services"
+                ? "New service job"
+                : "New order"
+              : "Import a customer request"
+          }
+          id="add-work"
+          action={
+            <button
+              className="font-semibold text-accent"
+              onClick={() => setAdding(null)}
+            >
+              Close
+            </button>
+          }
+        >
+          {adding === "manual" ? (
+            <OrderEditor
+              items={items}
+              workType={workType}
+              onDone={() => {
+                setAdding(null);
+                setMessage(
+                  "Saved. Open the record below to record payment or update progress.",
+                );
+              }}
+            />
+          ) : (
+            <RequestImport />
+          )}
+        </Card>
+      ) : null}
+      <p role="status" aria-live="polite" className="text-sm text-accent">
+        {message}
+      </p>
+      {selected ? (
+        <Card
+          title={selected.title || `Order for ${selected.customerName}`}
+          id="selected-order"
+          action={
+            <button
+              className="font-semibold text-accent"
+              onClick={() => setSelectedId(null)}
+            >
+              Close
+            </button>
+          }
+        >
+          <OrderDetails
+            key={`${selected.id}:${selected.status}`}
+            order={selected}
+            items={items}
+            messages={messages.filter((entry) => entry.orderId === selected.id)}
+            today={today}
+            pending={pending}
+            run={run}
+          />
+        </Card>
+      ) : null}
+      <Card
+        title={workType === "services" ? "Your jobs" : "Orders & jobs"}
+        id="your-orders"
+      >
+        <div className="flex flex-wrap gap-3">
+          <Field label="Search customers or work">
+            <input
+              type="search"
+              className={INPUT}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </Field>
+          <Field label="Show">
+            <select
+              className={INPUT}
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+            >
+              {[
+                ["active", "Active"],
+                ["review", "Needs review"],
+                ["today", "Due today"],
+                ["overdue", "Overdue"],
+                ["upcoming", "Upcoming"],
+                ["balance", "Balance owed"],
+                ["closed", "Completed / cancelled"],
+                ["all", "All"],
+              ].map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="View">
+            <select
+              className={INPUT}
+              value={view}
+              onChange={(event) => setView(event.target.value)}
+            >
+              <option value="list">List</option>
+              <option value="board">Board</option>
+              <option value="calendar">Schedule</option>
+            </select>
+          </Field>
+        </div>
+        {visible.length ? (
+          view === "board" ? (
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {[
+                "needs_review",
+                "confirmed",
+                "in_progress",
+                "ready",
+                "shipped",
+                "fulfilled",
+                "cancelled",
+              ]
+                .filter((status) =>
+                  visible.some(
+                    (order) =>
+                      (order.status === "new"
+                        ? "needs_review"
+                        : order.status) === status,
+                  ),
+                )
+                .map((status) => (
+                  <section key={status} className="min-w-60 flex-1">
+                    <h3 className="mb-3 font-bold">
+                      {statusText(status as TrackingStatus, workType)}
+                    </h3>
+                    <div className="flex flex-col gap-3">
+                      {visible
+                        .filter(
+                          (order) =>
+                            (order.status === "new"
+                              ? "needs_review"
+                              : order.status) === status,
+                        )
+                        .map(renderOrder)}
+                    </div>
+                  </section>
+                ))}
+            </div>
+          ) : view === "calendar" ? (
+            <div className="flex flex-col gap-5">
+              {[
+                ...new Set(
+                  visible.map((order) => order.requestedDate ?? "Unscheduled"),
+                ),
+              ].map((date) => (
+                <section key={date}>
+                  <h3 className="mb-3 font-bold">{date}</h3>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {visible
+                      .filter(
+                        (order) =>
+                          (order.requestedDate ?? "Unscheduled") === date,
+                      )
+                      .map(renderOrder)}
+                  </div>
+                </section>
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {visible.map(renderOrder)}
+            </div>
+          )
+        ) : (
+          <p className="py-5 text-muted">
+            {orders.length
+              ? "No records match this view."
+              : "Your orders and jobs will appear here. Add one, upload an invoice, or connect your customer email."}
+          </p>
+        )}
+      </Card>
+    </div>
+  );
+  function renderOrder(order: OrderRow) {
+    const summary = paymentSummary(totalOf(order), order.payments),
+      attention = orderAttention(order, today);
+    return (
+      <button
+        key={order.id}
+        className={`flex flex-col gap-2 rounded-xl border p-4 text-left hover:border-accent ${selectedId === order.id ? "border-accent bg-accent-tint" : "border-line bg-surface"}`}
+        onClick={() => setSelectedId(order.id)}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <strong>{order.customerName}</strong>
+          {order.isDemo ? <Chip tone="warn">DEMO</Chip> : null}
+          <Chip
+            tone={
+              attention === "review" || attention === "overdue"
+                ? "warn"
+                : "gray"
+            }
+          >
+            {statusText(order.status, order.workType)}
+          </Chip>
+        </div>
+        <span>
+          {order.title ||
+            order.lines
+              .map((line) => lineName(line.name, line.values))
+              .join(", ")}
+        </span>
+        <span className="text-sm text-muted">
+          {order.requestedDate
+            ? `${attention === "overdue" ? "Overdue · " : ""}${order.requestedDate}${order.jobTime ? ` at ${order.jobTime}` : ""}`
+            : "Date to confirm"}
+        </span>
+        <span className="text-sm">
+          {summary.status} ·{" "}
+          {summary.balance === null
+            ? "Total to confirm"
+            : `${dollars(summary.paid)} paid · ${dollars(summary.balance)} owed`}
+        </span>
+        <span className="text-xs text-muted">
+          {order.source === "manual"
+            ? "Entered manually"
+            : order.source === "invoice"
+              ? "From invoice"
+              : "From email"}
+        </span>
+      </button>
+    );
+  }
+}
+function OrderDetails({
+  order,
+  items,
+  messages,
+  today,
+  pending,
+  run,
+}: {
+  order: OrderRow;
+  items: OrderableItem[];
+  messages: InboxMessage[];
+  today: string;
+  pending: boolean;
+  run: (action: () => Promise<{ ok: boolean; message: string }>) => void;
+}) {
+  const [agreed, setAgreed] = useState(
+    order.totalCents === null ? "" : (order.totalCents / 100).toFixed(2),
+  );
+  const [payment, setPayment] = useState(""),
+    [kind, setKind] = useState<"payment" | "refund">("payment"),
+    [paidOn, setPaidOn] = useState(today),
+    [note, setNote] = useState(""),
+    [paymentKey, setPaymentKey] = useState(() => crypto.randomUUID());
+  const [date, setDate] = useState(order.requestedDate ?? ""),
+    [time, setTime] = useState(order.jobTime),
+    [location, setLocation] = useState(order.location);
+  const total =
+      order.totalCents ??
+      (order.lines.length ? orderTotalCents(order.lines) : null),
+    summary = paymentSummary(total, order.payments);
+  const review = order.status === "needs_review" || order.status === "new";
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2">
+        <Chip>{statusText(order.status, order.workType)}</Chip>
+        <Chip tone="gray">{summary.status}</Chip>
+      </div>
+      <p>
+        {order.customerName}
+        {order.customerEmail ? ` · ${order.customerEmail}` : ""}
+        {order.customerPhone ? ` · ${order.customerPhone}` : ""}
+      </p>
+      {order.isDemo ? (
+        <PracticeBanner what="This sample record cannot change real stock or payments." />
+      ) : null}
+      {review && !order.isDemo ? (
+        <OrderEditor
+          items={items}
+          workType={order.workType}
+          order={order}
+          extraction={messages.find((entry) => entry.extraction)?.extraction}
+          onDone={() => {}}
+        />
+      ) : (
+        <>
+          {order.lines.length ? (
+            <ul className="list-disc pl-5">
+              {order.lines.map((line, index) => (
+                <li key={index}>
+                  {line.quantity} × {lineName(line.name, line.values)}
+                  {line.unitPriceCents === null
+                    ? ""
+                    : ` · ${dollars(line.unitPriceCents)} each`}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {order.notes ? (
+            <p className="whitespace-pre-wrap text-sm">{order.notes}</p>
+          ) : null}
+          <dl className="grid grid-cols-3 gap-3 rounded-xl bg-wash p-4">
+            {[
+              ["Total", total === null ? "To confirm" : dollars(total)],
+              ["Paid", dollars(summary.paid)],
+              [
+                "Balance owed",
+                summary.balance === null
+                  ? "To confirm"
+                  : dollars(summary.balance),
+              ],
+            ].map(([label, value]) => (
+              <div key={label}>
+                <dt className="text-sm text-muted">{label}</dt>
+                <dd className="font-bold">{value}</dd>
+              </div>
+            ))}
+          </dl>
+          {summary.refunded ? (
+            <p className="text-sm text-muted">
+              Refunded: {dollars(summary.refunded)}
+            </p>
+          ) : null}
+          {!order.isDemo ? (
+            <>
+              <div className="flex flex-wrap gap-2">
+                {statusesFor(order.workType, order.fulfillment)
+                  .slice(
+                    statusesFor(order.workType, order.fulfillment).indexOf(
+                      order.status,
+                    ) + 1,
+                  )
+                  .filter(() => order.status !== "cancelled")
+                  .map((status) => (
+                    <button
+                      key={status}
+                      disabled={pending}
+                      className={SECONDARY}
+                      onClick={() =>
+                        run(() =>
+                          progressTrackedOrder({ id: order.id, status }),
+                        )
+                      }
+                    >
+                      Mark {statusText(status, order.workType).toLowerCase()}
+                    </button>
+                  ))}
+              </div>
+              {!order.lines.length && order.status !== "cancelled" ? (
+                <details>
+                  <summary className="cursor-pointer font-semibold text-accent">
+                    Set or change agreed total
+                  </summary>
+                  <form
+                    className="mt-3 flex flex-col gap-3"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      run(() =>
+                        setTrackedTotal({
+                          id: order.id,
+                          totalCents: parseDollars(agreed),
+                        }),
+                      );
+                    }}
+                  >
+                    <Field label="Agreed total ($)">
+                      <input
+                        className={INPUT}
+                        inputMode="decimal"
+                        required
+                        value={agreed}
+                        onChange={(event) => setAgreed(event.target.value)}
+                      />
+                    </Field>
+                    <button className={`${SECONDARY} w-fit`} disabled={pending}>
+                      Save agreed total
+                    </button>
+                  </form>
+                </details>
               ) : null}
-              <label className="flex flex-col gap-2 font-semibold">How many<input className={INPUT} inputMode="numeric" maxLength={7} value={quantity} onChange={(event) => setQuantity(event.target.value)} /></label>
-              <button type="button" className={SECONDARY} onClick={addLine}>Add to order</button>
-            </fieldset>
-            {lines.length ? (
-              <ul aria-label="In this order" className="flex flex-col gap-2">
-                {lines.map((line, index) => (
-                  <li key={index} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-soft p-2">
-                    <span>{line.quantity} × {lineName(nameOf(line.productId), line.values)}</span>
-                    <button type="button" className="text-sm font-semibold text-accent" onClick={() => setLines(lines.filter((_, at) => at !== index))}>Remove<span className="sr-only"> {lineName(nameOf(line.productId), line.values)}</span></button>
-                  </li>
+              <details>
+                <summary className="cursor-pointer font-semibold text-accent">
+                  Record payment or refund
+                </summary>
+                <form
+                  className="mt-3 grid gap-3 sm:grid-cols-2"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const amountCents = parseDollars(payment);
+                    run(async () => {
+                      const result = await recordTrackedPayment({
+                        orderId: order.id,
+                        requestKey: paymentKey,
+                        amountCents,
+                        kind,
+                        paidOn,
+                        note,
+                      });
+                      if (result.ok) {
+                        setPayment("");
+                        setNote("");
+                        setPaymentKey(crypto.randomUUID());
+                      }
+                      return result;
+                    });
+                  }}
+                >
+                  <Field label="Type">
+                    <select
+                      className={INPUT}
+                      value={kind}
+                      onChange={(event) =>
+                        setKind(event.target.value as typeof kind)
+                      }
+                    >
+                      <option value="payment">Payment received</option>
+                      <option value="refund">Refund given</option>
+                    </select>
+                  </Field>
+                  <Field label="Amount ($)">
+                    <input
+                      required
+                      inputMode="decimal"
+                      className={INPUT}
+                      value={payment}
+                      onChange={(event) => {
+                        setPayment(event.target.value);
+                        setPaymentKey(crypto.randomUUID());
+                      }}
+                    />
+                  </Field>
+                  <Field label="Date received or refunded">
+                    <input
+                      required
+                      type="date"
+                      className={INPUT}
+                      value={paidOn}
+                      onChange={(event) => setPaidOn(event.target.value)}
+                    />
+                  </Field>
+                  <Field label="Method / reference (optional)">
+                    <input
+                      maxLength={300}
+                      className={INPUT}
+                      value={note}
+                      onChange={(event) => setNote(event.target.value)}
+                    />
+                  </Field>
+                  <p className="text-sm text-muted sm:col-span-2">
+                    Records money already received or refunded. This does not
+                    charge a card or move money.
+                  </p>
+                  <button
+                    className={PRIMARY}
+                    disabled={pending || !payment.trim()}
+                  >
+                    Save payment record
+                  </button>
+                </form>
+              </details>
+              {!["fulfilled", "cancelled"].includes(order.status) ? (
+                <details>
+                  <summary className="cursor-pointer font-semibold text-accent">
+                    Change schedule
+                  </summary>
+                  <form
+                    className="mt-3 grid gap-3 sm:grid-cols-2"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      run(() =>
+                        scheduleTrackedOrder({
+                          id: order.id,
+                          requestedDate: date,
+                          jobTime: time,
+                          location,
+                        }),
+                      );
+                    }}
+                  >
+                    <Field
+                      label={
+                        order.workType === "services" ? "Job date" : "Due date"
+                      }
+                    >
+                      <input
+                        type="date"
+                        className={INPUT}
+                        value={date}
+                        onChange={(event) => setDate(event.target.value)}
+                      />
+                    </Field>
+                    <Field label="Time (local to the business)">
+                      <input
+                        type="time"
+                        className={INPUT}
+                        value={time}
+                        onChange={(event) => setTime(event.target.value)}
+                      />
+                    </Field>
+                    <Field label="Location">
+                      <input
+                        maxLength={300}
+                        className={INPUT}
+                        value={location}
+                        onChange={(event) => setLocation(event.target.value)}
+                      />
+                    </Field>
+                    <button className={SECONDARY} disabled={pending}>
+                      Save schedule
+                    </button>
+                  </form>
+                </details>
+              ) : null}
+            </>
+          ) : null}
+        </>
+      )}
+      {messages.map((entry) => (
+        <details key={entry.id}>
+          <summary className="cursor-pointer font-semibold text-accent">
+            {entry.subject} ·{" "}
+            {entry.state === "ready"
+              ? "Source & extracted details"
+              : entry.state}
+          </summary>
+          <p className="my-2 whitespace-pre-wrap break-words text-sm">
+            {entry.body}
+          </p>
+          {entry.documentId ? (
+            <Link
+              href={`/documents/${entry.documentId}/file`}
+              className="font-semibold text-accent"
+            >
+              Download original
+            </Link>
+          ) : null}
+          {entry.extraction ? (
+            <>
+              <ul className="list-disc pl-5 text-sm text-muted">
+                {entry.extraction.warnings.map((warning, index) => (
+                  <li key={index}>{warning}</li>
                 ))}
               </ul>
-            ) : null}
-            <label className="flex flex-col gap-2 font-semibold">How it gets to them<select className={INPUT} value={fulfillment} onChange={(event) => setFulfillment(event.target.value as OrderRow["fulfillment"])}>{FULFILLMENT_METHODS.map((method) => <option key={method} value={method}>{FULFILLMENT_LABELS[method]}</option>)}</select></label>
-            <label className="flex flex-col gap-2 font-semibold">Date wanted (optional)<input className={INPUT} type="date" value={requestedDate} onChange={(event) => setRequestedDate(event.target.value)} /></label>
-            <label className="flex flex-col gap-2 font-semibold">Notes (optional)<textarea className={INPUT} maxLength={300} value={notes} onChange={(event) => setNotes(event.target.value)} /></label>
-            <button className={PRIMARY} disabled={pending || !lines.length}>{pending ? "Saving…" : "Save order"}</button>
-          </form>
-        ) : <p className="text-muted">Add your products or services first, then enter orders for them here.</p>}
-      </Card>
-      <p role="status" aria-live="polite" className="text-sm text-accent">{message}</p>
-      <Card title="Your orders" id="your-orders">
-        {orders.length ? (
-          <ul className="flex flex-col gap-3">
-            {orders.map((order) => {
-              const total = orderTotalCents(order.lines);
-              return (
-                <li key={order.id} aria-label={`Order for ${order.customerName}`} className="flex flex-col gap-2 rounded-xl border border-line p-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold">{order.customerName}</span>
-                    {order.isDemo ? <Chip tone="warn">DEMO</Chip> : null}
-                    <Chip tone={order.status === "cancelled" ? "gray" : "done"}>{STATUS_LABELS[order.status] ?? order.status}</Chip>
-                  </div>
-                  <ul aria-label="Items" className="flex flex-col gap-1">
-                    {order.lines.map((line) => <li key={`${line.productId}:${variantLabel(line.values)}`}>{line.quantity} × {lineName(line.name, line.values)} · {priceOf(line)}</li>)}
-                  </ul>
-                  <p className="text-sm text-muted">
-                    {FULFILLMENT_LABELS[order.fulfillment]}{order.requestedDate ? ` · Wanted ${order.requestedDate}` : ""}{total === null ? "" : ` · Total ${dollars(total)}`}
-                  </p>
-                  {order.notes ? <p className="text-sm">{order.notes}</p> : null}
-                  {order.events.length ? <p className="text-sm text-muted">{order.events.map((event) => event.summary).join(" · ")}</p> : null}
-                  {order.status !== "cancelled" ? <button className={`${SECONDARY} w-fit`} disabled={pending} onClick={() => cancel(order.id)}>Cancel order<span className="sr-only"> for {order.customerName}</span></button> : null}
-                </li>
-              );
-            })}
-          </ul>
-        ) : <p className="text-muted">No orders yet.</p>}
-      </Card>
+              <dl className="mt-3 flex flex-col gap-2 text-sm">
+                {Object.entries(entry.extraction.evidence).map(
+                  ([field, excerpt]) => (
+                    <div key={field}>
+                      <dt className="font-semibold">{field}</dt>
+                      <dd className="text-muted">“{excerpt}”</dd>
+                    </div>
+                  ),
+                )}
+              </dl>
+            </>
+          ) : null}
+        </details>
+      ))}
+      <details>
+        <summary className="cursor-pointer font-semibold text-accent">
+          History
+        </summary>
+        <ol className="mt-2 flex flex-col gap-2 text-sm text-muted">
+          {order.events.map((event, index) => (
+            <li key={index}>
+              <time dateTime={event.createdAt}>
+                {event.createdAt.slice(0, 16).replace("T", " ")} UTC
+              </time>{" "}
+              · {event.summary}
+            </li>
+          ))}
+        </ol>
+      </details>
+      {!order.isDemo &&
+      !["cancelled", "fulfilled", "shipped"].includes(order.status) ? (
+        <details>
+          <summary className="cursor-pointer font-semibold text-check">
+            Cancel this {order.workType === "services" ? "job" : "order"}
+          </summary>
+          <p className="my-2 text-sm text-muted">
+            Restores counted stock once. Payments are kept; record any refund
+            separately.
+          </p>
+          <button
+            className={SECONDARY}
+            disabled={pending}
+            onClick={() => run(() => cancelOrderAction({ orderId: order.id }))}
+          >
+            Confirm cancellation
+          </button>
+        </details>
+      ) : null}
     </div>
   );
 }

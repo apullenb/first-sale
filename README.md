@@ -241,7 +241,7 @@ Everything the brand is made of lives in one place: the chosen logo and its vers
 
 <img src="docs/media/nav/run-your-business.webp" alt="Menu link: Run your business" width="225" height="32"> <img src="docs/media/nav/connect-your-email.webp" alt="Menu link: Connect your email" width="201" height="32"> <img src="docs/media/nav/orders-and-requests.webp" alt="Menu link: Orders & requests" width="201" height="32">
 
-Guided setup for the daily work an owner can't hire for yet: an email assistant that keeps customer messages together and drafts replies for review, and order and customer-request tracking with reminders to follow up. Owners can enter orders themselves, each line naming the exact option, priced from it and taken from its stock. Each walks through choices and preferences, then lets the owner try it with a sample.
+Customer email and a shared order/job tracker: connect an inbox, upload a customer invoice, or enter work manually. The workspace adapts to products, made-to-order work and services, with due dates, progress, payments and balances. Imported requests appear for review automatically; confirmation applies catalog pricing and stock changes once. Every email reply waits for explicit owner approval. Deployment and provider setup: [Customer operations](docs/CUSTOMER-OPERATIONS.md).
 
 <p align="center"><img src="docs/media/run.webp" alt="The Run your business page: Connect your email and Track orders and customer requests, each ready to set up" width="900"></p>
 
@@ -377,7 +377,7 @@ The AI drafts, and SnapStart checks each draft in code at a set step before the 
 
 ### Long jobs: `runWorkflow`
 
-Every long AI job goes through one runner (`src/lib/workflow-runner.ts`) and a registry of 32 workflows (`src/lib/workflows.ts`). It applies fair-use limits (30 requests an hour and 150 a day per owner, 2,000 a day overall by default) inside a Postgres advisory lock, runs one copy of a job at a time, and records each run in `workflow_runs` so a reload or another tab picks up the result. Picture requests carry a request key from the browser, so a retry after a dropped connection returns the picture already made.
+Every long AI job goes through one runner (`src/lib/workflow-runner.ts`) and a workflow registry (`src/lib/workflows.ts`). It applies fair-use limits (30 requests an hour and 150 a day per owner, 2,000 a day overall by default) inside a Postgres advisory lock, runs one copy of a job at a time, and records each run in `workflow_runs` so a reload or another tab picks up the result. Picture requests carry a request key from the browser, so a retry after a dropped connection returns the picture already made.
 
 ### Telemetry
 

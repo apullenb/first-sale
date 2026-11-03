@@ -17,9 +17,9 @@ export const OPERATIONS = {
     afterSetup: "Your preferences are saved, so when connecting is available your help starts the way you chose. Until then, nothing reads or sends your email.",
   },
   requests: {
-    title: "Track orders & customer requests",
+    title: "Orders & jobs",
     href: "/orders",
-    description: "Turn incoming requests into a list of work, with reminders to follow up.",
+    description: "Track customer work, due dates, progress and payments in one place.",
     trigger: "An order or customer request arrives from your chosen source.",
     steps: ["Create an item for review", "Flag missing details and show a follow-up reminder", "Wait for you to confirm the next step"],
     choices: ["Email", "Website", "Enter requests myself"],

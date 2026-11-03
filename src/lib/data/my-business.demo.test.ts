@@ -27,8 +27,11 @@ const WRITES = [
   "setMyItemWearer", "deleteMyUnusedItemPictures", "saveMyPriceCheck", "createMyProduct", "updateMyProduct", "deleteMyProduct",
   "saveMyIntakeDraft", "deleteMyIntakeDraft", "createMyBusinessFromIntake", "updateMyProfileWithHistory", "recordMyDecisions",
   "replanMyPlan", "saveMyStructureAdvice", "saveMyInsights", "markMyInsight", "setMyJourneyMark", "clearMyJourneyMark",
+  "setMyEmailReminder", "setMyOrderTotal", "progressMyOrder", "recordMyPayment", "scheduleMyOrder", "addMyCustomerMessage", "processMyCustomerMessage", "retryMyCustomerMessage", "dismissMyCustomerMessage", "beginMyEmailConnection", "finishMyEmailConnection", "pauseMyEmail", "disconnectMyEmail", "sendMyCustomerReply",
   "saveMyOperationSetup", "pauseMyOperationSetup", "recordMyOrder", "cancelMyOrder",
 ];
+
+const SERVICE = ["acceptCustomerEmailEvent", "runScheduledCustomerWork"];
 
 const READS = [
   "getMySquareState", "getMyProductSync",
@@ -40,7 +43,7 @@ const READS = [
   "listMyLibraryFiles", "getMyLibraryFile", "myLibraryUsage", "listMyProducts", "listMyItems", "getMyProduct", "listMyItemPictures",
   "getMyItemPictureFile", "findMyItemPictureByRequest", "myItemPictureRoom", "listMyPriceChecks", "getMyIntakeDraft",
   "listMyHistory", "getMyStructureAdvice", "getMyInsights", "listMyJourneyMarks", "getMySidebarFacts", "listMyOperationSetups",
-  "listMyOrders",
+  "listMyOrders", "getMyEmailState",
 ];
 
 type Call = (...args: unknown[]) => Promise<unknown>;
@@ -49,7 +52,11 @@ const call = (name: string) => (wrappers[name] as Call)("x", "y", "z");
 describe("data wrappers for a demo session", () => {
   it("lists every export as a read or a write", () => {
     const exported = Object.keys(wrappers).filter((name) => typeof wrappers[name] === "function");
-    expect([...WRITES, ...READS].sort()).toEqual(exported.sort());
+    expect([...WRITES, ...READS, ...SERVICE].sort()).toEqual(exported.sort());
+  });
+
+  it.each(SERVICE)("%s refuses unauthenticated service calls before reading data", async (name) => {
+    await expect(call(name)).resolves.toBeFalsy();
   });
 
   it.each(WRITES)("%s refuses before reaching the database", async (name) => {

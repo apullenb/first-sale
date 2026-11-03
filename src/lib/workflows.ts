@@ -19,6 +19,7 @@ export interface Workflow {
 const MINUTE = 60_000;
 
 export const WORKFLOWS = {
+  customer_intake: { title: "Read a customer request", summary: "Reads email or an invoice and prepares an order or job for review.", actor: "ai", usesAi: true, timeLimitMs: 5 * MINUTE, offeredFor: [] },
   square_description: {
     title: "Draft a Square description",
     summary: "Rewrites a product description for you to review before updating Square.",
