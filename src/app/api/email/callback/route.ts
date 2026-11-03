@@ -16,7 +16,13 @@ export async function GET(request: Request) {
   store.delete({ name: "customer_email_state", path: "/api/email/callback" });
   const state = url.searchParams.get("state") ?? "",
     code = url.searchParams.get("code");
-  const destination = new URL("/email", emailConfig().redirectUri);
+  let destination: URL;
+  try {
+    destination = new URL("/email", emailConfig().redirectUri);
+  } catch {
+    // Email setup isn't finished: back to the page, which says so
+    destination = new URL("/email", url.origin);
+  }
   destination.searchParams.set("connection", "failed");
   if (
     code &&

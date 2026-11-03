@@ -617,7 +617,8 @@ export async function setOrderTotalForOwner(
       .from(orderLines)
       .where(eq(orderLines.orderId, row.id))
       .limit(1);
-    if (line) return false;
+    // Priced lines set the total; one without a price leaves it for the owner to agree
+    if (line && row.totalCents !== null) return false;
     const payments = await tx
       .select()
       .from(orderPayments)

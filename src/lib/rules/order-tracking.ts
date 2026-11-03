@@ -20,7 +20,9 @@ export const WORK_TEXT: Record<WorkType, string> = {
   made_to_order: "Made to order",
   services: "Service job",
 };
-export const centsSchema = z.number().int().min(0).max(100_000_000);
+// Largest order total or payment, $1,000,000
+export const MAX_ORDER_CENTS = 100_000_000;
+export const centsSchema = z.number().int().min(0).max(MAX_ORDER_CENTS);
 export const trackingInputSchema = z.object({
   id: z.string().max(60).optional(),
   requestKey: z.uuid(),
@@ -128,16 +130,19 @@ export function paymentSummary(
     paid,
     balance: total === null ? null : Math.max(0, total - paid),
     credit: total === null ? 0 : Math.max(0, paid - total),
+    // The balance decides first, so a refund paid back in full still reads Paid
     status:
-      refunded > 0
-        ? paid === 0
-          ? "Refunded"
-          : "Partially refunded"
-        : received === 0
-          ? "Unpaid"
-          : total !== null && paid >= total
-            ? "Paid"
-            : "Partially paid",
+      total !== null && total > 0 && paid >= total
+        ? "Paid"
+        : refunded > 0
+          ? paid === 0
+            ? "Refunded"
+            : "Partially refunded"
+          : total === 0
+            ? "Nothing due"
+            : received === 0
+              ? "Unpaid"
+              : "Partially paid",
   };
 }
 export function validPayment(

@@ -16,7 +16,10 @@ export function emailConfig() {
       "Email connection setup is not finished. You can still upload invoices or paste messages.",
     );
   const url = new URL(redirectUri);
-  if (url.protocol !== "https:" && !(url.protocol === "http:" && url.hostname === "localhost"))
+  if (
+    url.protocol !== "https:" &&
+    !(url.protocol === "http:" && url.hostname === "localhost")
+  )
     throw new OwnerFacingError("Email needs a secure callback address.");
   return { apiKey, clientId, redirectUri, base };
 }
@@ -31,6 +34,14 @@ export function emailAvailable() {
     return false;
   }
 }
+// Keeps the provider's status, so a gone grant can be told from a passing failure
+export class EmailApiError extends OwnerFacingError {
+  constructor(readonly status: number) {
+    super(
+      "The email service could not complete this request. Check your connection and try again.",
+    );
+  }
+}
 export async function emailApi(path: string, init: RequestInit = {}) {
   const config = emailConfig();
   const response = await fetch(`${config.base}/v3${path}`, {
@@ -43,10 +54,7 @@ export async function emailApi(path: string, init: RequestInit = {}) {
     cache: "no-store",
     signal: AbortSignal.timeout(25_000),
   });
-  if (!response.ok)
-    throw new OwnerFacingError(
-      "The email service could not complete this request. Check your connection and try again.",
-    );
+  if (!response.ok) throw new EmailApiError(response.status);
   if (response.status === 204) return {};
   return response.json();
 }

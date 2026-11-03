@@ -22,6 +22,7 @@ import {
   statusesFor,
   type TrackingStatus,
   type WorkType,
+  MAX_ORDER_CENTS,
 } from "@/lib/rules/order-tracking";
 import type { OrderView } from "@/lib/data/orders";
 import { Field, OrderEditor, type OrderableItem } from "./order-editor";
@@ -488,6 +489,7 @@ function OrderDetails({
                   .filter(() => order.status !== "cancelled")
                   .map((status) => (
                     <button
+                      data-writes
                       key={status}
                       disabled={pending}
                       className={SECONDARY}
@@ -501,7 +503,8 @@ function OrderDetails({
                     </button>
                   ))}
               </div>
-              {!order.lines.length && order.status !== "cancelled" ? (
+              {(!order.lines.length || order.totalCents === null) &&
+              order.status !== "cancelled" ? (
                 <details>
                   <summary className="cursor-pointer font-semibold text-accent">
                     Set or change agreed total
@@ -513,7 +516,7 @@ function OrderDetails({
                       run(() =>
                         setTrackedTotal({
                           id: order.id,
-                          totalCents: parseDollars(agreed),
+                          totalCents: parseDollars(agreed, MAX_ORDER_CENTS),
                         }),
                       );
                     }}
@@ -541,7 +544,7 @@ function OrderDetails({
                   className="mt-3 grid gap-3 sm:grid-cols-2"
                   onSubmit={(event) => {
                     event.preventDefault();
-                    const amountCents = parseDollars(payment);
+                    const amountCents = parseDollars(payment, MAX_ORDER_CENTS);
                     run(async () => {
                       const result = await recordTrackedPayment({
                         orderId: order.id,
@@ -736,6 +739,7 @@ function OrderDetails({
             separately.
           </p>
           <button
+            data-writes
             className={SECONDARY}
             disabled={pending}
             onClick={() => run(() => cancelOrderAction({ orderId: order.id }))}

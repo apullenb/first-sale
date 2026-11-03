@@ -91,6 +91,18 @@ describe("payment ledger", () => {
       balance: null,
       status: "Unpaid",
     });
+    // Paid back in full after a refund, and nothing owed on a free order
+    expect(
+      paymentSummary(10_000, [
+        ...entries,
+        { kind: "refund", amountCents: 2000 },
+        { kind: "payment", amountCents: 2000 },
+      ]),
+    ).toMatchObject({ balance: 0, status: "Paid" });
+    expect(paymentSummary(0, [])).toMatchObject({
+      balance: 0,
+      status: "Nothing due",
+    });
   });
   it("rejects overpayments, excess refunds, unknown totals and fractional cents", () => {
     const entries = [{ kind: "payment" as const, amountCents: 2500 }];
