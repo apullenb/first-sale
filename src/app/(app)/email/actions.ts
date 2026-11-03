@@ -12,6 +12,7 @@ import {
   processMyCustomerMessage,
   retryMyCustomerMessage,
   sendMyCustomerReply,
+  syncMyEmail,
 } from "@/lib/data/my-business";
 import { OwnerFacingError } from "@/lib/errors";
 
@@ -47,6 +48,30 @@ export async function connectCustomerEmail(): Promise<{
           ? error.message
           : "Could not start the connection.",
       url: null,
+    };
+  }
+}
+// Instead of a job checking often: the owner asks for new mail when they want it
+export async function syncCustomerEmail() {
+  if (await isDemoSession()) return DEMO_REFUSAL;
+  try {
+    const result = await syncMyEmail();
+    if (!result)
+      return { ok: false, message: "Connect or resume your email first." };
+    refresh();
+    return {
+      ok: true,
+      message: result.remaining
+        ? `Checked your inbox and read ${result.processed}. ${result.remaining} still waiting; sync again to keep going.`
+        : `Checked your inbox${result.processed ? ` and read ${result.processed}` : ""}. You’re up to date.`,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof OwnerFacingError
+          ? error.message
+          : "Could not check your inbox. Try again.",
     };
   }
 }

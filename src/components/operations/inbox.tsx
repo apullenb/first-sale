@@ -8,6 +8,7 @@ import {
   retryCustomerMessage,
   sendCustomerReply,
   setEmailReminder,
+  syncCustomerEmail,
 } from "@/app/(app)/email/actions";
 import { importCustomerRequest } from "@/app/(app)/orders/tracking-actions";
 import { Card, Chip } from "@/components/ui";
@@ -133,11 +134,20 @@ export function CustomerInbox({
                   : "Connected"}
             </Chip>
             <p className="text-muted">
-              New incoming messages are checked in the background. Orders and
-              jobs are added for review automatically. Every reply waits for
-              your approval.
+              Press Sync now to bring in new messages. Orders and jobs are added
+              for review automatically. Every reply waits for your approval.
             </p>
             <div className="flex flex-wrap gap-2">
+              {!connection.paused && connection.status === "connected" ? (
+                <button
+                  data-writes
+                  className={PRIMARY}
+                  disabled={pending}
+                  onClick={() => run(syncCustomerEmail)}
+                >
+                  {pending ? "Syncing…" : "Sync now"}
+                </button>
+              ) : null}
               <button
                 data-writes
                 className={SECONDARY}
