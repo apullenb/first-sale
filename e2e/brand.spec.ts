@@ -150,14 +150,30 @@ test.describe("build your brand", () => {
     await expect(page.getByRole("heading", { name: "Make or add pictures" })).toBeVisible();
     await expect(page.getByRole("region", { name: "Facebook cover" })).toBeVisible();
     const filters = library.getByRole("group", { name: "Show pictures for" });
+    const pictures = library.getByRole("list", { name: "Pictures" });
     await filters.getByRole("button", { name: /^Website header picture/ }).click();
-    await expect(library.getByRole("listitem")).toHaveCount(2);
-    await expect(library.getByText("In use", { exact: true })).toHaveCount(1);
+    await expect(pictures.getByRole("listitem")).toHaveCount(2);
+    await expect(pictures.getByRole("button", { name: /, in use$/ })).toHaveCount(1);
+    await expect(page).toHaveURL(/tag=Website\+header\+picture/);
+
+    // A thumbnail opens its full card, linkable from the address
     await filters.getByRole("button", { name: /^Facebook cover/ }).click();
-    await library.getByRole("button", { name: "Use for Facebook cover" }).click();
-    await expect(library.getByText("In use", { exact: true })).toHaveCount(1, { timeout: 30_000 });
-    await expect(library.getByRole("button", { name: "Use for Facebook cover" })).toHaveCount(0);
-    await expect(library.getByRole("link", { name: /^Download/ }).first()).toHaveAttribute("href", /\/brand\/files\//);
+    await pictures.getByRole("button", { name: /^Open Facebook cover/ }).click();
+    const large = page.getByRole("dialog");
+    await expect(page).toHaveURL(/open=/);
+    await expect(large.getByRole("region", { name: "Facebook cover" })).toContainText("Exact size");
+    await large.getByRole("button", { name: "Use this" }).first().click();
+    await expect(large.getByText("You’re using this one")).toBeVisible({ timeout: 30_000 });
+    await expect(large.getByRole("link", { name: /^Download/ }).first()).toHaveAttribute("href", /\/brand\/files\//);
+    await page.keyboard.press("Escape");
+    await expect(large).toBeHidden();
+    await expect(page).not.toHaveURL(/open=/);
+
+    // The list view and filters survive a reload
+    await library.getByRole("group", { name: "View" }).getByRole("button", { name: "List" }).click();
+    await page.reload();
+    await expect(page.getByRole("region", { name: "Your pictures" }).getByRole("group", { name: "View" }).getByRole("button", { name: "List" })).toHaveAttribute("aria-pressed", "true");
+    await expect(pictures.getByText("In use", { exact: true })).toHaveCount(1);
 
     // A picture of their own, tagged Other pictures
     const add = page.getByRole("region", { name: "Add a picture" });
@@ -166,7 +182,7 @@ test.describe("build your brand", () => {
     await add.getByRole("textbox", { name: "Name (optional)" }).fill("Our market stall");
     await add.getByRole("button", { name: "Add to my Brand Library" }).click();
     await filters.getByRole("button", { name: /^Other pictures/ }).click({ timeout: 30_000 });
-    await expect(library.getByText("Our market stall").first()).toBeVisible();
+    await expect(pictures.getByText("Our market stall").first()).toBeVisible();
     await expect(add).toContainText("You’ve added 1");
   });
 });
