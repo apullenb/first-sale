@@ -511,7 +511,17 @@ export async function getBrandKitForOwner(db: Db, ownerId: string): Promise<Bran
     colors: drawn ? drawn.concept.palette : (primary.design?.palette ?? []),
     lettering: drawn ? drawn.concept.typography : "",
     logos: { primary: toFile(primary), stacked: file("stacked"), profile: file("profile"), solid: file("solid") },
-    images: { websiteHero: file("website_hero"), facebookCover: file("facebook_cover"), youtubeBanner: file("youtube_banner"), linkPreview: file("link_preview") },
+    images: {
+      websiteHero: file("website_hero"),
+      facebookCover: file("facebook_cover"),
+      youtubeBanner: file("youtube_banner"),
+      linkPreview: file("link_preview"),
+      instagramPost: file("instagram_post"),
+      instagramStory: file("instagram_story"),
+      adSquare: file("ad_square"),
+      flyer: file("flyer"),
+      productScene: file("product_scene"),
+    },
     simulated: false,
     // Uploaded, or an edit of an upload: no idea behind it
     uploaded: primary.conceptId === null,

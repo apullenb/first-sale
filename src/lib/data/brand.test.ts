@@ -174,7 +174,7 @@ describe("the brand kit", () => {
         profile: { url: `/brand/files/${ids.profile}?view=1`, width: 1024, height: 1024 },
         solid: { url: `/brand/files/${ids.solid}?view=1`, width: 1024, height: 1024 },
       },
-      images: { websiteHero: { url: `/brand/files/${hero}?view=1`, width: 1920, height: 1080 }, facebookCover: null, youtubeBanner: null, linkPreview: null },
+      images: { websiteHero: { url: `/brand/files/${hero}?view=1`, width: 1920, height: 1080 }, facebookCover: null, youtubeBanner: null, linkPreview: null, instagramPost: null, instagramStory: null, adSquare: null, flyer: null, productScene: null },
       simulated: false,
       uploaded: false,
     });

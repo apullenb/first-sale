@@ -33,8 +33,9 @@ describe("version slots", () => {
 describe("brand image slots", () => {
   it("recommend every kind that hasn't been made, in a fixed order", () => {
     const slots = imageSlots([file("h1", "website_hero")], "logo-1", { website_hero: "h1" });
-    expect(slots.map((slot) => slot.kind)).toEqual(["website_hero", "facebook_cover", "youtube_banner", "link_preview"]);
-    expect(slots.filter((slot) => slot.empty).map((slot) => slot.kind)).toEqual(["facebook_cover", "youtube_banner", "link_preview"]);
+    const extras = ["instagram_post", "instagram_story", "ad_square", "flyer", "product_scene"];
+    expect(slots.map((slot) => slot.kind)).toEqual(["website_hero", "facebook_cover", "youtube_banner", "link_preview", ...extras]);
+    expect(slots.filter((slot) => slot.empty).map((slot) => slot.kind)).toEqual(["facebook_cover", "youtube_banner", "link_preview", ...extras]);
     expect(slots[0]).toMatchObject({ newest: { id: "h1" }, picked: { id: "h1" } });
   });
 
@@ -42,6 +43,12 @@ describe("brand image slots", () => {
     expect([...recommendedImages(null)]).toEqual(["website_hero", "facebook_cover", "youtube_banner", "link_preview"]);
     expect([...recommendedImages({ exclude: ["facebook"] })]).toEqual(["website_hero", "youtube_banner", "link_preview"]);
     expect([...recommendedImages({ exclude: ["facebook", "youtube", "tiktok"] })]).toEqual(["website_hero", "link_preview"]);
+  });
+
+  it("recommend the optional Instagram post only when the owner picked Instagram", () => {
+    expect([...recommendedImages({ include: ["instagram"], exclude: [] })]).toContain("instagram_post");
+    expect([...recommendedImages({ include: ["facebook"], exclude: [] })]).not.toContain("instagram_post");
+    expect([...recommendedImages({ include: ["instagram"], exclude: [] })]).not.toContain("flyer");
   });
 
   it("have an approved example only once the owner uses a header made from the chosen logo", () => {

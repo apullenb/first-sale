@@ -63,6 +63,14 @@ const FB_SAFE: Box = { x: 0.25, y: (1 - FB_FAST_BAND) / 2, w: 0.7, h: FB_FAST_BA
 // SnapStart's own margins: website builders crop headers to wide or tall shapes, and some apps crop link previews
 const HERO_SAFE: Box = { x: 0.2, y: 0.18, w: 0.6, h: 0.64 };
 const PREVIEW_SAFE: Box = { x: 0.2, y: 0.1, w: 0.6, h: 0.8 };
+// SnapStart's picks for the optional social, ad and print pictures
+const POST_SAFE: Box = { x: 0.1, y: 0.1, w: 0.8, h: 0.8 };
+// Clear of the name, buttons and reply bar apps lay over the top and bottom of a story
+const STORY_SAFE: Box = { x: 0.08, y: 0.14, w: 0.84, h: 0.72 };
+const AD_SAFE: Box = { x: 0.1, y: 0.1, w: 0.8, h: 0.8 };
+// Calm bands at the top and bottom for the owner's own words
+const FLYER_SAFE: Box = { x: 0.1, y: 0.25, w: 0.8, h: 0.5 };
+const SCENE_SAFE: Box = { x: 0.12, y: 0.12, w: 0.76, h: 0.76 };
 
 export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
   facebook_cover: {
@@ -126,6 +134,83 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
     guides: [{ label: "Some apps show a smaller crop: keep your logo here", ...PREVIEW_SAFE, tone: "keep" }],
     source: LINK_SHARE,
     facts: ["Meta recommends at least 1200 × 630 pixels, close to a 1.91:1 shape, so the whole picture shows without cropping."],
+  },
+  instagram_post: {
+    title: "Instagram post",
+    purpose: "A tall picture for an Instagram post, with your logo.",
+    usedOn: "Posts on your Instagram account",
+    size: "1080x1350",
+    final: { width: 1080, height: 1350 },
+    safe: POST_SAFE,
+    exports: [{ label: "1080 × 1350 (4:5)", width: 1080, height: 1350, type: "image/jpeg" }],
+    guides: [{ label: "Keep your logo and the important parts here, away from the edges", ...POST_SAFE, tone: "keep" }],
+    source: null,
+    facts: ["SnapStart makes a 4:5 portrait picture, a shape Instagram posts commonly use. Check Instagram’s own help before you post, as apps change their sizes."],
+  },
+  instagram_story: {
+    title: "Instagram story or reel cover",
+    purpose: "A full-screen phone picture for a story, or the cover of a reel, with your logo.",
+    usedOn: "Stories and reel covers on Instagram and Facebook",
+    size: "1080x1920",
+    final: { width: 1080, height: 1920 },
+    safe: STORY_SAFE,
+    exports: [{ label: "1080 × 1920 (9:16)", width: 1080, height: 1920, type: "image/jpeg" }],
+    guides: [
+      { label: "Keep your logo and the important parts here", ...STORY_SAFE, tone: "keep" },
+      { label: "Your name and the app’s buttons can cover the top", x: 0, y: 0, w: 1, h: STORY_SAFE.y, tone: "covered" },
+      { label: "The reply bar and buttons can cover the bottom", x: 0, y: STORY_SAFE.y + STORY_SAFE.h, w: 1, h: 1 - STORY_SAFE.y - STORY_SAFE.h, tone: "covered" },
+    ],
+    source: null,
+    facts: [
+      "SnapStart makes a 9:16 picture that fills a phone screen.",
+      "SnapStart keeps the top and bottom 14% plain, because apps lay your name, buttons and the reply bar over them.",
+    ],
+  },
+  ad_square: {
+    title: "Ad picture (square)",
+    purpose: "A square picture for social media ads, with your logo. You write the ad’s words in the ad itself.",
+    usedOn: "Ads on Facebook, Instagram and other apps",
+    size: "1080x1080",
+    final: { width: 1080, height: 1080 },
+    safe: AD_SAFE,
+    exports: [{ label: "1080 × 1080 (square)", width: 1080, height: 1080, type: "image/jpeg" }],
+    guides: [{ label: "Keep your logo and the important parts here, away from the edges", ...AD_SAFE, tone: "keep" }],
+    source: null,
+    facts: ["SnapStart makes a square picture, a shape most ad tools accept. Check the ad tool’s own sizes before you buy an ad."],
+  },
+  flyer: {
+    title: "Flyer picture",
+    purpose: "A tall picture for a printed flyer, with calm space at the top and bottom where you add your own words.",
+    usedOn: "Printed flyers, posters and handouts",
+    size: "2550x3300",
+    final: { width: 2550, height: 3300 },
+    safe: FLYER_SAFE,
+    exports: [{ label: "2550 × 3300 (letter, 300 dpi)", width: 2550, height: 3300, type: "image/jpeg", note: "8.5 × 11 inches at 300 dots per inch" }],
+    guides: [
+      { label: "Your logo and the picture go here", ...FLYER_SAFE, tone: "keep" },
+      { label: "Calm space for your own headline", x: 0, y: 0, w: 1, h: FLYER_SAFE.y, tone: "covered" },
+      { label: "Calm space for your own details", x: 0, y: FLYER_SAFE.y + FLYER_SAFE.h, w: 1, h: 1 - FLYER_SAFE.y - FLYER_SAFE.h, tone: "covered" },
+    ],
+    source: null,
+    facts: [
+      "SnapStart makes a letter-size picture: 8.5 × 11 inches at 300 dots per inch is 2550 × 3300 pixels.",
+      "It has no words besides your logo. Add your own headline, prices and details in the calm space at the top and bottom.",
+    ],
+  },
+  product_scene: {
+    title: "Product scene",
+    purpose: "Your kind of products styled in a setting, as if on the shelf or in use, with your logo.",
+    usedOn: "Your website, posts and product pages",
+    size: "1600x1200",
+    final: { width: 1600, height: 1200 },
+    safe: SCENE_SAFE,
+    exports: [{ label: "1600 × 1200 (4:3)", width: 1600, height: 1200, type: "image/jpeg" }],
+    guides: [{ label: "Keep your logo and the products here", ...SCENE_SAFE, tone: "keep" }],
+    source: null,
+    facts: [
+      "There’s no standard size for this picture. SnapStart makes a 4:3 picture that works on websites and in posts.",
+      "It shows the kinds of things you sell, with no prices or words besides your logo.",
+    ],
   },
 };
 
