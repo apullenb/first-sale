@@ -34,7 +34,7 @@ export default function BrandLibraryPage() {
       <PageHead
         kicker={<Kicker icon="image">Build your brand</Kicker>}
         title="Your Brand Library"
-        lead="All your logos, brand pictures and product photos in one place. Make the pictures for your website and social pages, download them at the exact size each one needs, and add your own."
+        lead="All your logos, brand pictures and product photos in one place. Make the pictures for your website, social pages, posts, ads and flyers, download them at the exact size each one needs, and add your own."
       />
       <Suspense fallback={<p className="text-muted">Loading your Brand Library…</p>}>
         <Library />
@@ -56,6 +56,8 @@ interface Item {
   tags: string[];
   // Only the owner's own Brand Library uploads can be deleted here
   deleteId: string | null;
+  // A made file not approved yet: where to choose "Use this"
+  unused?: string;
 }
 
 const GROUP_ICONS: Record<LibraryGroup, IconName> = { logos: "sparkles", brand_images: "palette", product_photos: "camera", other: "image" };
@@ -120,7 +122,11 @@ async function Library() {
       groups.logos.push(brandItem(chosen, chosen.origin === "uploaded" && chosen.title ? chosen.title : "Main logo", ["Your chosen logo"]));
       for (const slot of versionSlots(state.assets, chosen.id, state.picks)) {
         const version = slot.picked ?? slot.newest;
-        if (version) groups.logos.push(brandItem(version, kindTitle(slot.kind), version.id === slot.picked?.id ? ["In use"] : []));
+        if (!version) continue;
+        const item = brandItem(version, kindTitle(slot.kind), version.id === slot.picked?.id ? ["In use"] : []);
+        // Made but not approved yet
+        if (version.id !== slot.picked?.id) item.unused = "Create your logo";
+        groups.logos.push(item);
       }
     }
     for (const asset of state.assets) {
@@ -336,6 +342,7 @@ function Tile({ item }: { item: Item }) {
         <span className="text-sm text-muted">
           {item.detail} · {item.width} × {item.height}
         </span>
+        {item.unused ? <span className="text-sm text-rule">Not used anywhere until you choose “Use this” on {item.unused}.</span> : null}
         {item.practice || item.tags.length ? (
           <span className="flex flex-wrap gap-1.5">
             {item.practice ? <PracticeTag /> : null}

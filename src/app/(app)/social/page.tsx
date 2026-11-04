@@ -339,6 +339,11 @@ const IMAGE_FIELDS: Record<BrandImageKind, keyof BrandKit["images"]> = {
   facebook_cover: "facebookCover",
   youtube_banner: "youtubeBanner",
   link_preview: "linkPreview",
+  instagram_post: "instagramPost",
+  instagram_story: "instagramStory",
+  ad_square: "adSquare",
+  flyer: "flyer",
+  product_scene: "productScene",
 };
 
 // Brand links open in the browser with ?view=1; without it they download

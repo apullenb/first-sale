@@ -463,13 +463,15 @@ export function visibleSteps(steps: readonly MarketingStep[], exclude: readonly 
 
 // What SnapStart already knows is finished, apart from the owner's ticks
 export interface DoneFacts {
-  // Every brand image kind has a picked file, and none is a practice preview
+  // Every website and page image has a picked file, and none is a practice preview; the extras are optional
   brandImagesPicked: boolean;
 }
 
 // Practice previews never count: the owner can still tick the step by hand
 export function doneFacts(brand: Pick<BrandKit, "images" | "simulated"> | null): DoneFacts {
-  return { brandImagesPicked: Boolean(brand && !brand.simulated && Object.values(brand.images).every(Boolean)) };
+  const images = brand?.images;
+  const picked = Boolean(images?.websiteHero && images.facebookCover && images.youtubeBanner && images.linkPreview);
+  return { brandImagesPicked: Boolean(brand && !brand.simulated && picked) };
 }
 
 // Steps done by what the owner made in SnapStart; they can't be unticked

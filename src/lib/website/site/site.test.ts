@@ -238,7 +238,7 @@ describe("saved site checks", () => {
     lettering: "",
     colors: [{ hex: "#1e6b52", name: "Forest" }],
     logos: { primary: file("logo"), stacked: null, profile: file("icon"), solid: null },
-    images: { websiteHero: file("hero"), facebookCover: null, youtubeBanner: null, linkPreview: null },
+    images: { websiteHero: file("hero"), facebookCover: null, youtubeBanner: null, linkPreview: null, instagramPost: null, instagramStory: null, adSquare: null, flyer: null, productScene: null },
     simulated: true,
     uploaded: false,
   };

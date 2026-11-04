@@ -9,7 +9,7 @@ import { Card, Chip, ResourceLink } from "@/components/ui";
 import { RecommendedBadge } from "@/components/recommended";
 import { brandFileName, brandFileUrl } from "@/lib/brand/files";
 import { CHECKED_TEXT, type Export, type Guide, IMAGE_SPECS, LOGO_SPECS, PROFILE_FACTS } from "@/lib/brand/sizes";
-import { approvedExample, EXAMPLE_IMAGE, imageSlots, type Slot, versionSlots } from "@/lib/brand/slots";
+import { approvedExample, EXAMPLE_IMAGE, IMAGE_GROUPS, imageSlots, type Slot, versionSlots } from "@/lib/brand/slots";
 import { type AssetCheck, type BrandImageKind, type BrandPicks, CODE_MODEL, type ImageMedium, type VersionKind } from "@/lib/brand/types";
 import type { AssetSummary } from "@/lib/data/brand";
 import { MadeBy } from "./asset-view";
@@ -28,6 +28,11 @@ const ICONS: Record<PictureKind, IconName> = {
   facebook_cover: "image",
   youtube_banner: "image",
   link_preview: "link",
+  instagram_post: "camera",
+  instagram_story: "phone",
+  ad_square: "megaphone",
+  flyer: "print",
+  product_scene: "box",
 };
 
 const ratio = (size: string) => size.replace("x", " / ");
@@ -49,6 +54,14 @@ function SlotSketch({ kind }: { kind: PictureKind }) {
     facebook_cover: { box: "0 0 160 90", body: [<rect key="band" x="0" y="22" width="160" height="46" fill="currentColor" opacity="0.25" />, dot(22, 70, 16, 0.6)] },
     youtube_banner: { box: "0 0 160 90", body: [<rect key="safe" x="46" y="34" width="68" height="22" rx="4" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4 3" />, bar(58, 42, 44)] },
     link_preview: { box: "0 0 190 100", body: [dot(72, 50, 13), bar(92, 44, 40, 10)] },
+    instagram_post: { box: "0 0 80 100", body: [dot(40, 44, 14), bar(22, 66, 36), dot(14, 88, 14, 0.35)] },
+    instagram_story: { box: "0 0 90 160", body: [bar(10, 10, 70, 6), dot(45, 76, 16), bar(10, 144, 70, 6)] },
+    ad_square: { box: "0 0 100 100", body: [dot(50, 44, 16), bar(28, 70, 44), dot(88, 12, 18, 0.35)] },
+    flyer: {
+      box: "0 0 85 110",
+      body: [<rect key="top" x="0" y="0" width="85" height="27" fill="currentColor" opacity="0.15" />, dot(42, 55, 14), <rect key="bottom" x="0" y="83" width="85" height="27" fill="currentColor" opacity="0.15" />],
+    },
+    product_scene: { box: "0 0 120 90", body: [<rect key="shelf" x="10" y="64" width="100" height="5" fill="currentColor" />, bar(24, 38, 14, 26), bar(48, 30, 18, 34), bar(76, 42, 16, 22)] },
   };
   const { box, body } = shapes[kind];
   return (
@@ -271,7 +284,7 @@ export function VersionSlots({ chosenId, name, assets, picks, practice, running 
   );
 }
 
-// The four brand images: the header first, as the example; the others wait until the owner uses it, then match it
+// Brand images in two groups: the header first, as the example; the others wait until the owner uses it, then match it
 export function ImageSlots({
   chosenId,
   name,
@@ -295,53 +308,76 @@ export function ImageSlots({
 }) {
   const example = approvedExample(assets, chosenId, picks);
   const exampleTitle = IMAGE_SPECS[EXAMPLE_IMAGE].title.toLowerCase();
+  const all = imageSlots(assets, chosenId, picks);
+  const card = (slot: (typeof all)[number]) => {
+    const spec = IMAGE_SPECS[slot.kind];
+    const isExample = slot.kind === EXAMPLE_IMAGE;
+    const blocked = !chosenId
+      ? "Choose or upload your logo first: brand images are made from it."
+      : !isExample && !example
+        ? `First make your ${exampleTitle} and choose “Use this” on it. This one is then made to match its look, so you only pay for pictures in a style you like.`
+        : null;
+    const note = isExample
+      ? example
+        ? null
+        : "Made first, as an example of the look. Change it with a prompt until you like it, then choose “Use this”: your other brand images are made to match it."
+      : example
+        ? `Made to match your ${exampleTitle}.`
+        : null;
+    return (
+      <li key={slot.kind}>
+        <SlotCard
+          kind={slot.kind}
+          title={spec.title}
+          purpose={spec.purpose}
+          size={spec.size}
+          slot={slot}
+          intent={{ kind: "images", logoId: chosenId ?? "", kinds: [slot.kind] }}
+          name={name}
+          practice={practice}
+          running={running.has(slot.kind)}
+          blocked={blocked}
+          recommend={recommended.includes(slot.kind)}
+          note={note}
+          control={
+            isExample && chosenId ? (
+              <MediumSwitch logoId={chosenId} medium={style.medium} by={style.by} hasExample={!slot.empty} hint={practice ? "Practice mode: you’ll see a labeled sample." : ""} />
+            ) : null
+          }
+          guides={spec.guides}
+          exports={spec.exports}
+          usedOn={spec.usedOn}
+          exact={spec.final}
+          facts={<SizeFacts kind={slot.kind} />}
+        />
+      </li>
+    );
+  };
+  const [pages, extras] = IMAGE_GROUPS.map((group) => all.filter((slot) => (group.kinds as readonly string[]).includes(slot.kind)));
+  // Opened once something there is made, being made or recommended
+  const openExtras = extras.some((slot) => !slot.empty || running.has(slot.kind) || recommended.includes(slot.kind));
   return (
-    <ul className="grid gap-4 @2xl:grid-cols-2">
-      {imageSlots(assets, chosenId, picks).map((slot) => {
-        const spec = IMAGE_SPECS[slot.kind];
-        const isExample = slot.kind === EXAMPLE_IMAGE;
-        const blocked = !chosenId
-          ? "Choose or upload your logo first: brand images are made from it."
-          : !isExample && !example
-            ? `First make your ${exampleTitle} and choose “Use this” on it. This one is then made to match its look, so you only pay for pictures in a style you like.`
-            : null;
-        const note = isExample
-          ? example
-            ? null
-            : "Made first, as an example of the look. Change it with a prompt until you like it, then choose “Use this”: your other brand images are made to match it."
-          : example
-            ? `Made to match your ${exampleTitle}.`
-            : null;
-        return (
-          <li key={slot.kind}>
-            <SlotCard
-              kind={slot.kind}
-              title={spec.title}
-              purpose={spec.purpose}
-              size={spec.size}
-              slot={slot}
-              intent={{ kind: "images", logoId: chosenId ?? "", kinds: [slot.kind] }}
-              name={name}
-              practice={practice}
-              running={running.has(slot.kind)}
-              blocked={blocked}
-              recommend={recommended.includes(slot.kind)}
-              note={note}
-              control={
-                isExample && chosenId ? (
-                  <MediumSwitch logoId={chosenId} medium={style.medium} by={style.by} hasExample={!slot.empty} hint={practice ? "Practice mode: you’ll see a labeled sample." : ""} />
-                ) : null
-              }
-              guides={spec.guides}
-              exports={spec.exports}
-              usedOn={spec.usedOn}
-              exact={spec.final}
-              facts={<SizeFacts kind={slot.kind} />}
-            />
-          </li>
-        );
-      })}
-    </ul>
+    <div className="flex flex-col gap-4">
+      <p className="flex items-start gap-2 rounded-xl border border-line bg-soft px-3 py-2.5 text-[15px] text-rule">
+        <Icon name="info" size="sm" className="mt-0.5 shrink-0 text-accent" />
+        <span>A picture SnapStart makes isn’t used on your website or anywhere else until you approve it with “Use this”.</span>
+      </p>
+      <section aria-labelledby="images-pages-heading" className="flex flex-col gap-3">
+        <h3 id="images-pages-heading" className="font-bold">
+          {IMAGE_GROUPS[0].title}
+        </h3>
+        <ul className="grid gap-4 @2xl:grid-cols-2">{pages.map(card)}</ul>
+      </section>
+      <details id="images-extras" open={openExtras} className="group/extras border-t border-line pt-4">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+          <Icon name="chevron" size="sm" className="text-faint transition-transform group-open/extras:rotate-90" />
+          <span className="font-bold">{IMAGE_GROUPS[1].title}</span>
+          <Chip tone="gray">Optional</Chip>
+        </summary>
+        <p className="mt-1 mb-3 text-[15px] text-muted">Make any of these when you need them. Each is made to match your {exampleTitle}, at its exact size, with no words besides your logo.</p>
+        <ul className="grid gap-4 @2xl:grid-cols-2">{extras.map(card)}</ul>
+      </details>
+    </div>
   );
 }
 
