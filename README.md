@@ -240,6 +240,10 @@ A few quick questions (where the owner wants to show up, how familiar they are w
 
 For each platform in the plan, SnapStart gets the account ready: the name, a drafted bio, a profile picture and a cover from the brand kit, plus step-by-step setup that follows each platform's own help pages.
 
+**Post ideas.** A lightbulb at the top of the social media page brings three new ideas every day, made for this business: a local event coming up, a seasonal moment, or something new in the owner's market. Muse searches the web for what's happening near the owner and in their line of work, then writes why each one fits and a ready-to-post caption. Each idea shows what's happening, why it fits, the suggested post with a copy button, and the page it came from. SnapStart's code checks every idea before it shows: it has to come from a page in that day's search, each from a different page, with no prices, discounts or links in the post, and no topic repeated from the past week. Ideas stay the same all day and refresh on the owner's next day, and new ones stay marked until the owner opens them. While the day's ideas are being found, a ring spins around the lightbulb.
+
+<p align="center"><img src="docs/media/post-ideas.webp" alt="Recording of post ideas for Hearth &amp; Wick Candle Co. in Austin: opening the lightbulb shows three local ideas (the Texas Book Festival, the Austin Studio Tour and the Austin Food &amp; Wine Festival), then two of them open to show what's happening, why it fits, a suggested post with Copy, and the source" width="900"></p>
+
 ### Your Brand Library
 
 <img src="docs/media/nav/your-brand-library.webp" alt="Menu link: Your Brand Library" width="201" height="32">
