@@ -351,7 +351,8 @@ describe("steps saved before brand images moved", () => {
 describe("doneSteps", () => {
   it("never counts practice previews as made brand images", () => {
     const file = { url: "/brand/files/x?view=1", width: 10, height: 10 };
-    const images = { websiteHero: file, facebookCover: file, youtubeBanner: file, linkPreview: file };
+    const images = { websiteHero: file, facebookCover: file, youtubeBanner: file, linkPreview: file, instagramPost: null, instagramStory: null, adSquare: null, flyer: null, productScene: null };
+    // The social, ad and print pictures are optional
     expect(doneFacts({ images, simulated: false })).toEqual({ brandImagesPicked: true });
     expect(doneFacts({ images, simulated: true })).toEqual({ brandImagesPicked: false });
     expect(doneFacts({ images: { ...images, linkPreview: null }, simulated: false })).toEqual({ brandImagesPicked: false });
