@@ -184,3 +184,15 @@ describe("refinements, versions and brand images", () => {
     expect(ownLogoEditPrompt("", "Bigger")).toContain("Keep every word and letter exactly as it is in image 1");
   });
 });
+
+describe("social, ad and print pictures", () => {
+  it("describe each shape and keep its calm or covered parts plain", () => {
+    expect(brandImagePrompt(testBrief(), [], "instagram_post", null, "website_hero")).toContain("Shape: a tall picture, 1080 × 1350 pixels (about 1 to 1.25)");
+    expect(brandImagePrompt(testBrief(), [], "ad_square", null, "website_hero")).toContain("Shape: a square picture, 1080 × 1080 pixels (about 1 to 1)");
+    expect(brandImagePrompt(testBrief(), [], "instagram_story", null, "website_hero")).toContain("Apps cover the top 14% and bottom 14%");
+    const flyer = brandImagePrompt(testBrief(), [], "flyer", null, "website_hero");
+    expect(flyer).toContain("Leave the top 25% and bottom 25% calm and plain");
+    expect(flyer).toContain("never invent other products, prices or offers");
+    expect(brandImagePrompt(testBrief(), [], "product_scene", null, "website_hero")).toContain("Make the things they sell the hero");
+  });
+});

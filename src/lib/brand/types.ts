@@ -104,7 +104,11 @@ export const CODE_MODEL = "first-sale-code";
 export const LOGO_KINDS = ["logo", "stacked", "profile", "solid"] as const;
 export const VERSION_KINDS = ["stacked", "profile", "solid"] as const;
 export type VersionKind = (typeof VERSION_KINDS)[number];
-export const IMAGE_KINDS = ["website_hero", "facebook_cover", "youtube_banner", "link_preview"] as const;
+// For the website and pages; the marketing step counts these
+export const PAGE_IMAGE_KINDS = ["website_hero", "facebook_cover", "youtube_banner", "link_preview"] as const;
+// Optional: for social posts, ads and print
+export const EXTRA_IMAGE_KINDS = ["instagram_post", "instagram_story", "ad_square", "flyer", "product_scene"] as const;
+export const IMAGE_KINDS = [...PAGE_IMAGE_KINDS, ...EXTRA_IMAGE_KINDS] as const;
 export type BrandImageKind = (typeof IMAGE_KINDS)[number];
 export const ASSET_KINDS = [...LOGO_KINDS, ...IMAGE_KINDS] as const;
 export type AssetKind = (typeof ASSET_KINDS)[number];
@@ -159,7 +163,17 @@ export interface BrandKit {
   // The logo's lettering direction, in plain words
   lettering: string;
   logos: { primary: BrandFile | null; stacked: BrandFile | null; profile: BrandFile | null; solid: BrandFile | null };
-  images: { websiteHero: BrandFile | null; facebookCover: BrandFile | null; youtubeBanner: BrandFile | null; linkPreview: BrandFile | null };
+  images: {
+    websiteHero: BrandFile | null;
+    facebookCover: BrandFile | null;
+    youtubeBanner: BrandFile | null;
+    linkPreview: BrandFile | null;
+    instagramPost: BrandFile | null;
+    instagramStory: BrandFile | null;
+    adSquare: BrandFile | null;
+    flyer: BrandFile | null;
+    productScene: BrandFile | null;
+  };
   // Any file here is a practice preview, not made by Muse
   simulated: boolean;
   // The main logo is the owner's own upload, so its colors and lettering come from the owner

@@ -257,9 +257,16 @@ const LOGO_IN_SAFE: Record<BrandImageKind, string> = {
   website_hero:
     "Put the logo small but clear at the top left of the safe area, about a sixth of the picture’s width, and leave a calm, uncluttered part of the safe area, softly out of focus or plain, where the owner’s headline will go.",
   link_preview: "Put the logo in the middle of the safe area, about half the picture’s width, on a calm part of the scene with space around it.",
+  instagram_post: "Put the logo in the safe area, about a third of the picture’s width, on a calm part of the scene, so it reads on a phone.",
+  instagram_story: "Put the logo in the middle of the safe area, about half the picture’s width, so it reads on a phone.",
+  ad_square: "Put the logo in the safe area, about a third of the picture’s width, on a calm part of the scene. Leave the scene uncluttered so it reads at a glance in a feed.",
+  flyer: "Put the logo in the middle of the safe area, about a third of the picture’s width.",
+  product_scene:
+    "Make the things they sell the hero: a styled scene of them on a shelf, table or in use, unbranded apart from the logo. Put the logo small on one product’s label, tag or the shelf, inside the safe area.",
 };
 
 const percent = (value: number) => `${Math.round(value * 100)}%`;
+const round = (value: number) => value.toFixed(2).replace(/\.?0+$/, "");
 
 function side(start: number, size: number, axis: "left" | "top"): string {
   const end = 1 - start - size;
@@ -271,10 +278,15 @@ function side(start: number, size: number, axis: "left" | "top"): string {
 export function compositionLines(kind: BrandImageKind): string[] {
   const { final, safe } = IMAGE_SPECS[kind];
   const ratio = final.width / final.height;
+  const shape = ratio > 1.05 ? "a wide" : ratio < 0.95 ? "a tall" : "a square";
   return [
-    `Shape: a wide picture, ${final.width} × ${final.height} pixels (about ${ratio.toFixed(2).replace(/\.?0+$/, "")} to 1). Compose for exactly this shape.`,
+    `Shape: ${shape} picture, ${final.width} × ${final.height} pixels (about ${ratio >= 1 ? `${round(ratio)} to 1` : `1 to ${round(1 / ratio)}`}). Compose for exactly this shape.`,
     `Safe area: keep the logo and everything important (people, products, faces) inside a box about ${percent(safe.w)} of the width and ${percent(safe.h)} of the height, ${side(safe.x, safe.w, "left")} and ${side(safe.y, safe.h, "top")}. Outside it gets cropped on some screens.`,
     kind === "facebook_cover" ? "The Page’s profile picture covers the lower-left corner, so leave that part plain." : null,
+    kind === "instagram_story" ? `Apps cover the top ${percent(safe.y)} and bottom ${percent(1 - safe.y - safe.h)} with buttons, so keep those parts plain background.` : null,
+    kind === "flyer"
+      ? `Leave the top ${percent(safe.y)} and bottom ${percent(1 - safe.y - safe.h)} calm and plain, a soft background with no objects or words, so the owner can add their own text there.`
+      : null,
     "The rest is background that carries the scene all the way to every edge: no borders, and nothing essential near the edges.",
     LOGO_IN_SAFE[kind],
   ].filter((line): line is string => line !== null);

@@ -1,5 +1,5 @@
 import type { MarketingPlatformId } from "@/data/marketing-platforms";
-import { type BrandImageKind, type BrandPicks, IMAGE_KINDS, VERSION_KINDS, type VersionKind } from "./types";
+import { type BrandImageKind, type BrandPicks, EXTRA_IMAGE_KINDS, IMAGE_KINDS, PAGE_IMAGE_KINDS, VERSION_KINDS, type VersionKind } from "./types";
 
 // Which version and brand image slots show, and what each holds. Plain code: the owner's picks decide what's used.
 
@@ -43,13 +43,25 @@ export function approvedExample<T extends SlotFile>(files: readonly T[], chosenI
 
 // The platform each brand image is for; the website's own pictures have none
 const IMAGE_PLATFORM: Partial<Record<BrandImageKind, MarketingPlatformId>> = { facebook_cover: "facebook", youtube_banner: "youtube" };
+// Optional pictures recommended only when the owner picked their platform
+const PICKED_PLATFORM: Partial<Record<BrandImageKind, MarketingPlatformId>> = { instagram_post: "instagram" };
 
-// Brand images worth making: the website's always, a platform's unless the owner said never to suggest it
-export function recommendedImages(intake: { exclude: readonly MarketingPlatformId[] } | null): Set<BrandImageKind> {
-  return new Set(
-    IMAGE_KINDS.filter((kind) => {
-      const platform = IMAGE_PLATFORM[kind];
-      return !platform || !intake?.exclude.includes(platform);
-    }),
-  );
+// Brand images worth making: the website's always, a platform's unless the owner said never to suggest it,
+// and an optional one only when the owner picked its platform
+export function recommendedImages(intake: { include?: readonly MarketingPlatformId[]; exclude: readonly MarketingPlatformId[] } | null): Set<BrandImageKind> {
+  const pages = PAGE_IMAGE_KINDS.filter((kind) => {
+    const platform = IMAGE_PLATFORM[kind];
+    return !platform || !intake?.exclude.includes(platform);
+  });
+  const extras = EXTRA_IMAGE_KINDS.filter((kind) => {
+    const platform = PICKED_PLATFORM[kind];
+    return Boolean(platform && intake?.include?.includes(platform) && !intake.exclude.includes(platform));
+  });
+  return new Set<BrandImageKind>([...pages, ...extras]);
 }
+
+// The two groups shown in the Brand Library
+export const IMAGE_GROUPS = [
+  { id: "pages", title: "For your website and pages", kinds: PAGE_IMAGE_KINDS },
+  { id: "extras", title: "For social posts, ads and print", kinds: EXTRA_IMAGE_KINDS },
+] as const;
