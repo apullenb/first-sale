@@ -255,7 +255,7 @@ async function Library() {
           const inUse = state.picks[kind] === asset.id;
           return {
             key: asset.id,
-            title: asset.change ? `${IMAGE_SPECS[kind].title}: “${asset.change}”` : IMAGE_SPECS[kind].title,
+            title: asset.change ? `${asset.title ?? IMAGE_SPECS[kind].title}: “${asset.change}”` : (asset.title ?? IMAGE_SPECS[kind].title),
             tag: IMAGE_SPECS[kind].title,
             detail: asset.simulated ? "Practice preview" : "Made by AI",
             view: brandFileUrl(asset.id),
