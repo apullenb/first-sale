@@ -6,7 +6,7 @@ const WIDTHS = { computer: 1024, phone: 390 } as const;
 const HEIGHT = 672;
 
 // The site at a real screen width, shrunk to fit the space it has
-export function SiteFrame({ html, title, device }: { html: string; title: string; device: keyof typeof WIDTHS }) {
+export function SiteFrame({ html, title, device, height = HEIGHT }: { html: string; title: string; device: keyof typeof WIDTHS; height?: number }) {
   const box = useRef<HTMLDivElement>(null);
   const [room, setRoom] = useState(0);
 
@@ -21,7 +21,7 @@ export function SiteFrame({ html, title, device }: { html: string; title: string
   const width = WIDTHS[device];
   const scale = room ? Math.min(1, room / width) : 1;
   return (
-    <div ref={box} className="relative overflow-hidden" style={{ height: HEIGHT }}>
+    <div ref={box} className="relative overflow-hidden" style={{ height }}>
       <iframe
         title={title}
         srcDoc={html}
@@ -30,7 +30,7 @@ export function SiteFrame({ html, title, device }: { html: string; title: string
         className="absolute top-0 rounded-lg bg-white shadow-card"
         style={{
           width,
-          height: HEIGHT / scale,
+          height: height / scale,
           left: Math.max(0, (room - width * scale) / 2),
           transform: `scale(${scale})`,
           transformOrigin: "top left",

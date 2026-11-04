@@ -8,6 +8,10 @@ it("registers an offline theme and labels it", async () => {
   expect(result.theme.simulated).toBe(true);
   expect(result.heroId).toBeNull();
 });
+it("builds the offline direction from the brand's own palette", async () => {
+  const result = await designBrandTheme(createMockProvider(), { brief: null, palette: [{ hex: "#7a2e4f", name: "Plum" }, { hex: "#f3c9a5", name: "Peach" }] as never, images: [], request: "" });
+  expect(result.theme).toMatchObject({ accent: "#7a2e4f", highlight: "#f3c9a5", heroFrame: "arch", cardStyle: "framed" });
+});
 it("checks contrast and only accepts image IDs from the owner library", async () => {
   const model = createMockProvider((request) => {
     expect(JSON.stringify(request.messages)).toContain("<brand>");

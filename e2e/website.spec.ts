@@ -22,7 +22,7 @@ test.describe("website setup and visual editor", () => {
     await expect(options.getByRole("article", { name: "Square", exact: true })).toBeVisible();
     await options.getByRole("button", { name: "Done", exact: true }).click();
     await expect(page.getByRole("button", { name: "Build it for me", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Edit website", exact: true }).click();
+    await page.getByRole("button", { name: "Start from a blank page", exact: true }).click();
     await page.waitForURL("**/website/editor");
     const editor = page.getByRole("region", { name: "Website editor", exact: true });
     await expect(editor).toBeVisible();
@@ -118,6 +118,46 @@ test.describe("website setup and visual editor", () => {
     await expect(editor.getByRole("region", { name: "Website canvas", exact: true })).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath("website-editor-phone.png") });
+    await page.setViewportSize({ width: 1280, height: 900 });
+
+    // Publish: blocked while [notes] are left, then final preview and checks, then the demo hosting screen
+    await editor.getByRole("button", { name: "Publish website", exact: true }).click();
+    await page.waitForURL("**/website/publish");
+    await expect(page.getByText(/bracketed\] notes? in Page content/).locator("visible=true")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Publish", exact: true })).toBeDisabled();
+    await page.getByRole("link", { name: "← Back to the editor" }).click();
+    await page.waitForURL("**/website/editor");
+    await editor.getByRole("button", { name: "Page content", exact: true }).click();
+    await editor.getByText(/^Frequently asked questions/).click();
+    await editor.getByText("Search appearance", { exact: true }).click();
+    for (const field of await editor.locator("aside textarea").all()) {
+      const value = await field.inputValue();
+      if (value.includes("[")) await field.fill(value.replace(/\[[^\]]*\]/g, "").trim() || "Yes.");
+    }
+    await editor.getByRole("button", { name: "Save draft", exact: true }).click();
+    await expect(editor.getByRole("button", { name: "Save draft", exact: true })).toBeDisabled();
+    await page.reload();
+    await editor.getByRole("button", { name: "Page content", exact: true }).click();
+    await editor.getByRole("button", { name: "Approve page content", exact: true }).click();
+    await expect(editor.getByRole("button", { name: "Approved", exact: true })).toBeVisible();
+    await editor.getByRole("button", { name: "Publish website", exact: true }).click();
+    await page.waitForURL("**/website/publish");
+    await expect(page.getByRole("heading", { name: `Publish ${candles.businessName}` })).toBeVisible();
+    await expect(page.frameLocator(`iframe[title="Final preview of ${candles.businessName}"]`).getByRole("heading", { name: "Light for everyday rituals", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Phone", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Phone", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByText("Everything SnapStart checks is ready.")).toBeVisible();
+    await page.getByRole("button", { name: "Publish", exact: true }).click();
+    const hosting = page.getByRole("region", { name: "Subscribe to SnapStart web hosting" });
+    await expect(hosting).toBeVisible();
+    await expect(hosting.getByText("Demo price", { exact: true })).toBeVisible();
+    await expect(hosting.getByRole("note")).toContainText("no card details are ever collected");
+    await expect(page.getByRole("textbox")).toHaveCount(0);
+    await hosting.getByRole("button", { name: "Start demo subscription", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Your website is finished." })).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "Not published online" })).toBeVisible();
+    await open(page, "/website");
+    await expect(page.getByText("Finished · Demo", { exact: true })).toBeVisible();
 
     await page.context().close();
   });

@@ -283,6 +283,20 @@ describe("saved site checks", () => {
   });
 });
 
+describe("art-directed details", () => {
+  const theme = { name: "Boutique", rationale: "", layout: "split" as const, font: "display" as const, background: "#fbf8f3", foreground: "#1f2421", surface: "#f2ece3", accent: "#7a2e4f", radius: 14, titleScale: 1, ornament: "wave" as const, cardStyle: "framed" as const, heroFrame: "offset" as const };
+  it("adds steps, a quote band, footer contact and a see-through logo", () => {
+    const logo = { src: "/brand/files/logo/see-through", width: 600, height: 200 };
+    const html = renderSite(input({ copy: { ...copy, howToBuy: "Email your order. Pick it up Saturday." }, design: design({ theme }), images: { logo, hero: null, favicon: null, photos: {} } }));
+    expect(html).toContain('class="steps"');
+    expect(html).toContain('class="quote-band"');
+    expect(html).toContain('<body class="frame-offset cards-framed">');
+    expect(html).toMatch(/<footer[\s\S]*mailto:hello@risebakery.com/);
+    expect(html).toContain("background:none");
+    expect(html).not.toMatch(/<script/i);
+  });
+});
+
 describe("placeholderCount", () => {
   it("counts only notes in the words, not the lists that hold them", () => {
     expect(placeholderCount(copy)).toBe(0);
