@@ -112,7 +112,7 @@ export function LibraryGrid({ entries, cards = {} }: { entries: LibraryEntry[]; 
       onMouseLeave={() => setPeek(null)}
       onFocus={(event) => showPeek(entry, event.currentTarget)}
       onBlur={() => setPeek(null)}
-      aria-label={`Open ${entry.title}${entry.inUse ? ", in use" : ""}`}
+      aria-label={`Open ${entry.tag === entry.title ? entry.title : `${entry.tag}: ${entry.title}`}${entry.inUse ? ", in use" : ""}`}
       className={`relative grid place-items-center overflow-hidden rounded-lg border bg-soft p-1 ${entry.inUse ? "border-accent shadow-[0_0_0_2px_var(--color-accent-tint)]" : "border-line"} ${size}`}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
