@@ -7,7 +7,7 @@
 
 ### From “I have an idea” to a business that's legally set up, branded and selling.
 
-There's no shortage of tools for forming a company, like LegalZoom, or for building a website, like Square. What's missing is one tool that does it all and guides the owner through the whole process, so they're not left guessing which permits apply, what order things go in, or what they've missed. **SnapStart is that kit: it walks them from the idea on day one to their first sale.**
+There's no shortage of tools for forming a company, like LegalZoom, or for building a website, like Square. What's missing is one tool that does it all and guides the owner through the whole process, so they're not left guessing which permits apply, what order things go in, or what they've missed. **SnapStart is that kit: it walks them from the idea on day one to their first sale.** Licenses and paperwork, a business structure, a logo and brand photos, products and prices, a website, a marketing plan, social media, ads and flyers, and the orders that come in afterward, all in one guided place.
 
 SnapStart is a startup kit that tailors itself to each owner's business. **Meta Muse** researches the exact licenses, permits and registrations that apply to *their* business in *their* city, county and state, quoting the official government pages. It recommends the right structure, fills in the official forms, and designs their logo, brand photos and website. **Meta Muse drafts, SnapStart's tested code checks and calculates, and the owner approves every step.**
 
