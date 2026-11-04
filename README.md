@@ -54,7 +54,7 @@ SnapStart is a startup kit that tailors itself to the user's actual business. It
 
 ## Why SnapStart
 
-Starting a small business in the US means answering to four governments at once: federal, state, county and city. A home baker in Austin wants to know whether Texas's cottage food law covers her, whether Austin's zoning allows customers to pick up at her door, whether she should form an LLC, which form does that, what it costs, and where to send it. The answers are spread across dozens of official sites, written for lawyers.
+Every new business in the US has rules to follow from the federal government, the state, the county and the city, and nobody hands the owner the list. A home baker in Austin has to work out whether Texas's cottage food law covers their kitchen, whether Austin's zoning lets customers pick up at the door, whether to form an LLC, which form does that, what it costs, and where to send it. The answers are scattered across dozens of official sites, written for lawyers. Most first-time owners either pay someone to sort it out or guess, and a wrong guess can mean fines or a business that never opens.
 
 **SnapStart is built for that owner**: the person starting something for the first time, before they can hire help. A daughter opening a bakery, two brothers selling wooden housewares, a friend dreaming of a boutique. It gives them clear answers grounded in official sources, the paperwork ready to sign, and a brand and website to sell with, all in one guided place.
 
@@ -241,6 +241,8 @@ A few quick questions (where the owner wants to show up, how familiar they are w
 For each platform in the plan, SnapStart gets the account ready: the name, a drafted bio, a profile picture and a cover from the brand kit, plus step-by-step setup that follows each platform's own help pages.
 
 **Post ideas.** A lightbulb at the top of the social media page brings three new ideas every day, made for this business: a local event coming up, a seasonal moment, or something new in the owner's market. Muse searches the web for what's happening near the owner and in their line of work, then writes why each one fits and a ready-to-post caption. Each idea shows what's happening, why it fits, the suggested post with a copy button, and the page it came from. SnapStart's code checks every idea before it shows: it has to come from a page in that day's search, each from a different page, with no prices, discounts or links in the post, and no topic repeated from the past week. Ideas stay the same all day and refresh on the owner's next day, and new ones stay marked until the owner opens them. While the day's ideas are being found, a ring spins around the lightbulb.
+
+<p align="center"><img src="docs/media/post-ideas-loading.webp" alt="Recording of the top of the social media page: a ring spins around the lightbulb while today's ideas are found, then a badge shows 3 new ideas" width="900"></p>
 
 <p align="center"><img src="docs/media/post-ideas.webp" alt="Recording of post ideas for Hearth &amp; Wick Candle Co. in Austin: opening the lightbulb shows three local ideas (the Texas Book Festival, the Austin Studio Tour and the Austin Food &amp; Wine Festival), then two of them open to show what's happening, why it fits, a suggested post with Copy, and the source" width="900"></p>
 
