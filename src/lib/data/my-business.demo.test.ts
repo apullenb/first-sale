@@ -17,7 +17,7 @@ const WRITES = [
   "connectMySquareSandbox",
   "beginMySquareConnection", "finishMySquareConnection", "listMySquareItems", "draftMySquareDescription", "editMySquareDraft",
   "approveMySquareDraft", "disconnectMySquare", "pullMySquareProducts", "pushMySquareProduct",
-  "saveMyFollowUp", "saveMyResearch", "setMyConditionAnswer", "setMyStepStatus", "saveMyDetails", "deleteMyDetail",
+  "saveMyFollowUp", "saveMyResearch", "setMyConditionAnswer", "setMyStepStatus", "saveMyDetails", "deleteMyDetail", "deleteMyBrandImage", "setMyImageScenes",
   "createMyDocument", "updateMyDocument", "deleteMyDocument", "startMyRun", "finishMyRun",
   "createMyPhoto", "updateMyPhoto", "deleteMyPhoto", "addMyPhotoVersion", "setMyPhotoVersionReview", "approveMyPhotoVersion",
   "saveMyWebsitePlan", "updateMyWebsitePlan", "updateMyMarketing",
