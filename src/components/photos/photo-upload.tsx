@@ -19,7 +19,7 @@ interface Prepared {
   height: number;
 }
 
-export function PhotoUpload({ maxUploadBytes, nameLimit }: { maxUploadBytes: number; nameLimit: number }) {
+export function PhotoUpload({ maxUploadBytes, nameLimit, services = false }: { maxUploadBytes: number; nameLimit: number; services?: boolean }) {
   const uid = useId();
   const router = useRouter();
   const [prepared, setPrepared] = useState<Prepared | null>(null);
@@ -73,13 +73,12 @@ export function PhotoUpload({ maxUploadBytes, nameLimit }: { maxUploadBytes: num
       <div className="flex items-center gap-3 border-b border-line px-5 py-3.5">
         <IconTile icon="upload" />
         <h2 id={`${uid}-heading`} className="min-w-0 flex-1 text-base font-bold">
-          Add a product photo
+          {services ? "Add a service photo" : "Add a product photo"}
         </h2>
       </div>
       <div className="flex flex-col gap-4 p-5">
         <p className="text-rule">
-          An ordinary phone photo is fine. A cluttered table, wrinkled backdrop or dim light can all be fixed. What matters is
-          that the product itself is sharp and fully in view.
+          {services ? "Upload a clear photo of your work, your space or a service in progress. SnapStart can improve the presentation while keeping what’s shown in your photo." : "An ordinary phone photo is fine. A cluttered table, wrinkled backdrop or dim light can all be fixed. What matters is that the product itself is sharp and fully in view."}
         </p>
         <form onSubmit={submit} className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-2">
@@ -147,7 +146,7 @@ export function PhotoUpload({ maxUploadBytes, nameLimit }: { maxUploadBytes: num
               maxLength={nameLimit}
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="For example: Walnut serving board"
+              placeholder={services ? "For example: One-to-one piano lesson" : "For example: Walnut serving board"}
               className={INPUT}
             />
           </div>

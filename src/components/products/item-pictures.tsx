@@ -60,6 +60,9 @@ export function ItemPictures({ item, pictures, inUse, changeLimit, hasOwnPhoto }
   const mainApproved = of("main").some((picture) => picture.approved && picture.id === inUse);
   const ask = wearerFor({ ...item, wearer: item.wearer ?? null }) === "ask";
   const anyViews = EXTRA_VIEWS.some((view) => of(view).length);
+  const mainLabel = item.kind === "service"
+    ? work.pending === "make:main" ? "Generating service photo…" : of("main").length ? "Generate another service photo" : "Generate service photo"
+    : work.pending === "make:main" ? "Making the main photo…" : of("main").length ? "Make a new main photo" : hasOwnPhoto ? "Make a main photo from your photo" : "Make a main photo from the description";
 
   const make = (view: PictureView) =>
     work.run(`make:${view}`, () => makePictureAction({ productId: item.id, requestKey: requestKey.get(), view, baseId: null, change: null }), requestKey.clear);
@@ -79,7 +82,7 @@ export function ItemPictures({ item, pictures, inUse, changeLimit, hasOwnPhoto }
       <ViewGroup title={labels.main} pictures={of("main")} item={item} inUse={inUse} changeLimit={changeLimit} work={work} view="main">
         <button data-writes type="button" onClick={() => void make("main")} disabled={work.busy} className={`${AI_BUTTON} self-start`}>
           <Icon name="sparkles" size="sm" />
-          {work.pending === "make:main" ? "Making the main photo…" : of("main").length ? "Make a new main photo" : hasOwnPhoto ? "Make a main photo from your photo" : "Make a main photo from the description"}
+          {mainLabel}
         </button>
       </ViewGroup>
 

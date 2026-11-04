@@ -1,3 +1,4 @@
+import { seeThroughUrl } from "@/lib/brand/files";
 import type { BrandFile, BrandKit } from "@/lib/brand/types";
 
 // How the site preview looks: the owner's brand kit when they have one, the app's theme otherwise
@@ -23,7 +24,7 @@ export function lookFromBrand(brand: BrandKit | null): SiteLook {
     primary,
     onPrimary: textOn(primary),
     background: DEFAULT_LOOK.background,
-    logoUrl: brand.logos.primary?.url ?? null,
+    logoUrl: siteLogo(brand.logos.primary)?.url ?? null,
     heroUrl: brand.images.websiteHero?.url ?? null,
     practice: brand.simulated,
   };
@@ -52,4 +53,10 @@ export function textOn(hex: string): string {
 // Brand file links look like /brand/files/{id}?view=1 (brandFileUrl)
 export function brandAssetId(file: BrandFile | null): string | null {
   return file?.url.match(/^\/brand\/files\/([^/?#]+)/)?.[1] ?? null;
+}
+
+// Websites show the main logo see-through, so it sits on any background
+export function siteLogo(file: BrandFile | null): BrandFile | null {
+  const id = brandAssetId(file);
+  return file && id ? { ...file, url: seeThroughUrl(id) } : file;
 }
