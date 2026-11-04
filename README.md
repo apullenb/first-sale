@@ -11,7 +11,7 @@ There are tools for forming a company, like LegalZoom, and tools for building a 
 
 SnapStart is a startup kit that tailors itself to the user's actual business. It finds the exact licenses, permits and registrations that apply to *their* business in *their* city, county and state, quoting the official government pages. It recommends the right structure, fills in the official forms, and builds their logo, brand photos and website. **Meta Muse reads, writes and draws; SnapStart's tested code checks every fact and works out every figure; and the owner always knows what to do next.**
 
-**[Try the live demo →](https://snapstartkit.vercel.app)**
+**[Try the live demo →](https://snapstartkit.vercel.app/demo)**
 
 ![Next.js 16](https://img.shields.io/badge/Next.js-16.4-000000?logo=nextdotjs&logoColor=white)
 ![React 19](https://img.shields.io/badge/React-19.3-149eca?logo=react&logoColor=white)
