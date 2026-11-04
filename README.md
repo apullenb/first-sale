@@ -475,8 +475,7 @@ Requires **Node 24** (`nvm use`). No AI key or database server is needed to run 
 git clone https://github.com/apullenb/first-sale.git snapstart
 cd snapstart
 npm install
-cp .env.example .env.local
-# Set BETTER_AUTH_SECRET: openssl rand -base64 32
+npm run setup        # creates .env.local and its sign-in secret for you
 npm run db:migrate
 npm run dev
 ```
@@ -486,7 +485,7 @@ Open <http://localhost:3000>, create an account and answer the intake. Each acco
 ### Run it live with your own Meta Muse key
 
 1. Get an API key from the [Meta Model API](https://dev.meta.ai).
-2. In `.env.local` (copied from `.env.example`, and ignored by git, so your key stays on your machine), set:
+2. In `.env.local` (made by `npm run setup` from `.env.example`, and ignored by git, so your key stays on your machine), set:
 
    ```bash
    AI_PROVIDER=muse
@@ -515,6 +514,7 @@ PGlite allows one process at a time, so stop `npm run dev` before `db:migrate`. 
 
 | Script | Does |
 |---|---|
+| `npm run setup` | Creates `.env.local` with a new sign-in secret |
 | `npm run dev` | Dev server |
 | `npm test` / `npm run e2e` | Unit tests / end-to-end tests |
 | `npm run typecheck`, `npm run lint` | TypeScript and ESLint |
@@ -543,4 +543,3 @@ The production address and each preview's URLs are trusted for sign-in automatic
 - **Publishing the website SnapStart builds**, with hosting, a custom web address and payments built in.
 - **Product photo galleries** on the built website, straight from the owner's approved photos.
 - **Password recovery and email verification.**
-- **Corporate bylaws**, alongside the LLC and partnership owners' agreements.

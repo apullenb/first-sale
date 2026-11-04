@@ -10,8 +10,7 @@ Requires Node 24 (`nvm use`).
 
 ```bash
 npm install
-cp .env.example .env.local
-# Put a secret in BETTER_AUTH_SECRET: openssl rand -base64 32
+npm run setup        # creates .env.local and its sign-in secret
 npm run db:migrate
 npm run dev
 ```
