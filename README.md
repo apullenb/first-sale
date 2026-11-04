@@ -240,7 +240,7 @@ A few quick questions (where the owner wants to show up, how familiar they are w
 
 For each platform in the plan, SnapStart gets the account ready: the name, a drafted bio, a profile picture and a cover from the brand kit, plus step-by-step setup that follows each platform's own help pages.
 
-**Post ideas: never wonder what to post.** Each day, a lightbulb on the social media page lights up with three fresh ideas made for this business, like a festival downtown this weekend, a seasonal moment, or a trend in the owner's market. Muse searches what's happening near the owner and writes a ready-to-post caption, with why it fits and the page it came from. One click copies it. SnapStart's code makes sure every idea comes from a real page in that day's search, and keeps prices, links and repeat topics out.
+**Post ideas.** Posting often matters, but some days the ideas just aren't there, and few owners have time to sit down and plan content. So SnapStart does it for them. Each day, a lightbulb on the social media page lights up with three fresh ideas made for this business, like a festival downtown this weekend, a seasonal moment, or a trend in the owner's market. Muse searches what's happening near the owner and writes a ready-to-post caption, with why it fits and the page it came from. One click copies it. SnapStart's code makes sure every idea comes from a real page in that day's search, and keeps prices, links and repeat topics out.
 
 <p align="center"><img src="docs/media/post-ideas-loading.webp" alt="Recording of the top of the social media page: a ring spins around the lightbulb while today's ideas are found, then a badge shows 3 new ideas" width="900"></p>
 
