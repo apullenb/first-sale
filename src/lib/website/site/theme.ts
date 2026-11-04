@@ -19,7 +19,22 @@ Read the saved brand brief, customer, offering, personality, lettering and palet
 
 DESIGN A PAGE, NOT A PALETTE
 The quality bar is an image-led independent boutique storefront: a confident, recognizable logo, an art-directed opening, substantial real product photography and a browsable collection visible early. Avoid the look of an empty document with a title and a few evenly spaced text blocks. The renderer gives a split hero a composed photo collection when several product photos exist. Use that to show the range; choose cover only when one scene is strong enough to carry the opening. For three or more physical products with photos, prefer grid with portrait or square imagery and offerings first in sectionOrder. Use featured for one or two products; use list for services where descriptions matter more than a product photograph. Carry the palette across contrasting sections, giving the story a different surface from the collection. Pair expressive headings with restrained body text. Pick a clear visual rhythm rather than making every section feel identical.
-Choose one deliberate concept and give it a short useful name. Explain the two or three concrete decisions that connect it to this brand. Choose a readable heading family: sans for clarity and contemporary confidence; serif for quiet craft or established character; editorial for expressive, literary sophistication. Set a restrained titleScale: 0.75–0.95 normally; reserve larger values for very short headlines. Keep foreground readable against background AND surface. Accent is the action color, not a color to paint every word.
+Choose one deliberate concept and give it a short useful name. Explain the two or three concrete decisions that connect it to this brand.
+
+TYPOGRAPHY
+Pair a characterful heading family with calm body text. font: sans for clean contemporary confidence; serif for quiet craft or established character; editorial for literary, artisanal warmth; display (high-contrast Didone) for fashion, beauty, jewelry and luxury goods; rounded for playful, family, food or friendly neighborhood businesses. bodyFont: sans in almost every case; serif only for a literary or heritage brand with an editorial heading. titleScale 0.85–1.05 for most headlines; up to 1.2 only for a very short headline; 0.75–0.85 for long ones.
+
+COLOR AND SURFACES
+Build a palette of five roles from the brand colors: background (the page), foreground (text, readable on background AND surface at 4.5:1), surface (a quiet alternate section tone), accent (buttons and key marks; the brand's strongest color) and highlight (a second brand color, lighter or warmer, for price badges, ornaments and the soft halo behind the opening). Vary the rhythm: storySurface chooses the story band's background (accent for a bold color block, dark for a rich deep band, tint for a soft wash, highlight for a playful pop). Don't make every section the same color, and don't make every section a different one.
+
+DETAILS THAT MAKE IT FEEL DESIGNED
+- heroFrame: arch for soft, crafted, botanical or wellness brands; offset for a confident, graphic look (a highlight-colored block behind the photo); framed for gallery-like, premium product shots; plain for documentary photography or a cover opening.
+- cardStyle: minimal for strong photography; framed for boutique products on a light page; lifted for a catalog that should feel like a shop; caption for an editorial magazine feel.
+- ornament: rule (fine line) for refined brands, dots for friendly ones, wave for water, food, calm or creative brands, star for sparkle, gifts or beauty, none for strictly minimal. It also adds a band listing the offerings beneath the opening.
+- buttonShape: pill for friendly and modern, soft for most, square for architectural, precise or luxury brands.
+- pullQuote true sets the owner's introduction as a large quote band (their own words, never a review). gallery true adds a strip of the photos already on the page; use it when there are three or more strong photos.
+- radius: 0–6 for precise or luxury; 10–18 for most; 20+ only for playful brands.
+Accent is the action color, not a color to paint every word.
 
 Choose layout from the actual assets:
 - split: a strong scene or product image beside focused copy; a versatile default when imagery needs room.
@@ -36,7 +51,17 @@ Optionally return heroCopy with a specific, memorable headline and one useful su
 QUALITY CHECK BEFORE RETURNING
 Would the opening work with the actual image dimensions? Does the page have a clear purpose and action? Do type, palette, spacing and image treatment belong together? Does the concept still read cleanly on a phone? Are all choices grounded in this owner rather than a fashionable default? Honor requests to change a previous design without touching product facts or prices. Return one excellent direction, not a list of alternatives.`;
 
-registerMockFixture(NAME, () => JSON.stringify({ theme: { name: "Editorial studio", rationale: "A focused opening, a clear product collection and a calm palette.", layout: "split", font: "sans", background: "#f8faf9", foreground: "#182c29", surface: "#edf2ef", accent: "#255847", radius: 10, titleScale: 0.85, density: "balanced", catalogLayout: "grid", imageShape: "square", sectionOrder: ["offerings", "about", "howToBuy", "faq", "contact"] }, heroId: null, heroCopy: null }));
+// Offline: a boutique direction built from the brand's own palette when one is saved
+export function practiceTheme(palette: string[]) {
+  const hex = palette.filter((color) => /^#[0-9a-f]{6}$/i.test(color));
+  const accent = hex.find((color) => contrast(color, "#ffffff") >= 4.5) ?? "#2f5d50";
+  const highlight = hex.find((color) => color !== accent && contrast(color, "#ffffff") < 3) ?? "#e9c9a8";
+  return { name: "Boutique storefront", rationale: "An image-led opening in an arched frame, a framed product collection with price badges, and a rich story band in your main brand color.", layout: "split", font: "editorial", bodyFont: "sans", background: "#fbf8f3", foreground: "#1f2421", surface: "#f2ece3", accent, highlight, radius: 14, titleScale: 0.95, density: "balanced", catalogLayout: "grid", imageShape: "portrait", heroFrame: "arch", cardStyle: "framed", storySurface: "accent", ornament: "star", buttonShape: "pill", gallery: true, pullQuote: true, sectionOrder: ["offerings", "about", "howToBuy", "faq", "contact"] } as const;
+}
+registerMockFixture(NAME, (request) => {
+  const brand = JSON.stringify(request.messages).match(/"palette\\?":\[(.*?)\]/)?.[1] ?? "";
+  return JSON.stringify({ theme: practiceTheme([...brand.matchAll(/#[0-9a-fA-F]{6}/g)].map((match) => match[0])), heroId: null, heroCopy: null });
+});
 
 export interface ThemeFacts {
   brief: Pick<BrandBrief, "name" | "tagline" | "sells" | "customers" | "vibes" | "leanings" | "colors" | "likedColors" | "avoidColors" | "story"> | null;

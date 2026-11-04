@@ -5,11 +5,21 @@ import { libraryFileUrl } from "@/lib/brand/library";
 import { getMyBrand, getMyBrandState, listMyPhotos, listMyLibraryFiles, listMyItemPictures, getMyBrandAsset, getMyBusiness, getMyDetails, getMyWebsitePlan, listMyPhotoLibrary, listMyProducts } from "@/lib/data/my-business";
 import type { WebsitePlan } from "@/lib/data/website";
 import { displayName } from "@/lib/intake/answers";
-import { brandAssetId, lookFromBrand } from "@/lib/website/look";
-import type { SiteState } from "@/lib/website/site/check";
+import { brandAssetId, lookFromBrand, siteLogo } from "@/lib/website/look";
+import { shownSite, type SiteState } from "@/lib/website/site/check";
 import { readDesign } from "@/lib/website/site/design";
+import { renderSite } from "@/lib/website/site/render";
 
 export { publishCheck, siteSignature } from "@/lib/website/site/check";
+
+// The saved site as visitors would see it, for previews in the app
+export function sitePreviewHtml(site: LoadedSite): string | null {
+  const shown = shownSite(site);
+  if (!shown.content || site.platform !== "first_sale") return null;
+  const logo = siteLogo(site.brand?.logos.primary ?? null);
+  const hero = site.brand?.images.websiteHero ?? null;
+  return renderSite({ name: site.name, copy: shown.content, design: shown.design, images: { logo: logo ? { ...logo, src: logo.url } : null, hero: hero ? { ...hero, src: hero.url } : null, favicon: null, photos: Object.fromEntries(site.library.map((image) => [image.id, image])) }, contact: site.contact, year: site.year, highlightNotes: false, anchorBase: "about:srcdoc" });
+}
 
 // Everything the built site is made from, read for the signed-in owner
 

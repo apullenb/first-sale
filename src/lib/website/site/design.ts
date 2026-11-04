@@ -28,6 +28,11 @@ export const MAX_PRICE_CENTS = 10_000_000;
 export const MAX_ITEMS = 12;
 const HEX = /^#[0-9a-f]{6}$/i;
 
+export const SITE_FONTS = ["sans", "serif", "editorial", "display", "rounded"] as const;
+export const FONT_LABELS: Record<(typeof SITE_FONTS)[number], string> = { sans: "Modern sans serif", serif: "Classic serif", editorial: "Editorial serif", display: "High-contrast display", rounded: "Friendly rounded" };
+export const CARD_STYLES = ["minimal", "framed", "lifted", "caption"] as const;
+export const ORNAMENTS = ["none", "rule", "dots", "wave", "star"] as const;
+
 const photoRef = z.object({ photoId: z.string().min(1).max(60), versionId: z.string().min(1).max(60) });
 
 export const siteItemSchema = z.object({
@@ -46,7 +51,7 @@ export const themeSchema = z.object({
   name: z.string().min(1).max(60),
   rationale: z.string().max(400),
   layout: z.enum(["split", "cover", "centered"]),
-  font: z.enum(["sans", "serif", "editorial"]),
+  font: z.enum(SITE_FONTS),
   background: z.string().regex(HEX),
   foreground: z.string().regex(HEX),
   surface: z.string().regex(HEX),
@@ -57,6 +62,17 @@ export const themeSchema = z.object({
   catalogLayout: z.enum(["grid", "list", "featured"]).optional(),
   imageShape: z.enum(["square", "portrait", "landscape"]).optional(),
   sectionOrder: z.array(z.enum(SITE_SECTIONS)).max(5).optional(),
+  bodyFont: z.enum(["sans", "serif"]).optional(),
+  // A second brand color for badges, ornaments and the highlight band
+  highlight: z.string().regex(HEX).optional(),
+  heroFrame: z.enum(["plain", "arch", "offset", "framed"]).optional(),
+  cardStyle: z.enum(CARD_STYLES).optional(),
+  storySurface: z.enum(["accent", "dark", "tint", "highlight"]).optional(),
+  ornament: z.enum(ORNAMENTS).optional(),
+  buttonShape: z.enum(["pill", "soft", "square"]).optional(),
+  // A photo strip from photos already on the page; a quote band from the owner's own words
+  gallery: z.boolean().optional(),
+  pullQuote: z.boolean().optional(),
   simulated: z.boolean().optional(),
 });
 export type SiteTheme = z.infer<typeof themeSchema>;

@@ -12,17 +12,14 @@ import { PLATFORM_DATA } from "@/data/website-platforms";
 import { domainIdeas } from "@/lib/website/domains";
 import { sectionMetadata } from "@/lib/sections";
 import { recommendPlatform } from "@/lib/website/recommend";
-import { siteLogo } from "@/lib/website/look";
 import { JobWatch } from "@/components/job-watch";
 import { lastMyRun, listMyJourneyMarks } from "@/lib/data/my-business";
-import { renderSite } from "@/lib/website/site/render";
-import { shownSite } from "@/lib/website/site/check";
-import { loadSite } from "./site-data";
+import { loadSite, sitePreviewHtml, siteSignature } from "./site-data";
 
 export const metadata = sectionMetadata("/website");
 export const maxDuration = 300;
 export default function WebsitePage() {
-  return <div className="flex max-w-[1040px] flex-col gap-7"><PageHead kicker={<Kicker icon="globe">Build your brand</Kicker>} title="Create your website" lead="Two decisions to get started. A dedicated editor for everything after." /><Suspense fallback={<p className="text-muted">Loading your website setup…</p>}><Setup /></Suspense></div>;
+  return <div className="flex max-w-[1040px] flex-col gap-7"><PageHead kicker={<Kicker icon="globe">Build your brand</Kicker>} title="Create your website" lead="Choose how you’ll build it and where it lives. Then design it, check it and publish it." /><Suspense fallback={<p className="text-muted">Loading your website setup…</p>}><Setup /></Suspense></div>;
 }
 async function Setup() {
   const [site, marks, run] = await Promise.all([loadSite(), listMyJourneyMarks(), lastMyRun("website_copy", null)]);
@@ -30,10 +27,9 @@ async function Setup() {
   const recommendation = recommendPlatform(site.profile);
   const recommended = ["first_sale", "square"].includes(recommendation.platform) ? recommendation.platform : "first_sale";
   const chosen = site.plan?.platform ?? null;
-  const shown = shownSite(site);
-  const logo = siteLogo(site.brand?.logos.primary ?? null);
-  const preview = shown.content && chosen === "first_sale" ? renderSite({ name: site.name, copy: shown.content, design: shown.design, images: { logo: logo ? { ...logo, src: logo.url } : null, hero: site.brand?.images.websiteHero ? { ...site.brand.images.websiteHero, src: site.brand.images.websiteHero.url } : null, favicon: null, photos: Object.fromEntries(site.library.map((image) => [image.id, image])) }, contact: site.contact, year: site.year, highlightNotes: false, anchorBase: "about:srcdoc" }) : null;
-  return <>{site.content?.simulated ? <PracticeBanner what="Your website draft uses offline suggestions." /> : null}{run?.status === "running" ? <JobWatch jobs={[{ workflow: "website_copy", subjectId: null }]} what="Building your website" /> : null}<WebsiteSetup building={run?.status === "running"} chosen={chosen} domain={chosen === "square" ? site.plan?.existingSite?.url ?? null : site.plan?.domain ?? null} hasDraft={Boolean(site.content && site.content.platform === "first_sale")} updatedAt={site.plan?.updatedAt.toISOString() ?? null} name={site.name} products={site.products.length} images={site.library.length} preview={preview}
+  const preview = chosen === "first_sale" ? sitePreviewHtml(site) : null;
+  const finished = site.plan?.finished ? { at: site.plan.finished.at, upToDate: site.plan.finished.signature === siteSignature(site) } : null;
+  return <>{site.content?.simulated ? <PracticeBanner what="Your website draft uses offline suggestions." /> : null}{run?.status === "running" ? <JobWatch jobs={[{ workflow: "website_copy", subjectId: null }]} what="Building your website" /> : null}<WebsiteSetup building={run?.status === "running"} chosen={chosen} domain={chosen === "square" ? site.plan?.existingSite?.url ?? null : site.plan?.domain ?? null} hasDraft={Boolean(site.content && site.content.platform === "first_sale")} updatedAt={site.plan?.updatedAt.toISOString() ?? null} name={site.name} products={site.products.length} images={site.library.length} preview={preview} approved={site.approved} finished={finished}
     options={<div className="grid gap-4 sm:grid-cols-2">{(["first_sale", "square", "wix", "shopify"] as const).map((id) => <PlatformCard key={id} platform={PLATFORM_DATA[id]} recommended={id === recommended ? { reasons: [] } : null} chosen={id === chosen} share={null} explanation={null} />)}</div>}
     address={<DomainFinder ideas={domainIdeas(site.profile.name, site.profile.location.city).slice(0, 3)} checks={site.plan?.domainChecks ?? []} chosen={site.plan?.domain ?? null} />}
     square={<ExistingSitePanel connected={site.plan?.existingSite ?? null} marked={marks.find((mark) => mark.key === "website") ?? null} startOpen={!site.plan?.existingSite && !marks.some((mark) => mark.key === "website")} initialPlatform="square" />}
