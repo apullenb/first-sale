@@ -5,7 +5,7 @@ import { ActionButton } from "@/components/action-button";
 import { PracticeTag } from "@/components/brand/asset-view";
 import { LibraryUpload } from "@/components/brand/library-upload";
 import { type LibraryEntry, LibraryGrid } from "@/components/brand/library-grid";
-import { flagged, ImageSlots, NoLogoYet } from "@/components/brand/slots";
+import { flagged, imageSlotCards, ImageSlots, type ImageSlotsProps, NoLogoYet } from "@/components/brand/slots";
 import { formatBytes } from "@/components/documents/labels";
 import { Icon, type IconName } from "@/components/icons";
 import { JobWatch } from "@/components/job-watch";
@@ -59,6 +59,7 @@ interface Item {
   deleteId: string | null;
   // A made file not approved yet: where to choose "Use this"
   unused?: string;
+  createdAt: Date;
 }
 
 const GROUP_ICONS: Record<LibraryGroup, IconName> = { logos: "sparkles", brand_images: "palette", product_photos: "camera", other: "image" };
@@ -121,6 +122,7 @@ async function Library() {
       practice: asset.simulated,
       tags,
       deleteId: null,
+      createdAt: asset.createdAt,
     });
     if (chosen) {
       groups.logos.push(brandItem(chosen, chosen.origin === "uploaded" && chosen.title ? chosen.title : "Main logo", ["Your chosen logo"]));
@@ -150,6 +152,7 @@ async function Library() {
       practice: false,
       tags: [],
       deleteId: null,
+      createdAt: photo.createdAt,
     });
   }
   for (const version of approved) {
@@ -164,6 +167,7 @@ async function Library() {
       practice: version.simulated,
       tags: ["Approved edit"],
       deleteId: null,
+      createdAt: version.createdAt,
     });
   }
   for (const file of uploads) {
@@ -178,6 +182,7 @@ async function Library() {
       practice: false,
       tags: [],
       deleteId: file.id,
+      createdAt: file.createdAt,
     });
   }
 
@@ -194,11 +199,12 @@ async function Library() {
   const madeImages = chosen && state ? state.assets.filter((asset) => asset.origin === "generated" && asset.sourceId === chosen.id && (IMAGE_KINDS as readonly string[]).includes(asset.kind)) : [];
   const libraryMode = madeImages.length >= LIBRARY_AFTER;
   const style = state ? brandImageMedium(state) : ({ medium: "photo", by: "rules" } as const);
+  const slotProps: ImageSlotsProps = { chosenId: chosen?.id ?? null, name: state?.brief?.name || business.profile?.name || "", assets: state?.assets ?? [], picks: state?.picks ?? {}, practice, running, recommended, style };
   const slots = (
     <>
       {chosen ? null : <NoLogoYet />}
       {chosen && running.size ? <JobWatch jobs={[...running].map((kind) => ({ workflow: "brand_images", subjectId: `${chosen.id}:${kind}` }))} what="Making your brand images" /> : null}
-      <ImageSlots key={chosen?.id ?? "none"} chosenId={chosen?.id ?? null} name={state?.brief?.name || business.profile?.name || ""} assets={state?.assets ?? []} picks={state?.picks ?? {}} practice={practice} running={running} recommended={recommended} style={style} />
+      <ImageSlots key={chosen?.id ?? "none"} {...slotProps} />
     </>
   );
   const footnote = (
@@ -238,6 +244,7 @@ async function Library() {
       practice: item.practice,
       inUse: item.tags.includes("In use") || item.tags.includes("Your chosen logo"),
       deleteUploadId: item.deleteId ?? undefined,
+      createdAt: item.createdAt.toISOString(),
     });
     // Newest first within each purpose, in the order the make cards show
     const images = IMAGE_KINDS.flatMap((kind) =>
@@ -260,6 +267,8 @@ async function Library() {
             useId: inUse ? undefined : asset.id,
             flagged: flagged(asset.check),
             removeId: asset.id,
+            cardKind: kind,
+            createdAt: asset.createdAt.toISOString(),
           };
         }),
     );
@@ -276,7 +285,7 @@ async function Library() {
         <div className="@container">
           <Card title="Your pictures" icon="image" id="library-heading" action={<Chip tone="gray">{entries.length}</Chip>} bodyClassName="gap-4">
             <p className="text-[15px] text-muted">Every logo and picture you have, tagged with what it’s for. Choose which one is in use for each purpose; the others stay here.</p>
-            <LibraryGrid entries={entries} />
+            <LibraryGrid entries={entries} cards={imageSlotCards(slotProps)} />
           </Card>
         </div>
         <section id="make" aria-labelledby="make-heading" className="flex flex-col gap-4 scroll-mt-6">

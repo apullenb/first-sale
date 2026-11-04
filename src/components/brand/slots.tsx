@@ -285,17 +285,7 @@ export function VersionSlots({ chosenId, name, assets, picks, practice, running 
   );
 }
 
-// Brand images in two groups: the header first, as the example; the others wait until the owner uses it, then match it
-export function ImageSlots({
-  chosenId,
-  name,
-  assets,
-  picks,
-  practice,
-  running,
-  recommended,
-  style,
-}: {
+export interface ImageSlotsProps {
   chosenId: string | null;
   name: string;
   assets: AssetSummary[];
@@ -306,7 +296,10 @@ export function ImageSlots({
   recommended: readonly BrandImageKind[];
   // Photo or illustration, and whether the owner's switch or the rule decided
   style: { medium: ImageMedium; by: "owner" | "rules" };
-}) {
+}
+
+// Each kind's full card, also shown as an image's detail view in the library
+export function imageSlotCards({ chosenId, name, assets, picks, practice, running, recommended, style }: ImageSlotsProps): Record<BrandImageKind, ReactNode> {
   const example = approvedExample(assets, chosenId, picks);
   const exampleTitle = IMAGE_SPECS[EXAMPLE_IMAGE].title.toLowerCase();
   const all = imageSlots(assets, chosenId, picks);
@@ -326,34 +319,42 @@ export function ImageSlots({
         ? `Made in the style of your ${exampleTitle}, with a scene of its own.`
         : null;
     return (
-      <li key={slot.kind}>
-        <SlotCard
-          kind={slot.kind}
-          title={spec.title}
-          purpose={spec.purpose}
-          size={`${spec.final.width}x${spec.final.height}`}
-          slot={slot}
-          intent={{ kind: "images", logoId: chosenId ?? "", kinds: [slot.kind] }}
-          name={name}
-          practice={practice}
-          running={running.has(slot.kind)}
-          blocked={blocked}
-          recommend={recommended.includes(slot.kind)}
-          note={note}
-          control={
-            isExample && chosenId ? (
-              <MediumSwitch logoId={chosenId} medium={style.medium} by={style.by} hasExample={!slot.empty} hint={practice ? "Practice mode: you’ll see a labeled sample." : ""} />
-            ) : null
-          }
-          guides={spec.guides}
-          exports={spec.exports}
-          usedOn={spec.usedOn}
-          exact={spec.final}
-          facts={<SizeFacts kind={slot.kind} />}
-        />
-      </li>
+      <SlotCard
+        kind={slot.kind}
+        title={spec.title}
+        purpose={spec.purpose}
+        size={`${spec.final.width}x${spec.final.height}`}
+        slot={slot}
+        intent={{ kind: "images", logoId: chosenId ?? "", kinds: [slot.kind] }}
+        name={name}
+        practice={practice}
+        running={running.has(slot.kind)}
+        blocked={blocked}
+        recommend={recommended.includes(slot.kind)}
+        note={note}
+        control={
+          isExample && chosenId ? (
+            <MediumSwitch logoId={chosenId} medium={style.medium} by={style.by} hasExample={!slot.empty} hint={practice ? "Practice mode: you’ll see a labeled sample." : ""} />
+          ) : null
+        }
+        guides={spec.guides}
+        exports={spec.exports}
+        usedOn={spec.usedOn}
+        exact={spec.final}
+        facts={<SizeFacts kind={slot.kind} />}
+      />
     );
   };
+  return Object.fromEntries(all.map((slot) => [slot.kind, card(slot)])) as Record<BrandImageKind, ReactNode>;
+}
+
+// Brand images in two groups: the header first, as the example; the others wait until the owner uses it, then match it
+export function ImageSlots(props: ImageSlotsProps) {
+  const { chosenId, assets, picks, running, recommended } = props;
+  const exampleTitle = IMAGE_SPECS[EXAMPLE_IMAGE].title.toLowerCase();
+  const all = imageSlots(assets, chosenId, picks);
+  const cards = imageSlotCards(props);
+  const card = (slot: (typeof all)[number]) => <li key={slot.kind}>{cards[slot.kind]}</li>;
   const [pages, extras] = IMAGE_GROUPS.map((group) => all.filter((slot) => (group.kinds as readonly string[]).includes(slot.kind)));
   // Opened once something there is made, being made or recommended
   const openExtras = extras.some((slot) => !slot.empty || running.has(slot.kind) || recommended.includes(slot.kind));
