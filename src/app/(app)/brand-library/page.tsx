@@ -15,7 +15,8 @@ import { Card, Chip, PageHead } from "@/components/ui";
 import { getImageModel } from "@/lib/ai";
 import { brandFileUrl, kindTitle } from "@/lib/brand/files";
 import { LIBRARY_GROUP_TEXT, LIBRARY_GROUPS, type LibraryGroup, libraryFileUrl } from "@/lib/brand/library";
-import { imageSlots, recommendedImages, versionSlots } from "@/lib/brand/slots";
+import { approvedExample, EXAMPLE_IMAGE, imageSlots, recommendedImages, versionSlots } from "@/lib/brand/slots";
+import { IMAGE_SPECS } from "@/lib/brand/sizes";
 import { IMAGE_KINDS } from "@/lib/brand/types";
 import { brandImageMedium } from "@/lib/data/brand";
 import { LIBRARY_LIMITS } from "@/lib/data/brand-library";
@@ -33,7 +34,7 @@ export default function BrandLibraryPage() {
       <PageHead
         kicker={<Kicker icon="image">Build your brand</Kicker>}
         title="Your Brand Library"
-        lead="Every logo, brand image and product photo you’ve made or added, sorted into one place. Make the brand images SnapStart recommends, view or download anything, and add your own pictures."
+        lead="All your logos, brand pictures and product photos in one place. Make the pictures for your website and social pages, download them at the exact size each one needs, and add your own."
       />
       <Suspense fallback={<p className="text-muted">Loading your Brand Library…</p>}>
         <Library />
@@ -58,11 +59,11 @@ interface Item {
 }
 
 const GROUP_ICONS: Record<LibraryGroup, IconName> = { logos: "sparkles", brand_images: "palette", product_photos: "camera", other: "image" };
-const EMPTY: Record<LibraryGroup, { text: string; href: string; label: string } | null> = {
-  logos: { text: "No logos yet.", href: "/logo", label: "Create your logo" },
-  brand_images: null,
-  product_photos: { text: "No product photos yet.", href: "/photos", label: "Make product photos" },
-  other: null,
+const EMPTY: Record<LibraryGroup, { text: string; href: string; label: string }> = {
+  logos: { text: "No logos yet. Create one, or upload a logo you already have.", href: "/logo", label: "Create your logo" },
+  brand_images: { text: "No brand pictures of your own yet.", href: "#add-heading", label: "Add a picture" },
+  product_photos: { text: "No product photos yet. Take or upload a photo and SnapStart helps you tidy it up.", href: "/photos", label: "Make product photos" },
+  other: { text: "Nothing here yet. Add pictures of your storefront, your team or your work.", href: "#add-heading", label: "Add a picture" },
 };
 
 const photoUrl = (photoId: string, versionId: string | null, view: boolean) =>
@@ -175,9 +176,20 @@ async function Library() {
   const made = state ? imageSlots(state.assets, chosen?.id ?? null, state.picks).filter((slot) => slot.newest).length : 0;
   const counts = { ...Object.fromEntries(LIBRARY_GROUPS.map((group) => [group, groups[group].length])), brand_images: groups.brand_images.length + made } as Record<LibraryGroup, number>;
 
+  const imageList = state ? imageSlots(state.assets, chosen?.id ?? null, state.picks) : [];
+  const exampleUsed = state ? approvedExample(state.assets, chosen?.id ?? null, state.picks) !== null : false;
+  const missing = imageList.filter((slot) => slot.empty && recommended.includes(slot.kind)).map((slot) => IMAGE_SPECS[slot.kind].title.toLowerCase());
+  const steps: Step[] = [
+    { label: "Choose or upload your logo", done: Boolean(chosen), href: "/logo", action: "Go to Create your logo" },
+    { label: `Make your ${IMAGE_SPECS[EXAMPLE_IMAGE].title.toLowerCase()} and choose “Use this” when you like the look`, done: exampleUsed, href: `#slot-${EXAMPLE_IMAGE}`, action: "Go to the header picture" },
+    { label: missing.length ? `Make the rest to match: ${missing.join(", ")}` : "Make the rest to match", done: exampleUsed && missing.length === 0, href: "#group-brand_images", action: "Go to brand images" },
+    { label: "Download each one at its exact size and upload it where it’s used", done: false, href: "#group-brand_images", action: "See downloads" },
+  ];
+
   return (
     <>
       {practice && chosen ? <PracticeBanner what="Brand images made here are plain labeled previews, not made by AI." /> : null}
+      <NextSteps steps={steps} />
       <nav aria-label="Groups in your library" className="flex flex-wrap gap-2">
         {LIBRARY_GROUPS.map((group) => (
           <a key={group} href={`#group-${group}`} className={`${SECONDARY_LINK} text-[15px]`}>
@@ -224,6 +236,48 @@ async function Library() {
   );
 }
 
+interface Step {
+  label: string;
+  done: boolean;
+  href: string;
+  action: string;
+}
+
+// The first step not done is the one to do now
+function NextSteps({ steps }: { steps: Step[] }) {
+  const current = steps.findIndex((step) => !step.done);
+  return (
+    <Card title="What to do next" icon="checklist" id="next-heading">
+      <ol className="flex flex-col gap-2">
+        {steps.map((step, index) => (
+          <li key={step.label} className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-3 py-2.5 ${index === current ? "border-accent-ring bg-accent-tint" : "border-line"}`}>
+            <span aria-hidden="true" className={`grid size-7 shrink-0 place-items-center rounded-full text-sm font-bold ${step.done ? "bg-done-tint text-done" : index === current ? "bg-accent text-white" : "bg-wash text-muted"}`}>
+              {step.done ? <Icon name="check" size="xs" /> : index + 1}
+            </span>
+            <span className={`min-w-0 flex-1 text-[15px] ${step.done ? "text-muted" : "font-semibold"}`}>
+              {step.label}
+              {step.done ? <span className="sr-only"> (done)</span> : null}
+            </span>
+            {index === current ? (
+              step.href.startsWith("#") ? (
+                <a href={step.href} className={`${TEXT_LINK} inline-flex min-h-11 items-center gap-1.5`}>
+                  {step.action}
+                  <Icon name="arrow" size="sm" />
+                </a>
+              ) : (
+                <Link href={step.href} className={`${TEXT_LINK} inline-flex min-h-11 items-center gap-1.5`}>
+                  {step.action}
+                  <Icon name="arrow" size="sm" />
+                </Link>
+              )
+            ) : null}
+          </li>
+        ))}
+      </ol>
+    </Card>
+  );
+}
+
 // children: what SnapStart makes for this group, shown before the owner's own pictures
 function Group({ group, items, count, uploadsTitle, children }: { group: LibraryGroup; items: Item[]; count: number; uploadsTitle?: string; children?: ReactNode }) {
   const empty = EMPTY[group];
@@ -233,7 +287,16 @@ function Group({ group, items, count, uploadsTitle, children }: { group: Library
       <Card title={text.title} icon={GROUP_ICONS[group]} id={`group-${group}-heading`} action={<Chip tone="gray">{count}</Chip>} bodyClassName="gap-4">
         <p className="text-[15px] text-muted">{text.help}</p>
         {children}
-        {children && items.length ? <h3 className="border-t border-line pt-4 font-bold">{uploadsTitle}</h3> : null}
+        {children ? (
+          <p className="border-t border-line pt-4 text-[15px] text-rule">
+            Have your own brand pictures?{" "}
+            <a href="#add-heading" className={TEXT_LINK}>
+              Upload your own
+            </a>{" "}
+            and they’re kept here too.
+          </p>
+        ) : null}
+        {children && items.length ? <h3 className="font-bold">{uploadsTitle}</h3> : null}
         {children && !items.length ? null : items.length ? (
           <ul className="grid gap-4 @xl:grid-cols-2 @3xl:grid-cols-3">
             {items.map((item) => (
@@ -244,12 +307,16 @@ function Group({ group, items, count, uploadsTitle, children }: { group: Library
           </ul>
         ) : (
           <div className="flex flex-col items-start gap-2 rounded-xl border border-dashed border-line-strong bg-soft px-4 py-5">
-            <p className="text-muted">{empty?.text ?? "Nothing added yet. Use “Add a picture” below."}</p>
-            {empty ? (
+            <p className="text-muted">{empty.text}</p>
+            {empty.href.startsWith("#") ? (
+              <a href={empty.href} className={TEXT_LINK}>
+                {empty.label}
+              </a>
+            ) : (
               <Link href={empty.href} className={TEXT_LINK}>
                 {empty.label}
               </Link>
-            ) : null}
+            )}
           </div>
         )}
       </Card>

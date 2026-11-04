@@ -7,6 +7,7 @@ import { kitColors } from "./colors";
 import { letterCount } from "./layout";
 import { clearFrame, logoColors, oneColor, type Pixels } from "./pixels";
 import { decodePng, encodePng } from "./png";
+import { fitBrandImage } from "./fit";
 import { imageStyle } from "./image-style";
 import { practiceSvg } from "./practice";
 import { brandImagePrompt, logoPrompt, ownLogoEditPrompt, pictureEditPrompt, refinePrompt, retryLines, versionPrompt } from "./prompts";
@@ -118,6 +119,8 @@ interface Job {
   retry?: (check: AssetCheck) => Job;
   // Brand images: shown on the practice preview
   medium?: ImageMedium;
+  // Brand images: cropped and resized in code to the exact final size
+  fit?: BrandImageKind;
 }
 
 export interface BatchResult {
@@ -144,6 +147,7 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
   }
 
   let file: { mimeType: string; data: Uint8Array; width: number; height: number };
+  let fitNote: string | undefined;
   if (models.image.simulated) {
     // Never shown as a picture: a labeled text wordmark stands in
     const preview = practiceSvg({
@@ -162,6 +166,13 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
     file = { mimeType: info.type, data: result.data, width: info.width, height: info.height };
     const fixed = job.fix ? fixPng(file.data, job.fix) : null;
     if (fixed) file = { ...file, mimeType: "image/png", data: fixed };
+    if (job.fit) {
+      const fitted = await fitBrandImage(job.fit, file.data).catch((error: unknown) => {
+        throw error instanceof OwnerFacingError ? error : new OwnerFacingError("The image service sent back something that isn’t a usable picture. Nothing was saved. Try again.");
+      });
+      fitNote = fitted.note;
+      file = { mimeType: fitted.mimeType, data: fitted.data, width: fitted.width, height: fitted.height };
+    }
   }
 
   const added = await store.add({
@@ -184,7 +195,7 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
     models.image.simulated || !models.vision.capabilities.vision
       ? skippedCheck(now)
       : await job.check({ mimeType: file.mimeType, data: file.data }).catch(() => failedCheck(now));
-  const check = job.layout ? { ...checked, layout: job.layout } : checked;
+  const check = { ...checked, ...(job.layout ? { layout: job.layout } : {}), ...(fitNote ? { fit: fitNote } : {}) };
   await store.setCheck(added.id, check);
   if (!job.retry || !needsRetry(check) || (await store.room(1)) !== "ok") return added.id;
   // Both are kept: the retry shows as newest and the first try stays under "Earlier ones"
@@ -457,6 +468,7 @@ export async function makeBrandImages(
       design: inherited(logo.design),
       prompt,
       requestKey: `${logo.logoId}:${input.requestKey}:${kind}`,
+      fit: kind,
       call: () =>
         models.image.edit({ instruction: prompt, images: example ? [logo.logo, example] : [logo.logo], size: sizeFor(kind), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
       check: (file) => checkBrandImage(models.vision, file, kind, expected(logo, "logo"), input.now, input.userKey),
@@ -490,6 +502,7 @@ export async function editPicture(
         ? checkBrandImage(models.vision, file, kind as BrandImageKind, expected(logo, "logo"), input.now, input.userKey)
         : checkVersion(models.vision, logo.logo, file, kind as VersionKind, expected(logo, kind), input.now, input.userKey),
     fix: logoFix(kind, logo),
+    fit: isImage ? (kind as BrandImageKind) : undefined,
   };
   const result = await runBatch(models, store, [job], input.now);
   return result.ids[0];
