@@ -78,18 +78,20 @@ describe("refinements, versions and brand images", () => {
   it("put the logo, unchanged, in every brand image, big enough to recognize, and no other words", () => {
     const banner = brandImagePrompt(testBrief(), testConcept().palette, "youtube_banner", null);
     expect(banner).toContain("Keep the logo exactly as in image 1");
-    expect(banner).toContain("middle 60% of the width");
-    expect(banner).toContain("Make it big there");
+    expect(banner).toContain("inside a box about 60% of the width and 29% of the height, centered left to right and centered top to bottom");
+    expect(banner).toContain("2560 × 1440 pixels");
+    expect(banner).toContain("nothing essential near the edges");
+    expect(banner).toContain("make it big there");
     const hero = brandImagePrompt(testBrief(), testConcept().palette, "website_hero", "more bread");
     expect(hero).toContain("Keep the logo exactly as in image 1");
-    expect(hero).toContain("top-left corner");
+    expect(hero).toContain("top left of the safe area");
     expect(hero).toContain("where the owner’s headline will go");
     expect(hero).toContain("The owner’s change: “more bread”");
     expect(hero).toContain("obvious at a glance what “Rise Bakery” sells");
     expect(hero).toContain("never invent other products");
     expect(hero).toContain("The only words anywhere are the ones in the logo.");
     expect(hero).toContain("Rise Bakery is a porch swing");
-    expect(brandImagePrompt(testBrief(), [], "facebook_cover", null)).toContain("right half of that band");
+    expect(brandImagePrompt(testBrief(), [], "facebook_cover", null)).toContain("profile picture covers the lower-left corner");
   });
 
   it("make photos by default, bright and punchy for playful brands, and illustrations only when asked", () => {

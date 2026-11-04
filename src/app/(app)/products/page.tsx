@@ -141,6 +141,10 @@ async function Products() {
     approved: picture.approvedAt !== null,
     src: pictureSrc(picture.id),
   }));
+  const counted = (kind: "product" | "service") => {
+    const count = listed.filter((item) => item.kind === kind).length;
+    return count ? ` (${count})` : "";
+  };
   const list = (kind: "product" | "service") => (
     <ProductList
       kind={kind}
@@ -160,10 +164,10 @@ async function Products() {
         title={itemsStepTitle(what, confirmed.length > 0)}
         lead={
           what.services && !what.products
-            ? "List the services you offer: what each one is, how you price it, how long it takes and where it happens."
+            ? "List each service you offer: what it is, its price, how long it takes and where it happens. Your website and orders use this list."
             : both
-              ? "List the products and services you offer, with a short description and the price you charge."
-              : "List what you sell, with a short description, the price you charge and a photo. Add what each one costs you to see what’s left from every sale."
+              ? "List each product and service you offer, with a short description and its price. Your website and orders use this list."
+              : "List each thing you sell, with a short description, its price and a photo. Add what each one costs you to see what you keep from every sale."
         }
       />
       {practice && (items.some((item) => item.descriptionBy === "practice") || pictures.some((picture) => picture.simulated)) ? <PracticeBanner what="Some drafted descriptions or pictures on this page are practice samples." /> : null}
@@ -176,6 +180,16 @@ async function Products() {
         help={`If your ${noun} are already listed in an online shop, booking site or marketplace, mark this step done and add the link, so it’s easy to find.`}
         linkLabel="Your shop’s address"
         done={mark ? { url: mark.url, note: mark.note } : null}
+      />
+
+      <OnThisPage
+        links={[
+          ...(what.products ? [{ href: "#products-heading", label: `Add your products${counted("product")}` }] : []),
+          ...(what.services ? [{ href: "#services-heading", label: `Add your services${counted("service")}` }] : []),
+          { href: "#from-photo", label: "Start from a photo" },
+          ...(confirmed.length ? [{ href: "#compare-prices", label: "Compare prices near you" }] : []),
+          { href: "#photos", label: what.services && !what.products ? "Make photos" : "Make store photos" },
+        ]}
       />
 
       {suggestions.length ? (
@@ -197,7 +211,7 @@ async function Products() {
 
       {what.products ? (
         <section aria-labelledby="products-heading" className="flex flex-col gap-4">
-          <h2 id="products-heading" className="font-display text-[22px] leading-snug">
+          <h2 id="products-heading" className="scroll-mt-6 font-display text-[22px] leading-snug">
             Your products {listed.some((item) => item.kind === "product") ? <span className="text-muted">({listed.filter((item) => item.kind === "product").length})</span> : null}
           </h2>
           {list("product")}
@@ -206,7 +220,7 @@ async function Products() {
 
       {what.services ? (
         <section aria-labelledby="services-heading" className="flex flex-col gap-4">
-          <h2 id="services-heading" className="font-display text-[22px] leading-snug">
+          <h2 id="services-heading" className="scroll-mt-6 font-display text-[22px] leading-snug">
             Your services {listed.some((item) => item.kind === "service") ? <span className="text-muted">({listed.filter((item) => item.kind === "service").length})</span> : null}
           </h2>
           {list("service")}
@@ -223,15 +237,20 @@ async function Products() {
         </section>
       ) : null}
 
-      <FromPhoto kinds={[...(what.products ? (["product"] as const) : []), ...(what.services ? (["service"] as const) : [])]} maxUploadBytes={MAX_UPLOAD_BYTES} nameLimit={MAX_PHOTO_NAME} />
+      <div id="from-photo" className="scroll-mt-6">
+        <FromPhoto kinds={[...(what.products ? (["product"] as const) : []), ...(what.services ? (["service"] as const) : [])]} maxUploadBytes={MAX_UPLOAD_BYTES} nameLimit={MAX_PHOTO_NAME} />
+      </div>
 
-      <PriceCompare
+      <div id="compare-prices" className="scroll-mt-6">
+        <PriceCompare
         items={confirmed.map((item) => ({ id: item.id, name: item.name, kind: item.kind, priceCents: item.priceCents, priceText: item.priceText, options: item.options }))}
         noun={noun}
         checks={Object.fromEntries(checks.map((check) => [check.productId, check.result]))}
-      />
+        />
+      </div>
 
       {what.products || what.services ? (
+        <div id="photos" className="scroll-mt-6">
         <Card title={what.services && !what.products ? "Make photos for your services" : "Make polished store photos"} icon="camera" id="photos-heading">
           <p className="text-rule">{what.services && !what.products ? "Generate a picture from your service description, or upload a photo of your work. Review and approve it before using it." : "Turn an ordinary phone photo into a clean store photo. The product stays exactly as it is, and you approve every photo before it shows here."}</p>
           <Link href="/photos" className={SECONDARY_LINK}>
@@ -239,7 +258,21 @@ async function Products() {
             {what.services && !what.products ? "Service photos" : what.services ? "Product and service photos" : "Product photos"}
           </Link>
         </Card>
+        </div>
       ) : null}
     </>
+  );
+}
+
+// Jump links for a long page, most useful on phones
+function OnThisPage({ links }: { links: { href: string; label: string }[] }) {
+  return (
+    <nav aria-label="On this page" className="flex flex-wrap gap-2">
+      {links.map((link) => (
+        <a key={link.href} href={link.href} className={`${SECONDARY_LINK} text-[15px]`}>
+          {link.label}
+        </a>
+      ))}
+    </nav>
   );
 }

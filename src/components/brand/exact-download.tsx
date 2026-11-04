@@ -11,7 +11,7 @@ function toBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promi
   return new Promise((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("No image"))), type, quality));
 }
 
-// Resized and cropped to fill in the browser, from the center, because Muse Image only sets the shape
+// Platform sizes cut from the saved file, from the center, where its safe area is
 export async function exactFile(src: string, spec: Pick<Export, "width" | "height" | "type" | "maxBytes">): Promise<Blob> {
   const image = new Image();
   image.src = src;
