@@ -239,6 +239,7 @@ export function pictureEditPrompt(kind: VersionKind | BrandImageKind, change: st
     `The owner’s change: “${clean(change, MAX_CHANGE)}”`,
     ...EDIT_RULES,
     image ? "Keep the same kind of picture as image 1 (a photo stays a photo, an illustration stays an illustration), the same scene, framing and safe areas, unless the change asks otherwise." : null,
+    ...(image ? compositionLines(kind as BrandImageKind) : []),
     "",
     "Wherever the logo, its symbol or its lettering appears, keep it exactly as in image 2: the same shapes, lettering, letter case, spelling and colors. Don’t redraw it.",
     ...words,
@@ -249,15 +250,35 @@ export function pictureEditPrompt(kind: VersionKind | BrandImageKind, change: st
     .join("\n");
 }
 
-const IMAGE_PLACEMENT: Record<BrandImageKind, string> = {
-  facebook_cover:
-    "Keep everything important in a band across the middle third of the height: Facebook cuts off the top and bottom on phones, and the Page’s profile picture covers the lower-left corner. Put the logo in the right half of that band, large enough to read on a phone: about a quarter of the picture’s width.",
-  youtube_banner:
-    "Put the logo inside the safe area: the middle 60% of the width and the middle 28% of the height, the only part every device shows. Make it big there, filling most of that area’s height, so it reads on a phone. Fill the whole banner, edge to edge, with the scene, kept a little calmer right behind the logo so it stays readable.",
+// Where the logo goes inside the safe area
+const LOGO_IN_SAFE: Record<BrandImageKind, string> = {
+  facebook_cover: "Put the logo in the middle of the safe area, large enough to read on a phone: about a quarter of the picture’s width.",
+  youtube_banner: "Put the logo in the middle of the safe area and make it big there, filling most of its height, so it reads on a phone. Keep the scene a little calmer right behind it.",
   website_hero:
-    "Leave a calm, uncluttered area across the middle or one side, softly out of focus or plain, where the owner’s headline will go. Put the logo small but clear in the top-left corner, about a sixth of the width, so visitors know whose site it is.",
-  link_preview: "Put the logo in the center, about half the width of the picture, on a calm part of the scene with plenty of space around it.",
+    "Put the logo small but clear at the top left of the safe area, about a sixth of the picture’s width, and leave a calm, uncluttered part of the safe area, softly out of focus or plain, where the owner’s headline will go.",
+  link_preview: "Put the logo in the middle of the safe area, about half the picture’s width, on a calm part of the scene with space around it.",
 };
+
+const percent = (value: number) => `${Math.round(value * 100)}%`;
+
+function side(start: number, size: number, axis: "left" | "top"): string {
+  const end = 1 - start - size;
+  if (Math.abs(start - end) < 0.02) return axis === "left" ? "centered left to right" : "centered top to bottom";
+  return axis === "left" ? `starting ${percent(start)} from the left edge and ending ${percent(end)} from the right edge` : `starting ${percent(start)} from the top and ending ${percent(end)} from the bottom`;
+}
+
+// The final shape and safe area in plain composition terms, from sizes.ts
+export function compositionLines(kind: BrandImageKind): string[] {
+  const { final, safe } = IMAGE_SPECS[kind];
+  const ratio = final.width / final.height;
+  return [
+    `Shape: a wide picture, ${final.width} × ${final.height} pixels (about ${ratio.toFixed(2).replace(/\.?0+$/, "")} to 1). Compose for exactly this shape.`,
+    `Safe area: keep the logo and everything important (people, products, faces) inside a box about ${percent(safe.w)} of the width and ${percent(safe.h)} of the height, ${side(safe.x, safe.w, "left")} and ${side(safe.y, safe.h, "top")}. Outside it gets cropped on some screens.`,
+    kind === "facebook_cover" ? "The Page’s profile picture covers the lower-left corner, so leave that part plain." : null,
+    "The rest is background that carries the scene all the way to every edge: no borders, and nothing essential near the edges.",
+    LOGO_IN_SAFE[kind],
+  ].filter((line): line is string => line !== null);
+}
 
 // Photo or illustration, from the owner's switch or brand answers (image-style.ts)
 function styleLines(style: ImageStyle, palette: string): string[] {
@@ -307,7 +328,7 @@ export function brandImagePrompt(brief: BrandBrief, colors: PaletteColor[], kind
     "",
     `The picture must make it obvious at a glance what “${name}” sells (${sells}) and feel unmistakably like this brand. Show only the kinds of things they actually sell, plain and unbranded apart from the logo; never invent other products, prices or offers.`,
     ...logoPlacement(style.medium),
-    IMAGE_PLACEMENT[kind],
+    ...compositionLines(kind),
     ...styleLines(style, palette),
     ...feel(brief, style.medium === "photo"),
     "The only words anywhere are the ones in the logo. No other text, and no other signs or labels with words, numbers or slogans.",

@@ -98,7 +98,9 @@ export function ProductList({
   const noun = NOUN[kind];
   const group = (product: ListedProduct) => product.squareSync?.origin === "imported" ? 0 : product.squareSync?.linked ? 1 : product.squareSync?.pending ? 2 : 3;
   const grouped = products.toSorted((a, b) => group(a) - group(b));
-  const labels = ["Pulled from Square", "Published from your library to Square", "Awaiting Square publication confirmation", `Only in your ${NOUN[kind].one} library`];
+  const labels = ["Brought in from Square", "Sent from SnapStart to Square", "Waiting for Square to confirm", `Only in SnapStart, not on Square`];
+  // Square groups only mean something once Square is part of the picture
+  const showGroups = Boolean(squareConnected) || products.some((product) => product.squareSync);
 
   return (
     <div className="@container flex flex-col gap-4">
@@ -106,7 +108,7 @@ export function ProductList({
         <ul className="flex flex-col gap-3" aria-label={`Your ${noun.many}`}>
           {grouped.map((product, index) => (
             <li key={product.id}>
-              {index === 0 || group(grouped[index - 1]) !== group(product) ? <h3 className="mb-3 font-semibold text-accent">{labels[group(product)]}</h3> : null}
+              {showGroups && (index === 0 || group(grouped[index - 1]) !== group(product)) ? <h3 className="mb-3 font-semibold text-accent">{labels[group(product)]}</h3> : null}
               {editing === product.id ? (
                 <ProductEditor
                   key={product.id}
@@ -130,6 +132,11 @@ export function ProductList({
             </li>
           ))}
         </ul>
+      ) : null}
+      {products.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-line-strong bg-soft px-4 py-3 text-[15px] text-rule">
+          No {noun.many} listed yet. Fill in the form below to add your first one, or start from a photo further down.
+        </p>
       ) : null}
       {adding || products.length === 0 ? (
         total < PRODUCT_LIMITS.products ? (

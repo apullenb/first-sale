@@ -80,9 +80,12 @@ interface SlotProps {
   note?: string | null;
   // Shown under the note, such as the example's Photo / Illustration switch
   control?: ReactNode;
+  // Brand images: where it's used and the exact size it's made at
+  usedOn?: string;
+  exact?: { width: number; height: number };
 }
 
-function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, running, blocked, guides = [], circle, exports, facts, recommend, note, control }: SlotProps) {
+function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, running, blocked, guides = [], circle, exports, facts, recommend, note, control, usedOn, exact }: SlotProps) {
   const { newest, picked, earlier } = slot;
   const one = practice ? "Practice mode: you’ll see a labeled sample." : "";
   const lower = title.toLowerCase();
@@ -98,6 +101,16 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
   return (
     <Card title={title} icon={ICONS[kind]} id={`slot-${kind}`} headingLevel={3} action={status} className="flex h-full flex-col" bodyClassName="flex-1">
       <p className="text-sm text-muted">{purpose}</p>
+      {usedOn && exact ? (
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+          <dt className="text-muted">Used on</dt>
+          <dd className="font-semibold">{usedOn}</dd>
+          <dt className="text-muted">Exact size</dt>
+          <dd className="font-semibold">
+            {exact.width} × {exact.height} pixels
+          </dd>
+        </dl>
+      ) : null}
       {note ? <p className="text-sm text-rule">{note}</p> : null}
       {control}
       {!newest ? (
@@ -185,7 +198,7 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
             ))}
             <a href={brandFileUrl(newest.id, false)} download className={SECONDARY_LINK}>
               <Icon name="download" size="sm" />
-              {newest.simulated ? "Download the practice preview" : "Download full size"}
+              {newest.simulated ? "Download the practice preview" : exact ? `Download (${exact.width} × ${exact.height})` : "Download full size"}
             </a>
             {facts}
           </div>
@@ -321,6 +334,8 @@ export function ImageSlots({
               }
               guides={spec.guides}
               exports={spec.exports}
+              usedOn={spec.usedOn}
+              exact={spec.final}
               facts={<SizeFacts kind={slot.kind} />}
             />
           </li>
@@ -342,6 +357,7 @@ function SizeFacts({ kind }: { kind: BrandImageKind }) {
         {spec.facts.map((fact) => (
           <li key={fact}>{fact}</li>
         ))}
+        <li>SnapStart makes this picture at exactly {spec.final.width} × {spec.final.height} pixels, with your logo inside the part every screen shows.</li>
       </ul>
       {spec.source ? (
         <p className="mt-1 text-muted">
