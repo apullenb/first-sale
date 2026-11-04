@@ -49,7 +49,6 @@ SnapStart is a startup kit that tailors itself to the user's actual business. It
 - [Deploying](#deploying)
 - [Coming soon](#coming-soon)
 
-The full, feature-by-feature reference lives in **[docs/GUIDE.md](docs/GUIDE.md)**. The product plan and decisions are in **[PLAN.md](PLAN.md)**.
 
 ---
 
