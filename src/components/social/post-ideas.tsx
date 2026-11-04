@@ -83,7 +83,8 @@ export function PostIdeas({ initial }: { initial: IdeaSet | null }) {
     void markSocialIdeaReadAction({ day: set.day, index }).catch(() => null);
   }
 
-  const label = state === "loading" && !ideas.length ? "Post ideas, finding today’s" : unread ? `Post ideas, ${unread} new` : "Post ideas";
+  const finding = state === "loading" && set?.day !== localDay();
+  const label = finding ? "Post ideas, finding today’s" : unread ? `Post ideas, ${unread} new` : "Post ideas";
 
   return (
     <div ref={wrap} className="relative shrink-0">
@@ -94,16 +95,16 @@ export function PostIdeas({ initial }: { initial: IdeaSet | null }) {
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={label}
-        title="Post ideas for today"
-        className="relative inline-flex size-12 items-center justify-center rounded-full border border-line bg-surface text-accent shadow-card transition hover:border-accent-ring hover:bg-accent-tint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        title={finding ? "Finding today’s post ideas" : "Post ideas for today"}
+        className={`relative inline-flex size-12 items-center justify-center rounded-full border bg-surface text-accent shadow-card transition hover:border-accent-ring hover:bg-accent-tint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${finding ? "border-transparent bg-accent-tint" : "border-line"}`}
       >
-        <Icon name="lightbulb" size="lg" strokeWidth={1.8} />
-        {unread ? (
+        {/* Spinning ring and glowing bulb while today's ideas are found */}
+        {finding ? <span aria-hidden="true" className="absolute -inset-[3px] rounded-full border-[3px] border-accent-ring border-t-accent motion-safe:animate-spin" /> : null}
+        <Icon name="lightbulb" size="lg" strokeWidth={1.8} className={finding ? "motion-safe:animate-pulse" : undefined} />
+        {unread && !finding ? (
           <span aria-hidden="true" className="absolute -right-1 -top-1 flex min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[12px] font-bold leading-5 text-white">
             {unread}
           </span>
-        ) : state === "loading" ? (
-          <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 size-3 animate-pulse rounded-full bg-accent-ring" />
         ) : null}
       </button>
 
@@ -130,7 +131,7 @@ export function PostIdeas({ initial }: { initial: IdeaSet | null }) {
             </p>
           ) : null}
 
-          {state === "loading" && set?.day !== localDay() ? (
+          {finding ? (
             <p role="status" className="mt-3 flex items-center gap-2 rounded-xl bg-accent-tint px-3 py-2 text-sm text-accent-ink">
               <Icon name="sparkles" size="sm" className="animate-pulse" />
               Finding today’s ideas. This takes about a minute.
