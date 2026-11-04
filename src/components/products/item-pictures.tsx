@@ -49,7 +49,7 @@ function useRun() {
   return { run, pending, error, setError, watching: job.watching, busy: pending !== null || job.watching };
 }
 
-// The item's picture set: a main photo, then three views made from the approved main. Approved ones are its gallery, in this order.
+// The item's picture set: a main photo, then three views made from it. Approved ones are its gallery, in this order.
 export function ItemPictures({ item, pictures, inUse, changeLimit, hasOwnPhoto }: { item: ListedProduct; pictures: Picture[]; inUse: string | null; changeLimit: number; hasOwnPhoto: boolean }) {
   const uid = useId();
   const requestKey = useRequestKey();
@@ -74,7 +74,7 @@ export function ItemPictures({ item, pictures, inUse, changeLimit, hasOwnPhoto }
           Pictures of {item.name}
         </h4>
         <p className="text-sm text-muted">
-          First a main photo{hasOwnPhoto ? " made from your photo" : " made from the description"}, in your brand’s picture style. Once you approve it, SnapStart makes three more views from it. Approved pictures are the item’s gallery, in this order.
+          First a main photo{hasOwnPhoto ? " made from your photo" : " made from the description"}, in your brand’s picture style. It is used as the item’s photo right away, and SnapStart can make three more views from it. Approved pictures are the item’s gallery, in this order.
           {item.kind === "service" ? " They show the kind of work you do, not your actual work." : ""}
         </p>
       </div>
@@ -142,7 +142,7 @@ export function ItemPictures({ item, pictures, inUse, changeLimit, hasOwnPhoto }
             : null}
         </div>
       ) : of("main").length ? (
-        <p className="text-sm text-muted">Approve a main photo to make the other views from it.</p>
+        <p className="text-sm text-muted">Use a main photo to make the other views from it.</p>
       ) : null}
 
       <Working active={work.busy} label={work.watching ? RUNNING_ELSEWHERE : "Making pictures. This can take a minute or two."} />
@@ -277,15 +277,17 @@ function PictureCard({ picture, productId, name, title, newest, inUse, main }: {
       </figcaption>
       {approved ? null : (
         <div className="flex flex-col gap-2">
-          <label htmlFor={`${uid}-ok`} className="flex items-start gap-2 text-sm">
-            <input id={`${uid}-ok`} type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} className="mt-1" />
-            <span>{picture.simulated ? "I understand this is only a practice preview" : "I checked it shows what I sell accurately"}</span>
-          </label>
+          {picture.simulated ? (
+            <label htmlFor={`${uid}-ok`} className="flex items-start gap-2 text-sm">
+              <input id={`${uid}-ok`} type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} className="mt-1" />
+              <span>I understand this is only a practice preview</span>
+            </label>
+          ) : null}
           <button
             data-writes
             type="button"
             disabled={pending}
-            onClick={() => (confirmed ? void act(() => approvePictureAction({ productId, pictureId: picture.id, confirmed: true })) : setError("Tick the box once you’ve checked the picture."))}
+            onClick={() => (confirmed || !picture.simulated ? void act(() => approvePictureAction({ productId, pictureId: picture.id, confirmed: true })) : setError("Tick the box to confirm this is only a practice preview."))}
             className={SECONDARY}
           >
             <Icon name="check" size="sm" />
