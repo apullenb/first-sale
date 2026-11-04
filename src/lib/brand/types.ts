@@ -124,6 +124,8 @@ export type BrandPicks = Partial<Record<VersionKind | BrandImageKind, string>>;
 export interface ImageScene {
   scene: string;
   shows: string;
+  // A few words naming the scene, used as the picture's title
+  name?: string;
 }
 export type ImageScenes = Partial<Record<BrandImageKind, ImageScene>>;
 

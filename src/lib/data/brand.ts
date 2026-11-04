@@ -314,6 +314,7 @@ export async function addAssetForOwner(db: Db, ownerId: string, input: NewBrandA
       change: input.change,
       design: input.design,
       words: input.words ?? null,
+      title: input.title ?? null,
       prompt: input.prompt,
       model: input.model,
       simulated: input.simulated,

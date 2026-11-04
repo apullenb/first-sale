@@ -47,6 +47,8 @@ export interface NewBrandAsset {
   design: BrandDesign | null;
   // An edit of the owner's own logo keeps the words they said it has
   words?: string | null;
+  // Brand images: the scene's name, shown as the picture's title
+  title?: string | null;
   prompt: string;
   model: string;
   simulated: boolean;
@@ -106,6 +108,7 @@ interface Job {
   change: string | null;
   design: BrandDesign | null;
   words?: string | null;
+  title?: string | null;
   prompt: string;
   requestKey: string;
   call: () => Promise<ImageEditResult>;
@@ -184,6 +187,7 @@ async function runOne(models: Models, store: AssetStore, job: Job, now: Date): P
     change: job.change,
     design: job.design,
     words: job.words ?? null,
+    title: job.title ?? null,
     prompt: job.prompt,
     model: models.image.model,
     simulated: models.image.simulated,
@@ -478,6 +482,7 @@ export async function makeBrandImages(
       sourceId: logo.logoId,
       change: input.change,
       design: inherited(logo.design),
+      title: input.scenes?.[kind]?.name ?? null,
       prompt,
       requestKey: `${logo.logoId}:${input.requestKey}:${kind}`,
       fit: kind,
