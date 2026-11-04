@@ -1,6 +1,7 @@
 import { darkestFirst } from "./colors";
+import { logoBoxFor } from "./frame";
 import { IMAGE_SPECS, sizeFor } from "./sizes";
-import type { AssetKind, ConceptKind, ImageMedium, PaletteColor } from "./types";
+import type { AssetKind, BrandImageKind, ConceptKind, ImageMedium, PaletteColor } from "./types";
 
 // Practice mode has no image service. Instead of a picture, a plain labeled placeholder that still shows
 // the idea's kind, colors, lettering feel and tagline, so one-click changes visibly work.
@@ -102,13 +103,9 @@ export function practiceSvg({ kind, conceptKind, name, tagline, palette, typogra
       const shapes = [0.1, 0.35, 0.65, 0.9]
         .map((x, index) => `<circle cx="${width * x}" cy="${height * (index % 2 ? 0.25 : 0.75)}" r="${height * 0.22}" fill="${index % 2 ? dark : accent}" opacity="0.18"/>`)
         .join("");
-      // Where each slot's prompt puts the logo
-      const centered =
-        kind === "website_hero"
-          ? nameText(width * 0.18, height * 0.14, width * 0.28, height * 0.07, dark)
-          : kind === "facebook_cover"
-            ? nameText(width * 0.7, height * 0.5, width * 0.4, height * 0.1, dark)
-            : nameText(width / 2, height * 0.47, width * 0.5, height * 0.12, dark);
+      // The name stands in for the logo, inside the safe area where code would place it
+      const spot = logoBoxFor(kind as BrandImageKind, { width: 3, height: 1 });
+      const centered = nameText((spot.x + spot.w / 2) * width, (spot.y + spot.h / 2) * height, spot.w * width, spot.h * height * 0.8, dark);
       body = `<rect width="${width}" height="${height}" fill="${accent}" opacity="0.12"/>${shapes}${centered}`;
     }
   }

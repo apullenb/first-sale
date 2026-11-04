@@ -139,6 +139,8 @@ export interface AssetCheck {
   drift: { kind: DriftKind; detail: string }[];
   // Versions and edits code may build: how this one was made, and why
   layout?: { built: "code" | "model"; note: string; confidence: number };
+  // Brand images: how code made the exact final size
+  fit?: string;
 }
 
 export interface BrandFile {
