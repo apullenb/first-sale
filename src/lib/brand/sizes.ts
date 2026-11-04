@@ -179,8 +179,8 @@ const SPECS: Record<BrandImageKind, Omit<ImageSpec, "size">> = {
     ],
   },
   ad_square: {
-    title: "Ad picture (square)",
-    purpose: "A square picture for social media ads, with your logo. You write the ad’s words in the ad itself.",
+    title: "Facebook ad",
+    purpose: "A square picture for Facebook and Instagram ads, with your logo. You write the ad’s words in the ad itself.",
     usedOn: "Ads on Facebook, Instagram and other apps",
     visible: FULL,
     final: { width: 1080, height: 1080 },

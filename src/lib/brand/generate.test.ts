@@ -276,11 +276,11 @@ describe("changes, versions and brand images start from the logo itself", () => 
     expect(result.ids).toEqual(["asset-2"]);
   });
 
-  it("shapes each brand image for where it goes", async () => {
+  it("asks for the visible area's shape for each brand image", async () => {
     const { model, edit } = imageModel();
     const { store } = memoryStore();
     await makeBrandImages({ image: model, vision }, store, { logo, kinds: ["facebook_cover", "youtube_banner", "website_hero", "link_preview"], change: null, requestKey: "i1", now });
-    expect(edit.mock.calls.map((call) => call[0].size)).toEqual(["1920x1080", "2560x1440", "1920x1080", "1200x630"]);
+    expect(edit.mock.calls.map((call) => call[0].size)).toEqual(["1920x711", "2560x423", "1920x1080", "1200x630"]);
     for (const call of edit.mock.calls) expect(call[0].images[0].data).toEqual(chosenBytes);
   });
 
@@ -291,7 +291,7 @@ describe("changes, versions and brand images start from the logo itself", () => 
     await makeBrandImages({ image: model, vision }, store, { logo, kinds: ["website_hero", "facebook_cover"], change: null, example, requestKey: "x1", now });
     expect(edit.mock.calls[0][0].images).toHaveLength(1);
     expect(edit.mock.calls[1][0].images).toEqual([{ mimeType: "image/png", data: chosenBytes }, example]);
-    expect(edit.mock.calls[1][0].instruction).toContain("Image 2 is the business’s approved website header picture. Match its look exactly");
+    expect(edit.mock.calls[1][0].instruction).toContain("Image 2 is the business’s approved website header picture, a style reference only");
     expect(edit.mock.calls[0][0].instruction).not.toContain("Image 2");
   });
 

@@ -457,6 +457,28 @@ export async function setImageScenesForOwner(db: Db, ownerId: string, scenes: Im
   return true;
 }
 
+// Removes one generated brand image; its purpose goes back to none in use if it was the one
+export async function deleteBrandImageForOwner(db: Db, ownerId: string, assetId: string, now = new Date()): Promise<boolean> {
+  return db.transaction(async (tx) => {
+    const businessId = await businessOf(tx, ownerId, true);
+    if (!businessId) return false;
+    const [asset] = await tx
+      .select({ id: brandAssets.id, kind: brandAssets.kind, origin: brandAssets.origin })
+      .from(brandAssets)
+      .where(and(eq(brandAssets.businessId, businessId), eq(brandAssets.id, assetId)));
+    if (!asset || asset.origin !== "generated" || !(IMAGE_KINDS as readonly string[]).includes(asset.kind)) return false;
+    await tx.delete(brandAssets).where(and(eq(brandAssets.businessId, businessId), eq(brandAssets.id, asset.id)));
+    const kit = await kitOf(tx, businessId);
+    const kind = asset.kind as BrandImageKind;
+    if (kit?.picks[kind] === asset.id) {
+      const picks = { ...kit.picks };
+      delete picks[kind];
+      await upsertKit(tx, businessId, { picks }, now);
+    }
+    return true;
+  });
+}
+
 export async function unpickFileForOwner(db: Db, ownerId: string, kind: VersionKind | BrandImageKind, now = new Date()): Promise<boolean> {
   return db.transaction(async (tx) => {
     const businessId = await businessOf(tx, ownerId, true);

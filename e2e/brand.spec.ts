@@ -124,7 +124,7 @@ test.describe("build your brand", () => {
     expect(await styleOf()).toContain("ILLUSTRATION STYLE");
     await header.getByRole("button", { name: "Use this" }).first().click();
     await expect(header.getByText("In use")).toBeVisible({ timeout: 30_000 });
-    await expect(cover).toContainText("Made to match your website header picture.");
+    await expect(cover).toContainText("Made in the style of your website header picture, with a scene of its own.");
 
     // Switching after the example exists makes a new one, keeps the old, and blocks the rest until it's approved
     await expect(header).toContainText("Switching makes a new header picture in that style");
@@ -136,17 +136,37 @@ test.describe("build your brand", () => {
     await expect(cover.getByRole("button", { name: "Make the facebook cover" })).toBeDisabled();
     await header.getByRole("button", { name: "Use this" }).first().click();
     await expect(header.getByText("In use").first()).toBeVisible({ timeout: 30_000 });
-    await expect(cover).toContainText("Made to match your website header picture.");
+    await expect(cover).toContainText("Made in the style of your website header picture, with a scene of its own.");
     await cover.getByRole("button", { name: "Make the facebook cover" }).click();
     await expect(cover.getByText(/Practice preview/).first()).toBeVisible({ timeout: 60_000 });
+    // Still the guided setup with three made
+    await expect(page.getByRole("region", { name: "What to do next" })).toBeVisible();
 
-    // A picture of their own, filed under Other pictures
+    // The fourth one turns the page into the library, with making moved to the bottom
+    await page.getByRole("region", { name: "YouTube banner" }).getByRole("button", { name: "Make the youtube banner" }).click();
+    const library = page.getByRole("region", { name: "Your pictures" });
+    await expect(library).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("region", { name: "What to do next" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Make or add pictures" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Facebook cover" })).toBeVisible();
+    const filters = library.getByRole("group", { name: "Show pictures for" });
+    await filters.getByRole("button", { name: /^Website header picture/ }).click();
+    await expect(library.getByRole("listitem")).toHaveCount(2);
+    await expect(library.getByText("In use", { exact: true })).toHaveCount(1);
+    await filters.getByRole("button", { name: /^Facebook cover/ }).click();
+    await library.getByRole("button", { name: "Use for Facebook cover" }).click();
+    await expect(library.getByText("In use", { exact: true })).toHaveCount(1, { timeout: 30_000 });
+    await expect(library.getByRole("button", { name: "Use for Facebook cover" })).toHaveCount(0);
+    await expect(library.getByRole("link", { name: /^Download/ }).first()).toHaveAttribute("href", /\/brand\/files\//);
+
+    // A picture of their own, tagged Other pictures
     const add = page.getByRole("region", { name: "Add a picture" });
     await add.locator("input[type=file]").setInputFiles({ name: "market-stall.png", mimeType: "image/png", buffer: pngBuffer(300, [200, 180, 140]) });
     await choose(add.getByRole("group", { name: "Where it goes" }), /^Other pictures/);
     await add.getByRole("textbox", { name: "Name (optional)" }).fill("Our market stall");
     await add.getByRole("button", { name: "Add to my Brand Library" }).click();
-    await expect(page.getByRole("region", { name: "Other pictures" }).getByText("Our market stall").first()).toBeVisible({ timeout: 30_000 });
+    await filters.getByRole("button", { name: /^Other pictures/ }).click({ timeout: 30_000 });
+    await expect(library.getByText("Our market stall").first()).toBeVisible();
     await expect(add).toContainText("You’ve added 1");
   });
 });

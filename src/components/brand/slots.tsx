@@ -38,7 +38,7 @@ const ICONS: Record<PictureKind, IconName> = {
 const ratio = (size: string) => size.replace("x", " / ");
 
 // AI flagged something, so using it asks first
-function flagged(check: AssetCheck | null): boolean {
+export function flagged(check: AssetCheck | null): boolean {
   return check?.method === "ai" && Boolean(check.lettering?.problems.length || check.drift.length);
 }
 
@@ -185,7 +185,7 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
               {/* A new version is always drawn by the image model; the code-built one is already here */}
               <BrandRunButton
                 intent={intent.kind === "versions" ? { ...intent, redraw: true } : intent}
-                label={newest.model === CODE_MODEL ? "Have AI draw one instead" : "Regenerate"}
+                label={newest.model === CODE_MODEL ? "Have AI draw one instead" : intent.kind === "images" ? "Make another" : "Regenerate"}
                 pendingLabel="Making a new one…"
                 working={`Making a new ${lower}… this can take a minute or two`}
                 variant="secondary"
@@ -323,7 +323,7 @@ export function ImageSlots({
         ? null
         : "Made first, as an example of the look. Change it with a prompt until you like it, then choose “Use this”: your other brand images are made to match it."
       : example
-        ? `Made to match your ${exampleTitle}.`
+        ? `Made in the style of your ${exampleTitle}, with a scene of its own.`
         : null;
     return (
       <li key={slot.kind}>
@@ -375,7 +375,7 @@ export function ImageSlots({
           <span className="font-bold">{IMAGE_GROUPS[1].title}</span>
           <Chip tone="gray">Optional</Chip>
         </summary>
-        <p className="mt-1 mb-3 text-[15px] text-muted">Make any of these when you need them. Each is made to match your {exampleTitle}, at its exact size, with no words besides your logo.</p>
+        <p className="mt-1 mb-3 text-[15px] text-muted">Make any of these when you need them. Each is made in the style of your {exampleTitle}, with a scene of its own, at its exact size, with no words besides your logo.</p>
         <ul className="grid gap-4 @2xl:grid-cols-2">{extras.map(card)}</ul>
       </details>
     </div>
