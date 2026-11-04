@@ -540,6 +540,10 @@ The production address and each preview's URLs are trusted for sign-in automatic
 
 - **Full email integration**: connect the business inbox, and customer emails become orders, quote requests and drafted replies for the owner to approve.
 - **Order connections for websites and stores**, so orders arrive in tracking from the owner's sales channels.
-- **Publishing the website SnapStart builds**, with hosting, a custom web address and payments built in.
+- **Publishing the website SnapStart builds**, with hosting and a custom web address built in.
+- **Online payments through Stripe**, so customers can check out and pay directly on a SnapStart website.
+- **Paid ads on Facebook and Instagram**: campaigns built from the brand kit and marketing plan, with budgets, audiences and results managed in SnapStart and every ad approved by the owner before it runs.
+- **More hosting and sales platforms**, with integrations for website builders and online stores beyond Square.
+- **Custom automated workflows**, so owners can set up their own automations for everyday tasks like follow-ups, restock reminders and order updates.
 - **Product photo galleries** on the built website, straight from the owner's approved photos.
 - **Password recovery and email verification.**
