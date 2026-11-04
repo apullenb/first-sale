@@ -7,6 +7,8 @@
 
 ### From “I have an idea” to a business that's legally set up, branded and selling.
 
+There's no shortage of tools for forming a company, and no shortage of tools for designing a logo or building a website. But a new owner still has to stitch them together alone: guessing which permits apply, which order things go in, and what they've missed. **SnapStart is the one kit that walks them the whole way, from the idea on day one to their first sale.**
+
 SnapStart is a startup kit that tailors itself to each owner's business. **Meta Muse** researches the exact licenses, permits and registrations that apply to *their* business in *their* city, county and state, quoting the official government pages. It recommends the right structure, fills in the official forms, and designs their logo, brand photos and website. **Meta Muse drafts, SnapStart's tested code checks and calculates, and the owner approves every step.**
 
 **[Try the live demo →](https://snapstartkit.vercel.app)**
