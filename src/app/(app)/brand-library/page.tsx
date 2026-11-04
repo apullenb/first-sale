@@ -178,7 +178,9 @@ async function Library() {
 
   const imageList = state ? imageSlots(state.assets, chosen?.id ?? null, state.picks) : [];
   const exampleUsed = state ? approvedExample(state.assets, chosen?.id ?? null, state.picks) !== null : false;
-  const missing = imageList.filter((slot) => slot.empty && recommended.includes(slot.kind)).map((slot) => IMAGE_SPECS[slot.kind].title.toLowerCase());
+  // Names keep Facebook and YouTube capitalized; the header picture has its own step
+  const lower = (title: string) => (/^(Facebook|YouTube)/.test(title) ? title : title.charAt(0).toLowerCase() + title.slice(1));
+  const missing = imageList.filter((slot) => slot.empty && slot.kind !== EXAMPLE_IMAGE && recommended.includes(slot.kind)).map((slot) => lower(IMAGE_SPECS[slot.kind].title));
   const steps: Step[] = [
     { label: "Choose or upload your logo", done: Boolean(chosen), href: "/logo", action: "Go to Create your logo" },
     { label: `Make your ${IMAGE_SPECS[EXAMPLE_IMAGE].title.toLowerCase()} and choose “Use this” when you like the look`, done: exampleUsed, href: `#slot-${EXAMPLE_IMAGE}`, action: "Go to the header picture" },
