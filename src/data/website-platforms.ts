@@ -53,10 +53,11 @@ export const PLATFORM_DATA: Record<PlatformId, PlatformInfo> = {
     hosting: true,
     checkout: "payment_links",
     cardFeeNote: "Stripe payment links: 2.9% + 30¢ per card payment. Square payment links: 3.3% + 30¢ on Square Free.",
-    domain: { freeAddress: null, sold: "elsewhere", firstUsd: null, per: null, from: false, firstYearFreeWithYearly: false, later: null },
+    domain: { freeAddress: null, sold: "included", firstUsd: null, per: null, from: false, firstYearFreeWithYearly: false, later: null },
     email: { kind: "none", via: "an email service", monthlyUsd: null },
     includes: [
       "A site built from your approved words, brand colors, logo and photos",
+      "Your web address, registered and connected for you",
       "A live preview you can change any time",
       "Hosting and a secure (https) site",
       "Buy buttons that open your own Stripe or Square payment links",

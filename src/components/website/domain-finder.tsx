@@ -6,7 +6,7 @@ import { Icon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date";
 import { Done } from "@/components/marketing/pieces";
 import { ALERT, INPUT, PRIMARY, SECONDARY } from "@/components/styles";
-import { Chip } from "@/components/ui";
+import { Chip, ResourceLink } from "@/components/ui";
 import type { DomainCheck } from "@/lib/website/types";
 import { failedMessage } from "@/lib/failure";
 
@@ -131,6 +131,18 @@ export function DomainFinder({ ideas, checks, chosen }: Props) {
         “Not registered yet” means no one owned it when we asked the official registry. That can change, so buy it soon.
         Register the address when you are ready to launch.
       </p>
+      <div className="flex flex-col gap-1 text-sm text-muted">
+        <p>
+          <span className="font-semibold text-ink">Getting your address:</span> with SnapStart hosting, your address is included and set up for you. Using a
+          different website builder? Register it yourself with a domain company, then connect it in your builder’s settings.
+        </p>
+        <p className="flex flex-wrap gap-x-4 gap-y-1">
+          <ResourceLink href="https://www.cloudflare.com/products/registrar/">Cloudflare Registrar</ResourceLink>
+          <ResourceLink href="https://www.namecheap.com/">Namecheap</ResourceLink>
+          <ResourceLink href="https://porkbun.com/">Porkbun</ResourceLink>
+          <ResourceLink href="https://domains.squarespace.com/">Squarespace Domains</ResourceLink>
+        </p>
+      </div>
       {error ? (
         <p role="alert" className={ALERT}>
           {error}
