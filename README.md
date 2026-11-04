@@ -9,7 +9,7 @@
 
 There are tools for forming a company, like LegalZoom, and tools for building a website, like Wix. SnapStart does both, plus the marketing plan, social media setup, ads, and managing products and sales. **It's the one guided kit that takes an owner from the idea on day one to their first sale.**
 
-SnapStart is a startup kit that tailors itself to each owner's business. **Meta Muse** researches the exact licenses, permits and registrations that apply to *their* business in *their* city, county and state, quoting the official government pages. It recommends the right structure, fills in the official forms, and designs their logo, brand photos and website. **Meta Muse drafts, SnapStart's tested code checks and calculates, and the owner approves every step.**
+SnapStart is a startup kit that tailors itself to each owner's business. **Meta Muse** researches the exact licenses, permits and registrations that apply to *their* business in *their* city, county and state, quoting the official government pages. It recommends the right structure, fills in the official forms, and designs their logo, brand photos and website. **Muse does the heavy lifting, SnapStart's tested code double-checks every fact and figure, and the owner has the final say at every step.**
 
 **[Try the live demo →](https://snapstartkit.vercel.app)**
 
@@ -27,7 +27,7 @@ SnapStart is a startup kit that tailors itself to each owner's business. **Meta 
 
 <br>
 
-<img src="docs/media/hero.webp" alt="SnapStart's Today page for a home bakery in Austin, Texas: the next step to take, a countdown to launch day, and progress through starting the business" width="900">
+<img src="docs/media/hero.webp" alt="Recording of SnapStart's Today page for Hearth &amp; Wick Candle Co. in Austin, Texas: the next step to take, a countdown to launch day, launch tasks, startup fees, progress and the schedule to launch day" width="900">
 
 </div>
 
@@ -119,7 +119,7 @@ SnapStart is a guided workspace in three parts, and a **Today** page always show
 
 <img src="docs/media/nav/today.webp" alt="Menu link: Today" width="225" height="32">
 
-Today greets the owner with the one thing to do next, a countdown to launch day, and how far they've come in each part. The hero image at the top of this page is Today for a home bakery in Austin.
+Today greets the owner with the one thing to do next, a countdown to launch day, and how far they've come in each part. The recording at the top of this page is Today for Hearth & Wick Candle Co., a candle studio in Austin.
 
 ### Your business: a click-based intake
 
@@ -143,7 +143,7 @@ Ownership structure, business name (DBA), tax treatment and licenses are four di
 
 SnapStart finds the official government websites for the owner's city, county and state, plus the federal government. A site counts as official only when it's listed in CISA's .gov registry, so every official source is a real government site; anything else is marked for the owner to check. **Muse Spark** reads those pages and pulls out each legal requirement along with a word-for-word quote, so the owner can see exactly where it came from and which government it belongs to. SnapStart then checks each requirement against the owner's answers to show what applies to them.
 
-<p align="center"><img src="docs/media/requirements.webp" alt="The 'What applies to you' page for a bakery in Austin, Texas: where the requirements come from (federal, Texas, Travis County, Austin), seven requirements that apply, and one question about the owner's plans" width="900"></p>
+<p align="center"><img src="docs/media/requirements.webp" alt="Recording of the 'What applies to you' page for a candle studio in Austin, Texas: where the requirements come from (federal, Texas, Travis County, Austin), the seven requirements that apply with their official sources, a question about the owner's plans, and the steps they add to the plan" width="900"></p>
 
 ### Paperwork: the official form, filled in and ready to sign
 
@@ -185,27 +185,27 @@ Owners click a few feel words, answer some this-or-that questions and pick color
 
 <img src="docs/media/nav/create-your-logo.webp" alt="Menu link: Create your logo" width="201" height="32">
 
-**Muse Image** draws the logo ideas. From the chosen logo, SnapStart builds the stacked, icon and one-color versions directly from its pixels: it finds the symbol and the lettering with connected-component analysis and rearranges the original artwork, so every version keeps the logo's exact lettering and adds no extra cost. The brand kit adds colors with contrast ratings, every logo file size, favicons and social profile pictures, made right in the browser.
+**Muse Image** draws the logo ideas. From the chosen logo, SnapStart builds the stacked, icon and one-color versions directly from its pixels: it finds the symbol and the lettering with connected-component analysis and rearranges the original artwork, so every version keeps the logo's exact lettering and adds no extra cost. The chosen logo sits on a checkerboard so its see-through background is plain to see, ready to grab with **Download logo (PNG, see-through)** and drop onto any color. The brand kit adds colors with contrast ratings, every logo file size, favicons and social profile pictures, made right in the browser.
 
-<p align="center"><img src="docs/media/logo-versions.webp" alt="Recording of the logo page: the owner uploads the Wagging Wheels Grooming logo, then the stacked, icon and one-color versions appear, each made by SnapStart from the logo's own pixels, then the brand kit's downloadable files" width="900"></p>
+<p align="center"><img src="docs/media/logo-clear.webp" alt="Recording of Create your logo for Hearth &amp; Wick Candle Co.: the chosen logo on a checkerboard with Download logo (PNG, see-through), then the stacked, icon and one-color versions and the brand kit with colors and logo files" width="900"></p>
 
-<sub>The Wagging Wheels Grooming logo in this recording was drawn by Muse Image. The stacked, icon and one-color versions were built by SnapStart from its pixels.</sub>
-
-### Website: compare clearly, then build
+### Website: design it, check it, publish it
 
 <img src="docs/media/nav/create-your-website.webp" alt="Menu link: Create your website" width="201" height="32">
 
-Choose a platform and web address in a focused two-step setup, then open the dedicated website builder with **Build it for me** or **Edit website**. **Muse Spark** designs the theme from the saved brand brief, palette, audience, lettering and real imagery. Products and photos flow in from the product library, with header images from the Brand Library. Owners can click the live page to edit, refine the theme with AI, arrange sections, adjust typography and colors, choose images and manage website product details. Changes support undo, redo and saved drafts, with desktop, phone and full-screen previews. Existing Square sites can be connected; Wix and Shopify are marked Coming Soon.
+Choose a platform and web address in a focused two-step setup, then open the website builder. **Muse Spark** designs the theme from the saved brand brief, palette, audience, lettering and real imagery, and the designs go well beyond a template: split, photo-cover and editorial openings, framed product grids and story bands, with the see-through logo sitting cleanly on any background. Products and photos flow in from the product library, with header images from the Brand Library. Owners click the live page to edit, refine the theme with AI, arrange sections, adjust typography and colors, choose images and manage product details, with undo, redo and saved drafts.
 
-<p align="center"><img src="docs/media/website.webp" alt="Recording of the website builder: the package comparison with cost summaries, the start screen for the SnapStart site, the drafted words, the design step, then the live preview at computer and phone width, and 'Your website is ready'" width="900"></p>
+**Publish website** opens a final check: the finished site at computer and phone width, with SnapStart confirming everything is ready. One more step brings up SnapStart web hosting, a simple monthly subscription that puts the site online and keeps it current every time the owner makes a change. Existing Square sites can be connected; Wix and Shopify are marked Coming Soon.
+
+<p align="center"><img src="docs/media/website.webp" alt="Recording of the website for Hearth &amp; Wick Candle Co.: the setup page, the editor with the drafted page and its design controls, scrolling the preview through the collection and the owner's story, then Publish website with the final check at computer and phone width, and the SnapStart web hosting subscription" width="900"></p>
 
 ### Products, with options and nearby prices
 
 <img src="docs/media/nav/manage-your-products.webp" alt="Menu link: Manage your products" width="201" height="32">
 
-Products get a price, a cost and stock. Options like size or scent each carry their own price and stock, and SnapStart works out the price range, totals and how much is left from each sale. Each option, like a 12 oz candle or a large-dog groom, is ordered and counted on its own. "Compare prices near you" uses **Muse web search** to show what similar items sell for nearby, with a link to each.
+Products get photos, a price, a cost and stock. Photos are attached as each product is added, so they show up on the website right away. Options like size or scent each carry their own price and stock, and SnapStart works out the price range, totals and how much is left from each sale. Each option, like a 12 oz candle or a large-dog groom, is ordered and counted on its own. "Compare prices near you" uses **Muse web search** to show what similar items sell for nearby, with a link to each.
 
-<p align="center"><img src="docs/media/products.webp" alt="Recording of Add your products: a candle with 8 oz and 12 oz options, each with its own price and stock, shown as $24 to $32 with 35 in stock, a second product with its margin worked out, then a comparison of prices nearby" width="900"></p>
+<p align="center"><img src="docs/media/products.webp" alt="Recording of Manage your products for Hearth &amp; Wick Candle Co.: Lavender Fields Candle, Cedar &amp; Ember Candle, Wild Rose Ceramic Tumbler and Garden Trio Gift Set, each with its photo, price and cost, then Compare prices near you" width="900"></p>
 
 ### Connect your Square products
 
@@ -243,7 +243,11 @@ For each platform in the plan, SnapStart gets the account ready: the name, a bio
 
 <img src="docs/media/nav/your-brand-library.webp" alt="Menu link: Your Brand Library" width="201" height="32">
 
-Everything the brand is made of lives in one place: the chosen logo and its versions, brand pictures and any artwork the owner already had, each ready to download.
+Everything the brand is made of lives in one place: the chosen logo and its versions, brand pictures, product photos and any artwork the owner already had. **Muse Image** makes each brand picture at the exact size its platform asks for: a website header, Facebook cover, YouTube banner, link preview, Instagram post, Instagram story or reel cover, Facebook ad, flyer picture and product scene. Each one is its own scene in the brand's style, with the logo worked right in.
+
+The library tags every picture with what it's for. Owners filter by purpose, hover a thumbnail for a larger look, and open any picture to see where it's used, its exact size and, with **Show what gets cropped**, the safe area for the logo and anything important. Every picture downloads at its platform's exact size.
+
+<p align="center"><img src="docs/media/brand-library.webp" alt="Recording of the Brand Library for Hearth &amp; Wick Candle Co.: thumbnails tagged by purpose, a larger look on hover, filtering to Instagram posts, opening one with Show what gets cropped, then Make or add pictures with a picture for each platform" width="900"></p>
 
 ### Run your business
 
@@ -252,6 +256,8 @@ Everything the brand is made of lives in one place: the chosen logo and its vers
 Customer email and a shared order/job tracker. Coming soon: connect your business email, press **Read new emails**, and SnapStart turns each customer email into an order, a quote request, a shipping update or a question, with a reply drafted for the owner to send. You can try it today: **Connect your email** opens a working demo with a connected sample inbox (`/email/demo`), where nine bakery emails become orders, quote requests and replies right in the browser, saving nothing. Owners can already upload an invoice, paste an email or enter work themselves. The tracker adapts to products, made-to-order work and services, with due dates, progress, payments and balances; confirming applies catalog prices and takes stock once. Replies are drafted for the owner to edit, then open in the owner's own email app to send. Setup: [Customer operations](docs/CUSTOMER-OPERATIONS.md).
 
 <p align="center"><img src="docs/media/run.webp" alt="The Run your business page: Connect your email and Track orders and customer requests, each ready to set up" width="900"></p>
+
+<p align="center"><img src="docs/media/orders.webp" alt="Recording of Orders &amp; jobs for Hearth &amp; Wick Candle Co.: the order list with the balance owed, the board and schedule views, then an order from Priya Patel with its items, customer and payments" width="900"></p>
 
 ### On a phone
 
