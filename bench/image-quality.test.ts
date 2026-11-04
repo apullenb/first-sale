@@ -1,3 +1,4 @@
+import { IMAGE_KINDS } from "@/lib/brand/types";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -81,10 +82,7 @@ describe("image-quality run (practice mode)", () => {
       "02-version-profile",
       "02-version-solid",
       "03-logo-edit",
-      "04-image-website_hero",
-      "04-image-facebook_cover",
-      "04-image-youtube_banner",
-      "04-image-link_preview",
+      ...IMAGE_KINDS.map((kind) => `04-image-${kind}`),
       "05-image-edit-website_hero",
       "06-photo-original",
       "07-photo-edit",
