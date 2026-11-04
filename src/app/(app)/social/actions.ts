@@ -8,12 +8,26 @@ import type { ActionResult } from "@/app/(app)/business/actions";
 import { MARKETING_PLATFORMS, PLATFORM_DATA } from "@/data/marketing-platforms";
 import { PROFILE_FACTS } from "@/data/social-profiles";
 import { getModel } from "@/lib/ai";
-import { getMyBrandState, getMyBusiness, getMyMarketing, listMyJourneyMarks, listMyProducts, myAiKey, updateMyMarketing } from "@/lib/data/my-business";
+import {
+  getMyBrandState,
+  getMyBusiness,
+  getMyMarketing,
+  getMySocialIdeas,
+  listMyJourneyMarks,
+  listMyProducts,
+  markMySocialIdeaRead,
+  myAiKey,
+  saveMySocialIdeas,
+  updateMyMarketing,
+} from "@/lib/data/my-business";
 import { OwnerFacingError } from "@/lib/errors";
+import { STATE_NAMES } from "@/lib/intake/options";
 import { completeIntake, SKILL_LEVELS } from "@/lib/marketing/intake";
 import { checkBio, checkHandle, checkName, isSetUp, socialAccounts, withPickedAccounts } from "@/lib/rules/social";
 import { bioFacts, draftBios } from "@/lib/social/bios";
+import { type IdeaInput, type IdeaSet, suggestIdeas } from "@/lib/social/ideas";
 import { MAX_FIELD } from "@/lib/social/types";
+import { businessSpecifics } from "@/lib/specifics";
 import { runWorkflow } from "@/lib/workflow-runner";
 
 const NO_BUSINESS = "Tell us about your business first.";
@@ -143,4 +157,55 @@ export async function pickSocialAccountsAction(input: unknown): Promise<ActionRe
   if (answered) return { ok: false, message: "You’ve answered the marketing questions, so change your accounts there." };
   refresh();
   return { ok: true, value: null };
+}
+
+// --- Daily post ideas
+
+const dayInput = z.iso.date();
+
+// The owner's own date may differ from the server's by a day either way
+function nearToday(day: string, now = Date.now()) {
+  const at = Date.parse(`${day}T12:00:00Z`);
+  return Math.abs(at - now) <= 36 * 60 * 60 * 1000;
+}
+
+export async function socialIdeasAction(input: unknown): Promise<ActionResult<IdeaSet | null>> {
+  const parsed = dayInput.safeParse(input);
+  if (!parsed.success || !nearToday(parsed.data)) return { ok: false, message: "Reload the page and try again." };
+  const day = parsed.data;
+  const history = await getMySocialIdeas();
+  if (history.latest?.day === day) return { ok: true, value: history.latest };
+  // The demo shows its last set and makes no new ones
+  if (await isDemoSession()) return { ok: true, value: history.latest };
+  const [business, marketing, products] = await Promise.all([getMyBusiness(), getMyMarketing(), listMyProducts()]);
+  if (!business?.profile) return { ok: false, message: NO_BUSINESS };
+  const profile = business.profile;
+  const intake = marketing?.intake ?? null;
+  const platforms = intake ? socialAccounts(intake, marketing?.plan ?? null).map((account) => PLATFORM_DATA[account.id].name) : [];
+  const ideaInput: IdeaInput = {
+    name: profile.name,
+    specifics: businessSpecifics(profile, products),
+    city: profile.location.city,
+    state: STATE_NAMES[profile.location.state] ?? "",
+    description: profile.description,
+    platforms,
+    recent: history.recentTopics,
+  };
+  return runWorkflow("social_ideas", day, async () => {
+    const set = await suggestIdeas(getModel(), ideaInput, day, await myAiKey());
+    const saved = await saveMySocialIdeas(set);
+    if (!saved) throw new OwnerFacingError(NO_BUSINESS);
+    return saved;
+  });
+}
+
+const readInput = z.object({ day: dayInput, index: z.number().int().min(0).max(10) });
+
+export async function markSocialIdeaReadAction(input: unknown): Promise<ActionResult<number[]>> {
+  // The demo keeps read marks in the browser only
+  if (await isDemoSession()) return DEMO_REFUSAL;
+  const parsed = readInput.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Reload the page and try again." };
+  const read = await markMySocialIdeaRead(parsed.data.day, parsed.data.index);
+  return read ? { ok: true, value: read } : { ok: false, message: "Reload the page and try again." };
 }

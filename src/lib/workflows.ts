@@ -230,6 +230,14 @@ export const WORKFLOWS = {
     timeLimitMs: 5 * MINUTE,
     offeredFor: [],
   },
+  social_ideas: {
+    title: "Find today’s post ideas",
+    summary: "Searches for what’s new near you and in your market, and suggests three posts.",
+    actor: "ai",
+    usesAi: true,
+    timeLimitMs: 4 * MINUTE,
+    offeredFor: [],
+  },
   price_compare: {
     title: "Compare prices near you",
     summary: "Searches for similar products or services in your area and lists the prices their pages show.",

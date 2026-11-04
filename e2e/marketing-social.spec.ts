@@ -123,6 +123,33 @@ test.describe("marketing plan and social media", () => {
     await expect(accounts.getByRole("link", { name: "Pinterest (set up)" })).toBeVisible({ timeout: 30_000 });
   });
 
+  test("groomer: today's post ideas, collapsed and expanded, read and unread", async ({ browser }) => {
+    const { page } = await newOwner(browser, groomer, "groomer-ideas");
+    await open(page, "/social");
+    const bulb = page.getByRole("button", { name: /^Post ideas/ });
+    await expect(bulb).toHaveAccessibleName("Post ideas, 3 new", { timeout: 30_000 });
+    await bulb.click();
+    const panel = page.getByRole("region", { name: "Post ideas" });
+    await expect(panel.getByText("Practice mode.")).toBeVisible();
+    const ideas = panel.getByRole("listitem");
+    await expect(ideas).toHaveCount(3);
+    const first = ideas.first().getByRole("button").first();
+    await expect(first).toHaveAccessibleName(/\(new\)/);
+    await first.click();
+    await expect(first).toHaveAttribute("aria-expanded", "true");
+    await expect(panel.getByText("Suggested post")).toBeVisible();
+    await expect(panel.getByRole("button", { name: "Copy suggested post" })).toBeVisible();
+    await expect(bulb).toHaveAccessibleName("Post ideas, 2 new");
+
+    // Same day: the same ideas, and the one opened stays read
+    await page.reload();
+    await expect(page.getByRole("button", { name: /^Post ideas/ })).toHaveAccessibleName("Post ideas, 2 new", { timeout: 30_000 });
+    await page.getByRole("button", { name: /^Post ideas/ }).click();
+    await expect(page.getByRole("region", { name: "Post ideas" }).getByRole("listitem").first().getByRole("button", { name: /\(new\)/ })).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("region", { name: "Post ideas" })).toHaveCount(0);
+  });
+
   test("groomer: pick social accounts without a plan, and “I already have” marks", async ({ browser }) => {
     const { page } = await newOwner(browser, groomer);
     await open(page, "/social");

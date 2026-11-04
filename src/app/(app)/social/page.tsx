@@ -12,6 +12,7 @@ import { PracticeBanner } from "@/components/practice-banner";
 import { RunStatus } from "@/components/run-status";
 import { AccountMark } from "@/components/social/account-mark";
 import { PickAccounts } from "@/components/social/pick-accounts";
+import { PostIdeas } from "@/components/social/post-ideas";
 import { ProfileEditor } from "@/components/social/profile-editor";
 import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { Card, Chip, IconTile, Note, OutsideLink, PageHead, ResourceLink } from "@/components/ui";
@@ -19,7 +20,7 @@ import { type MarketingPlatformId, PLATFORM_DATA } from "@/data/marketing-platfo
 import { PROFILE_FACTS, profileSources, type SocialProfileFacts } from "@/data/social-profiles";
 import { BRAND_IMAGES_HREF } from "@/lib/brand/library";
 import type { BrandFile, BrandImageKind, BrandKit } from "@/lib/brand/types";
-import { getMyBrand, getMyBusiness, getMyMarketing, lastMyRun, listMyJourneyMarks } from "@/lib/data/my-business";
+import { getMyBrand, getMyBusiness, getMyMarketing, getMySocialIdeas, lastMyRun, listMyJourneyMarks } from "@/lib/data/my-business";
 import type { JourneyMark } from "@/lib/data/journey";
 import { CUT_OFF_MESSAGE } from "@/lib/data/workflow-runs";
 import { completeIntake } from "@/lib/marketing/intake";
@@ -36,11 +37,16 @@ export const maxDuration = 120;
 export default function SocialPage() {
   return (
     <div className="flex max-w-[1000px] flex-col gap-6 wrap-break-word">
-      <PageHead
-        kicker={<Kicker icon="users">Build your brand · Step 6</Kicker>}
-        title="Set up social media"
-        lead="Get each account in your marketing plan ready: a name, a bio you approve, and your profile picture and cover. Then sign up on each site with the steps here."
-      />
+      <div className="flex items-start justify-between gap-4">
+        <PageHead
+          kicker={<Kicker icon="users">Build your brand · Step 6</Kicker>}
+          title="Set up social media"
+          lead="Get each account in your marketing plan ready: a name, a bio you approve, and your profile picture and cover. Then sign up on each site with the steps here."
+        />
+        <Suspense fallback={null}>
+          <IdeasSlot />
+        </Suspense>
+      </div>
       <Note icon="lock" tone="quiet">
         You sign up and post yourself. SnapStart never signs in, creates accounts or posts for you.
       </Note>
@@ -76,6 +82,13 @@ const BIO_PROGRESS = {
   steps: ["Reading your business answers", "Writing a bio for each account", "Fitting each to its platform’s limit", "Taking out links, prices and claims"],
   estimateMs: 15_000,
 };
+
+// Daily post ideas, once the business has its answers
+async function IdeasSlot() {
+  const [business, history] = await Promise.all([getMyBusiness(), getMySocialIdeas()]);
+  if (!business?.profile) return null;
+  return <PostIdeas initial={history.latest} />;
+}
 
 const markDone = (mark: JourneyMark | undefined) => (mark ? { url: mark.url, note: mark.note } : null);
 
