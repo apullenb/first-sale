@@ -213,6 +213,16 @@ async function Products() {
         </section>
       ) : null}
 
+      {what.services && !what.products ? (
+        <section aria-labelledby="extra-products-heading" className="flex flex-col gap-4">
+          <details className="rounded-2xl border border-line bg-surface p-5 shadow-card">
+            <summary id="extra-products-heading" className="cursor-pointer font-semibold">Add a product</summary>
+            <p className="mt-3 text-sm text-muted">Sell something alongside your services? Add it here with its own price and photo.</p>
+            <div className="mt-5">{list("product")}</div>
+          </details>
+        </section>
+      ) : null}
+
       <FromPhoto kinds={[...(what.products ? (["product"] as const) : []), ...(what.services ? (["service"] as const) : [])]} maxUploadBytes={MAX_UPLOAD_BYTES} nameLimit={MAX_PHOTO_NAME} />
 
       <PriceCompare
@@ -221,12 +231,12 @@ async function Products() {
         checks={Object.fromEntries(checks.map((check) => [check.productId, check.result]))}
       />
 
-      {what.products ? (
-        <Card title="Make polished store photos" icon="camera" id="photos-heading">
-          <p className="text-rule">Turn an ordinary phone photo into a clean store photo. The product stays exactly as it is, and you approve every photo before it shows here.</p>
+      {what.products || what.services ? (
+        <Card title={what.services && !what.products ? "Make photos for your services" : "Make polished store photos"} icon="camera" id="photos-heading">
+          <p className="text-rule">{what.services && !what.products ? "Generate a picture from your service description, or upload a photo of your work. Review and approve it before using it." : "Turn an ordinary phone photo into a clean store photo. The product stays exactly as it is, and you approve every photo before it shows here."}</p>
           <Link href="/photos" className={SECONDARY_LINK}>
             <Icon name="camera" size="sm" />
-            Product photos
+            {what.services && !what.products ? "Service photos" : what.services ? "Product and service photos" : "Product photos"}
           </Link>
         </Card>
       ) : null}

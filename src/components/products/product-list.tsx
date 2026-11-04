@@ -98,7 +98,7 @@ export function ProductList({
   const noun = NOUN[kind];
   const group = (product: ListedProduct) => product.squareSync?.origin === "imported" ? 0 : product.squareSync?.linked ? 1 : product.squareSync?.pending ? 2 : 3;
   const grouped = products.toSorted((a, b) => group(a) - group(b));
-  const labels = ["Pulled from Square", "Published from your library to Square", "Awaiting Square publication confirmation", "Only in your product library"];
+  const labels = ["Pulled from Square", "Published from your library to Square", "Awaiting Square publication confirmation", `Only in your ${NOUN[kind].one} library`];
 
   return (
     <div className="@container flex flex-col gap-4">

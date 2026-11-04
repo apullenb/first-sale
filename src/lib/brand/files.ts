@@ -5,6 +5,9 @@ import type { AssetKind, BrandImageKind, VersionKind } from "./types";
 
 export const brandFileUrl = (assetId: string, view = true) => `/brand/files/${assetId}${view ? "?view=1" : ""}`;
 
+// A logo with its plain background removed; the original when that can't be done
+export const seeThroughUrl = (assetId: string, view = true) => `/brand/files/${assetId}?clear=1${view ? "&view=1" : ""}`;
+
 export const EXTENSIONS: Record<string, string> = { "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp", "image/svg+xml": ".svg" };
 
 export function kindTitle(kind: AssetKind): string {

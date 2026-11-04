@@ -21,7 +21,7 @@ import type { PhotoVersionSummary } from "@/lib/data/product-photos";
 import { photoEditing } from "@/lib/photos/download";
 import { seasonFor } from "@/lib/photos/looks";
 
-export const metadata = { title: "Product photo" };
+export const metadata = { title: "Photo" };
 // Checking and editing wait on AI calls
 export const maxDuration = 300;
 
@@ -32,7 +32,7 @@ export default function PhotoPage({ params, searchParams }: { params: Promise<{ 
     <div className="flex max-w-[1000px] flex-col gap-6">
       <Link href="/photos" className="-mb-2 inline-flex min-h-11 w-fit items-center gap-1.5 text-[15px] font-semibold text-muted hover:text-accent">
         <Icon name="back" size="sm" />
-        All product photos
+        All photos
       </Link>
       <Suspense fallback={<p className="text-muted">Loading the photo…</p>}>
         <PhotoView params={params} searchParams={searchParams} />
@@ -44,7 +44,7 @@ export default function PhotoPage({ params, searchParams }: { params: Promise<{ 
 function Missing() {
   return (
     <>
-      <PageHead kicker={<Kicker icon="camera">Product photos</Kicker>} title="That photo wasn’t found" lead="It may have been deleted." />
+      <PageHead kicker={<Kicker icon="camera">Photos</Kicker>} title="That photo wasn’t found" lead="It may have been deleted." />
       <Link href="/photos" className={PRIMARY_LINK}>
         Go to your photos
         <Icon name="arrow" size="sm" />
@@ -140,7 +140,7 @@ async function PhotoView({ params, searchParams }: { params: Promise<{ id: strin
       {versions.length > 1 ? <VersionHistory photoId={photo.id} versions={versions} selectedId={selected?.id ?? null} /> : null}
 
       <Card title="Delete this photo" icon="trash" tone="gray" id="delete-heading">
-        <p className="text-rule">Removes your original and every version of it, including any in your product library.</p>
+        <p className="text-rule">Removes your original and every version of it, including any in your photo library.</p>
         <ActionButton
           action={deletePhotoAction.bind(null, photo.id)}
           label="Delete photo"
@@ -221,7 +221,7 @@ function VersionView({ photo, version, checking, canRefine }: ViewProps) {
         <div className="flex flex-col gap-2">
           <Done>
             <span className="flex flex-wrap items-center gap-2">
-              In your product library · approved <LocalDate iso={version.approvedAt.toISOString()} />
+              In your photo library · approved <LocalDate iso={version.approvedAt.toISOString()} />
             </span>
           </Done>
           <ActionButton action={removeFromLibraryAction.bind(null, version.id)} label="Remove from library" pendingLabel="Removing…" />

@@ -12,10 +12,10 @@ const TAG = "inline-flex w-fit items-start gap-1.5 rounded-lg border px-2.5 py-1
 const EMPTY = "flex items-center gap-3 rounded-[14px] border border-line bg-surface px-5 py-6 text-muted shadow-soft";
 
 // Approved versions, ready to download
-export function PhotoLibrary({ photos }: { photos: LibraryPhoto[] }) {
+export function PhotoLibrary({ photos, services = false }: { photos: LibraryPhoto[]; services?: boolean }) {
   return (
     <section aria-labelledby="library-heading" className="flex flex-col gap-4">
-      <SectionHead id="library-heading" icon="check" title="Your product library" lead="Photos you approved, ready to download." />
+      <SectionHead id="library-heading" icon="check" title={services ? "Your service photo library" : "Your product library"} lead="Photos you approved, ready to download." />
       {photos.length === 0 ? (
         <p className={EMPTY}>
           <Icon name="image" className="text-faint" />

@@ -38,14 +38,14 @@ export function SquareProductSync({ product, sync, connected }: { product: SyncP
   const changedAt = sync?.pushedAt;
   const published = changedAt && changedAt === sync?.publishedAt;
   return <div className="flex flex-col gap-2 rounded-lg border border-line bg-soft p-3" aria-label={`Square sync for ${product.name}`}>
-    <p className="text-sm font-semibold">{sync?.pending && !sync.linked ? "Square publication awaiting confirmation" : sync?.origin === "imported" ? "Pulled from Square" : sync?.linked ? "Published to Square" : "Only in your product library — not published to Square"}</p>
+    <p className="text-sm font-semibold">{sync?.pending && !sync.linked ? "Square publication awaiting confirmation" : sync?.origin === "imported" ? "Pulled from Square" : sync?.linked ? "Published to Square" : `Only in your ${product.kind} library — not published to Square`}</p>
     {sync?.importedAt ? <p className="text-sm">Last pulled: <LocalDate iso={sync.importedAt} /></p> : null}
     {changedAt ? <p className="text-sm">{published ? "Published" : "Last pushed"}: <LocalDate iso={changedAt} /></p> : null}
     {sync?.linked && sync.dirty ? <p className="text-sm text-check">Local changes have not been pushed to Square.</p> : null}
     {!validAccount ? <p className="text-check">Linked to a different Square account. Reconnect that account to sync.</p> : null}
     {canPush ? <button className={SECONDARY} disabled={pending || !connected || !validAccount || product.status !== "confirmed" || product.descriptionBy === "practice"} onClick={() => setReview(true)}>{label}</button> : <p className="text-sm">Synced with Square.</p>}
     {review ? <div className="flex flex-col gap-2" role="group" aria-label={`Review Square push for ${product.name}`}>
-      <p>Approve sending this product’s saved name, description and selling prices to {sync?.linked ? "its linked Square item" : "a new Square catalog item"}. Existing Square photos and stock are preserved. Creating a new option structure after linking requires setup in Square.</p>
+      <p>Approve sending this {product.kind}’s saved name, description and selling prices to {sync?.linked ? "its linked Square item" : "a new Square catalog item"}. Existing Square photos and stock are preserved. Creating a new option structure after linking requires setup in Square.</p>
       <p className="font-semibold">{product.name}</p>
       <p>{priceLabel({ ...product, priceText: "" }) || "No selling price set"}</p>
       {product.options.variants.length ? <ul>{product.options.variants.map((variant) => <li key={JSON.stringify(variant.values)}>{variant.values.join(" / ")}: {variant.priceCents !== null || product.priceCents !== null ? dollars(variant.priceCents ?? product.priceCents!) : "No price set"}</li>)}</ul> : null}
@@ -54,7 +54,7 @@ export function SquareProductSync({ product, sync, connected }: { product: SyncP
       <button className={PRIMARY} disabled={pending || !connected || !validAccount} onClick={() => start(async () => {
         try {
           const result = await pushSquareProductAction({ productId: product.id, expected });
-          setMessage(result.ok ? "Product pushed and verified in Square." : result.message);
+          setMessage(result.ok ? `${product.kind === "service" ? "Service" : "Product"} pushed and verified in Square.` : result.message);
           if (result.ok) setReview(false);
         } catch { setMessage("The result is uncertain. Reload and retry the approved push to verify it safely."); }
       })}>{pending ? "Pushing…" : "Approve and push to Square"}</button>
@@ -66,9 +66,9 @@ export function SquareProductSync({ product, sync, connected }: { product: SyncP
         try {
           const result = await getSquareProductsAction({ productId: product.id, expected });
           setMessage(result.ok ? result.value.skipped.length ? result.value.skipped.join(" ") : "Latest Square version saved in your library." : result.message);
-        } catch { setMessage("Could not refresh this product. Try again."); }
+        } catch { setMessage(`Could not refresh this ${product.kind}. Try again.`); }
       });
-    }}>Get latest from Square for this product</button> : null}
+    }}>Get latest from Square for this {product.kind}</button> : null}
     {message ? <p role="status" aria-label={`Square sync status for ${product.name}`}>{message}</p> : null}
   </div>;
 }

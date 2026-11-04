@@ -30,7 +30,7 @@ test.describe("products and product photos", () => {
     await version.getByText("I compared it with my original photo").click();
     await version.getByRole("button", { name: "Approve and save to my product library" }).click();
     // Wait for the save before leaving the page
-    await expect(page.getByText("In your product library · approved", { exact: false })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("In your photo library · approved", { exact: false })).toBeVisible({ timeout: 30_000 });
     await open(page, "/photos");
     await expect(page.getByRole("region", { name: "Your product library" }).getByRole("img").first()).toBeVisible({ timeout: 30_000 });
 
@@ -189,6 +189,7 @@ test.describe("products and product photos", () => {
     await expect(page.getByRole("region", { name: "Start from your answers" })).toContainText("Mobile dog grooming from a van");
     await expect(sidebar(page).getByRole("link", { name: /^Add your services/ })).toBeVisible();
 
+    await expect(page.locator("summary").filter({ hasText: /^Add a product$/ })).toBeVisible();
     const form = page.getByRole("region", { name: "Add a service" });
     const [first] = groomer.products;
     await form.getByRole("textbox", { name: "Name" }).fill(first.name);
@@ -230,10 +231,14 @@ test.describe("products and product photos", () => {
     await expect(suggested).not.toContainText("stock");
 
     // Pictures for a service: the finished result first, then the work in progress, a detail and the provider with a customer
-    await groom.getByRole("button", { name: `Pictures of ${first.name}` }).click();
-    const pictures = groom.getByRole("region", { name: `Pictures of ${first.name}` });
+    await page.getByRole("link", { name: "Service photos", exact: true }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Service photos" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Add a service photo" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Product photos", exact: true })).toHaveCount(0);
+    await page.getByLabel("Choose a service", { exact: true }).selectOption({ label: first.name });
+    const pictures = page.getByRole("region", { name: `Pictures of ${first.name}` });
     await expect(pictures).toContainText("They show the kind of work you do, not your actual work.");
-    await pictures.getByRole("button", { name: "Make a main photo from the description" }).click();
+    await pictures.getByRole("button", { name: "Generate service photo" }).click();
     const main = pictures.getByRole("figure", { name: `Newest main photo of ${first.name}` });
     await expect(main).toContainText("Practice preview, not made by AI", { timeout: 60_000 });
     await main.getByText("I understand this is only a practice preview").click();
@@ -247,6 +252,7 @@ test.describe("products and product photos", () => {
     }
     await expect(pictures.getByRole("figure", { name: /another angle/ })).toHaveCount(0);
 
+    await open(page, "/products");
     // Prices nearby for a service: as the source states them, compared per visit
     const compare = page.getByRole("region", { name: "Compare prices near you" });
     await expect(compare).toContainText("See what similar services cost in your area");
@@ -274,5 +280,13 @@ test.describe("products and product photos", () => {
     await listed.getByRole("button", { name: "Mark as done" }).click();
     await expect(page.getByText("You already have this.")).toBeVisible();
     await expect(page.getByRole("link", { name: "https://sudsypaws.example/services" })).toBeVisible();
+
+    await page.locator("summary").filter({ hasText: /^Add a product$/ }).click();
+    const productForm = page.getByRole("region", { name: "Add a product", exact: true });
+    await productForm.getByRole("textbox", { name: "Name", exact: true }).fill("Dog shampoo");
+    await productForm.getByRole("textbox", { name: "Price", exact: true }).fill("15");
+    await productForm.getByRole("button", { name: "Add product", exact: true }).click();
+    await expect(page.getByRole("region", { name: /^Your products/ }).getByRole("article", { name: "Dog shampoo", exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: /^Your services/ }).getByRole("article", { name: first.name, exact: true })).toBeVisible();
   });
 });

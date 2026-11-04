@@ -4,9 +4,9 @@ import { removeChosenLogoAction } from "@/app/(app)/logo/actions";
 import { ActionButton } from "@/components/action-button";
 import { Icon } from "@/components/icons";
 import { Done } from "@/components/marketing/pieces";
-import { SECONDARY_LINK } from "@/components/styles";
+import { PRIMARY_LINK, SECONDARY_LINK } from "@/components/styles";
 import { Card } from "@/components/ui";
-import { brandFileUrl } from "@/lib/brand/files";
+import { brandFileUrl, seeThroughUrl } from "@/lib/brand/files";
 import type { AssetSummary } from "@/lib/data/brand";
 import { MadeBy } from "./asset-view";
 import { EditPrompt } from "./controls";
@@ -32,18 +32,24 @@ function caption(chosen: AssetSummary): string {
   return "You chose this logo.";
 }
 
+// The usual sign for see-through
+const CHECKERBOARD = "bg-[repeating-conic-gradient(#eef2f6_0_25%,#ffffff_0_50%)] bg-[length:16px_16px]";
+
 // The chosen logo, large, with what the owner can do next; questions and ideas stay hidden
 export function ChosenLogo({ chosen, edits, before, hasPicks, practice, businessName, maxBytes }: Props) {
   const own = chosen.conceptId === null;
+  // Practice previews keep their background and label
+  const clear = !chosen.simulated && chosen.mimeType !== "image/svg+xml";
   const switchNote = hasPicks ? "Use this logo instead? The versions and brand images you picked were made from your current logo, so they’ll be cleared." : undefined;
   return (
     <Card title="Your logo" icon="check" tone="done" id="your-logo-heading" bodyClassName="gap-5">
       <div className="grid gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:items-start">
+        <div className="flex flex-col gap-3">
         <figure className="flex flex-col gap-2">
-          <div className="grid min-h-56 place-items-center rounded-xl border border-line bg-white p-5 sm:min-h-72">
+          <div className={`grid min-h-56 place-items-center rounded-xl border border-line p-5 sm:min-h-72 ${clear ? CHECKERBOARD : "bg-white"}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={brandFileUrl(chosen.id)}
+              src={clear ? seeThroughUrl(chosen.id) : brandFileUrl(chosen.id)}
               alt={chosen.simulated ? "Practice preview of your logo" : "Your logo"}
               width={chosen.width}
               height={chosen.height}
@@ -58,6 +64,20 @@ export function ChosenLogo({ chosen, edits, before, hasPicks, practice, business
             </Done>
           </figcaption>
         </figure>
+          <div className="flex flex-wrap gap-2">
+            <a href={clear ? seeThroughUrl(chosen.id, false) : brandFileUrl(chosen.id, false)} className={PRIMARY_LINK}>
+              <Icon name="download" size="sm" />
+              {clear ? "Download logo (PNG, see-through)" : "Download logo"}
+            </a>
+            {clear ? (
+              <a href={brandFileUrl(chosen.id, false)} className={SECONDARY_LINK}>
+                <Icon name="download" size="sm" />
+                Original file
+              </a>
+            ) : null}
+          </div>
+          {clear ? <p className="text-sm text-muted">The plain background is removed, so it sits on any color. Your website uses this version. If any part looks wrong, use the original file.</p> : null}
+        </div>
 
         <div className="flex flex-col items-start gap-3">
           <EditPrompt
