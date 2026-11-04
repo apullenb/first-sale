@@ -59,6 +59,7 @@ import type { WebSearchHit } from "@/lib/ai/types";
 import type { InsightFeedback, SavedInsights } from "@/lib/insights/types";
 import { LIBRARY_GROUPS } from "@/lib/brand/library";
 import type { PriceCheck } from "@/lib/rules/price-compare";
+import type { SocialIdea } from "@/lib/social/ideas";
 import { PICTURE_VIEWS, WEARERS } from "@/lib/rules/picture-views";
 import { DESCRIPTION_AUTHORS, ITEM_KINDS, ITEM_ORIGINS, ITEM_STATUSES, type ItemOptions, type ProductPhotoRef } from "@/lib/rules/products";
 
@@ -429,6 +430,21 @@ export const productPriceChecks = pgTable("product_price_checks", {
   result: jsonb("result").$type<PriceCheck>().notNull(),
   checkedAt: timestamp("checked_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// Daily post ideas on the social media page: one set per owner's calendar day
+export const socialIdeas = pgTable(
+  "social_ideas",
+  {
+    id: id(),
+    businessId: businessId(),
+    day: text("day").notNull(),
+    ideas: jsonb("ideas").$type<SocialIdea[]>().notNull(),
+    read: jsonb("read").$type<number[]>().notNull().default([]),
+    simulated: boolean("simulated").notNull().default(false),
+    createdAt: createdAt(),
+  },
+  (table) => [uniqueIndex("social_ideas_business_day_idx").on(table.businessId, table.day)],
+);
 
 // AI drafts stay drafts until the owner approves them
 export const drafts = pgTable(

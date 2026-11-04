@@ -17,7 +17,7 @@ const WRITES = [
   "connectMySquareSandbox",
   "beginMySquareConnection", "finishMySquareConnection", "listMySquareItems", "draftMySquareDescription", "editMySquareDraft",
   "approveMySquareDraft", "disconnectMySquare", "pullMySquareProducts", "pushMySquareProduct",
-  "saveMyFollowUp", "saveMyResearch", "setMyConditionAnswer", "setMyStepStatus", "saveMyDetails", "deleteMyDetail", "deleteMyBrandImage", "setMyImageScenes",
+  "saveMyFollowUp", "saveMyResearch", "setMyConditionAnswer", "setMyStepStatus", "saveMyDetails", "deleteMyDetail", "deleteMyBrandImage", "setMyImageScenes", "saveMySocialIdeas", "markMySocialIdeaRead",
   "createMyDocument", "updateMyDocument", "deleteMyDocument", "startMyRun", "finishMyRun",
   "createMyPhoto", "updateMyPhoto", "deleteMyPhoto", "addMyPhotoVersion", "setMyPhotoVersionReview", "approveMyPhotoVersion",
   "saveMyWebsitePlan", "updateMyWebsitePlan", "updateMyMarketing",
@@ -33,7 +33,7 @@ const WRITES = [
 ];
 
 const READS = [
-  "getMySquareState", "getMyProductSync", "getMyOrder",
+  "getMySquareState", "getMyProductSync", "getMyOrder", "getMySocialIdeas",
   "getMyBusiness", "getMyResearch", "myAiKey", "getMyPlan", "getMyResearchBasis", "listMyConditionAnswers", "paperworkContext",
   "getMyPaperwork", "getMyStep", "getMyDetails", "listMyDocuments", "getMyDocument", "getMyDocumentFile", "lastMyRun",
   "listMyPhotos", "getMyPhoto", "getMyPhotoFile", "getMyPhotoVersionFile", "findMyPhotoVersionByRequest", "myPhotoVersionRoom",

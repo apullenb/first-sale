@@ -124,6 +124,8 @@ import {
 import type { NewItemPicture } from "@/lib/products/picture";
 import type { Wearer } from "@/lib/rules/picture-views";
 import type { PriceCheck } from "@/lib/rules/price-compare";
+import type { IdeaSet } from "@/lib/social/ideas";
+import { ideaHistoryForOwner, markIdeaReadForOwner, saveIdeasForOwner } from "./social-ideas";
 import type { DescriptionAuthor } from "@/lib/rules/products";
 import type { ProductValues } from "@/lib/rules/products";
 import { type ConditionAnswer, placeOf, structureOf } from "@/lib/research/applicability";
@@ -646,6 +648,21 @@ export async function listMyPriceChecks() {
 export async function saveMyPriceCheck(productId: string, result: PriceCheck) {
   const user = await writer();
   return savePriceCheckForOwner(getDb(), user.id, productId, result);
+}
+
+export async function getMySocialIdeas() {
+  const user = await getCurrentUser();
+  return ideaHistoryForOwner(getDb(), user.id);
+}
+
+export async function saveMySocialIdeas(set: IdeaSet) {
+  const user = await writer();
+  return saveIdeasForOwner(getDb(), user.id, set);
+}
+
+export async function markMySocialIdeaRead(day: string, index: number) {
+  const user = await writer();
+  return markIdeaReadForOwner(getDb(), user.id, day, index);
 }
 
 export async function createMyProduct(values: ProductValues) {

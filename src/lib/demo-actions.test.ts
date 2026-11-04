@@ -15,7 +15,7 @@ vi.mock("@/db/client", () => ({
 vi.mock("next/cache", () => ({ refresh: () => {}, revalidatePath: () => {}, updateTag: () => {} }));
 
 // Read-only actions; any other action must answer a demo session with the demo note
-const READ_ONLY = new Set(["jobsRunningAction", "placeOptionsAction", "explainOptionAction"]);
+const READ_ONLY = new Set(["jobsRunningAction", "placeOptionsAction", "explainOptionAction", "socialIdeasAction"]);
 
 const APP = join(__dirname, "..", "app");
 function serverActionFiles(dir: string): string[] {
