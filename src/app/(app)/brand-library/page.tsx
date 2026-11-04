@@ -4,7 +4,8 @@ import { deleteLibraryFileAction } from "@/app/(app)/brand-library/actions";
 import { ActionButton } from "@/components/action-button";
 import { PracticeTag } from "@/components/brand/asset-view";
 import { LibraryUpload } from "@/components/brand/library-upload";
-import { ImageSlots, NoLogoYet } from "@/components/brand/slots";
+import { type LibraryEntry, LibraryGrid } from "@/components/brand/library-grid";
+import { flagged, ImageSlots, NoLogoYet } from "@/components/brand/slots";
 import { formatBytes } from "@/components/documents/labels";
 import { Icon, type IconName } from "@/components/icons";
 import { JobWatch } from "@/components/job-watch";
@@ -67,6 +68,9 @@ const EMPTY: Record<LibraryGroup, { text: string; href: string; label: string }>
   product_photos: { text: "No product photos yet. Take or upload a photo and SnapStart helps you tidy it up.", href: "/photos", label: "Make product photos" },
   other: { text: "Nothing here yet. Add pictures of your storefront, your team or your work.", href: "#add-heading", label: "Add a picture" },
 };
+
+// From this many made brand images on, the library itself leads the page and making moves below it
+const LIBRARY_AFTER = 4;
 
 const photoUrl = (photoId: string, versionId: string | null, view: boolean) =>
   `/photos/${photoId}${versionId ? `/versions/${versionId}` : ""}/file${view ? "?view=1" : ""}`;
@@ -187,6 +191,110 @@ async function Library() {
   // Names keep Facebook and YouTube capitalized; the header picture has its own step
   const lower = (title: string) => (/^(Facebook|YouTube)/.test(title) ? title : title.charAt(0).toLowerCase() + title.slice(1));
   const missing = imageList.filter((slot) => slot.empty && slot.kind !== EXAMPLE_IMAGE && recommended.includes(slot.kind)).map((slot) => lower(IMAGE_SPECS[slot.kind].title));
+  const madeImages = chosen && state ? state.assets.filter((asset) => asset.origin === "generated" && asset.sourceId === chosen.id && (IMAGE_KINDS as readonly string[]).includes(asset.kind)) : [];
+  const libraryMode = madeImages.length >= LIBRARY_AFTER;
+  const style = state ? brandImageMedium(state) : ({ medium: "photo", by: "rules" } as const);
+  const slots = (
+    <>
+      {chosen ? null : <NoLogoYet />}
+      {chosen && running.size ? <JobWatch jobs={[...running].map((kind) => ({ workflow: "brand_images", subjectId: `${chosen.id}:${kind}` }))} what="Making your brand images" /> : null}
+      <ImageSlots key={chosen?.id ?? "none"} chosenId={chosen?.id ?? null} name={state?.brief?.name || business.profile?.name || ""} assets={state?.assets ?? []} picks={state?.picks ?? {}} practice={practice} running={running} recommended={recommended} style={style} />
+    </>
+  );
+  const footnote = (
+    <p className="text-sm text-muted">
+      Every file is kept exactly as it was made or uploaded; nothing here is ever changed. An edit is always a new file. Only you can see them, when you’re signed in. To remove a logo, go to{" "}
+      <Link href="/logo" className={TEXT_LINK}>
+        Create your logo
+      </Link>
+      ; product photos are removed on{" "}
+      <Link href="/photos" className={TEXT_LINK}>
+        Product photos
+      </Link>
+      .
+    </p>
+  );
+  const add = (
+    <Card title="Add a picture" icon="upload" id="add-heading">
+      <p className="text-[15px] text-rule">Add your own pictures, such as your storefront, your team or work in progress, or logo and brand files you already have.</p>
+      <LibraryUpload groups={LIBRARY_GROUPS} initialGroup="other" maxBytes={MAX_UPLOAD_BYTES} />
+      <p className="text-sm text-muted">
+        You can add up to {LIBRARY_LIMITS.files} pictures and {formatBytes(LIBRARY_LIMITS.totalBytes)} in all. You’ve added {usage.count} {usage.count === 1 ? "picture" : "pictures"}
+        {usage.count ? <> ({formatBytes(usage.bytes)})</> : null}. Files made or uploaded elsewhere in SnapStart don’t count toward this.
+      </p>
+    </Card>
+  );
+
+  if (libraryMode && chosen && state) {
+    const entry = (item: Item, tag: string): LibraryEntry => ({
+      key: item.key,
+      title: item.title,
+      tag,
+      detail: item.detail,
+      view: item.view,
+      download: item.download,
+      width: item.width,
+      height: item.height,
+      practice: item.practice,
+      inUse: item.tags.includes("In use") || item.tags.includes("Your chosen logo"),
+      deleteUploadId: item.deleteId ?? undefined,
+    });
+    // Newest first within each purpose, in the order the make cards show
+    const images = IMAGE_KINDS.flatMap((kind) =>
+      madeImages
+        .filter((asset) => asset.kind === kind)
+        .reverse()
+        .map((asset): LibraryEntry => {
+          const inUse = state.picks[kind] === asset.id;
+          return {
+            key: asset.id,
+            title: asset.change ? `${IMAGE_SPECS[kind].title}: “${asset.change}”` : IMAGE_SPECS[kind].title,
+            tag: IMAGE_SPECS[kind].title,
+            detail: asset.simulated ? "Practice preview" : "Made by AI",
+            view: brandFileUrl(asset.id),
+            download: brandFileUrl(asset.id, false),
+            width: asset.width,
+            height: asset.height,
+            practice: asset.simulated,
+            inUse,
+            useId: inUse ? undefined : asset.id,
+            flagged: flagged(asset.check),
+            removeId: asset.id,
+          };
+        }),
+    );
+    const entries = [
+      ...groups.logos.map((item) => entry(item, LIBRARY_GROUP_TEXT.logos.title)),
+      ...images,
+      ...groups.brand_images.map((item) => entry(item, LIBRARY_GROUP_TEXT.brand_images.title)),
+      ...groups.product_photos.map((item) => entry(item, LIBRARY_GROUP_TEXT.product_photos.title)),
+      ...groups.other.map((item) => entry(item, LIBRARY_GROUP_TEXT.other.title)),
+    ];
+    return (
+      <>
+        {practice ? <PracticeBanner what="Brand images made here are plain labeled previews, not made by AI." /> : null}
+        <div className="@container">
+          <Card title="Your pictures" icon="image" id="library-heading" action={<Chip tone="gray">{entries.length}</Chip>} bodyClassName="gap-4">
+            <p className="text-[15px] text-muted">Every logo and picture you have, tagged with what it’s for. Choose which one is in use for each purpose; the others stay here.</p>
+            <LibraryGrid entries={entries} />
+          </Card>
+        </div>
+        <section id="make" aria-labelledby="make-heading" className="flex flex-col gap-4 scroll-mt-6">
+          <h2 id="make-heading" className="text-xl font-bold">
+            Make or add pictures
+          </h2>
+          <div id="group-brand_images" className="@container scroll-mt-6">
+            <Card title={LIBRARY_GROUP_TEXT.brand_images.title} icon={GROUP_ICONS.brand_images} id="group-brand_images-heading" bodyClassName="gap-4">
+              {slots}
+            </Card>
+          </div>
+          {add}
+          {footnote}
+        </section>
+      </>
+    );
+  }
+
   const steps: Step[] = [
     { label: "Choose or upload your logo", done: Boolean(chosen), href: "/logo", action: "Go to Create your logo" },
     { label: `Make your ${IMAGE_SPECS[EXAMPLE_IMAGE].title.toLowerCase()} and choose “Use this” when you like the look`, done: exampleUsed, href: `#slot-${EXAMPLE_IMAGE}`, action: "Go to the header picture" },
@@ -211,35 +319,15 @@ async function Library() {
       {LIBRARY_GROUPS.map((group) =>
         group === "brand_images" ? (
           <Group key={group} group={group} items={groups[group]} count={counts[group]} uploadsTitle="Brand images you added">
-            {chosen ? null : <NoLogoYet />}
-            {chosen && running.size ? <JobWatch jobs={[...running].map((kind) => ({ workflow: "brand_images", subjectId: `${chosen.id}:${kind}` }))} what="Making your brand images" /> : null}
-            <ImageSlots key={chosen?.id ?? "none"} chosenId={chosen?.id ?? null} name={state?.brief?.name || business.profile?.name || ""} assets={state?.assets ?? []} picks={state?.picks ?? {}} practice={practice} running={running} recommended={recommended} style={state ? brandImageMedium(state) : { medium: "photo", by: "rules" }} />
+            {slots}
           </Group>
         ) : (
           <Group key={group} group={group} items={groups[group]} count={counts[group]} />
         ),
       )}
 
-      <p className="text-sm text-muted">
-        Every file is kept exactly as it was made or uploaded; nothing here is ever changed. An edit is always a new file. Only you can see them, when you’re signed in. To remove a logo, go to{" "}
-        <Link href="/logo" className={TEXT_LINK}>
-          Create your logo
-        </Link>
-        ; product photos are removed on{" "}
-        <Link href="/photos" className={TEXT_LINK}>
-          Product photos
-        </Link>
-        .
-      </p>
-
-      <Card title="Add a picture" icon="upload" id="add-heading">
-        <p className="text-[15px] text-rule">Add your own pictures, such as your storefront, your team or work in progress, or logo and brand files you already have.</p>
-        <LibraryUpload groups={LIBRARY_GROUPS} initialGroup="other" maxBytes={MAX_UPLOAD_BYTES} />
-        <p className="text-sm text-muted">
-          You can add up to {LIBRARY_LIMITS.files} pictures and {formatBytes(LIBRARY_LIMITS.totalBytes)} in all. You’ve added {usage.count} {usage.count === 1 ? "picture" : "pictures"}{usage.count ? <> ({formatBytes(usage.bytes)})</> : null}. Files made or uploaded
-          elsewhere in SnapStart don’t count toward this.
-        </p>
-      </Card>
+      {footnote}
+      {add}
     </>
   );
 }

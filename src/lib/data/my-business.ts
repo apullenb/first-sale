@@ -62,6 +62,7 @@ import {
   saveBriefForOwner,
   setAssetCheckForOwner,
   setImageMediumForOwner,
+  deleteBrandImageForOwner,
   setImageScenesForOwner,
   unchooseLogoForOwner,
   unpickFileForOwner,
@@ -492,6 +493,11 @@ export async function unchooseMyLogo() {
 export async function pickMyBrandFile(assetId: string) {
   const user = await writer();
   return pickFileForOwner(getDb(), user.id, assetId);
+}
+
+export async function deleteMyBrandImage(assetId: string) {
+  const user = await writer();
+  return deleteBrandImageForOwner(getDb(), user.id, assetId);
 }
 
 export async function setMyImageScenes(scenes: ImageScenes) {

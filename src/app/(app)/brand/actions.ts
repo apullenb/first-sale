@@ -44,6 +44,7 @@ import {
   setMyBrandAssetCheck,
   setMyImageMedium,
   setMyImageScenes,
+  deleteMyBrandImage,
   setMyOwnLogoColors,
   unpickMyBrandFile,
   updateMyDocument,
@@ -479,6 +480,15 @@ export async function pickFileAction(assetId: unknown): Promise<ActionResult> {
   if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(assetId);
   if (!parsed.success || !(await pickMyBrandFile(parsed.data))) return { ok: false, message: NOT_FOUND };
+  refresh();
+  return { ok: true, value: null };
+}
+
+// The owner's own call from the library; the file is gone for good
+export async function removeBrandImageAction(assetId: unknown): Promise<ActionResult> {
+  if (await isDemoSession()) return DEMO_REFUSAL;
+  const parsed = id.safeParse(assetId);
+  if (!parsed.success || !(await deleteMyBrandImage(parsed.data))) return { ok: false, message: NOT_FOUND };
   refresh();
   return { ok: true, value: null };
 }
