@@ -9,7 +9,7 @@
 
 There are tools for forming a company, like LegalZoom, and tools for building a website, like Wix. SnapStart does both, plus the marketing plan, social media setup, ads, and managing products and sales. **It's the one guided kit that takes an owner from the idea on day one to their first sale.**
 
-SnapStart is a startup kit that tailors itself to each owner's business. **Meta Muse** researches the exact licenses, permits and registrations that apply to *their* business in *their* city, county and state, quoting the official government pages. It recommends the right structure, fills in the official forms, and designs their logo, brand photos and website. **Muse does the heavy lifting, SnapStart's tested code double-checks every fact and figure, and the owner has the final say at every step.**
+SnapStart is a startup kit that tailors itself to each owner's business. It finds the exact licenses, permits and registrations that apply to *their* business in *their* city, county and state, quoting the official government pages. It recommends the right structure, fills in the official forms, and builds their logo, brand photos and website. **Meta Muse reads, writes and draws; SnapStart's tested code checks every fact and works out every figure; and the owner has the final say at every step.**
 
 **[Try the live demo →](https://snapstartkit.vercel.app)**
 
@@ -36,7 +36,7 @@ SnapStart is a startup kit that tailors itself to each owner's business. **Meta 
 ## Contents
 
 - [Why SnapStart](#why-snapstart)
-- [Tailored to your business by Meta Muse](#tailored-to-your-business-by-meta-muse)
+- [Tailored to your business](#tailored-to-your-business)
 - [At a glance](#at-a-glance)
 - [Feature tour](#feature-tour)
 - [Made with Meta Muse](#made-with-meta-muse)
@@ -63,21 +63,21 @@ It works by a simple split:
 
 | | Who does it | Examples |
 |---|---|---|
-| **Meta Muse drafts** | Meta Muse | Reads official pages and quotes them, explains a form in plain words, drafts website copy, designs logos, makes brand and product photos, writes a marketing plan |
+| **AI drafts** | Meta Muse | Reads official pages and quotes them, explains a form in plain words, drafts website copy, designs logos, makes brand and product photos, writes a marketing plan |
 | **SnapStart's code checks and calculates** | Plain, unit-tested TypeScript | Which requirements apply, the order of steps, fees and totals, stock and margins, form answers, every quality check |
 | **The owner approves** | The person | They review each draft, then sign, file and publish on their own terms |
 
-## Tailored to your business by Meta Muse
+## Tailored to your business
 
-Every owner gets a plan built for their business, not a generic checklist. Here's what Meta Muse does with a few clicks of intake answers:
+Every owner gets a plan built for their business, not a generic checklist. Here's what SnapStart does with a few clicks of intake answers:
 
-- **Finds the legal requirements that apply to you.** Muse Spark searches the official sites of your city, county, state and the federal government, reads the pages, and quotes the exact lines that apply to your business: a cottage food exemption for a home baker, a food handler card for a food truck, a sales tax permit for anyone selling goods, an assumed name filing when you sell under a brand name.
-- **Sorts what applies from what doesn't.** Muse Spark reads each requirement against your answers (where you work, what you sell, who helps you, how customers buy), and SnapStart turns that into "applies", "doesn't apply" or one short question about your plans.
-- **Digs deeper on open questions.** When a page doesn't settle something, Muse Spark looks through the office's own site, code and forms, then explains its answer in plain words. Anything still open becomes a ready-to-send message to the right office, with its email and phone.
-- **Recommends a structure for you.** Muse Spark weighs everything you've told it (partners, risk, plans to hire, how you'll be paid) and explains why a sole proprietorship, LLC or partnership fits, with real-life examples.
-- **Fills in your paperwork.** Muse Spark's vision reads official forms like IRS Form SS-4 and Texas Form 205, and SnapStart fills in every blank it can from your saved details, then shows exactly where to sign and send it.
-- **Builds your brand from your own words.** Muse Spark turns your answers into a brand story and taglines that name what you actually sell. Muse Image draws logo ideas, then brand photos and product photos with your logo printed right into the scene.
-- **Knows your market.** Muse Spark drafts website copy from your real products and prices, compares prices for similar products and services near you with links to each one, and writes a marketing plan for the platforms you chose.
+- **Finds the legal requirements that apply to you.** SnapStart finds the official sites of your city, county, state and the federal government, Muse Spark reads the pages, and SnapStart confirms every quote against the page before showing the exact lines that apply to your business: a cottage food exemption for a home baker, a food handler card for a food truck, a sales tax permit for anyone selling goods, an assumed name filing when you sell under a brand name.
+- **Sorts what applies from what doesn't.** SnapStart's code checks each requirement against your answers (where you work, what you sell, who helps you, how customers buy) and turns it into "applies", "doesn't apply" or one short question about your plans.
+- **Digs deeper on open questions.** When a page doesn't settle something, SnapStart looks through the office's own site, code and forms, then explains the answer in plain words. Anything still open becomes a ready-to-send message to the right office, with its email and phone.
+- **Recommends a structure for you.** SnapStart weighs everything you've told it (partners, risk, plans to hire, how you'll be paid) and explains why a sole proprietorship, LLC or partnership fits, citing IRS and SBA guidance.
+- **Fills in your paperwork.** SnapStart fills in official forms like IRS Form SS-4 and Texas Form 205 from your saved details, then shows exactly where to sign and send it.
+- **Builds your brand from your own words.** Your answers become a brand story and taglines that name what you actually sell. Muse Image draws logo ideas; SnapStart cuts the logo versions from its pixels and makes brand and product photos sized for each platform, with your logo in the scene.
+- **Knows your market.** SnapStart drafts website copy from your real products and prices, checking every price claim in code, compares prices for similar products and services near you with links to each one, and writes a marketing plan for the platforms you chose.
 
 ## At a glance
 
@@ -133,7 +133,7 @@ Owners answer mostly by clicking. A home baker, a woodworker and a dog groomer e
 
 <img src="docs/media/nav/business-structure.webp" alt="Menu link: Business structure" width="177" height="32">
 
-Ownership structure, business name (DBA), tax treatment and licenses are four different decisions, and the page walks through each one. **Muse Spark** weighs everything the owner has said and recommends a starting point, citing verbatim IRS and SBA guidance. The owner records their choice with a dated history, and the plan updates to match.
+Ownership structure, business name (DBA), tax treatment and licenses are four different decisions, and the page walks through each one. SnapStart weighs everything the owner has said and recommends a starting point, citing verbatim IRS and SBA guidance. The owner records their choice with a dated history, and the plan updates to match.
 
 <p align="center"><img src="docs/media/structure.webp" alt="Recording of the structure page: an LLC compared with a sole proprietorship, the owner picks an LLC, the name and tax plan, reviews what recording does, and records the decision into a dated history" width="900"></p>
 
@@ -141,7 +141,7 @@ Ownership structure, business name (DBA), tax treatment and licenses are four di
 
 <img src="docs/media/nav/what-applies-to-you.webp" alt="Menu link: What applies to you" width="177" height="32">
 
-SnapStart finds the official government websites for the owner's city, county and state, plus the federal government. A site counts as official only when it's listed in CISA's .gov registry, so every official source is a real government site; anything else is marked for the owner to check. **Muse Spark** reads those pages and pulls out each legal requirement along with a word-for-word quote, so the owner can see exactly where it came from and which government it belongs to. SnapStart then checks each requirement against the owner's answers to show what applies to them.
+SnapStart finds the official government websites for the owner's city, county and state, plus the federal government. A site counts as official only when it's listed in CISA's .gov registry, so every official source is a real government site; anything else is marked for the owner to check. Muse Spark reads those pages and pulls out each legal requirement with a word-for-word quote, and SnapStart confirms the quote is really on the page, so the owner can see exactly where it came from and which government it belongs to. SnapStart then checks each requirement against the owner's answers to show what applies to them.
 
 <p align="center"><img src="docs/media/requirements.webp" alt="Recording of the 'What applies to you' page for a candle studio in Austin, Texas: where the requirements come from (federal, Texas, Travis County, Austin), the seven requirements that apply with their official sources, a question about the owner's plans, and the steps they add to the plan" width="900"></p>
 
@@ -159,11 +159,13 @@ Each step comes with numbered instructions, and every fee and method links to th
 
 For an LLC or a partnership, SnapStart prepares the owners' agreement when required by the user's state, using carefully written standard wording filled in with the owners, their shares, what each puts in and how they'll make decisions. It's saved as a PDF with a signature line for each owner, ready to sign and keep with the business records.
 
-### Documents and the paperwork companion
+### Documents: every business record in one place
 
 <img src="docs/media/nav/documents.webp" alt="Menu link: Documents" width="225" height="32">
 
-Got a letter from the state and not sure what it means? Snap a photo or upload the PDF, and it's saved in the business's document library. **Muse Spark**, Meta's vision-capable model, reads it, even a phone photo or a scan, and explains in plain words what the document is, who sent it, and exactly what the owner needs to do next, like a deadline to meet or a fee to pay, each shown in the document's own words. It also points out a mailer that says it isn't from a government agency. For a form they need to fill in, whether uploaded, pasted or fetched from a .gov link, owners can ask about any field, and SnapStart drafts the answers from their saved business details for them to review. Each reviewed copy, receipt and approval is kept as its own version next to the original.
+Documents is the business's filing cabinet. Everything SnapStart prepares lands here: the filled-in official forms, the owners' agreement, the business plan, and each receipt and approval. Owners add their own files too, from a photo of a letter to a PDF from the state. Downloaded originals stay untouched; each reviewed copy, receipt and approval is kept as its own version next to the original.
+
+Got a letter and not sure what it means? Add it, and SnapStart explains what it is, who sent it and what to do next, like a deadline or a fee, quoting the document's own words. For a form to fill in, owners can ask about any field, and SnapStart drafts the answers from their saved details for them to review.
 
 <p align="center"><img src="docs/media/documents.webp" alt="The Documents page: add a document, generate a business plan, and the library with Texas Form 205 as the official form with a draft of 8 answers to check" width="900"></p>
 
@@ -171,13 +173,13 @@ Got a letter from the state and not sure what it means? Snap a photo or upload t
 
 <img src="docs/media/nav/business-insights.webp" alt="Menu link: Business insights" width="225" height="32">
 
-Business insights gives owners friendly, specific feedback and tips on their idea, with a link to where they can act on each one. **Muse Spark** reads the whole picture (the answers, plan, brand, website and products) and highlights what's strong, what to keep an eye on, and creative ideas to try. Owners can mark tips as useful, and a refresh notices what's changed since last time.
+Business insights gives owners friendly, specific feedback and tips on their idea, with a link to where they can act on each one. SnapStart reads the whole picture (the answers, plan, brand, website and products) and highlights what's strong, what to keep an eye on, and creative ideas to try. Owners can mark tips as useful, and a refresh notices what's changed since last time.
 
 ### Build your brand: feel first, then a logo
 
 <img src="docs/media/nav/build-your-brand.webp" alt="Menu link: Build your brand" width="201" height="32">
 
-Owners click a few feel words, answer some this-or-that questions and pick color families. **Muse Spark** turns those picks into a short brand description the owner approves or rewrites, and it guides every logo idea, version and picture after that. Owners get a full brand without writing a single prompt.
+Owners click a few feel words, answer some this-or-that questions and pick color families. SnapStart turns those picks into a short brand description the owner approves or rewrites, and it guides every logo idea, version and picture after that. Owners get a full brand without writing a single prompt.
 
 <p align="center"><img src="docs/media/brand-feel.webp" alt="Recording of Build your brand: picking feel words like cozy, earthy and rustic and color families, then a short brand description the owner approves" width="900"></p>
 
@@ -185,7 +187,7 @@ Owners click a few feel words, answer some this-or-that questions and pick color
 
 <img src="docs/media/nav/create-your-logo.webp" alt="Menu link: Create your logo" width="201" height="32">
 
-**Muse Image** draws the logo ideas. From the chosen logo, SnapStart builds the stacked, icon and one-color versions directly from its pixels: it finds the symbol and the lettering with connected-component analysis and rearranges the original artwork, so every version keeps the logo's exact lettering and adds no extra cost. The chosen logo sits on a checkerboard so its see-through background is plain to see, ready to grab with **Download logo (PNG, see-through)** and drop onto any color. The brand kit adds colors with contrast ratings, every logo file size, favicons and social profile pictures, made right in the browser.
+Muse Image draws the logo ideas. From the chosen logo, SnapStart builds the stacked, icon and one-color versions directly from its pixels: it finds the symbol and the lettering with connected-component analysis and rearranges the original artwork, so every version keeps the logo's exact lettering and adds no extra cost. The chosen logo sits on a checkerboard so its see-through background is plain to see, ready to grab with **Download logo (PNG, see-through)** and drop onto any color. The brand kit adds colors with contrast ratings, every logo file size, favicons and social profile pictures, made right in the browser.
 
 <p align="center"><img src="docs/media/logo-clear.webp" alt="Recording of Create your logo for Hearth &amp; Wick Candle Co.: the chosen logo on a checkerboard with Download logo (PNG, see-through), then the stacked, icon and one-color versions and the brand kit with colors and logo files" width="900"></p>
 
@@ -193,7 +195,7 @@ Owners click a few feel words, answer some this-or-that questions and pick color
 
 <img src="docs/media/nav/create-your-website.webp" alt="Menu link: Create your website" width="201" height="32">
 
-Choose a platform and web address in a focused two-step setup, then open the website builder. **Muse Spark** designs the theme from the saved brand brief, palette, audience, lettering and real imagery, and the designs go well beyond a template: split, photo-cover and editorial openings, framed product grids and story bands, with the see-through logo sitting cleanly on any background. Products and photos flow in from the product library, with header images from the Brand Library. Owners click the live page to edit, refine the theme with AI, arrange sections, adjust typography and colors, choose images and manage product details, with undo, redo and saved drafts.
+Choose a platform and web address in a focused two-step setup, then open the website builder. SnapStart designs the theme from the saved brand brief, palette, audience, lettering and real imagery, and the designs go well beyond a template: split, photo-cover and editorial openings, framed product grids and story bands, with the see-through logo sitting cleanly on any background. Products and photos flow in from the product library, with header images from the Brand Library. Owners click the live page to edit, refine the theme with AI, arrange sections, adjust typography and colors, choose images and manage product details, with undo, redo and saved drafts.
 
 **Publish website** opens a final check: the finished site at computer and phone width, with SnapStart confirming everything is ready. One more step brings up SnapStart web hosting, a simple monthly subscription that puts the site online and keeps it current every time the owner makes a change. Existing Square sites can be connected; Wix and Shopify are marked Coming Soon.
 
@@ -203,7 +205,7 @@ Choose a platform and web address in a focused two-step setup, then open the web
 
 <img src="docs/media/nav/manage-your-products.webp" alt="Menu link: Manage your products" width="201" height="32">
 
-Products get photos, a price, a cost and stock. Photos are attached as each product is added, so they show up on the website right away. Options like size or scent each carry their own price and stock, and SnapStart works out the price range, totals and how much is left from each sale. Each option, like a 12 oz candle or a large-dog groom, is ordered and counted on its own. "Compare prices near you" uses **Muse web search** to show what similar items sell for nearby, with a link to each.
+Products get photos, a price, a cost and stock. Photos are attached as each product is added, so they show up on the website right away. Options like size or scent each carry their own price and stock, and SnapStart works out the price range, totals and how much is left from each sale. Each option, like a 12 oz candle or a large-dog groom, is ordered and counted on its own. "Compare prices near you" uses web search to show what similar items sell for nearby, with a link to each.
 
 <p align="center"><img src="docs/media/products.webp" alt="Recording of Manage your products for Hearth &amp; Wick Candle Co.: Lavender Fields Candle, Cedar &amp; Ember Candle, Wild Rose Ceramic Tumbler and Garden Trio Gift Set, each with its photo, price and cost, then Compare prices near you" width="900"></p>
 
@@ -225,25 +227,25 @@ For a service business, the same step becomes **Manage your services**: how each
 
 <img src="docs/media/nav/manage-your-products.webp" alt="Menu link: Manage your products" width="201" height="32">
 
-From the products step, owners can turn an ordinary phone photo into a polished store photo. **Muse Spark** checks the photo first and offers retake tips when needed; **Muse Image** then edits it using the original as its reference, so the product stays exactly as it is while the background and light change. The two are shown side by side for the owner to approve into their product library.
+From the products step, owners can turn an ordinary phone photo into a polished store photo. SnapStart checks the photo first and offers retake tips when needed, then edits it using the original as its reference, so the product stays exactly as it is while the background and light change. The two are shown side by side for the owner to approve into their product library.
 
 ### Marketing plan
 
 <img src="docs/media/nav/create-your-marketing-plan.webp" alt="Menu link: Create your marketing plan" width="201" height="32">
 
-A few quick questions (where the owner wants to show up, how familiar they are with social media, what they've tried) become a marketing plan from **Muse Spark**: goals, who to reach, the platforms that fit, things to post about and a weekly rhythm. Approving it turns the plan into ordered steps, with as much hand-holding as the owner wants.
+A few quick questions (where the owner wants to show up, how familiar they are with social media, what they've tried) become a marketing plan: goals, who to reach, the platforms that fit, things to post about and a weekly rhythm. Approving it turns the plan into ordered steps, with as much hand-holding as the owner wants.
 
 ### Social media
 
 <img src="docs/media/nav/set-up-social-media.webp" alt="Menu link: Set up social media" width="201" height="32">
 
-For each platform in the plan, SnapStart gets the account ready: the name, a bio drafted by **Muse Spark**, a profile picture and a cover from the brand kit, plus step-by-step setup that follows each platform's own help pages.
+For each platform in the plan, SnapStart gets the account ready: the name, a drafted bio, a profile picture and a cover from the brand kit, plus step-by-step setup that follows each platform's own help pages.
 
 ### Your Brand Library
 
 <img src="docs/media/nav/your-brand-library.webp" alt="Menu link: Your Brand Library" width="201" height="32">
 
-Everything the brand is made of lives in one place: the chosen logo and its versions, brand pictures, product photos and any artwork the owner already had. **Muse Image** makes each brand picture at the exact size its platform asks for: a website header, Facebook cover, YouTube banner, link preview, Instagram post, Instagram story or reel cover, Facebook ad, flyer picture and product scene. Each one is its own scene in the brand's style, with the logo worked right in.
+Everything the brand is made of lives in one place: the chosen logo and its versions, brand pictures, product photos and any artwork the owner already had. SnapStart makes each brand picture at the exact size its platform asks for: a website header, Facebook cover, YouTube banner, link preview, Instagram post, Instagram story or reel cover, Facebook ad, flyer picture and product scene. Each one is its own scene in the brand's style, with the logo worked right in.
 
 The library tags every picture with what it's for. Owners filter by purpose, hover a thumbnail for a larger look, and open any picture to see where it's used, its exact size and, with **Show what gets cropped**, the safe area for the logo and anything important. Every picture downloads at its platform's exact size.
 
