@@ -120,6 +120,13 @@ export type ImageMedium = (typeof IMAGE_MEDIUMS)[number];
 // Approved file ids: the version set together, each brand image on its own
 export type BrandPicks = Partial<Record<VersionKind | BrandImageKind, string>>;
 
+// The scene each brand image shows, planned once per brand (scenes.ts); shows: the saved product, service or kind of work
+export interface ImageScene {
+  scene: string;
+  shows: string;
+}
+export type ImageScenes = Partial<Record<BrandImageKind, ImageScene>>;
+
 // What AI read in a file, and what code concluded from it
 export interface LetteringCheck {
   status: "matches" | "misspelled" | "extra_words" | "spacing" | "unreadable" | "has_words";

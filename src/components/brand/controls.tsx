@@ -55,6 +55,10 @@ export type Intent =
   | { kind: "versions"; logoId: string; kinds: VersionKind[]; redraw?: boolean }
   | { kind: "images"; logoId: string; kinds: BrandImageKind[] };
 
+// Next runs a tab's server actions one at a time, so a click while another job runs waits its turn
+let runsInTab = 0;
+export const QUEUED = "Another picture is being made. This one starts when it’s done.";
+
 // Runs one paid job. One key per intended request, kept across retries, so a retry never pays twice.
 function useBrandRun(intent: Intent, blocked?: string | null) {
   const requestKey = useRequestKey();
@@ -69,7 +73,8 @@ function useBrandRun(intent: Intent, blocked?: string | null) {
     inFlight.current = true;
     setPending("first");
     setError(null);
-    setNote(null);
+    setNote(runsInTab > 0 ? QUEUED : null);
+    runsInTab += 1;
     try {
       let result: ActionResult<string | null>;
       if (intent.kind === "more") {
@@ -89,17 +94,19 @@ function useBrandRun(intent: Intent, blocked?: string | null) {
         result = await makeImagesAction({ requestKey: requestKey.get(), logoId: intent.logoId, kinds: intent.kinds, change: change?.trim() || null });
       }
       if (!result.ok) {
+        setNote(null);
         if (result.busy) job.watch([result.busy]);
         else setError(result.message);
         return false;
       }
       requestKey.clear();
-      if (result.value) setNote(result.value);
+      setNote(result.value || null);
       return true;
     } catch {
       setError(failedMessage());
       return false;
     } finally {
+      runsInTab -= 1;
       inFlight.current = false;
       setPending(null);
     }

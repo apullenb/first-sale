@@ -1,9 +1,10 @@
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import { pngBytes } from "@/lib/photos/test-images";
-import { checkFrame, framePlanFor, logoBoxFor, planFrame } from "./frame";
+import { checkFrame, coversVisible, extended, framePlanFor, logoBoxFor, planFrame } from "./frame";
 import { fitBrandImage } from "./fit";
-import { IMAGE_SPECS } from "./sizes";
+import { practiceLabelBox, practiceSize } from "./practice";
+import { IMAGE_SPECS, requestSize } from "./sizes";
 import { IMAGE_KINDS } from "./types";
 
 const centered = { x: 0.2, y: 0.35, w: 0.6, h: 0.3 };
@@ -67,7 +68,87 @@ describe("brand image crop", () => {
   });
 });
 
+describe("visible area", () => {
+  it("asks for the visible band's shape where it differs a lot from the file's", () => {
+    expect(IMAGE_SPECS.youtube_banner.size).toBe("2560x423");
+    expect(IMAGE_SPECS.facebook_cover.size).toBe("1920x711");
+    expect(IMAGE_SPECS.flyer.size).toBe("2550x1650");
+    expect(IMAGE_SPECS.instagram_story.size).toBe("1080x1382");
+    for (const kind of ["website_hero", "link_preview", "instagram_post", "ad_square", "product_scene"] as const) {
+      expect(IMAGE_SPECS[kind].size).toBe(`${IMAGE_SPECS[kind].final.width}x${IMAGE_SPECS[kind].final.height}`);
+    }
+    for (const kind of IMAGE_KINDS) {
+      const { width, height } = requestSize(IMAGE_SPECS[kind]);
+      expect(Math.max(width / height, height / width)).toBeLessThanOrEqual(16);
+      const { safe, visible } = IMAGE_SPECS[kind];
+      expect(safe.x >= visible.x - 1e-9 && safe.y >= visible.y - 1e-9 && safe.x + safe.w <= visible.x + visible.w + 1e-9 && safe.y + safe.h <= visible.y + visible.h + 1e-9).toBe(true);
+    }
+  });
+
+  it("fills the whole visible area with the drawn picture for YouTube and Facebook, and extends the rest", () => {
+    for (const kind of ["youtube_banner", "facebook_cover"] as const) {
+      const asked = requestSize(IMAGE_SPECS[kind]);
+      for (const scale of [1, 0.4]) {
+        const plan = framePlanFor(kind, { width: Math.round(asked.width * scale), height: Math.round(asked.height * scale) });
+        expect(coversVisible(plan)).toBe(true);
+        expect(extended(plan, IMAGE_SPECS[kind].final)).toBe(true);
+        expect(checkFrame(kind, IMAGE_SPECS[kind].final, plan)).toEqual([]);
+      }
+    }
+  });
+
+  it("places a band-shaped picture exactly on the visible area", () => {
+    const visible = { x: 0, y: 0.25, w: 1, h: 0.5 };
+    const plan = planFrame({ width: 1000, height: 250 }, { width: 2000, height: 1000 }, { x: 0.1, y: 0.3, w: 0.8, h: 0.4 }, visible);
+    expect(plan.crop).toEqual({ left: 0, top: 0, width: 1000, height: 250 });
+    expect(plan.visible).toEqual({ left: 0, top: 250, width: 2000, height: 500 });
+    expect(plan.picture).toEqual(plan.visible);
+    expect(plan.safeLands.x).toBeCloseTo(0.1);
+    expect(plan.safeLands.y).toBeCloseTo(0.3);
+    expect(plan.safeLands.h).toBeCloseTo(0.4);
+  });
+
+  it("crops a too-wide picture to the band around the safe area", () => {
+    const plan = framePlanFor("youtube_banner", { width: 4000, height: 423 });
+    expect(plan.crop.width / plan.crop.height).toBeCloseTo(2560 / 423, 1);
+    expect(coversVisible(plan)).toBe(true);
+    expect(checkFrame("youtube_banner", { width: 2560, height: 1440 }, plan)).toEqual([]);
+  });
+
+  it("leaves the edges to the soft extension when the safe area can't fit the returned shape", () => {
+    const plan = planFrame({ width: 500, height: 1000 }, { width: 2000, height: 1000 }, { x: 0, y: 0.25, w: 1, h: 0.5 }, { x: 0, y: 0.25, w: 1, h: 0.5 });
+    expect(plan.pad.left + plan.pad.right).toBeGreaterThan(0);
+    expect(coversVisible(plan)).toBe(false);
+    expect(plan.picture.left).toBeGreaterThan(0);
+    expect(plan.picture.left + plan.picture.width).toBeLessThanOrEqual(2000);
+  });
+
+  it("keeps the practice label inside the visible area", () => {
+    for (const kind of IMAGE_KINDS) {
+      const { width, height } = practiceSize(kind);
+      const { visible, final } = IMAGE_SPECS[kind];
+      expect(width / height).toBeCloseTo(final.width / final.height, 1);
+      const box = practiceLabelBox(kind, width, height);
+      expect(box.y).toBeGreaterThanOrEqual(visible.y * height - 1e-6);
+      expect(box.y + box.height).toBeLessThanOrEqual((visible.y + visible.h) * height + 1e-6);
+    }
+  });
+});
+
 describe("fitting a brand image", () => {
+  it("fills the band with the picture and the rest with a soft copy, never white or mirrored", async () => {
+    const fitted = await fitBrandImage("youtube_banner", pngBytes(2560, 423, 120));
+    const { data, info } = await sharp(fitted.data).raw().toBuffer({ resolveWithObject: true });
+    const at = (x: number, y: number) => Array.from(data.subarray((y * info.width + x) * info.channels, (y * info.width + x) * info.channels + 3));
+    expect([info.width, info.height]).toEqual([2560, 1440]);
+    // Above the band: a darker copy of the picture, not a blank fill
+    const above = at(1280, 100);
+    const inside = at(1280, 720);
+    expect(above.some((value) => value < 250)).toBe(true);
+    expect(above.reduce((a, b) => a + b)).toBeLessThan(inside.reduce((a, b) => a + b));
+    expect(fitted.note).toMatch(/extended softly/);
+  });
+
   it("makes every kind at exactly its final size, whatever shape came back", async () => {
     for (const kind of IMAGE_KINDS) {
       for (const [w, h] of [[1024, 1024], [1536, 864], [1800, 600]]) {

@@ -15,9 +15,10 @@ import { MAX_CHANGE } from "@/lib/brand/prompts";
 import { applyDesign, planRefinement, refinementSchema } from "@/lib/brand/refine";
 import { approvedExample, EXAMPLE_IMAGE } from "@/lib/brand/slots";
 import { writeStory } from "@/lib/brand/story";
+import { planScenes } from "@/lib/brand/scenes";
 import { suggestTaglines } from "@/lib/brand/tagline";
 import { businessSpecifics, type Specifics } from "@/lib/specifics";
-import { type BrandBrief, brandBriefSchema, type BrandImageKind, IMAGE_KINDS, IMAGE_MEDIUMS, VERSION_KINDS, type VersionKind } from "@/lib/brand/types";
+import { type BrandBrief, brandBriefSchema, type BrandImageKind, IMAGE_KINDS, type ImageScene, type ImageScenes, IMAGE_MEDIUMS, VERSION_KINDS, type VersionKind } from "@/lib/brand/types";
 import { BRAND_LIMITS, brandImageMedium } from "@/lib/data/brand";
 import {
   addMyBrandAsset,
@@ -42,6 +43,7 @@ import {
   saveMyBrandBrief,
   setMyBrandAssetCheck,
   setMyImageMedium,
+  setMyImageScenes,
   setMyOwnLogoColors,
   unpickMyBrandFile,
   updateMyDocument,
@@ -376,6 +378,21 @@ const imagesSchema = z.object({
   change: z.string().max(MAX_CHANGE * 2).nullable(),
 });
 
+// Each kind keeps its planned scene; one already made from this logo gets a new one, so Regenerate shows something new.
+// The first plan covers every kind at once, so they all differ.
+async function scenesFor(logo: LogoRef, kinds: readonly BrandImageKind[], state: Awaited<ReturnType<typeof getMyBrandState>>, userKey: string | undefined): Promise<ImageScenes> {
+  const saved = state?.imageScenes ?? {};
+  const made = new Set(state?.assets.filter((asset) => asset.sourceId === logo.logoId).map((asset) => asset.kind) ?? []);
+  const asked = kinds.filter((kind) => !saved[kind] || made.has(kind));
+  if (!asked.length) return saved;
+  const plan = Object.keys(saved).length ? asked : [...IMAGE_KINDS];
+  // Stay clear of the other kinds' scenes and of the one being replaced
+  const taken = IMAGE_KINDS.filter((kind) => saved[kind] && (!plan.includes(kind) || made.has(kind))).map((kind) => saved[kind] as ImageScene);
+  const fresh = await planScenes(getModel(), { brief: logo.brief, specifics: await mySpecifics(), kinds: plan, taken }, userKey);
+  await setMyImageScenes(fresh);
+  return { ...saved, ...fresh };
+}
+
 export async function makeImagesAction(input: unknown): Promise<ActionResult<string | null>> {
   if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = imagesSchema.safeParse(input);
@@ -393,9 +410,11 @@ export async function makeImagesAction(input: unknown): Promise<ActionResult<str
   if (kinds.some((kind) => kind !== EXAMPLE_IMAGE) && !exampleFile) return { ok: false, message: EXAMPLE_FIRST };
   const example = exampleFile ? { mimeType: exampleFile.mimeType, data: exampleFile.data } : null;
 
-  const result = await runWorkflow("brand_images", slotSubject(logo.logoId, kinds), async () =>
-    makeBrandImages({ image, vision: getModel() }, store, { logo, kinds, change, example, medium: state?.imageMedium ?? null, requestKey: parsed.data.requestKey, userKey: await myAiKey(), now: new Date() }),
-  );
+  const result = await runWorkflow("brand_images", slotSubject(logo.logoId, kinds), async () => {
+    const userKey = await myAiKey();
+    const scenes = await scenesFor(logo, kinds, state, userKey);
+    return makeBrandImages({ image, vision: getModel() }, store, { logo, kinds, change, example, medium: state?.imageMedium ?? null, scenes, requestKey: parsed.data.requestKey, userKey, now: new Date() });
+  });
   refresh();
   return batchResult(result);
 }

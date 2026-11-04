@@ -13,16 +13,20 @@ export const PRACTICE_LABEL_COLORS = { pill: "#fdf1d6", text: "#7a4b00" } as con
 
 // Where the label sits; kit files take it out and stamp their own at a size that reads
 export function practiceLabelBox(kind: AssetKind, width: number, height: number): { x: number; y: number; width: number; height: number } {
-  // Pictures get cropped to other shapes, so their label sits in the middle band every crop keeps
-  const top = kind in IMAGE_SPECS ? height * 0.64 : height - Math.max(36, height * 0.09);
-  return { x: width / 2 - width * 0.34, y: top, width: width * 0.68, height: Math.max(26, height * 0.06) };
+  const tall = Math.max(26, height * 0.06);
+  if (!(kind in IMAGE_SPECS)) return { x: width / 2 - width * 0.34, y: height - Math.max(36, height * 0.09), width: width * 0.68, height: tall };
+  // Pictures get cropped to other shapes, so their label sits low in the visible area every crop keeps
+  const { visible } = IMAGE_SPECS[kind as BrandImageKind];
+  const top = Math.max(visible.y * height, Math.min(height * 0.64, (visible.y + visible.h) * height - tall - height * 0.01));
+  return { x: width / 2 - width * 0.34, y: top, width: width * 0.68, height: tall };
 }
 
 const escape = (text: string) =>
   text.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!);
 
 export function practiceSize(kind: AssetKind): { width: number; height: number } {
-  const [w, h] = sizeFor(kind).split("x").map(Number);
+  // Brand images keep the whole file's shape; only the model is asked for the visible area's
+  const [w, h] = kind in IMAGE_SPECS ? [IMAGE_SPECS[kind as BrandImageKind].final.width, IMAGE_SPECS[kind as BrandImageKind].final.height] : sizeFor(kind).split("x").map(Number);
   return w >= h ? { width: 1024, height: Math.round((1024 * h) / w) } : { width: Math.round((1024 * w) / h), height: 1024 };
 }
 

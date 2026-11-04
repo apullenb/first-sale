@@ -331,7 +331,7 @@ export function ImageSlots({
           kind={slot.kind}
           title={spec.title}
           purpose={spec.purpose}
-          size={spec.size}
+          size={`${spec.final.width}x${spec.final.height}`}
           slot={slot}
           intent={{ kind: "images", logoId: chosenId ?? "", kinds: [slot.kind] }}
           name={name}

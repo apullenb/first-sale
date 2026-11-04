@@ -1,8 +1,9 @@
 import { ownerText } from "@/lib/photos/instructions";
 import { type ImageStyle, imageStyle } from "./image-style";
-import { IMAGE_SPECS, LOGO_SPECS } from "./sizes";
+import { MAX_SCENE } from "./scenes";
+import { IMAGE_SPECS, LOGO_SPECS, requestSize } from "./sizes";
 import { MAX_LOGO_WORDS } from "./library";
-import { type AssetCheck, BRIEF_LIMITS, type BrandBrief, type BrandImageKind, type ConceptKind, type ConceptReply, type ImageMedium, type PaletteColor, type VersionKind } from "./types";
+import { type AssetCheck, BRIEF_LIMITS, type BrandBrief, type BrandImageKind, type ConceptKind, type ConceptReply, type ImageMedium, type ImageScene, type PaletteColor, type VersionKind } from "./types";
 import { LEANINGS, type LeaningKey } from "./vibes";
 
 // Muse Image instructions, built by code from the brief and a concept. The owner never writes one.
@@ -270,21 +271,31 @@ const round = (value: number) => value.toFixed(2).replace(/\.?0+$/, "");
 
 function side(start: number, size: number, axis: "left" | "top"): string {
   const end = 1 - start - size;
+  if (size >= 0.97) return axis === "left" ? "across the full width" : "across the full height";
   if (Math.abs(start - end) < 0.02) return axis === "left" ? "centered left to right" : "centered top to bottom";
   return axis === "left" ? `starting ${percent(start)} from the left edge and ending ${percent(end)} from the right edge` : `starting ${percent(start)} from the top and ending ${percent(end)} from the bottom`;
 }
 
-// The final shape and safe area in plain composition terms, from sizes.ts
+// The shape asked for (the visible area's when it differs a lot) and its safe area in plain composition terms, from sizes.ts
 export function compositionLines(kind: BrandImageKind): string[] {
-  const { final, safe } = IMAGE_SPECS[kind];
-  const ratio = final.width / final.height;
-  const shape = ratio > 1.05 ? "a wide" : ratio < 0.95 ? "a tall" : "a square";
+  const spec = IMAGE_SPECS[kind];
+  const { final, visible } = spec;
+  const asked = requestSize(spec);
+  // Code extends the picture past the visible area, so the model draws only that part
+  const band = asked.width !== final.width || asked.height !== final.height;
+  const safe = band ? { x: (spec.safe.x - visible.x) / visible.w, y: (spec.safe.y - visible.y) / visible.h, w: spec.safe.w / visible.w, h: spec.safe.h / visible.h } : spec.safe;
+  const ratio = asked.width / asked.height;
+  const shape = ratio >= 3 ? "a very wide panoramic strip" : ratio > 1.05 ? "a wide picture" : ratio < 0.95 ? "a tall picture" : "a square picture";
+  const whole = safe.w >= 0.97 && safe.h >= 0.97;
   return [
-    `Shape: ${shape} picture, ${final.width} × ${final.height} pixels (about ${ratio >= 1 ? `${round(ratio)} to 1` : `1 to ${round(1 / ratio)}`}). Compose for exactly this shape.`,
-    `Safe area: keep the logo and everything important (people, products, faces) inside a box about ${percent(safe.w)} of the width and ${percent(safe.h)} of the height, ${side(safe.x, safe.w, "left")} and ${side(safe.y, safe.h, "top")}. Outside it gets cropped on some screens.`,
+    `Shape: ${shape}, ${asked.width} × ${asked.height} pixels (about ${ratio >= 1 ? `${round(ratio)} to 1` : `1 to ${round(1 / ratio)}`}). Compose for exactly this shape and fill all of it.`,
+    ratio >= 3 ? "Spread the scene and its subjects along the strip, with the main subject and the logo near the middle. Keep every subject whole inside the strip: nothing cut off at the top or bottom." : null,
+    whole
+      ? "Every part of this picture shows, so all of it is the safe area: keep the logo and everything important (people, products, faces) a little in from the edges."
+      : `Safe area: keep the logo and everything important (people, products, faces) inside a box about ${percent(safe.w)} of the width and ${percent(safe.h)} of the height, ${side(safe.x, safe.w, "left")} and ${side(safe.y, safe.h, "top")}. Outside it gets cropped on some screens.`,
     kind === "facebook_cover" ? "The Page’s profile picture covers the lower-left corner, so leave that part plain." : null,
-    kind === "instagram_story" ? `Apps cover the top ${percent(safe.y)} and bottom ${percent(1 - safe.y - safe.h)} with buttons, so keep those parts plain background.` : null,
-    kind === "flyer"
+    kind === "instagram_story" && !band ? `Apps cover the top ${percent(safe.y)} and bottom ${percent(1 - safe.y - safe.h)} with buttons, so keep those parts plain background.` : null,
+    kind === "flyer" && !band
       ? `Leave the top ${percent(safe.y)} and bottom ${percent(1 - safe.y - safe.h)} calm and plain, a soft background with no objects or words, so the owner can add their own text there.`
       : null,
     "The rest is background that carries the scene all the way to every edge: no borders, and nothing essential near the edges.",
@@ -326,7 +337,16 @@ export function logoPlacement(medium: "photo" | "illustration"): string[] {
 
 // Image 1 is the chosen logo; image 2, when given, the approved example the others match. An uploaded logo may have no colors listed.
 // chosen: the owner's Photo / Illustration switch; null leaves it to the rule
-export function brandImagePrompt(brief: BrandBrief, colors: PaletteColor[], kind: BrandImageKind, change: string | null, example?: BrandImageKind, chosen: ImageMedium | null = null): string {
+// scene: this kind's own scene from the plan (scenes.ts)
+export function brandImagePrompt(
+  brief: BrandBrief,
+  colors: PaletteColor[],
+  kind: BrandImageKind,
+  change: string | null,
+  example?: BrandImageKind,
+  chosen: ImageMedium | null = null,
+  scene: ImageScene | null = null,
+): string {
   const spec = IMAGE_SPECS[kind];
   const style = imageStyle(brief, chosen);
   const name = clean(brief.name, BRIEF_LIMITS.name);
@@ -335,9 +355,10 @@ export function brandImagePrompt(brief: BrandBrief, colors: PaletteColor[], kind
   return [
     `Image 1 is the approved logo of “${name}”, a small business. Make their ${spec.title.toLowerCase()}: ${spec.purpose}`,
     example
-      ? `Image 2 is the business’s approved ${IMAGE_SPECS[example].title.toLowerCase()}. Match its look exactly, as if from the same shoot: the same kind of picture, light, colors, setting, props and mood. Make a new composition for this shape; don’t copy or crop image 2.`
+      ? `Image 2 is the business’s approved ${IMAGE_SPECS[example].title.toLowerCase()}, a style reference only: match its kind of picture (photo or illustration), lighting, color palette and mood. Don’t reproduce its scene, setting, subject, props or composition: this picture shows a completely different scene.`
       : null,
     "",
+    scene ? `Scene for this picture: ${clean(scene.scene, MAX_SCENE)} It features ${clean(scene.shows, MAX_SCENE)}.` : null,
     `The picture must make it obvious at a glance what “${name}” sells (${sells}) and feel unmistakably like this brand. Show only the kinds of things they actually sell, plain and unbranded apart from the logo; never invent other products, prices or offers.`,
     ...logoPlacement(style.medium),
     ...compositionLines(kind),
