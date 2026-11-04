@@ -193,7 +193,8 @@ function SlotCard({ kind, title, purpose, size, slot, intent, name, practice, ru
           {earlier.length ? <Earlier kind={kind} files={earlier} pickedId={picked?.id ?? null} /> : null}
 
           <div className="mt-auto flex flex-col gap-2 border-t border-line pt-3">
-            {exports.map((spec) => (
+            {/* A file already saved at an export's size is the plain download below */}
+            {exports.filter((spec) => spec.width !== newest.width || spec.height !== newest.height).map((spec) => (
               <ExactDownload key={spec.label} src={brandFileUrl(newest.id)} spec={spec} fileName={brandFileName(name, kind, newest.simulated, `${spec.width}x${spec.height}`)} />
             ))}
             <a href={brandFileUrl(newest.id, false)} download className={SECONDARY_LINK}>
