@@ -61,6 +61,9 @@ function domainLine(platform: PlatformInfo, plan: PlatformPlan): CostLine {
   if (domain.firstYearFreeWithYearly && plan.billing === "yearly") {
     return { term: "domain", label: "Web address, free with yearly billing", amount: { kind: "free_first_year", later: domain.later }, counted: true, whyNot: null };
   }
+  if (domain.sold === "included") {
+    return { term: "domain", label: `Web address, included with ${name}`, amount: { kind: "once", usd: 0, from: false, per: "year" }, counted: true, whyNot: null };
+  }
   if (domain.sold === "here" && domain.firstUsd !== null) {
     const amount: CostAmount = { kind: "once", usd: domain.firstUsd, from: domain.from, per: domain.per };
     return domain.per

@@ -154,6 +154,7 @@ async function Products() {
       changeLimit={MAX_PICTURE_CHANGE}
       total={items.length}
       squareConnected={squareSync.connected}
+      square={squareSite || squareSync.connected}
     />
   );
 

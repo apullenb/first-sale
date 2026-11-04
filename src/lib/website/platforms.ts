@@ -31,8 +31,8 @@ export interface OwnerTask {
 export interface DomainOffer {
   // A free address on the platform, such as yourname.square.site
   freeAddress: string | null;
-  // "here": the platform sells web addresses; "elsewhere": bought from another company
-  sold: "here" | "elsewhere";
+  // "here": the platform sells web addresses; "elsewhere": bought from another company; "included": comes with hosting
+  sold: "here" | "elsewhere" | "included";
   // The lowest first price the platform shows, null when it shows none
   firstUsd: number | null;
   // "year" when the page says the price is yearly; null when it doesn't say

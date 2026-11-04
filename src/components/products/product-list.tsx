@@ -81,6 +81,7 @@ export function ProductList({
   changeLimit,
   total,
   squareConnected = false,
+  square = false,
 }: {
   kind: ItemKind;
   products: ListedProduct[];
@@ -90,6 +91,8 @@ export function ProductList({
   // Products and services together, for the limit
   total: number;
   squareConnected?: boolean;
+  // Square is the owner's website or connected
+  square?: boolean;
 }) {
   const [editing, setEditing] = useState<string | null>(null);
   // With nothing listed yet, the form is always open
@@ -122,6 +125,7 @@ export function ProductList({
                 <ProductRow
                   product={product}
                   squareConnected={squareConnected}
+                  square={square}
                   photo={byKey.get(photoKey(product.photo)) ?? null}
                   missingPhoto={product.photo !== null && !byKey.has(photoKey(product.photo))}
                   pictures={pictures.filter((picture) => picture.productId === product.id)}
@@ -161,6 +165,7 @@ function ProductRow({
   changeLimit,
   onEdit,
   squareConnected,
+  square,
 }: {
   product: ListedProduct;
   photo: PhotoChoice | null;
@@ -169,6 +174,7 @@ function ProductRow({
   changeLimit: number;
   onEdit: () => void;
   squareConnected: boolean;
+  square: boolean;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -267,7 +273,8 @@ function ProductRow({
               <span className="sr-only"> {product.name}</span>
             </button>
           </div>
-          <SquareProductSync product={product} sync={product.squareSync} connected={squareConnected} />
+          {/* Square controls only once the owner uses Square or the item is linked to it */}
+          {square || product.squareSync ? <SquareProductSync product={product} sync={product.squareSync} connected={squareConnected} /> : null}
           <ActionButton
             action={() => describeItemAction(product.id)}
             label={product.description ? `Write a new description for ${product.name}` : `Draft a description for ${product.name}`}

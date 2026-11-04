@@ -38,6 +38,7 @@ function domainRow(platform: PlatformInfo): TermRow {
   if (domain.firstYearFreeWithYearly && plan.billing === "yearly") {
     return { term: "domain", status: "included", note: `Free for the first year on yearly plans${domain.later ? `, then ${domain.later}` : ""}.${upgrade}` };
   }
+  if (domain.sold === "included") return { term: "domain", status: "included", note: `Included with ${name}, and set up for you.` };
   if (domain.sold === "here") {
     if (domain.firstUsd === null) return { term: "domain", status: "extra", note: `Sold by ${name}; price not checked here.${upgrade}${free}` };
     const price = `${domain.from ? "From " : ""}${usd(domain.firstUsd)}${domain.per ? ` a ${domain.per}` : ""} from ${name}`;

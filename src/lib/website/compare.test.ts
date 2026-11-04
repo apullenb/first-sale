@@ -30,7 +30,7 @@ describe("packageTerms", () => {
 
   it("marks what each package includes, charges extra for, or leaves out", () => {
     expect(statuses(PLATFORM_DATA.first_sale)).toEqual({
-      domain: "not_included",
+      domain: "included",
       hosting: "included",
       builder: "included",
       checkout: "not_included",
@@ -90,7 +90,7 @@ describe("costSummary", () => {
     const site = costSummary(PLATFORM_DATA.first_sale);
     expect(PLATFORM_DATA.first_sale.demoPrice).toBe(true);
     expect(site).toMatchObject({ monthlyUsd: SNAPSTART_SITE_MONTHLY_USD, firstYearUsd: SNAPSTART_SITE_MONTHLY_USD * 12, from: false });
-    expect(site.extras.filter((each) => !each.counted).map((each) => each.term)).toEqual(["domain", "email", "checkout"]);
+    expect(site.extras.filter((each) => !each.counted).map((each) => each.term)).toEqual(["email", "checkout"]);
   });
 
   it("counts a known email price every month", () => {
@@ -100,7 +100,7 @@ describe("costSummary", () => {
 
   it("writes the first year in code, saying what's left out", () => {
     expect(firstYearText(PLATFORM_DATA.wix)).toMatch(/^\$348 for the first year on Wix Core, paid \$29 a month, billed yearly \(\$348 up front\)\. Not counted: /);
-    expect(firstYearText(PLATFORM_DATA.first_sale)).toMatch(/\(demo price\)\. Not counted: web address, from a company that sells them \(price not checked here\)/);
+    expect(firstYearText(PLATFORM_DATA.first_sale)).toMatch(/\(demo price\)\. Not counted: business email/);
   });
 
   it("writes card fees from the rate", () => {
