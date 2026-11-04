@@ -267,7 +267,7 @@ export async function makePictureAction(input: unknown): Promise<ActionResult<st
   const photo = view === "main" && !base ? await ownPhoto(item) : null;
   if (view === "main" && !base && !photo && !item.description.trim()) return { ok: false, message: "Add a short description first, so the picture shows the right thing." };
   const main = view === "main" ? null : await approvedMain(item);
-  if (view !== "main" && !main) return { ok: false, message: "Approve a main photo first. The other views are made from it." };
+  if (view !== "main" && !main) return { ok: false, message: "Make a main photo first. The other views are made from it." };
   const wearer = view === "in_use" ? wearerFor(item) : null;
   if (wearer === "ask") return { ok: false, message: "Say who wears it first, so the picture shows the right person." };
 
@@ -284,6 +284,8 @@ export async function makePictureAction(input: unknown): Promise<ActionResult<st
       userKey: await myAiKey(),
     }),
   );
+  // A real main photo is the item's photo at once; a practice preview waits for the owner's tick
+  if (result.ok && !image.simulated && (base ? base.view : view) === "main") await approveMyItemPicture(item.id, result.value);
   refresh();
   return result;
 }
@@ -303,7 +305,7 @@ export async function makeViewsAction(input: unknown): Promise<ActionResult<numb
   const image = imageModel();
   if (!image) return { ok: false, message: "Making pictures isn’t turned on for SnapStart yet." };
   const main = await approvedMain(item);
-  if (!main) return { ok: false, message: "Approve a main photo first. The other views are made from it." };
+  if (!main) return { ok: false, message: "Make a main photo first. The other views are made from it." };
   const wearer = wearerFor(item);
   if (wearer === "ask") return { ok: false, message: "Say who wears it first, so the in-use picture shows the right person." };
 
@@ -336,7 +338,7 @@ export async function deletePictureAction(pictureId: unknown): Promise<ActionRes
   if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = id.safeParse(pictureId);
   const result = parsed.success ? await deleteMyItemPicture(parsed.data) : "not_found";
-  if (result === "in_use") return { ok: false, message: "This is the item’s main photo. Approve another main photo first, then remove this one." };
+  if (result === "in_use") return { ok: false, message: "This is the item’s main photo. Make or choose another main photo first, then remove this one." };
   if (result === "not_found") return { ok: false, message: "That picture wasn’t found. Reload the page." };
   refresh();
   return { ok: true, value: null };
