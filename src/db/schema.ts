@@ -49,7 +49,7 @@ import type { MoreOptions, OptionExplanation } from "@/lib/website/options";
 import { type DomainCheck, type ExistingSite, PLATFORMS, type SiteFinish, type WebsiteContent } from "@/lib/website/types";
 import type { SiteDesign } from "@/lib/website/site/design";
 import { PHOTO_CATEGORIES, PHOTO_CROPS, PHOTO_LOOKS, type PhotoCheck, type PhotoReview } from "@/lib/photos/types";
-import { ASSET_KINDS, ASSET_ORIGINS, type AssetCheck, type BrandBrief, type BrandDesign, type BrandPicks, type ConceptReply, IMAGE_MEDIUMS } from "@/lib/brand/types";
+import { ASSET_KINDS, ASSET_ORIGINS, type AssetCheck, type BrandBrief, type BrandDesign, type BrandPicks, type ConceptReply, IMAGE_MEDIUMS, type ImageScenes } from "@/lib/brand/types";
 import type { IntakeAnswers, Marks } from "@/lib/intake/answers";
 import type { StoredIntake } from "@/lib/marketing/intake";
 import type { MarketingPlan, MarketingStep } from "@/lib/marketing/types";
@@ -663,6 +663,8 @@ export const brandKits = pgTable("brand_kits", {
   picks: jsonb("picks").$type<BrandPicks>().notNull().default({}),
   // The owner's Photo / Illustration switch for brand images; null leaves it to the rule
   imageMedium: text("image_medium", { enum: IMAGE_MEDIUMS }),
+  // A different scene for each brand image, planned once and replanned on Regenerate
+  imageScenes: jsonb("image_scenes").$type<ImageScenes>().notNull().default({}),
   updatedAt: updatedAt(),
 });
 

@@ -2,7 +2,7 @@ import type { AssetKind, BrandImageKind, VersionKind } from "./types";
 
 // Shapes we ask Muse Image for, and the exact sizes made by code.
 // Muse Image sets the aspect ratio only, up to 16:1 (dev.meta.ai/docs/image-generation, checked 2026-11-03), so brand images
-// are cropped and resized on the server (fit.ts) and platform sizes made in the browser.
+// are placed at their exact size on the server (fit.ts) and platform sizes made in the browser.
 
 export const CHECKED = "2026-10-27";
 export const CHECKED_TEXT = new Date(`${CHECKED}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
@@ -35,11 +35,13 @@ export interface ImageSpec {
   title: string;
   // Owner-facing: what it's for
   purpose: string;
-  // "WxH" sent to Muse Image: the final file's own shape
+  // "WxH" sent to Muse Image: the visible area's shape (requestSize)
   size: string;
   // The saved file, made exactly this size in code (fit.ts)
   final: { width: number; height: number };
-  // Where the logo and everything important go, in fractions of the final picture
+  // The part most screens show, which the drawn picture fills; code extends it softly to the rest
+  visible: Box;
+  // Where the logo and everything important go, in fractions of the final picture; inside visible
   safe: Box;
   // Owner-facing: where it's used
   usedOn: string;
@@ -56,10 +58,14 @@ const LINK_SHARE = { name: "Meta for Developers: Images in Link Shares", url: "h
 
 // Facebook shows the cover at 16:9 on computers and 2.4:1 on phones; 851 × 315 loads fastest
 const FB_FAST_BAND = 16 / 9 / (851 / 315);
+const FULL: Box = { x: 0, y: 0, w: 1, h: 1 };
+// The full-width 2560 × 423 band YouTube shows on computers
+const YT_BAND: Box = { x: 0, y: (1 - 423 / 1440) / 2, w: 1, h: 423 / 1440 };
 // YouTube's safe area: the middle 1235 × 338 of 2048 × 1152
 const YT_SAFE: Box = { x: (1 - 1235 / 2048) / 2, y: (1 - 338 / 1152) / 2, w: 1235 / 2048, h: 338 / 1152 };
 // Inside that band, clear of the profile picture on the left
 const FB_SAFE: Box = { x: 0.25, y: (1 - FB_FAST_BAND) / 2, w: 0.7, h: FB_FAST_BAND };
+const FB_BAND: Box = { x: 0, y: (1 - FB_FAST_BAND) / 2, w: 1, h: FB_FAST_BAND };
 // SnapStart's own margins: website builders crop headers to wide or tall shapes, and some apps crop link previews
 const HERO_SAFE: Box = { x: 0.2, y: 0.18, w: 0.6, h: 0.64 };
 const PREVIEW_SAFE: Box = { x: 0.2, y: 0.1, w: 0.6, h: 0.8 };
@@ -67,17 +73,19 @@ const PREVIEW_SAFE: Box = { x: 0.2, y: 0.1, w: 0.6, h: 0.8 };
 const POST_SAFE: Box = { x: 0.1, y: 0.1, w: 0.8, h: 0.8 };
 // Clear of the name, buttons and reply bar apps lay over the top and bottom of a story
 const STORY_SAFE: Box = { x: 0.08, y: 0.14, w: 0.84, h: 0.72 };
+const STORY_CLEAR: Box = { x: 0, y: 0.14, w: 1, h: 0.72 };
 const AD_SAFE: Box = { x: 0.1, y: 0.1, w: 0.8, h: 0.8 };
 // Calm bands at the top and bottom for the owner's own words
 const FLYER_SAFE: Box = { x: 0.1, y: 0.25, w: 0.8, h: 0.5 };
+const FLYER_PICTURE: Box = { x: 0, y: 0.25, w: 1, h: 0.5 };
 const SCENE_SAFE: Box = { x: 0.12, y: 0.12, w: 0.76, h: 0.76 };
 
-export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
+const SPECS: Record<BrandImageKind, Omit<ImageSpec, "size">> = {
   facebook_cover: {
     title: "Facebook cover",
     purpose: "The wide picture across the top of your Facebook Page, with your logo.",
     usedOn: "Your Facebook Page",
-    size: "1920x1080",
+    visible: FB_BAND,
     final: { width: 1920, height: 1080 },
     safe: FB_SAFE,
     exports: [
@@ -86,7 +94,7 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
     ],
     guides: [
       // The 851 × 315 band sits inside the phone's 2.4:1 band, so it shows everywhere
-      { label: "Shows on computers and phones: keep the important parts in this band", x: 0, y: (1 - FB_FAST_BAND) / 2, w: 1, h: FB_FAST_BAND, tone: "keep" },
+      { label: "Shows on computers and phones: keep the important parts in this band", ...FB_BAND, tone: "keep" },
       { label: "Roughly where your profile picture covers the left side", x: 0, y: 0.55, w: 0.22, h: 0.45, tone: "covered" },
     ],
     source: FACEBOOK,
@@ -100,22 +108,26 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
     title: "YouTube banner",
     purpose: "The banner across the top of your YouTube channel.",
     usedOn: "Your YouTube channel",
-    size: "2560x1440",
+    visible: YT_BAND,
     final: { width: 2560, height: 1440 },
     safe: YT_SAFE,
     exports: [{ label: "2560 × 1440", width: 2560, height: 1440, type: "image/jpeg", maxBytes: 6_000_000, note: "YouTube’s recommended size, 6 MB or smaller" }],
-    guides: [{ label: "Safe on every device: keep your logo here", ...YT_SAFE, tone: "keep" }],
+    guides: [
+      { label: "Shows on computers: the full-width band", ...YT_BAND, tone: "keep" },
+      { label: "Safe on every device: keep your logo here", ...YT_SAFE, tone: "keep" },
+    ],
     source: YOUTUBE,
     facts: [
       "YouTube recommends 2560 × 1440 pixels (at least 2048 × 1152) and a file of 6 MB or smaller.",
       "Only the middle 1235 × 338 (at 2048 × 1152) is safe for your logo: the rest gets cropped on phones and computers.",
+      "Computers show a full-width band 2560 × 423 across the middle. SnapStart draws the picture for that band and extends it softly above and below, for TVs.",
     ],
   },
   website_hero: {
     title: "Website header picture",
     purpose: "A wide picture for the top of your home page, with your logo and calm space for your headline.",
     usedOn: "The top of your website’s home page",
-    size: "1920x1080",
+    visible: FULL,
     final: { width: 1920, height: 1080 },
     safe: HERO_SAFE,
     exports: [{ label: "1920 × 1080", width: 1920, height: 1080, type: "image/jpeg" }],
@@ -127,7 +139,7 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
     title: "Link preview",
     purpose: "The picture that shows when someone shares a link to your website on Facebook and other apps.",
     usedOn: "Links to your website shared in apps and messages",
-    size: "1200x630",
+    visible: FULL,
     final: { width: 1200, height: 630 },
     safe: PREVIEW_SAFE,
     exports: [{ label: "1200 × 630", width: 1200, height: 630, type: "image/png", maxBytes: 8_000_000, note: "Facebook’s recommended size, 8 MB or smaller" }],
@@ -139,7 +151,7 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
     title: "Instagram post",
     purpose: "A tall picture for an Instagram post, with your logo.",
     usedOn: "Posts on your Instagram account",
-    size: "1080x1350",
+    visible: FULL,
     final: { width: 1080, height: 1350 },
     safe: POST_SAFE,
     exports: [{ label: "1080 × 1350 (4:5)", width: 1080, height: 1350, type: "image/jpeg" }],
@@ -151,7 +163,7 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
     title: "Instagram story or reel cover",
     purpose: "A full-screen phone picture for a story, or the cover of a reel, with your logo.",
     usedOn: "Stories and reel covers on Instagram and Facebook",
-    size: "1080x1920",
+    visible: STORY_CLEAR,
     final: { width: 1080, height: 1920 },
     safe: STORY_SAFE,
     exports: [{ label: "1080 × 1920 (9:16)", width: 1080, height: 1920, type: "image/jpeg" }],
@@ -170,7 +182,7 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
     title: "Ad picture (square)",
     purpose: "A square picture for social media ads, with your logo. You write the ad’s words in the ad itself.",
     usedOn: "Ads on Facebook, Instagram and other apps",
-    size: "1080x1080",
+    visible: FULL,
     final: { width: 1080, height: 1080 },
     safe: AD_SAFE,
     exports: [{ label: "1080 × 1080 (square)", width: 1080, height: 1080, type: "image/jpeg" }],
@@ -182,7 +194,7 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
     title: "Flyer picture",
     purpose: "A tall picture for a printed flyer, with calm space at the top and bottom where you add your own words.",
     usedOn: "Printed flyers, posters and handouts",
-    size: "2550x3300",
+    visible: FLYER_PICTURE,
     final: { width: 2550, height: 3300 },
     safe: FLYER_SAFE,
     exports: [{ label: "2550 × 3300 (letter, 300 dpi)", width: 2550, height: 3300, type: "image/jpeg", note: "8.5 × 11 inches at 300 dots per inch" }],
@@ -201,7 +213,7 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
     title: "Product scene",
     purpose: "Your kind of products styled in a setting, as if on the shelf or in use, with your logo.",
     usedOn: "Your website, posts and product pages",
-    size: "1600x1200",
+    visible: FULL,
     final: { width: 1600, height: 1200 },
     safe: SCENE_SAFE,
     exports: [{ label: "1600 × 1200 (4:3)", width: 1600, height: 1200, type: "image/jpeg" }],
@@ -213,6 +225,30 @@ export const IMAGE_SPECS: Record<BrandImageKind, ImageSpec> = {
     ],
   },
 };
+
+// Asked for at the visible area's shape when it differs from the file's by more than this
+export const REQUEST_SHAPE_GAP = 1.3;
+// Muse Image's widest shape
+const MAX_RATIO = 16;
+
+// The shape the model draws: the visible area's when it differs a lot from the whole file's
+export function requestSize(spec: Pick<ImageSpec, "final" | "visible">): { width: number; height: number } {
+  const { final, visible } = spec;
+  const width = Math.round(final.width * visible.w);
+  const height = Math.round(final.height * visible.h);
+  const ratio = width / height;
+  const finalRatio = final.width / final.height;
+  const differs = Math.max(ratio / finalRatio, finalRatio / ratio) > REQUEST_SHAPE_GAP;
+  if (!differs || ratio > MAX_RATIO || ratio < 1 / MAX_RATIO) return { ...final };
+  return { width, height };
+}
+
+export const IMAGE_SPECS = Object.fromEntries(
+  Object.entries(SPECS).map(([kind, spec]) => {
+    const asked = requestSize(spec);
+    return [kind, { ...spec, size: `${asked.width}x${asked.height}` }];
+  }),
+) as Record<BrandImageKind, ImageSpec>;
 
 export interface LogoSpec {
   title: string;

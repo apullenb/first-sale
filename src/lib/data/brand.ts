@@ -20,6 +20,7 @@ import {
   type ConceptReply,
   IMAGE_KINDS,
   type ImageMedium,
+  type ImageScenes,
   type PaletteColor,
   readBrief,
   VERSION_KINDS,
@@ -79,6 +80,7 @@ export interface BrandState {
   picks: BrandPicks;
   // The owner's Photo / Illustration switch; null leaves it to the rule
   imageMedium: ImageMedium | null;
+  imageScenes: ImageScenes;
   rounds: RoundSummary[];
   assets: AssetSummary[];
 }
@@ -130,6 +132,7 @@ export async function getBrandForOwner(db: Db, ownerId: string): Promise<BrandSt
     chosenLogoId: kit?.chosenLogoId ?? null,
     picks: kit?.picks ?? {},
     imageMedium: kit?.imageMedium ?? null,
+    imageScenes: kit?.imageScenes ?? {},
     rounds: rounds.map((round) => ({
       id: round.id,
       basedOnConceptId: round.basedOnConceptId,
@@ -441,6 +444,17 @@ export async function setImageMediumForOwner(db: Db, ownerId: string, medium: Im
     await upsertKit(tx, businessId, { imageMedium: medium, picks }, now);
     return true;
   });
+}
+
+// Merged into the saved plan, so planning one kind never drops another's scene
+export async function setImageScenesForOwner(db: Db, ownerId: string, scenes: ImageScenes, now = new Date()): Promise<boolean> {
+  const businessId = await businessOf(db, ownerId);
+  if (!businessId) return false;
+  await db
+    .insert(brandKits)
+    .values({ businessId, imageScenes: scenes, updatedAt: now })
+    .onConflictDoUpdate({ target: brandKits.businessId, set: { imageScenes: sql`${brandKits.imageScenes} || ${JSON.stringify(scenes)}::jsonb`, updatedAt: now } });
+  return true;
 }
 
 export async function unpickFileForOwner(db: Db, ownerId: string, kind: VersionKind | BrandImageKind, now = new Date()): Promise<boolean> {

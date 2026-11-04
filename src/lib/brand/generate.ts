@@ -7,7 +7,7 @@ import { kitColors } from "./colors";
 import { letterCount } from "./layout";
 import { clearFrame, logoColors, oneColor, type Pixels } from "./pixels";
 import { decodePng, encodePng } from "./png";
-import { fitBrandImage } from "./fit";
+import { fitBrandImage, visiblePart } from "./fit";
 import { imageStyle } from "./image-style";
 import { practiceSvg } from "./practice";
 import { brandImagePrompt, logoPrompt, ownLogoEditPrompt, pictureEditPrompt, refinePrompt, retryLines, versionPrompt } from "./prompts";
@@ -24,6 +24,7 @@ import {
   IMAGE_KINDS,
   LOGO_KINDS,
   type ImageMedium,
+  type ImageScenes,
   type PaletteColor,
   type VersionKind,
 } from "./types";
@@ -451,14 +452,25 @@ export async function makeVersions(
 export async function makeBrandImages(
   models: Models,
   store: AssetStore,
-  // example: the approved one the others match, never sent for its own slot; medium: the owner's Photo / Illustration switch
-  input: { logo: LogoRef; kinds: BrandImageKind[]; change: string | null; example?: ImageInput | null; medium?: ImageMedium | null; requestKey: string; userKey?: string; now: Date },
+  // example: the approved one whose style the others match, never sent for its own slot; medium: the owner's Photo / Illustration switch
+  // scenes: each kind's own scene from the plan (scenes.ts)
+  input: {
+    logo: LogoRef;
+    kinds: BrandImageKind[];
+    change: string | null;
+    example?: ImageInput | null;
+    medium?: ImageMedium | null;
+    scenes?: ImageScenes;
+    requestKey: string;
+    userKey?: string;
+    now: Date;
+  },
 ): Promise<BatchResult> {
   const { logo } = input;
   const medium = imageStyle(logo.brief, input.medium ?? null).medium;
   const jobs = input.kinds.map((kind): Job => {
     const example = kind !== EXAMPLE_IMAGE && input.example ? input.example : null;
-    const prompt = brandImagePrompt(logo.brief, paletteOf(logo), kind, input.change, example ? EXAMPLE_IMAGE : undefined, input.medium ?? null);
+    const prompt = brandImagePrompt(logo.brief, paletteOf(logo), kind, input.change, example ? EXAMPLE_IMAGE : undefined, input.medium ?? null, input.scenes?.[kind] ?? null);
     return {
       kind,
       medium,
@@ -496,7 +508,7 @@ export async function editPicture(
     design: inherited(logo.design),
     prompt,
     requestKey: `${logo.logoId}:${input.requestKey}:edit`,
-    call: () => models.image.edit({ instruction: prompt, images: [picture.file, logo.logo], size: sizeFor(kind), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
+    call: async () => models.image.edit({ instruction: prompt, images: [isImage ? await visiblePart(kind as BrandImageKind, picture.file) : picture.file, logo.logo], size: sizeFor(kind), format: "png", timeoutMs: IMAGE_TIMEOUT_MS, userKey: input.userKey }),
     check: (file) =>
       isImage
         ? checkBrandImage(models.vision, file, kind as BrandImageKind, expected(logo, "logo"), input.now, input.userKey)

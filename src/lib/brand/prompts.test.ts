@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brandImagePrompt, logoPrompt, ownLogoEditPrompt, pictureEditPrompt, QUALITY_RULES, refinePrompt, spellOut, versionPrompt } from "./prompts";
+import { brandImagePrompt, compositionLines, logoPrompt, ownLogoEditPrompt, pictureEditPrompt, QUALITY_RULES, refinePrompt, spellOut, versionPrompt } from "./prompts";
 import { testBrief, testConcept } from "./test-fixtures";
 
 describe("logo instructions", () => {
@@ -78,8 +78,8 @@ describe("refinements, versions and brand images", () => {
   it("put the logo, unchanged, in every brand image, big enough to recognize, and no other words", () => {
     const banner = brandImagePrompt(testBrief(), testConcept().palette, "youtube_banner", null);
     expect(banner).toContain("Keep the logo exactly as in image 1");
-    expect(banner).toContain("inside a box about 60% of the width and 29% of the height, centered left to right and centered top to bottom");
-    expect(banner).toContain("2560 × 1440 pixels");
+    expect(banner).toContain("inside a box about 60% of the width and 100% of the height, centered left to right and across the full height");
+    expect(banner).toContain("2560 × 423 pixels");
     expect(banner).toContain("nothing essential near the edges");
     expect(banner).toContain("make it big there");
     const hero = brandImagePrompt(testBrief(), testConcept().palette, "website_hero", "more bread");
@@ -130,7 +130,7 @@ describe("refinements, versions and brand images", () => {
 
   it("match the approved example in the other slots", () => {
     const cover = brandImagePrompt(testBrief(), [], "facebook_cover", null, "website_hero");
-    expect(cover).toContain("Image 2 is the business’s approved website header picture. Match its look exactly");
+    expect(cover).toContain("Image 2 is the business’s approved website header picture, a style reference only");
     expect(brandImagePrompt(testBrief(), [], "facebook_cover", null)).not.toContain("Image 2");
   });
 
@@ -185,13 +185,30 @@ describe("refinements, versions and brand images", () => {
   });
 });
 
+describe("banner shapes", () => {
+  it("ask for the visible band, with the subjects and logo in its middle", () => {
+    const youtube = compositionLines("youtube_banner").join("\n");
+    expect(youtube).toContain("Shape: a very wide panoramic strip, 2560 × 423 pixels (about 6.05 to 1)");
+    expect(youtube).toContain("main subject and the logo near the middle");
+    expect(youtube).toMatch(/Safe area: .*about 60% of the width and 100% of the height, centered left to right and across the full height/);
+    const facebook = compositionLines("facebook_cover").join("\n");
+    expect(facebook).toContain("Shape: a wide picture, 1920 × 711 pixels");
+    expect(facebook).toMatch(/starting 25% from the left edge and ending 5% from the right edge and across the full height/);
+    expect(compositionLines("website_hero").join("\n")).toContain("1920 × 1080 pixels");
+  });
+});
+
 describe("social, ad and print pictures", () => {
   it("describe each shape and keep its calm or covered parts plain", () => {
     expect(brandImagePrompt(testBrief(), [], "instagram_post", null, "website_hero")).toContain("Shape: a tall picture, 1080 × 1350 pixels (about 1 to 1.25)");
     expect(brandImagePrompt(testBrief(), [], "ad_square", null, "website_hero")).toContain("Shape: a square picture, 1080 × 1080 pixels (about 1 to 1)");
-    expect(brandImagePrompt(testBrief(), [], "instagram_story", null, "website_hero")).toContain("Apps cover the top 14% and bottom 14%");
+    // Story and flyer are drawn for their visible band; code adds the covered or calm parts
+    const story = brandImagePrompt(testBrief(), [], "instagram_story", null, "website_hero");
+    expect(story).toContain("Shape: a tall picture, 1080 × 1382 pixels");
+    expect(story).not.toContain("Apps cover the top");
     const flyer = brandImagePrompt(testBrief(), [], "flyer", null, "website_hero");
-    expect(flyer).toContain("Leave the top 25% and bottom 25% calm and plain");
+    expect(flyer).toContain("Shape: a wide picture, 2550 × 1650 pixels");
+    expect(flyer).not.toContain("calm and plain");
     expect(flyer).toContain("never invent other products, prices or offers");
     expect(brandImagePrompt(testBrief(), [], "product_scene", null, "website_hero")).toContain("Make the things they sell the hero");
   });
