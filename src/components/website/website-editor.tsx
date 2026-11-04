@@ -113,6 +113,8 @@ export function WebsiteEditor(props: WebsiteEditorProps) {
     try {
       const result = await saveWebsiteBuilderAction({ ...doc, revision: writeRevision });
       if (!result.ok) { setError(result.message); setStatus("idle"); return false; }
+      // Saved: not dirty, so the refreshed revision that follows isn't taken for another tab's save
+      setBaseline(doc);
       setStatus("saved");
       return true;
     } catch { setError(failedMessage()); setStatus("idle"); return false; }

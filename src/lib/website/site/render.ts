@@ -175,8 +175,8 @@ export function renderSite(input: SiteInput): string {
   const layout = header ? theme.layout : theme.layout === "cover" ? "split" : theme.layout;
   const logoImage = design.showLogo ? images.logo : null;
   const logo = logoImage ? image(logoImage, `${name} logo`, "logo") : "";
-  // A wide logo already spells the name
-  const wordmark = Boolean(logoImage && logoImage.width >= logoImage.height * 1.8);
+  // A logo wider than tall (name beside or under a symbol) already spells the name
+  const wordmark = Boolean(logoImage && logoImage.width >= logoImage.height * 1.3);
   const title = copy.seoTitle.trim() || name;
   const chips = offerings.length >= 2 && !collection ? `<ul class="chips" aria-label="What we offer">${offerings.slice(0, 4).map((offering) => `<li>${escapeHtml(offering.name)}</li>`).join("")}</ul>` : "";
   const ribbon = offerings.length >= 3 && theme.ornament !== "none" ? `<div class="ribbon" aria-hidden="true"><p>${[...offerings, ...offerings, ...offerings].slice(0, 12).map((offering) => `<span>${escapeHtml(offering.name)}</span>${ornament || ORNAMENT.star}`).join("")}</p></div>` : "";
