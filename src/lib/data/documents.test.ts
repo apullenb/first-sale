@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { businessDetails, checklistTasks, documents } from "@/db/schema";
 import { type DocumentContent, EMPTY_CONTENT } from "@/lib/documents/types";
 import { createTestDb } from "@/test/db";
@@ -72,6 +72,40 @@ describe("document data access", () => {
     expect(file).toEqual({ title: "Vendor form", mimeType: "application/pdf", data: bytes });
     expect(file?.data).toBeInstanceOf(Uint8Array);
     expect(await getDocumentFileForOwner(db, "owner-b", id)).toBeNull();
+  });
+
+  describe("with a document key configured", () => {
+    beforeEach(() => vi.stubEnv("DOCUMENT_ENCRYPTION_KEY", Buffer.alloc(32, 7).toString("base64")));
+    afterEach(() => vi.unstubAllEnvs());
+
+    it("stores the file sealed, and reads it back byte for byte", async () => {
+      const id = await create("owner-a");
+      const [row] = await db.select({ data: documents.data, byteSize: documents.byteSize }).from(documents).where(eq(documents.id, id));
+      expect(Buffer.from(row.data!).subarray(0, 4).toString()).toBe("SSE1");
+      expect(Buffer.from(row.data!).includes(Buffer.from(bytes))).toBe(false);
+      // Limits count the file's own size
+      expect(row.byteSize).toBe(bytes.byteLength);
+      expect((await getDocumentFileForOwner(db, "owner-a", id))?.data).toEqual(bytes);
+
+      const replaced = new Uint8Array([1, 2, 3]);
+      await updateDocumentForOwner(db, "owner-a", id, { data: replaced });
+      expect((await getDocumentFileForOwner(db, "owner-a", id))?.data).toEqual(replaced);
+    });
+
+    it("won't open a sealed file moved onto another document", async () => {
+      const id = await create("owner-a");
+      const other = await create("owner-a", { title: "Other" });
+      const [row] = await db.select({ data: documents.data }).from(documents).where(eq(documents.id, id));
+      await db.update(documents).set({ data: row.data }).where(eq(documents.id, other));
+      await expect(getDocumentFileForOwner(db, "owner-a", other)).rejects.toThrow(/another document/);
+    });
+
+    it("still reads files saved before encryption was turned on", async () => {
+      vi.unstubAllEnvs();
+      const id = await create("owner-a");
+      vi.stubEnv("DOCUMENT_ENCRYPTION_KEY", Buffer.alloc(32, 7).toString("base64"));
+      expect((await getDocumentFileForOwner(db, "owner-a", id))?.data).toEqual(bytes);
+    });
   });
 
   it("has no file for a document stored without one", async () => {

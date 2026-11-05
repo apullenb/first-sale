@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createMockProvider } from "./providers/mock";
-import { generateObject, StructuredOutputError, toJsonSchema } from "./structured";
+import { generateObject, scrubMessages, StructuredOutputError, toJsonSchema } from "./structured";
 import type { CompletionRequest, ModelProvider } from "./types";
 
 const listingSchema = z.object({ title: z.string(), tags: z.array(z.string()) });
@@ -94,3 +94,29 @@ describe("generateObject", () => {
     expect(requests[0].messages.at(-1)?.content).toContain(JSON.stringify(toJsonSchema(listingSchema)));
   });
 });
+
+describe("scrubMessages", () => {
+  it("takes numbers SnapStart never sends out of every message before the model sees it", async () => {
+    const { model, requests } = scripted(['{"title":"Lemon loaf","tags":[]}']);
+    await generateObject(model, {
+      name: "Listing",
+      schema: listingSchema,
+      messages: [
+        { role: "system", content: "Write a listing." },
+        { role: "user", content: [{ type: "text", text: "My SSN is 123-45-6789 and my card is 4111 1111 1111 1111." }, { type: "image", url: "https://example.com/a.png" }] },
+      ],
+    });
+    const sent = JSON.stringify(requests[0].messages);
+    expect(sent).not.toContain("123-45-6789");
+    expect(sent).not.toContain("4111 1111 1111 1111");
+    expect(sent).toContain("[Social Security number removed]");
+    expect(sent).toContain("https://example.com/a.png");
+  });
+
+  it("counts what it removed and leaves other text as it was", () => {
+    const { messages, counts } = scrubMessages([{ role: "user", content: "Call 512-555-0123. SSN 123-45-6789." }]);
+    expect(messages[0].content).toBe("Call 512-555-0123. SSN [Social Security number removed].");
+    expect(counts).toEqual({ ssn: 1 });
+  });
+});
+
