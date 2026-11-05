@@ -1,0 +1,114 @@
+{
+  "case": "nashville-tn-lawn",
+  "label": "Lawn care, hiring two employees now, Nashville, Tennessee",
+  "failed": "AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout",
+  "ms": {
+    "total": 214337
+  },
+  "calls": [
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6661,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8717,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11469,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11661,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12149,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17368,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17491,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 25896,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 31924,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 32848,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 150008,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 61213,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "medium",
+      "ms": 90004,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout"
+    }
+  ]
+}

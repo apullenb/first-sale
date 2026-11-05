@@ -1,0 +1,1403 @@
+{
+  "case": "bozeman-mt-jam",
+  "label": "Home-made jams and baked goods, Bozeman, Montana",
+  "model": "Meta Muse (muse-spark-1.3)",
+  "simulated": false,
+  "ranAt": "2026-11-05T06:50:21.795Z",
+  "timeLimitSeconds": 600,
+  "ms": {
+    "research": 219457,
+    "followUp": 136259,
+    "total": 355717
+  },
+  "cost": {
+    "usd": 1.4683,
+    "modelCalls": 9,
+    "searches": 28,
+    "inputTokens": 1260920,
+    "outputTokens": 75448,
+    "failedCalls": [
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "requirement_claims: AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout",
+      "requirement_follow_up: AIProviderError: Meta Muse stream failed: This operation was aborted"
+    ],
+    "fallbacks": [
+      "requirement_follow_up"
+    ]
+  },
+  "calls": [
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6662,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10274,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 15026,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16996,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17883,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 19106,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 21165,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 24045,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 25114,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 28258,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 45002,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 45001,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 102746,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 75190,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13756,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20002,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20001,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20002,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_follow_up",
+      "effort": "medium",
+      "ms": 18178,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 23076,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 30007,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 26775,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6473,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7747,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8811,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11251,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12275,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14787,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17226,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18114,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18407,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20270,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 26319,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 35600,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 58583,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "low",
+      "ms": 8586,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: This operation was aborted"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 14533,
+      "ok": true,
+      "error": null
+    }
+  ],
+  "claimsCheckedInResearch": false,
+  "followUp": {
+    "candidates": 13,
+    "rounds": 1,
+    "confirmed": 1,
+    "rechecked": 5
+  },
+  "pages": [
+    {
+      "id": "irs-ein",
+      "title": "IRS: Get an employer identification number",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "irs-business-structures",
+      "title": "IRS: Business structures",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-structure",
+      "title": "SBA: Choose a business structure",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-name",
+      "title": "SBA: Choose your business name",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-register-business",
+      "title": "SBA: Register your business",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#register-business",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-location",
+      "title": "SBA: Pick your business location",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-licenses-permits",
+      "title": "SBA: Apply for licenses and permits",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-tax-ids",
+      "title": "SBA: Get federal and state tax ID numbers",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "state-name-1",
+      "title": "How do I register a \"Doing Business As\" (DBA) name under my Limited Liability Company (LLC)?",
+      "url": "https://help.sosmt.gov/en/article/how-do-i-register-a-doing-business-as-dba-name-under-my-limited-liability-company-llc-15mlu82/",
+      "level": "state",
+      "government": "Montana Secretary of State",
+      "discovered": true
+    },
+    {
+      "id": "state-food-1",
+      "title": "Cottage Food Guidance and registration",
+      "url": "https://dphhs.mt.gov/assets/publichealth/FCS/CottageFood/cottagefoodregistrationmarch2020.pdf",
+      "level": "state",
+      "government": "State of Montana",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-2",
+      "title": "Dear {Name of Organization}:",
+      "url": "https://liv.mt.gov/_docs/MI/SB199-MLFCA-MP-Guidance-Doc-rev-2026.pdf",
+      "level": "state",
+      "government": "State of Montana",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-1",
+      "title": "How to Start a Food Business",
+      "url": "https://www.fda.gov/food/food-industry/how-start-food-business",
+      "level": "federal",
+      "government": "Food and Drug Administration (Department of Health and Human Services)",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-2",
+      "title": "How to get an import license or permit",
+      "url": "https://www.usa.gov/import-license-permit",
+      "level": "federal",
+      "government": "Federal Acquisition Service (General Services Administration)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-1",
+      "title": "Self-employed individuals tax center",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-2",
+      "title": "Schedule C & Schedule SE 1 | Internal Revenue Service",
+      "url": "https://www.irs.gov/faqs/small-business-self-employed-other-business/schedule-c-schedule-se/schedule-c-schedule-se-1",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-1-1",
+      "title": "WebGrants - State of Montana",
+      "url": "https://funding.mt.gov/insideLinkOpps.jsp?documentPk=1676412782310",
+      "level": "state",
+      "government": "State of Montana",
+      "discovered": true
+    },
+    {
+      "id": "fu-montana-assumed-name-3",
+      "title": "WebGrants - State of Montana",
+      "url": "https://funding.mt.gov/insideLinkOpps.jsp?documentPk=1676412782310",
+      "level": "state",
+      "government": "State of Montana",
+      "discovered": true
+    },
+    {
+      "id": "fu-bozeman-business-license-2",
+      "title": "Business License Info Sheet",
+      "url": "https://www.bozemanmt.gov/home/showpublisheddocument/13803/638767715239670000",
+      "level": "city",
+      "government": "City of Bozeman",
+      "discovered": true
+    }
+  ],
+  "unread": [
+    {
+      "title": "BUSINESS START UP GUIDE",
+      "url": "https://sbdc.mt.gov/_shared/docs/StartUpGuides/SBDCStartUpChecklist.pdf",
+      "reason": "Redirected to a site that isn’t approved"
+    },
+    {
+      "title": "Business Services Filing Fees",
+      "url": "https://sosmt.gov/business/fees/",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Business Structures - Official Montana Secretary of State Website - Christi Jacobsen",
+      "url": "https://sosmt.gov/business/business-structures/",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Sales Tax Guidance for Montana Business and Residents",
+      "url": "https://revenue.mt.gov/taxes/general-sales-tax",
+      "reason": "The site answered with error 406"
+    },
+    {
+      "title": "58th Legislature  SB0407.07",
+      "url": "https://leg.mt.gov/bills/2003/billpdf/SB0407.pdf",
+      "reason": "Redirected to a site that isn’t approved"
+    },
+    {
+      "title": "Administrative Rules of the State of Montana",
+      "url": "https://rules.mt.gov/gateway/showrulefile.asp?RN=37%2E110%2E510",
+      "reason": "The page had no readable text"
+    },
+    {
+      "title": "Food Service - Healthy Gallatin",
+      "url": "https://www.healthygallatin.org/environmental-health/permits-licenses-regulations-and-complaints/food-service/",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Temporary Food Establishment — Event Permit Application",
+      "url": "https://www.healthygallatin.org/wp-content/uploads/2020/06/Temporary-Food-Event-Permit-Application-050119.pdf",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "City Of Bozeman",
+      "url": "https://www.bozeman.net/departments/community-development/business-licenses/-folder-1197",
+      "reason": "Redirected to a site that isn’t approved"
+    },
+    {
+      "title": "City Of Bozeman",
+      "url": "https://www.bozeman.net/departments/community-development/business-licenses/marijuana-business-license",
+      "reason": "Redirected to a site that isn’t approved"
+    },
+    {
+      "title": "Bus. App w. Home Based Ack (colated) - PRINT.pdf",
+      "url": "https://www.bozeman.net/home/showpublisheddocument/690/638579312568400000",
+      "reason": "Redirected to a site that isn’t approved"
+    }
+  ],
+  "requirements": [
+    {
+      "key": "cottage-food-registration",
+      "title": "Register as a Montana cottage food operation",
+      "level": "state",
+      "topic": "license_permit",
+      "agency": "Montana DPHHS through your local Environmental Health Agency",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you sell anywhere besides farmers markets?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://dphhs.mt.gov/assets/publichealth/FCS/CottageFood/cottagefoodregistrationmarch2020.pdf"
+      ],
+      "evidence": "Register with the local Environmental Health Agency. The application fee is a one-time registration fee of $40.00.",
+      "why": "You will make jams, jellies and baked goods in your home kitchen and sell in person. Montana requires this registration unless you sell only at farmers markets.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not mention cottage food operations or an exception for sales only at farmers markets."
+      ],
+      "trail": null
+    },
+    {
+      "key": "cottage-direct-sale-limits",
+      "title": "Follow Montana cottage direct-to-consumer sale limits",
+      "level": "state",
+      "topic": "other",
+      "agency": "Montana DPHHS",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://dphhs.mt.gov/assets/publichealth/FCS/CottageFood/cottagefoodregistrationmarch2020.pdf"
+      ],
+      "evidence": "Cottage food products cannot be sold to restaurants, distributors, wholesale or by e-mail or mail order. Products cannot be sold out of state.",
+      "why": "You plan markets and in-person handoff of home-kitchen foods. Montana cottage foods must be sold directly to the consumer in Montana.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "cottage-food-labeling",
+      "title": "Use Montana cottage food labels",
+      "level": "state",
+      "topic": "other",
+      "agency": "Montana DPHHS",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://dphhs.mt.gov/assets/publichealth/FCS/CottageFood/cottagefoodregistrationmarch2020.pdf"
+      ],
+      "evidence": "Products must be labeled with basic information on the product including all ingredients and sub-ingredients, common allergens, and a statement to inform the public that it is produced in a home kitchen that does not fall under the regulations of a regular retail food facility.",
+      "why": "You will sell packaged jams, jellies and baked goods made at home. Montana requires cottage labels with ingredients, allergens and the home-kitchen notice.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "choose-sole-proprietorship",
+      "title": "Choose sole proprietorship structure",
+      "level": "federal",
+      "topic": "structure",
+      "agency": "Small Business Administration",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-structure"
+      ],
+      "evidence": "You’ll need to choose a business structure before you register your business with the state. You’re automatically considered to be a sole proprietorship if you do business activities but don’t register as any other kind of business.",
+      "why": "You are a first-time owner with one owner and chose sole proprietorship. Your structure decides taxes, paperwork and personal liability.",
+      "background": "You are the only owner selling under your own plan, and sole proprietorship is the simple default for that. You still report profit on your own return.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not mention that structure decides taxes, paperwork and personal liability."
+      ],
+      "trail": null
+    },
+    {
+      "key": "montana-assumed-name",
+      "title": "Register Bridger Jam Co. as your assumed business name",
+      "level": "state",
+      "topic": "name_registration",
+      "agency": "Montana Secretary of State",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://funding.mt.gov/insideLinkOpps.jsp?documentPk=1676412782310"
+      ],
+      "evidence": "If you are using an Assumed Business Name (ABN) / DBA – the ABN must also be registered with the Montana Secretary of State at www.sos.mt.gov.",
+      "why": "You will do business as Bridger Jam Co., which is not your own legal name. Montana commonly requires that other business name to be registered.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "federal-ein",
+      "title": "Get a federal EIN if you want one",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "optional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number"
+      ],
+      "evidence": "Beware of websites that charge for an EIN. You never have to pay a fee for an EIN.",
+      "why": "You are a sole proprietor with no employees. You may not need an EIN by law, but it is free and helps with a bank account, licenses and tax forms.",
+      "background": "",
+      "problems": [
+        "Fee not found in the quote"
+      ],
+      "trail": null
+    },
+    {
+      "key": "fda-food-safety-gmp",
+      "title": "Make food under safe and sanitary conditions",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Food and Drug Administration",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.fda.gov/food/food-industry/how-start-food-business"
+      ],
+      "evidence": "Current Good Manufacturing Practice (cGMP) regulations require that food offered for sale or introduced into interstate commerce be produced under safe and sanitary conditions.",
+      "why": "You will make jams, jellies and baked goods for sale to the public. Federal food rules require safe, sanitary production.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "fda-food-labeling",
+      "title": "Meet federal food labeling rules",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Food and Drug Administration",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.fda.gov/food/food-industry/how-start-food-business"
+      ],
+      "evidence": "Food manufacturers are responsible for developing labels (including nutrition information) that meet legal food labeling requirements. All labeling of FDA-regulated food products must be truthful and not misleading.",
+      "why": "You will sell packaged foods to consumers. Federal rules require truthful labels with nutrition and allergen information.",
+      "background": "You will sell packaged jams, jellies and baked goods directly to shoppers. Federal law requires those packages to carry truthful labels with ingredients, allergens and nutrition facts.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not mention allergen information as a labeling requirement."
+      ],
+      "trail": null
+    },
+    {
+      "key": "fda-food-records",
+      "title": "Keep federal food source and sales records",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Food and Drug Administration",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.fda.gov/food/food-industry/how-start-food-business"
+      ],
+      "evidence": "Food manufacturers, processors, packers, transporters, distributors, receivers, holders, and importers are required to establish, maintain, and provide to FDA upon request certain records that will allow the agency to identify all food products handled by the facility.",
+      "why": "You will make and sell foods to the public. Federal rules require records that trace your ingredients and finished foods.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "federal-self-employment-taxes",
+      "title": "Pay federal self-employment and quarterly estimated taxes",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center"
+      ],
+      "evidence": "Self-employed individuals generally must pay self-employment (SE) tax as well as income tax. As a self-employed individual, generally you are required to file an annual income tax return and pay estimated taxes quarterly.",
+      "why": "You will be self-employed as a sole proprietor with $5,000 to $25,000 in first-year sales. Self-employed people generally pay Social Security, Medicare and income tax quarterly and yearly.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "federal-schedule-c-se",
+      "title": "File yearly Schedule C and Schedule SE",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "conditional",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Will your yearly net profit from the business be $400 or more?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/faqs/small-business-self-employed-other-business/schedule-c-schedule-se/schedule-c-schedule-se-1"
+      ],
+      "evidence": "Report your income and expenses from your sole proprietorship on Schedule C (Form 1040), Profit or Loss from Business (Sole Proprietorship). If the total of your net earnings from self-employment from all businesses is $400 or more, use Schedule SE (Form 1040), Self-Employment Tax to figure your self-employment income and tax owed.",
+      "why": "You will have self-employment income as a sole proprietor. The $400 net earnings test decides if you must file Schedule SE.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "montana-income-tax",
+      "title": "File Montana income tax on business profit",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Montana Department of Revenue",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will earn side income in Montana as a sole proprietor. Montana commonly taxes individual business profit yearly.",
+      "background": "You will earn profit in Montana as a sole proprietor. Montana taxes that profit on your individual return each year.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-trademark",
+      "title": "Consider federal trademark protection",
+      "level": "federal",
+      "topic": "name_registration",
+      "agency": "United States Patent and Trademark Office",
+      "status": "optional",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-name"
+      ],
+      "evidence": "A trademark can protect the name of your business, goods, and services at a national level. Businesses in every state are subject to trademark infringement lawsuits, which can prove costly.",
+      "why": "You picked a brand name for jams and baked goods you will sell to the public. A federal trademark is optional but can protect that name nationwide.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "cottage-food-county-registration",
+      "title": "Register Cottage Food Operation with county health department",
+      "level": "county",
+      "topic": "license_permit",
+      "agency": "Gallatin City-County Health Department",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you sell anywhere besides farmers' markets?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://dphhs.mt.gov/assets/publichealth/FCS/CottageFood/cottagefoodregistrationmarch2020.pdf"
+      ],
+      "evidence": "Register with the local Environmental Health Agency. The application fee is a one-time registration fee of $40.00.",
+      "why": "You will make jams, jellies and baked goods that do not need cold storage in your home kitchen and sell in person at markets. Montana tells these sellers to register with the local health agency, unless they sell only at farmers markets.",
+      "background": "",
+      "problems": [
+        "Only state pages were cited for a county requirement"
+      ],
+      "trail": null
+    },
+    {
+      "key": "bozeman-business-license",
+      "title": "Get Bozeman city business license",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Bozeman",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will run the business from a home inside Bozeman city limits. Bozeman commonly requires home-based and market sellers to hold a city business license before opening.",
+      "background": "You will run a home business inside Bozeman city limits. Bozeman offers a home based license and asks home sellers to hold a city license before opening.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "bozeman-home-business-zoning",
+      "title": "Follow Bozeman home business and zoning rules",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "City of Bozeman Planning Department",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will make food in your home inside Bozeman and customers will not visit. Bozeman still controls what home businesses can do in residential areas.",
+      "background": "You will make food at your Bozeman home with no customer visits. Bozeman still limits home businesses in residential areas for safety and neighborhood impact.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "gallatin-personal-property",
+      "title": "Report business equipment to Gallatin County if required",
+      "level": "county",
+      "topic": "tax_registration",
+      "agency": "Gallatin County Assessor's office",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will use kitchen tools and other equipment to make products for sale. Montana counties commonly ask businesses to list business equipment for property tax.",
+      "background": "You will use kitchen tools and other gear to make goods for sale. Montana counties commonly ask businesses to list that gear for property tax.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "bozeman-license-renewal",
+      "title": "Renew Bozeman city business license each year",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Bozeman",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "Once you hold a Bozeman business license, the city commonly requires renewal to keep selling without a break.",
+      "background": "Once you hold a Bozeman license, the city expects you to keep it active to keep selling. Renewal is the normal way to stay in good standing.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "mt-assumed-business-name",
+      "title": "Register Bridger Jam Co. as an assumed business name with Montana",
+      "level": "state",
+      "topic": "name_registration",
+      "agency": "Montana Secretary of State",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://funding.mt.gov/insideLinkOpps.jsp?documentPk=1676412782310"
+      ],
+      "evidence": "If you are using an Assumed Business Name (ABN) / DBA – the ABN must also be registered with the Montana Secretary of State at www.sos.mt.gov.",
+      "why": "You have one owner and plan to sell as Bridger Jam Co., which is not your own legal name, so Montana treats it as an assumed business name that must be registered.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    }
+  ],
+  "plan": [
+    {
+      "key": "cottage-food-registration",
+      "title": "Register as a Montana cottage food operation",
+      "status": "conditional",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://dphhs.mt.gov/assets/publichealth/FCS/CottageFood/cottagefoodregistrationmarch2020.pdf",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "cottage-direct-sale-limits",
+      "title": "Follow Montana cottage direct-to-consumer sale limits",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://dphhs.mt.gov/assets/publichealth/FCS/CottageFood/cottagefoodregistrationmarch2020.pdf",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "cottage-food-labeling",
+      "title": "Use Montana cottage food labels",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://dphhs.mt.gov/assets/publichealth/FCS/CottageFood/cottagefoodregistrationmarch2020.pdf",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "choose-sole-proprietorship",
+      "title": "Choose sole proprietorship structure",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "montana-assumed-name",
+      "title": "Register Bridger Jam Co. as your assumed business name",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://funding.mt.gov/insideLinkOpps.jsp?documentPk=1676412782310",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-ein",
+      "title": "Get a federal EIN if you want one",
+      "status": "optional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "fda-food-safety-gmp",
+      "title": "Make food under safe and sanitary conditions",
+      "status": "verified",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.fda.gov/food/food-industry/how-start-food-business",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "fda-food-labeling",
+      "title": "Meet federal food labeling rules",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.fda.gov/food/food-industry/how-start-food-business",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "fda-food-records",
+      "title": "Keep federal food source and sales records",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.fda.gov/food/food-industry/how-start-food-business",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "federal-self-employment-taxes",
+      "title": "Pay federal self-employment and quarterly estimated taxes",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "federal-schedule-c-se",
+      "title": "File yearly Schedule C and Schedule SE",
+      "status": "conditional",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/faqs/small-business-self-employed-other-business/schedule-c-schedule-se/schedule-c-schedule-se-1",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "montana-income-tax",
+      "title": "File Montana income tax on business profit",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "federal-trademark",
+      "title": "Consider federal trademark protection",
+      "status": "optional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "cottage-food-county-registration",
+      "title": "Register Cottage Food Operation with county health department",
+      "status": "conditional",
+      "level": "county",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://dphhs.mt.gov/assets/publichealth/FCS/CottageFood/cottagefoodregistrationmarch2020.pdf",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "bozeman-business-license",
+      "title": "Get Bozeman city business license",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "bozeman-home-business-zoning",
+      "title": "Follow Bozeman home business and zoning rules",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "gallatin-personal-property",
+      "title": "Report business equipment to Gallatin County if required",
+      "status": "needs_confirmation",
+      "level": "county",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "bozeman-license-renewal",
+      "title": "Renew Bozeman city business license each year",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "mt-assumed-business-name",
+      "title": "Register Bridger Jam Co. as an assumed business name with Montana",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://funding.mt.gov/insideLinkOpps.jsp?documentPk=1676412782310",
+          "confirms": true
+        }
+      ]
+    }
+  ],
+  "openQuestions": [
+    {
+      "question": "Our search for official pages about tax returns and renewals after opening in Montana didn’t finish. Re-check later, or ask.",
+      "answer": "We could not settle renewal and yearly filing steps from the official pages found so far. Ask the state revenue office and the city clerk what to file after you open and when to renew."
+    },
+    {
+      "question": "Our search for official pages about business licenses in Gallatin County didn’t finish. Re-check later, or ask.",
+      "answer": "We could not settle from official pages whether the county needs a separate license for your market sales. Ask the county clerk whether a county license is needed in addition to your city license."
+    },
+    {
+      "question": "Do your exact jam, jelly and baked good recipes qualify for Montana cottage food?",
+      "answer": "We cannot tell from your product names alone whether each recipe qualifies as cottage food. The county health office must review your exact ingredients, acidity and baking process before you sell."
+    },
+    {
+      "question": "Can you qualify for the FDA small business nutrition labeling exemption?",
+      "answer": "You may qualify for the small business nutrition labeling exemption if your sales volume and staff size are very low. Check current FDA small business rules with your sales and staff details to confirm."
+    },
+    {
+      "question": "What income level requires a Montana individual income tax return for your side income?",
+      "answer": "Montana requires an individual return when your income is above the filing threshold for your filing status. Check the current state individual instructions for your situation before you file."
+    },
+    {
+      "question": "Does Bozeman require a city business license for a home-based food business with no customer visits?",
+      "answer": "Yes, plan to get one. You will run a home business inside city limits and the city lists a home based license for that, even without customer visits."
+    },
+    {
+      "question": "Does Gallatin County require Cottage Food registration if I sell at farmers markets plus other in-person places?",
+      "answer": "We could not settle this from the pages found. Ask the county health office whether your market sales and other in person sales need cottage food registration."
+    },
+    {
+      "question": "Does my Bozeman home address allow food production and need a home occupation approval?",
+      "answer": "We could not settle this from the pages found. Ask city planning whether your home address allows food production and whether you need home business approval."
+    },
+    {
+      "question": "Do I need a county temporary food permit for packaged foods or for giving samples at markets?",
+      "answer": "Sealed shelf stable packs are often exempt, but open samples at markets often need a temporary permit. Ask the county health office how it treats your packs and your sampling plan."
+    },
+    {
+      "question": "Ask county about temporary food permit for market sales and samples: You plan to sell at markets in person. Gallatin County commonly requires a temporary food permit for unpackaged food or samples at events, even when packaged foods are exempt.",
+      "answer": "Yes, check before your first market. Tell the county health office what you will sell packaged and whether you will offer tastes, and ask if a temporary permit is needed."
+    }
+  ],
+  "coverage": [
+    {
+      "category": "formation",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "formation",
+      "level": "state",
+      "state": "confirmed",
+      "pagesRead": 1
+    },
+    {
+      "category": "tax",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "tax",
+      "level": "state",
+      "state": "unreadable",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "state",
+      "state": "not_searched",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "county",
+      "state": "search_failed",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "city",
+      "state": "unreadable",
+      "pagesRead": 0
+    },
+    {
+      "category": "zoning",
+      "level": "city",
+      "state": "unreadable",
+      "pagesRead": 0
+    },
+    {
+      "category": "food",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 1
+    },
+    {
+      "category": "food",
+      "level": "county",
+      "state": "unreadable",
+      "pagesRead": 0
+    }
+  ],
+  "conflicts": [
+    {
+      "about": "When Montana cottage registration is required for market sales",
+      "explanation": "The state guide says registration is NOT required if products are only sold at farmers markets, but you listed both markets and in-person sales. It is unclear if your in-person sales are only farmers markets or also other places that need registration.",
+      "sourceIds": [
+        "state-food-1"
+      ]
+    },
+    {
+      "about": "Whether county health registration is needed for direct homemade food sales",
+      "explanation": "One state paper says cottage food sellers must register with the local health agency, but not if they sell only at farmers markets. Another state paper says direct homemade food sales to the end consumer are exempt from licensing, certification, packaging, labeling and inspection. It is unclear which path covers your jams, jellies and baked goods sold at markets and other in-person spots.",
+      "sourceIds": [
+        "state-food-1",
+        "state-activity-2"
+      ]
+    }
+  ]
+}

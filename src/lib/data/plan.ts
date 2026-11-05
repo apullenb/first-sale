@@ -271,8 +271,11 @@ export async function rebuildPlan(
       renewalFeeUsd: row.renewalFeeCents === null ? null : row.renewalFeeCents / 100,
       verification: row.verification,
       problems: row.problems,
-      confirmedBy: row.verification === "sourced" ? (confirmedFor.get(slugKey(row.key)) ?? []) : [],
+      // The plan recorded no confirming page while the quote was unread by the claims check: every cited page then
+      confirmedBy: row.verification === "sourced" ? (confirmedFor.get(slugKey(row.key))?.length ? confirmedFor.get(slugKey(row.key)) : row.claimsChecked ? undefined : []) : [],
+      claimsChecked: row.claimsChecked,
       background: row.background,
+      trail: row.trail,
       ownerAction: row.ownerAction,
       verdict: row.verdict,
     };

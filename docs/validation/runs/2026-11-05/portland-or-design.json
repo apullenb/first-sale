@@ -1,0 +1,1326 @@
+{
+  "case": "portland-or-design",
+  "label": "Freelance graphic design, Portland, Oregon",
+  "model": "Meta Muse (muse-spark-1.3)",
+  "simulated": false,
+  "ranAt": "2026-11-05T06:50:21.776Z",
+  "timeLimitSeconds": 600,
+  "ms": {
+    "research": 208329,
+    "followUp": 91777,
+    "total": 300106
+  },
+  "cost": {
+    "usd": 1.072,
+    "modelCalls": 8,
+    "searches": 20,
+    "inputTokens": 772703,
+    "outputTokens": 64587,
+    "failedCalls": [
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "requirement_follow_up: AIProviderError: Meta Muse stream failed: This operation was aborted"
+    ],
+    "fallbacks": [
+      "requirement_follow_up"
+    ]
+  },
+  "calls": [
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 9440,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 9649,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 9693,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16604,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 24903,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 27730,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 34958,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 35341,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 45002,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 80774,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 88274,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6490,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8241,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 9969,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20004,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_follow_up",
+      "effort": "medium",
+      "ms": 35935,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 15539,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 14070,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8272,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8336,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 9959,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13043,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14527,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18095,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18301,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 53032,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "low",
+      "ms": 3039,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: This operation was aborted"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 19204,
+      "ok": true,
+      "error": null
+    }
+  ],
+  "claimsCheckedInResearch": true,
+  "followUp": {
+    "candidates": 6,
+    "rounds": 1,
+    "confirmed": 0,
+    "rechecked": 0
+  },
+  "pages": [
+    {
+      "id": "irs-ein",
+      "title": "IRS: Get an employer identification number",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "irs-business-structures",
+      "title": "IRS: Business structures",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-structure",
+      "title": "SBA: Choose a business structure",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-name",
+      "title": "SBA: Choose your business name",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-register-business",
+      "title": "SBA: Register your business",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#register-business",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-location",
+      "title": "SBA: Pick your business location",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-licenses-permits",
+      "title": "SBA: Apply for licenses and permits",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-tax-ids",
+      "title": "SBA: Get federal and state tax ID numbers",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "state-name-1",
+      "title": "Assumed Business Name - New Registration Instructions",
+      "url": "https://sos.oregon.gov/business/register/pages/assumed-business-name-new-registration-instructions.aspx",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "state-name-2",
+      "title": "Household Goods Application Forms",
+      "url": "https://www.oregon.gov:443/ODOT/Forms/Motcarr/Household%20Goods%20Application%20Forms.pdf",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "state-formation-1",
+      "title": "Articles of Organization - Limited Liability Company",
+      "url": "https://sos.oregon.gov/business/Documents/business-registry-forms/llc-articles.pdf",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "state-formation-2",
+      "title": "Oregon Secretary of State : Select Your Business Name & Structure : Business Information Center : State of Oregon",
+      "url": "https://sos.oregon.gov/business/information-center/pages/select-business-name-structure.aspx",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-1",
+      "title": "Starting a Business",
+      "url": "https://sos.oregon.gov/business/information-center/pages/starting-business.aspx",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-2",
+      "title": "Certification Office for",
+      "url": "https://www.oregon.gov/biz/Publications/COBID/COBID%20Monthly%20Report%20-%20July%202026.pdf",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-1",
+      "title": "Business Education | CPSC.gov",
+      "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education",
+      "level": "federal",
+      "government": "Consumer Product Safety Commission",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-2",
+      "title": "Safer Products Start Here!",
+      "url": "https://www.cpsc.gov/Business--Manufacturing/Regulatory-Robot/Safer-Products-Start-Here",
+      "level": "federal",
+      "government": "Consumer Product Safety Commission",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-1",
+      "title": "Self-employed individuals tax center",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-2",
+      "title": "Making Estimated Tax Payments - TAS",
+      "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/estimated-payments/2026/01/",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "county-license-1",
+      "title": "Multnomah County Business Income Tax (MCBIT)",
+      "url": "https://multco.us/info/multnomah-county-business-income-tax-mcbit",
+      "level": "county",
+      "government": "Multnomah County",
+      "discovered": true
+    },
+    {
+      "id": "county-license-2",
+      "title": "Using a Commercial Kitchen - English",
+      "url": "https://multco.us/info/using-commercial-kitchen-english",
+      "level": "county",
+      "government": "Multnomah County",
+      "discovered": true
+    },
+    {
+      "id": "city-license-2",
+      "title": "Register for a Revenue Division Tax Account",
+      "url": "https://www.portland.gov/revenue/register-tax-account",
+      "level": "city",
+      "government": "City of Portland",
+      "discovered": true
+    },
+    {
+      "id": "city-home-1",
+      "title": "Home Occupation Permit Requirements & Application",
+      "url": "https://www.portland.gov/ppd/documents/home-occupation-permit-application/download",
+      "level": "city",
+      "government": "City of Portland",
+      "discovered": true
+    },
+    {
+      "id": "city-home-2",
+      "title": "Change 1900 SW 4th Avenue of Portland, Oregon 97201 Use",
+      "url": "https://www.portland.gov/ppd/documents/change-use-or-occupancy-brochure-15/download",
+      "level": "city",
+      "government": "City of Portland",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-1-1",
+      "title": "Assumed Business Name - New Registration",
+      "url": "https://sos.oregon.gov/business/Documents/business-registry-forms/abn-new.pdf",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-1-2",
+      "title": "Oregon Business Guide",
+      "url": "https://digitalcollections.library.oregon.gov/assets/displaypdf/246412",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-2-1",
+      "title": "Registering your business with Oregon tax programs",
+      "url": "https://www.oregon.gov/dor/programs/businesses/Pages/business-registration.aspx",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-2-2",
+      "title": "Tax Compliance Certification Information",
+      "url": "https://www.oregon.gov/dor/pages/tax-compliance.aspx",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-3-1",
+      "title": "Sales Tax in Oregon",
+      "url": "https://www.oregon.gov/dor/programs/businesses/Pages/Sales-Tax.aspx",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-3-2",
+      "title": "Oregon Tax Information",
+      "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/oregon/",
+      "level": "federal",
+      "government": "Office of GSA IT (General Services Administration)",
+      "discovered": true
+    },
+    {
+      "id": "fu-oregon-assumed-business-name-1",
+      "title": "Assumed Business Name (DBA) Registration Forms",
+      "url": "https://sos.oregon.gov/business/register/pages/assumed-business-name-registration-dba.aspx",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "fu-oregon-assumed-business-name-2",
+      "title": "Do I Need to Register My Business in Oregon?",
+      "url": "https://sos.oregon.gov/business/information-center/pages/doing-business-means.aspx",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "fu-oregon-income-tax-1",
+      "title": "Registering your business with Oregon tax programs",
+      "url": "https://www.oregon.gov/dor/programs/businesses/Pages/business-registration.aspx",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "fu-oregon-income-tax-2",
+      "title": "Personal income tax payments",
+      "url": "https://www.oregon.gov/dor/programs/individuals/pages/personal-income-tax-payments.aspx",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "fu-oregon-income-tax-3",
+      "title": "Qualified business income reduced tax rate (QBIRTR)",
+      "url": "https://www.oregon.gov/dor/programs/individuals/Pages/QBIRTR.aspx/1000",
+      "level": "state",
+      "government": "State of Oregon",
+      "discovered": true
+    },
+    {
+      "id": "fu-portland-revenue-tax-account-1",
+      "title": "Register for a Revenue Division Tax Account",
+      "url": "https://www.portland.gov/revenue/register-tax-account",
+      "level": "city",
+      "government": "City of Portland",
+      "discovered": true
+    },
+    {
+      "id": "fu-portland-revenue-tax-account-2",
+      "title": "Register for a Revenue Division Tax Account",
+      "url": "https://www.portland.gov/revenue/register-tax-account",
+      "level": "city",
+      "government": "City of Portland",
+      "discovered": true
+    },
+    {
+      "id": "fu-portland-revenue-tax-account-3",
+      "title": "Business Registration Form",
+      "url": "https://www.portland.gov/ja/media/14637/download",
+      "level": "city",
+      "government": "City of Portland",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-portland-revenue-tax-account-1",
+      "title": "Register for a Revenue Division Tax Account",
+      "url": "https://www.portland.gov/revenue/register-tax-account",
+      "level": "city",
+      "government": "City of Portland",
+      "discovered": true
+    },
+    {
+      "id": "fu-portland-business-license-tax-filing-1",
+      "title": "Pay your business tax",
+      "url": "https://www.portland.gov/revenue/pay-business-tax",
+      "level": "city",
+      "government": "City of Portland",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-portland-business-license-tax-filing-2",
+      "title": "7.02.500 Tax Rate.",
+      "url": "https://www.portland.gov/code/7/02/500",
+      "level": "city",
+      "government": "City of Portland",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-portland-business-license-tax-filing-3",
+      "title": "Title 7 Business Licenses",
+      "url": "https://www.portland.gov/code/7",
+      "level": "city",
+      "government": "City of Portland",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-portland-1",
+      "title": "Portland Permitting & Development Department Phone Numbers",
+      "url": "https://www.portland.gov/ppd/about-portland-permitting-development/department-phone-numbers?forgot=1",
+      "level": "city",
+      "government": "City of Portland",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-portland-2",
+      "title": "Pay Permit Fees",
+      "url": "https://www.portland.gov/ppd/get-permit/pay-permits",
+      "level": "city",
+      "government": "City of Portland",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-portland-3",
+      "title": "Starting or expanding a child care business in a home",
+      "url": "https://sandbox.portland.gov/ppd/residential-permitting/home-child-care-businesses",
+      "level": "city",
+      "government": "City of Portland",
+      "discovered": true
+    }
+  ],
+  "unread": [
+    {
+      "title": "The City of Portland, Oregon",
+      "url": "https://www.portlandoregon.gov/revenue/?c=29320&_escaped_fragment_=/action=viewmore&type=topPages",
+      "reason": "Redirected to a site that isn’t approved"
+    }
+  ],
+  "requirements": [
+    {
+      "key": "business-structure-choice",
+      "title": "Choose a business structure — sole proprietorship",
+      "level": "federal",
+      "topic": "structure",
+      "agency": "Small Business Administration",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-structure"
+      ],
+      "evidence": "You’ll need to choose a business structure before you register your business with the state.",
+      "why": "You have one owner and chose sole proprietorship. This is the simplest form for testing a low-risk idea. You are automatically a sole proprietorship when you do business without registering another form.",
+      "background": "You will work for yourself with no partners, so you are a sole proprietorship by default and should plan as one.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote only says to choose a structure before registering and does not show that you are automatically a sole proprietorship or that it is the simplest form."
+      ],
+      "trail": null
+    },
+    {
+      "key": "oregon-assumed-business-name",
+      "title": "Register Fernline Studio as an Oregon Assumed Business Name",
+      "level": "state",
+      "topic": "name_registration",
+      "agency": "Oregon Secretary of State",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-name"
+      ],
+      "evidence": "Registering your DBA name doesn’t provide legal protection by itself, but most states require you to register your DBA if you use one.",
+      "why": "You will do business as Fernline Studio, which is not your own legal name. A DBA, also called a trade name or assumed name, usually must be registered with the state when you use one.",
+      "background": "You will use Fernline Studio instead of your own legal name, and Oregon generally requires registration of a name like that.",
+      "problems": [
+        "Only federal pages were cited for a state requirement"
+      ],
+      "trail": null
+    },
+    {
+      "key": "ein",
+      "title": "Get a federal EIN if you want one for taxes and banking",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "optional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number"
+      ],
+      "evidence": "You never have to pay a fee for an EIN.",
+      "why": "You are a sole proprietor with no employees and not a corporation or partnership, so you are not required to have an EIN. An EIN, which means Employer Identification Number, is free and can help open a business bank account.",
+      "background": "",
+      "problems": [
+        "Fee not found in the quote"
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-annual-tax",
+      "title": "File yearly federal income tax and pay self-employment tax",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center"
+      ],
+      "evidence": "Self-employed individuals generally must pay self-employment (SE) tax as well as income tax.",
+      "why": "You will earn self-employment income as a freelance designer. Self-employment tax means Social Security and Medicare taxes for people who work for themselves.",
+      "background": "Freelance design pay counts as self employment income, which must be reported on a yearly federal return with Social Security and Medicare taxes.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote says self-employed people must pay income and SE tax but does not show that SE tax means Social Security and Medicare taxes."
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-estimated-tax",
+      "title": "Pay federal estimated taxes each quarter if you will owe enough",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you owe $1,000 or more in federal tax for the year?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.taxpayeradvocate.irs.gov/news/tax-tips/estimated-payments/2026/01/"
+      ],
+      "evidence": "Individuals, including sole proprietors, partners, and S corporation shareholders, generally must make estimated tax payments if they expect to owe tax of $1,000 or more when their return is filed.",
+      "why": "You will have no employer withholding tax from design pay. Estimated tax is how self-employed people prepay income plus Social Security and Medicare taxes during the year.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote shows the $1,000 threshold but does not show that payments are each quarter or that estimated tax prepays income plus Social Security and Medicare taxes."
+      ],
+      "trail": null
+    },
+    {
+      "key": "oregon-income-tax",
+      "title": "Pay Oregon personal income tax on business earnings",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Oregon Department of Revenue",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You live and work in Oregon as a sole proprietor. Oregon taxes personal income, so design profits are usually taxed on your personal return.",
+      "background": "Oregon taxes the earnings of residents who work for themselves, so your design profits are generally taxed on your state personal return.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-trademark-check",
+      "title": "Check the federal trademark database for Fernline Studio",
+      "level": "federal",
+      "topic": "name_registration",
+      "agency": "United States Patent and Trademark Office",
+      "status": "optional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-name"
+      ],
+      "evidence": "A trademark can protect the name of your business, goods, and services at a national level.",
+      "why": "You will use Fernline Studio online for logos and social graphics. A trademark gives national protection for a business name and can avoid costly infringement fights.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote says a trademark can protect a business name nationally but does not show any requirement to check the federal trademark database."
+      ],
+      "trail": null
+    },
+    {
+      "key": "domain-name",
+      "title": "Register a website domain name for the studio",
+      "level": "federal",
+      "topic": "name_registration",
+      "agency": "accredited domain registrar",
+      "status": "optional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-name"
+      ],
+      "evidence": "Once you register your domain name, no one else can use it for as long as you continue to own it.",
+      "why": "You plan to find clients through your own website and social media. A domain name, which means your website address, protects your online brand.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote says a registered domain cannot be used by others while you own it but does not show that you must register a domain name."
+      ],
+      "trail": null
+    },
+    {
+      "key": "portland-revenue-tax-account",
+      "title": "Register for a Portland Revenue Division tax account",
+      "level": "city",
+      "topic": "tax_registration",
+      "agency": "City of Portland Revenue Division",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.portland.gov/revenue/register-tax-account",
+        "https://multco.us/info/multnomah-county-business-income-tax-mcbit"
+      ],
+      "evidence": "Businesses that are subject to the Portland Business License Tax, Portland Transient Lodgings Tax, Multnomah County Business Income Tax, and/or the Metro Supportive Housing Services (SHS) Business Income Tax are required to register for a Revenue Division tax account. The City of Portland collects the MCBIT on behalf of Multnomah County.",
+      "why": "You live and work in Portland in Multnomah County and will earn design income from home. The city runs the tax account system for Portland and county business taxes.",
+      "background": "You will do design work from home in Portland, and new businesses must register with the city and county tax system.",
+      "problems": [
+        "Quote not found on the cited pages"
+      ],
+      "trail": null
+    },
+    {
+      "key": "multnomah-county-bit-filing",
+      "title": "File and pay Multnomah County Business Income Tax",
+      "level": "county",
+      "topic": "tax_registration",
+      "agency": "City of Portland Revenue Division on behalf of Multnomah County",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": "at the same time they file their federal and state income tax returns",
+      "sources": [
+        "https://multco.us/info/multnomah-county-business-income-tax-mcbit"
+      ],
+      "evidence": "Businesses with apportionable income in Multnomah County are subject to the Multnomah Count Business Income Tax. Taxfilers must file their business tax returns and pay their business tax liability at the same time they file their federal and state income tax returns.",
+      "why": "You will have design income tied to your home in Multnomah County. County income from business in the county is subject to this county tax.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "portland-business-license-tax-filing",
+      "title": "File and pay Portland Business License Tax",
+      "level": "city",
+      "topic": "tax_registration",
+      "agency": "City of Portland Revenue Division",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.portland.gov/revenue/register-tax-account"
+      ],
+      "evidence": "Businesses that are subject to the Portland Business License Tax, Portland Transient Lodgings Tax, Multnomah County Business Income Tax, and/or the Metro Supportive Housing Services (SHS) Business Income Tax are required to register for a Revenue Division tax account.",
+      "why": "You work from home inside Portland city limits and will sell design services. Businesses subject to the Portland Business License Tax use the same city tax account system.",
+      "background": "You will sell design services from home inside Portland, so you are doing business in the city covered by this tax.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote only says certain businesses must register for an account and does not show that this home design business is subject or must file and pay."
+      ],
+      "trail": null
+    },
+    {
+      "key": "portland-type-a-home-rules",
+      "title": "Follow Portland Type A home occupation rules - no permit needed",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "Portland Permitting and Development, Property Compliance",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.portland.gov/ppd/documents/home-occupation-permit-application/download"
+      ],
+      "evidence": "A Type A home occupation is one where residents use their home as a place of work; however, no employees or customers/clients come to the site. No permit is required.",
+      "why": "You will work from a home office in Portland with one owner, no hiring now, and no customers visiting. That matches the city's Type A home work with no site visits.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "portland-type-b-home-permit",
+      "title": "Get Portland Type B home permit if helper or customers come to home",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "Portland Permitting and Development, Property Compliance",
+      "status": "conditional",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will customers or a non-resident helper come to your home for work?"
+      ],
+      "feeUsd": 223,
+      "deadline": null,
+      "sources": [
+        "https://www.portland.gov/ppd/documents/home-occupation-permit-application/download"
+      ],
+      "evidence": "A Type B home occupation is one where the residents use their home as a place of work, and allows one non-resident employee (business partner, co-owner, or other person affiliated with the business who does not reside at the site) per shift and up to 15 customers/clients per day come to the site. A $223.00 non-refundable application fee is required for a 2-year permit.",
+      "why": "You now say no one will come to the home, so you do not need this. If you later have a helper or clients visit the home, the city requires a Type B permit.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "multnomah-personal-property",
+      "title": "File Multnomah County business personal property return if required",
+      "level": "county",
+      "topic": "tax_registration",
+      "agency": "Multnomah County Assessment and Taxation",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you have business computers, furniture, or tools worth more than a few thousand dollars?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will run a design studio from home with a computer and office setup. Counties often tax business furniture and gear, so this yearly return may apply.",
+      "background": "",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "or-no-sales-tax",
+      "title": "No Oregon state sales tax on freelance graphic design services",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "General Services Administration, Office of GSA IT",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://smartpay.gsa.gov/smarttax/tax-information-by-state/oregon/"
+      ],
+      "evidence": "The state does not have a sales tax; however, Oregon may impose a State Transient Lodging Tax for hotel stays.",
+      "why": "Fernline Studio sells logo and graphic design services online only, not hotel stays, and Oregon has no general state sales tax.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    }
+  ],
+  "plan": [
+    {
+      "key": "business-structure-choice",
+      "title": "Choose a business structure — sole proprietorship",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "oregon-assumed-business-name",
+      "title": "Register Fernline Studio as an Oregon Assumed Business Name",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "ein",
+      "title": "Get a federal EIN if you want one for taxes and banking",
+      "status": "optional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-annual-tax",
+      "title": "File yearly federal income tax and pay self-employment tax",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-estimated-tax",
+      "title": "Pay federal estimated taxes each quarter if you will owe enough",
+      "status": "conditional",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/estimated-payments/2026/01/",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "oregon-income-tax",
+      "title": "Pay Oregon personal income tax on business earnings",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "federal-trademark-check",
+      "title": "Check the federal trademark database for Fernline Studio",
+      "status": "optional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "domain-name",
+      "title": "Register a website domain name for the studio",
+      "status": "optional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "portland-revenue-tax-account",
+      "title": "Register for a Portland Revenue Division tax account",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.portland.gov/revenue/register-tax-account",
+          "confirms": false
+        },
+        {
+          "url": "https://multco.us/info/multnomah-county-business-income-tax-mcbit",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "multnomah-county-bit-filing",
+      "title": "File and pay Multnomah County Business Income Tax",
+      "status": "verified",
+      "level": "county",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": "at the same time they file their federal and state income tax returns",
+      "links": [
+        {
+          "url": "https://multco.us/info/multnomah-county-business-income-tax-mcbit",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "portland-business-license-tax-filing",
+      "title": "File and pay Portland Business License Tax",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.portland.gov/revenue/register-tax-account",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "portland-type-a-home-rules",
+      "title": "Follow Portland Type A home occupation rules - no permit needed",
+      "status": "verified",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.portland.gov/ppd/documents/home-occupation-permit-application/download",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "portland-type-b-home-permit",
+      "title": "Get Portland Type B home permit if helper or customers come to home",
+      "status": "conditional",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": 22300,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.portland.gov/ppd/documents/home-occupation-permit-application/download",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "multnomah-personal-property",
+      "title": "File Multnomah County business personal property return if required",
+      "status": "conditional",
+      "level": "county",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "or-no-sales-tax",
+      "title": "No Oregon state sales tax on freelance graphic design services",
+      "status": "verified",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/oregon/",
+          "confirms": true
+        }
+      ]
+    }
+  ],
+  "openQuestions": [
+    {
+      "question": "Our search for official pages about tax returns and renewals after opening in Oregon didn’t finish. Re-check later, or ask.",
+      "answer": "Our pages did not cover renewals and later returns, so this cannot be settled now. The city revenue office and state filing guides would settle it."
+    },
+    {
+      "question": "What is the current form, fee, and renewal period to register Fernline Studio as an Oregon Assumed Business Name?",
+      "answer": "The pages provided do not show the current filing details for an assumed name. The Secretary of State business name office would settle it."
+    },
+    {
+      "question": "Does this sole proprietorship need a separate Oregon state tax account, or does it report earnings on the owner's personal tax return?",
+      "answer": "As a sole proprietor with no hiring plans, you generally report business earnings on your own personal state return. You do not need a separate state business income tax account for that income."
+    },
+    {
+      "question": "What are the current minimum income limits and filing rules for Portland and Multnomah County business taxes for a sole proprietor making under $25,000?",
+      "answer": "The pages confirm registration and a tax on doing business but do not state current low income filing limits. Ask the Revenue Division whether earnings at your level must file and pay."
+    },
+    {
+      "question": "Does a home graphic design studio with only online clients need any other city or county license beyond the tax account?",
+      "answer": "Nothing in the pages shows another city or county license for online design work from home. The tax account registration appears to be the city business license step for you."
+    },
+    {
+      "question": "What is the current filing limit for business personal property in Multnomah County for home office computers and furniture?",
+      "answer": "None of the pages state the county rule for home office items like computers and furniture. The county property assessment office would settle whether you must list them."
+    },
+    {
+      "question": "What is the current Type B home occupation fee, wait time, and inspection rule if a helper or customer later comes to the home?",
+      "answer": "You now work alone online with no visitors, so no home occupation permit is shown as needed. If a helper or customer later comes to the home, check with city permitting first."
+    }
+  ],
+  "coverage": [
+    {
+      "category": "formation",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "formation",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "tax",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "tax",
+      "level": "state",
+      "state": "search_failed",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "state",
+      "state": "not_searched",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "county",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "city",
+      "state": "read_unconfirmed",
+      "pagesRead": 1
+    },
+    {
+      "category": "zoning",
+      "level": "city",
+      "state": "confirmed",
+      "pagesRead": 2
+    }
+  ],
+  "conflicts": [
+    {
+      "about": "How many customers can come to a Portland home under a home occupation permit",
+      "explanation": "One city page says Type B allows up to 15 customers or clients per day, while another city page says you may get a home occupation permit if up to eight customers per day come to your home. It is unclear which daily limit applies to you if you later have home visits.",
+      "sourceIds": [
+        "city-home-1",
+        "city-home-2"
+      ]
+    }
+  ]
+}

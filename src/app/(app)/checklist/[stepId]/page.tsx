@@ -17,7 +17,7 @@ import { StructureDecision } from "@/components/plan/structure-decision";
 import { PracticeBanner } from "@/components/practice-banner";
 import { StatusChip } from "@/components/requirements/sources";
 import { RequirementStatusChip } from "@/components/requirements/requirement-status";
-import { WrittenInquiry } from "@/components/requirements/written-inquiry";
+import { OfficeContact } from "@/components/requirements/office-contact";
 import { ACTION_ITEM, PAGE_TITLE, PRIMARY_LINK, SECONDARY, SECONDARY_LINK, TEXT_LINK } from "@/components/styles";
 import { ActionKicker, Chip, Fact, Fold, Note, ResourceLink } from "@/components/ui";
 import { OFFICIAL_FORMS } from "@/data/official-forms";
@@ -31,10 +31,9 @@ import { agreementName, agreementStepKey, agreementStructure } from "@/lib/docum
 import { formatFee } from "@/lib/documents/startup-plan";
 import { ACCEPTED_TYPES } from "@/lib/documents/upload";
 import { LEVEL_LABELS, TOPIC_LABELS } from "@/lib/labels";
-import type { BusinessProfile } from "@/lib/domain";
-import { jurisdictionName, type Place, placeGap, placeOf, STRUCTURE_NAMES, structureOf } from "@/lib/research/applicability";
+import { jurisdictionName, placeGap, placeOf, STRUCTURE_NAMES, structureOf } from "@/lib/research/applicability";
 import type { Contacts } from "@/lib/research/contacts";
-import { writtenInquiry } from "@/lib/research/inquiry";
+import type { SearchTrail } from "@/lib/research/follow-up";
 import { officeLink, orderLinks } from "@/lib/research/office";
 import { explainTerms, termsIn } from "@/lib/plain-words";
 import { type FilingStep, filingPaths, filingSteps } from "@/lib/rules/filing";
@@ -400,21 +399,21 @@ async function StepDetail({ params }: { params: Params }) {
             </>
           ) : (
             <>
-              {kind === "contact" && profile && place ? <AskOffice step={step} profile={profile} place={place} link={ownLink} /> : null}
+              {kind === "contact" ? <AskOffice step={step} link={ownLink} /> : null}
               {reason ? (
                 <Note icon="lightbulb">
                   <p className="font-semibold">Why you need this</p>
                   <p>{reason}</p>
                 </Note>
               ) : null}
-              {unconfirmed && readiness && profile && place ? (
-                <ConfirmFirst readiness={readiness} step={step} office={office} link={ownLink} contacts={step.contacts ?? null} profile={profile} place={place} />
+              {unconfirmed && readiness ? (
+                <ConfirmFirst readiness={readiness} office={office} link={ownLink} contacts={step.contacts ?? null} />
               ) : null}
               <h2 id="part-heading" className={STATE_TITLE}>
                 {choosesStructure(step)
                   ? "Choose how your business is owned"
                   : kind === "contact"
-                    ? "Send your question, then record it here"
+                    ? "Once they’ve told you, record it here"
                     : kind === "training"
                       ? "Complete it, then record it here"
                       : kind === "compliance"
@@ -748,63 +747,131 @@ function PrerequisiteState({ done, office }: { done: boolean; office: boolean })
   );
 }
 
-// A rule even the deeper look couldn't settle: what SnapStart found, then one message to the office that can say for sure
-function AskOffice({ step, profile, place, link }: { step: PlanStep; profile: BusinessProfile; place: Place; link: { title: string; url: string } | null }) {
+// A rule even the deeper look couldn't settle: what it's for, what decides it, what SnapStart found and where it looked,
+// and who can say for sure
+function AskOffice({ step, link }: { step: PlanStep; link: { title: string; url: string } | null }) {
   const office = step.whoToCall || step.agency;
-  const notes = step.notes ?? [];
+  const notes = step.notes?.length ? step.notes : [{ title: step.title, background: "" }];
+  const again = notes.some((note) => (note.trail?.rounds ?? 1) > 1);
   return (
     <section aria-labelledby="ask-heading" className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6">
-      <h2 id="ask-heading" className={STATE_TITLE}>
-        What SnapStart found
-      </h2>
-      {notes.length ? (
-        <ul className="flex flex-col gap-3">
-          {notes.map((note) => (
-            <li key={note.title} className="flex flex-col gap-1">
-              <p className="font-semibold">{note.title}</p>
-              <p className="text-rule">{note.background}</p>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      <p className="text-rule">
-        SnapStart searched {office ? `${office}’s` : "the office’s"} official site, its code and its forms, and couldn’t say for sure how this works for your business. They can tell you in writing.
-      </p>
-      <WrittenInquiry
-        inquiry={writtenInquiry({ title: step.title, questions: step.whatToAsk, profile, place })}
-        office={office}
-        link={link}
-        contacts={step.contacts}
-      />
+      <div className="flex flex-col gap-1">
+        <h2 id="ask-heading" className={STATE_TITLE}>
+          Confirm {notes.length > 1 ? "these" : "this"} with {office || "the office"}
+        </h2>
+        <p className="text-rule">
+          SnapStart read {office ? `${office}’s` : "the office’s"} official site, its code and its forms{again ? ", then searched again for who needs it," : ""} but
+          none of them settle how this works for a business like yours. {office ? office.replace(/^./, (first) => first.toUpperCase()) : "The office"} can tell you for sure.
+        </p>
+      </div>
+      <ul className="flex flex-col gap-5">
+        {notes.map((note) => (
+          <li key={note.title} className="flex flex-col gap-1.5">
+            {notes.length > 1 ? <h3 className="font-bold">{note.title}</h3> : null}
+            {(note.why ?? (notes.length === 1 ? step.why : "")) ? (
+              <p className="text-rule">
+                <b className="font-semibold text-ink">What it’s for:</b> {note.why ?? step.why}
+              </p>
+            ) : null}
+            {note.background ? (
+              <p className="text-rule">
+                <b className="font-semibold text-ink">What decides it:</b> {note.background}
+              </p>
+            ) : null}
+            {note.trail ? <SearchTrailDetails trail={note.trail} /> : null}
+          </li>
+        ))}
+      </ul>
+      <div className="flex flex-col gap-2">
+        <h3 className="font-bold">Who can tell you</h3>
+        <OfficeContact office={office} contacts={step.contacts ?? null} link={link} />
+      </div>
     </section>
   );
 }
 
-// A filing with nothing to finish first, whose form or way to submit no official page confirmed
-function ConfirmFirst({
-  readiness,
-  step,
-  office,
-  link,
-  contacts,
-  profile,
-  place,
-}: {
-  readiness: Readiness;
-  step: PlanStep;
-  office: string;
-  link: { title: string; url: string } | null;
-  contacts: Contacts | null;
-  profile: BusinessProfile;
-  place: Place;
-}) {
+// Where the deeper look searched for one rule, what it read, and what it could and couldn't find
+function SearchTrailDetails({ trail }: { trail: SearchTrail }) {
+  return (
+    <div className="flex flex-col gap-2 text-[15px]">
+      {trail.worthChecking ? (
+        <p className="text-rule">
+          <b className="font-semibold text-ink">Why it’s worth checking:</b> {trail.worthChecking}
+        </p>
+      ) : null}
+      {trail.officialQuote ? (
+        <p className="text-rule">
+          <b className="font-semibold text-ink">What the official page says:</b> “{trail.officialQuote}”
+        </p>
+      ) : null}
+      {trail.missing ? (
+        <p className="text-rule">
+          <b className="font-semibold text-ink">What SnapStart couldn’t confirm:</b> {trail.missing}
+        </p>
+      ) : null}
+      {trail.found ? (
+        <p className="text-rule">
+          <b className="font-semibold text-ink">What the official pages do say:</b> {trail.found}
+        </p>
+      ) : null}
+      {trail.leaning === "not_needed" ? (
+        <p className="text-rule">
+          <b className="font-semibold text-ink">SnapStart’s best read:</b> probably not needed for a business like yours, but no official page says so yet.
+        </p>
+      ) : null}
+      {trail.quoteSetAside ? (
+        <p className="text-muted">One answer rested on words SnapStart couldn’t match on the official page or couldn’t fully check, so it wasn’t used.</p>
+      ) : null}
+      <Fold title="Where SnapStart looked" summary={trail.searched.length ? `${trail.searched.length} searches, ${trail.read.length} official ${trail.read.length === 1 ? "page" : "pages"} read` : "No search this time"} icon="search">
+        <div className="flex flex-col gap-3 px-[18px] pb-4">
+          {trail.searched.length ? (
+            <ul className="flex list-disc flex-col gap-1 pl-5 text-[15px] text-rule marker:text-faint">
+              {trail.searched.map((search, index) => (
+                <li key={index}>
+                  {search.where}’s official sites, for {search.what}:{" "}
+                  {search.failed
+                    ? "the search didn’t finish, so this isn’t a sign nothing applies"
+                    : search.pages
+                      ? `${search.pages} official ${search.pages === 1 ? "page" : "pages"} found`
+                      : "no official page found"}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted">SnapStart couldn’t search official sites this time.</p>
+          )}
+          {trail.read.length ? (
+            <div className="flex flex-col gap-1">
+              <p className="font-semibold">Pages read</p>
+              {trail.read.map((page) => (
+                <ResourceLink key={page.url} href={page.url} className="w-fit">
+                  {page.title}
+                </ResourceLink>
+              ))}
+            </div>
+          ) : null}
+          {trail.unread.length ? (
+            <div className="flex flex-col gap-1">
+              <p className="font-semibold">Found but couldn’t be read</p>
+              {trail.unread.map((page) => (
+                <p key={page.url} className="text-muted">
+                  <a href={page.url} target="_blank" rel="noopener noreferrer" className={TEXT_LINK}>
+                    {page.title}
+                  </a>
+                  : {page.reason}
+                </p>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </Fold>
+    </div>
+  );
+}
+
+// A filing with nothing to finish first, whose form, way to submit or fee no official page confirmed
+function ConfirmFirst({ readiness, office, link, contacts }: { readiness: Readiness; office: string; link: { title: string; url: string } | null; contacts: Contacts | null }) {
   const unknown = [...readiness.missing.map((gap) => GAP_WORDS[gap]), ...(readiness.feeKnown ? [] : ["the fee"])];
-  const questions = [
-    ...(readiness.missing.includes("application") ? ["Which form or application do I use, and where do I get it?"] : []),
-    ...(readiness.missing.includes("route") ? ["How do I submit it: online, by mail or in person?"] : []),
-    ...(readiness.feeKnown ? [] : ["What is the fee, and how can I pay it?"]),
-    ...step.whatToAsk,
-  ];
   const name = office || "the office";
   return (
     <section aria-labelledby="confirm-heading" className="flex flex-col gap-3 rounded-xl border border-check-ring bg-check-tint p-4 text-check">
@@ -813,18 +880,9 @@ function ConfirmFirst({
         {NEEDS_CONFIRMATION}
       </h3>
       <p>
-        Nothing has to come first, but no official page SnapStart read confirms {LIST.format(unknown)}. Check with {name} before you file.
+        Nothing has to come first, but the official pages SnapStart read don’t give {LIST.format(unknown)}. {name.replace(/^./, (first) => first.toUpperCase())} can tell you before you file.
       </p>
-      {link ? (
-        <ResourceLink href={link.url} className="w-fit">
-          {link.title}
-        </ResourceLink>
-      ) : (
-        <p>SnapStart hasn’t verified an official page for {name} yet, so there’s no link here.</p>
-      )}
-      <Fold title={`Ask ${name} in writing`} summary="A message ready to send" icon="mail">
-        <WrittenInquiry inquiry={writtenInquiry({ title: step.title, questions, profile, place })} office={office} link={link} contacts={contacts} />
-      </Fold>
+      <OfficeContact office={office} contacts={contacts} link={link} />
     </section>
   );
 }

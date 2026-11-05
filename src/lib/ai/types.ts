@@ -33,6 +33,8 @@ export interface CompletionRequest {
   cacheKey?: string;
   // Ask the provider to keep that prefix for a day, for calls that start with long public text
   retainCache?: boolean;
+  // Cancels the call, such as the slower of two hedged requests; never retried
+  signal?: AbortSignal;
 }
 
 export interface TokenUsage {
@@ -92,17 +94,23 @@ export interface ModelProvider {
   webSearch?(request: WebSearchRequest): Promise<WebSearchResult>;
 }
 
+// AbortSignal.timeout rejects with a DOMException named "TimeoutError"
+export const isTimeoutError = (error: unknown) => error instanceof Error && error.name === "TimeoutError";
+
 export class AIProviderError extends Error {
   readonly status: number | null;
   readonly retryable: boolean;
   // How long the provider asked us to wait, from its Retry-After header
   readonly retryAfterMs: number | null;
+  // The call ran out of its time limit, as opposed to failing
+  readonly timedOut: boolean;
 
-  constructor(message: string, status: number | null, retryable: boolean, retryAfterMs: number | null = null) {
+  constructor(message: string, status: number | null, retryable: boolean, retryAfterMs: number | null = null, timedOut = false) {
     super(message);
     this.name = "AIProviderError";
     this.status = status;
     this.retryable = retryable;
     this.retryAfterMs = retryAfterMs;
+    this.timedOut = timedOut;
   }
 }

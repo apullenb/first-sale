@@ -1,0 +1,278 @@
+{
+  "case": "austin-tx-bakery",
+  "items": [
+    {
+      "key_id": "assumed-name-certificate",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "travis-county-dba"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Travis County Clerk DBA; evidence quotes the $23.00 fee but feeUsd is null, and no official quote check ran."
+    },
+    {
+      "key_id": "cottage-food-food-handler-training",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "texas-food-handler-training"
+      ],
+      "app_status": "verified",
+      "grade": "found",
+      "note": "Verified with the DSHS quote matching the key word for word."
+    },
+    {
+      "key_id": "cottage-food-packaging-labeling",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "texas-cottage-labeling"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Packaging and labeling step from the DSHS page; label contents not quoted."
+    },
+    {
+      "key_id": "cottage-food-sales-limit",
+      "key_verdict": "required",
+      "before_first_sale": false,
+      "app_keys": [
+        "texas-allowed-foods-limit"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "States the current $150,000 cap (not the outdated $50,000) and the banned-food list."
+    },
+    {
+      "key_id": "dshs-cottage-food-registration",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [
+        "texas-cottage-id-registration"
+      ],
+      "app_status": "optional",
+      "grade": "correctly_omitted",
+      "note": "Shown as 'Your choice' to put a DSHS ID on labels instead of the home address, as the key describes."
+    },
+    {
+      "key_id": "texas-food-establishment-permit",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": "",
+      "grade": "correctly_omitted",
+      "note": "No food permit step; texas-cottage-food-status states the cottage food exemption from the Texas Food Establishment Rules."
+    },
+    {
+      "key_id": "local-health-permit",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": "",
+      "grade": "correctly_omitted",
+      "note": "No local health permit step; an open-question answer says cities and counties can't require one."
+    },
+    {
+      "key_id": "austin-farmers-market-permit",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": "",
+      "grade": "correctly_omitted",
+      "note": "No APH farmers market permit listed; the no-open-samples caveat isn't mentioned either."
+    },
+    {
+      "key_id": "austin-home-occupation-permit",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [
+        "austin-home-business-rules"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "correctly_omitted",
+      "note": "No permit or rezoning step; the app's 'follow compatibility rules' step quotes that Austin can't require permits for no-impact home businesses, matching the key's caveat."
+    },
+    {
+      "key_id": "texas-general-business-license",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": "",
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "texas-sales-tax-permit",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [
+        "texas-sales-tax-permit",
+        "texas-sales-tax-returns"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "unneeded_step",
+      "note": "Plan says the permit is required before selling and adds verified ongoing returns, though only nontaxable bakery items are sold (Tax Code 151.008)."
+    },
+    {
+      "key_id": "sales-tax-on-baked-goods",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [
+        "texas-bakery-tax-handling"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "correctly_omitted",
+      "note": "App doesn't tell the owner to collect tax; its step says plain bakery items are not taxable unless heated or sold with utensils, matching the key."
+    },
+    {
+      "key_id": "texas-franchise-tax",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": "",
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "texas-state-income-tax",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": "",
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "business-personal-property-rendition",
+      "key_verdict": "required_later",
+      "before_first_sale": false,
+      "app_keys": [
+        "travis-personal-property-rendition"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Covered, but framed as reporting taxable equipment every year with no quote; the key says a one-time certification at or under the $125,000 exemption."
+    },
+    {
+      "key_id": "fda-food-facility-registration",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": "",
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "fda-nutrition-facts",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": "",
+      "grade": "correctly_omitted",
+      "note": "No Nutrition Facts step; the only federal labeling item is conditional on shipping out of state, which this owner doesn't plan."
+    },
+    {
+      "key_id": "irs-ein",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [
+        "federal-ein"
+      ],
+      "app_status": "optional",
+      "grade": "correctly_omitted",
+      "note": "Shown as 'Your choice'; says the SSN can be used with no employees."
+    },
+    {
+      "key_id": "fincen-boi-report",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": "",
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "irs-self-employment-tax",
+      "key_verdict": "required_later",
+      "before_first_sale": false,
+      "app_keys": [
+        "federal-self-employment-tax"
+      ],
+      "app_status": "verified",
+      "grade": "found",
+      "note": "Verified with the IRS $400 net earnings line; Schedule C income tax is implied rather than named."
+    },
+    {
+      "key_id": "irs-estimated-tax",
+      "key_verdict": "conditional",
+      "before_first_sale": false,
+      "app_keys": [
+        "federal-estimated-taxes"
+      ],
+      "app_status": "verified",
+      "grade": "found",
+      "note": "Condition can't be ruled out from the profile; app's title and quote use the same $1,000 condition, though status is verified rather than conditional."
+    }
+  ],
+  "unconfirmed": [],
+  "extras": [
+    {
+      "app_key": "business-structure",
+      "title": "Choose to operate as a sole proprietorship",
+      "status": "unlikely",
+      "grade": "reasonable",
+      "note": "Accurate sole proprietorship quote; odd that the owner's own choice shows as a 'likely doesn't apply' note."
+    },
+    {
+      "app_key": "texas-cottage-food-status",
+      "title": "Operate as a Texas cottage-food bakery",
+      "status": "verified",
+      "grade": "reasonable",
+      "note": "Correct framing step: the exemption from food establishment rules matches the key."
+    },
+    {
+      "app_key": "federal-food-safety-labeling",
+      "title": "Follow federal food safety and labeling rules if you sell across state lines",
+      "status": "conditional",
+      "grade": "reasonable",
+      "note": "Asks about out-of-state shipping, which the profile doesn't include; harmless, though truthful-labeling rules aren't really limited to interstate sales."
+    },
+    {
+      "app_key": "texas-hiring-registration",
+      "title": "Register for Texas employer taxes if you hire",
+      "status": "conditional",
+      "grade": "reasonable",
+      "note": "Held until the owner hires; no quote."
+    },
+    {
+      "app_key": "austin-sign-permit",
+      "title": "Get an Austin sign permit if you put up an outdoor business sign",
+      "status": "conditional",
+      "grade": "reasonable",
+      "note": "Conditional on an outdoor sign; the app also flags the city pages' conflict on home-business signage."
+    }
+  ],
+  "confirm_steps": [],
+  "fees": [],
+  "verified_wrong": [
+    "texas-sales-tax-returns"
+  ],
+  "not_needed_wrong": [],
+  "summary": {
+    "items": {
+      "found": 7,
+      "correctly_omitted": 13,
+      "unneeded_step": 1
+    },
+    "extras": {
+      "reasonable": 5
+    },
+    "confirm_steps": {},
+    "fees": {},
+    "verified_wrong": 1,
+    "not_needed_wrong": 0,
+    "notes": "No unconfirmed key items. No to_find_out or not_needed items. No app item has feeUsd or deadline set (the $23 DBA fee appears only in evidence). texas-sales-tax-returns is verified and its quote is accurate, but it follows from a permit the key says isn't needed."
+  }
+}

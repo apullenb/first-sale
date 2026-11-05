@@ -1,0 +1,233 @@
+{
+  "ranAt": "2026-11-05T06:22:26.113Z",
+  "samples": [
+    {
+      "id": "1-ssn-letter",
+      "title": "Tax letter with a made-up Social Security number",
+      "fileKept": true,
+      "redactedBeforeStorage": true,
+      "storedFileBytes": "58216 bytes, sealed (starts \"SSE1\")",
+      "readBackMatchesOriginal": false,
+      "removed": {
+        "ssn": 1,
+        "account": 1,
+        "routing": 1
+      },
+      "fileRedacted": true,
+      "fileRemoved": false,
+      "storedFileTextLayer": "",
+      "lines": [
+        {
+          "line": "SAMPLE NOTICE - NOT A REAL DOCUMENT. EVERY NUMBER IS MADE UP.",
+          "value": "SAMPLE NOTICE - NOT A REAL DOCUMENT. EVERY NUMBER IS MADE UP.",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Heading"
+        },
+        {
+          "line": "Notice of taxpayer account",
+          "value": "Notice of taxpayer account",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Heading"
+        },
+        {
+          "line": "Taxpayer: Jordan Example, Rise & Crumb",
+          "value": "Jordan Example, Rise & Crumb",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Names are needed to match the document to the business"
+        },
+        {
+          "line": "Address: 1200 Barton Springs Rd, Austin, TX 78704-1234",
+          "value": "78704-1234",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "ZIP+4 is five digits, then four"
+        },
+        {
+          "line": "Date of this notice: 11/04/2026",
+          "value": "11/04/2026",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "A date"
+        },
+        {
+          "line": "Social Security number: 123-45-6789",
+          "value": "123-45-6789",
+          "expected": "ssn",
+          "actual": "ssn",
+          "why": "Formatted 3-2-4 in the SSA's issued ranges"
+        },
+        {
+          "line": "Phone: (512) 555-0143",
+          "value": "(512) 555-0143",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Phone numbers are 3-3-4"
+        },
+        {
+          "line": "Amount due: $0.00 by 12/01/2026",
+          "value": "$0.00 by 12/01/2026",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Money and dates"
+        },
+        {
+          "line": "Refund bank routing number: 021000021",
+          "value": "021000021",
+          "expected": "routing",
+          "actual": "routing",
+          "why": "Labeled, and passes the ABA checksum"
+        },
+        {
+          "line": "Account number: 000123456789",
+          "value": "000123456789",
+          "expected": "account",
+          "actual": "account",
+          "why": "Labeled bank account number"
+        },
+        {
+          "line": "Keep this notice for your records.",
+          "value": "Keep this notice for your records.",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Heading"
+        }
+      ]
+    },
+    {
+      "id": "2-lookalikes",
+      "title": "Vendor application full of numbers that only look sensitive",
+      "fileKept": true,
+      "redactedBeforeStorage": false,
+      "storedFileBytes": "1713 bytes, sealed (starts \"SSE1\")",
+      "readBackMatchesOriginal": true,
+      "removed": {},
+      "fileRedacted": false,
+      "fileRemoved": false,
+      "storedFileTextLayer": "SAMPLE FORM - NOT A REAL DOCUMENT. EVERY NUMBER IS MADE UP.\nCity vendor permit application\nBusiness phone: 512-555-0123\nMailing ZIP code: 78704-1234\nPermit number: 2026-001234\nOrder number: 123456789\nInvoice 021000021\nGift card reference: 4111 1111 1111 1112\nTracking number: 9400 1000 0000 0000 0000 00\nSocial Security number: ___-__-____\nExample only: 000-00-0000\nCase 07-1234567\nZoning: City Code section 25-2-901\nTexas taxpayer number: 32012345678\nApplication fee: $25.00, due 2026-12-01\nBooth size: 10 x 10 feet, 2 tables, 120 volt outlet\nSign and date below.",
+      "lines": [
+        {
+          "line": "SAMPLE FORM - NOT A REAL DOCUMENT. EVERY NUMBER IS MADE UP.",
+          "value": "SAMPLE FORM - NOT A REAL DOCUMENT. EVERY NUMBER IS MADE UP.",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Heading"
+        },
+        {
+          "line": "City vendor permit application",
+          "value": "City vendor permit application",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Heading"
+        },
+        {
+          "line": "Business phone: 512-555-0123",
+          "value": "512-555-0123",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Phone, 3-3-4"
+        },
+        {
+          "line": "Mailing ZIP code: 78704-1234",
+          "value": "78704-1234",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "ZIP+4, 5-4"
+        },
+        {
+          "line": "Permit number: 2026-001234",
+          "value": "2026-001234",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Year and serial, 4-6"
+        },
+        {
+          "line": "Order number: 123456789",
+          "value": "123456789",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Nine digits, but no SSN or tax ID label"
+        },
+        {
+          "line": "Invoice 021000021",
+          "value": "021000021",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Passes the ABA checksum, but isn't labeled as a routing number"
+        },
+        {
+          "line": "Gift card reference: 4111 1111 1111 1112",
+          "value": "4111 1111 1111 1112",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Card-shaped, but fails the Luhn check"
+        },
+        {
+          "line": "Tracking number: 9400 1000 0000 0000 0000 00",
+          "value": "9400 1000 0000 0000 0000 00",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "22 digits, longer than any card"
+        },
+        {
+          "line": "Social Security number: ___-__-____",
+          "value": "___-__-____",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "A blank to fill in"
+        },
+        {
+          "line": "Example only: 000-00-0000",
+          "value": "000-00-0000",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "The SSA never issues area 000"
+        },
+        {
+          "line": "Case 07-1234567",
+          "value": "07-1234567",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "EIN-shaped, but the IRS never assigns prefix 07"
+        },
+        {
+          "line": "Zoning: City Code section 25-2-901",
+          "value": "25-2-901",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "A code section"
+        },
+        {
+          "line": "Texas taxpayer number: 32012345678",
+          "value": "32012345678",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Eleven digits: not an SSN or EIN"
+        },
+        {
+          "line": "Application fee: $25.00, due 2026-12-01",
+          "value": "$25.00, due 2026-12-01",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Money and an ISO date"
+        },
+        {
+          "line": "Booth size: 10 x 10 feet, 2 tables, 120 volt outlet",
+          "value": "10 x 10 feet, 2 tables, 120 volt",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Measurements"
+        },
+        {
+          "line": "Sign and date below.",
+          "value": "Sign and date below.",
+          "expected": "kept",
+          "actual": "kept",
+          "why": "Heading"
+        }
+      ]
+    }
+  ]
+}

@@ -7,6 +7,8 @@ import type { VerifiedRequirement } from "./verify";
 
 export const CLAIMS_SCHEMA_NAME = "requirement_claims";
 
+const CLAIMS_PER_CALL = 6;
+
 export const claimsReplySchema = z.object({
   unsupported: z.array(z.object({ key: z.string().max(80), reason: z.string().max(300) })).max(20),
 });
@@ -22,43 +24,58 @@ List only the unsupported claims, each with its key and one plain sentence sayin
 registerMockFixture(CLAIMS_SCHEMA_NAME, () => JSON.stringify({ unsupported: [] }));
 
 // Sourced requirements the quotes don't back become "to confirm", without a fee or deadline that rested on the quote.
-// The check never blocks results: if it fails, the code checks stand on their own.
+// The check never blocks results, but each sourced requirement records whether it ran (claimsChecked), so a quote
+// it never read isn't shown as fully checked.
 export async function checkClaims(
   model: ModelProvider,
   requirements: readonly VerifiedRequirement[],
   options: { userKey?: string; timeoutMs?: number } = {},
 ): Promise<{ requirements: VerifiedRequirement[]; checked: boolean }> {
   const sourced = requirements.filter((requirement) => requirement.verification === "sourced" && requirement.evidence);
-  if (!sourced.length) return { requirements: [...requirements], checked: true };
+  if (!sourced.length) return { requirements: skippedClaims(requirements), checked: true };
 
-  let reasons: Map<string, string>;
-  try {
-    const reply = await generateObject(model, {
-      name: CLAIMS_SCHEMA_NAME,
-      schema: claimsReplySchema,
-      effort: "low",
-      maxOutputTokens: 4_000,
-      timeoutMs: options.timeoutMs ?? 30_000,
-      userKey: options.userKey,
-      messages: [
-        { role: "system", content: SYSTEM },
-        { role: "user", content: claimsMessage(sourced) },
-      ],
-    });
-    reasons = new Map(reply.unsupported.map((each) => [each.key, each.reason.trim()]));
-  } catch (error) {
-    console.error("Claims check skipped:", error instanceof Error ? error.name : "unknown error");
-    return { requirements: [...requirements], checked: false };
-  }
+  // A few claims a call, all at once: a busy service answers small calls sooner, and one slow call leaves only its own
+  // claims unread
+  const batches = Array.from({ length: Math.ceil(sourced.length / CLAIMS_PER_CALL) }, (_, index) => sourced.slice(index * CLAIMS_PER_CALL, (index + 1) * CLAIMS_PER_CALL));
+  const replies = await Promise.allSettled(
+    batches.map((batch) =>
+      generateObject(model, {
+        name: CLAIMS_SCHEMA_NAME,
+        schema: claimsReplySchema,
+        effort: "low",
+        maxOutputTokens: 4_000,
+        timeoutMs: options.timeoutMs ?? 30_000,
+        userKey: options.userKey,
+        messages: [
+          { role: "system", content: SYSTEM },
+          { role: "user", content: claimsMessage(batch) },
+        ],
+      }),
+    ),
+  );
+  const reasons = new Map<string, string>();
+  const unread = new Set<string>();
+  replies.forEach((reply, index) => {
+    if (reply.status === "fulfilled") {
+      for (const each of reply.value.unsupported) reasons.set(each.key, each.reason.trim());
+    } else {
+      console.error("Claims check skipped:", reply.reason instanceof Error ? reply.reason.name : "unknown error");
+      for (const each of batches[index]) unread.add(each.key);
+    }
+  });
+  if (unread.size === sourced.length) return { requirements: skippedClaims(requirements), checked: false };
 
   return {
-    checked: true,
+    checked: unread.size === 0,
     requirements: requirements.map((requirement) => {
-      const reason = requirement.verification === "sourced" ? reasons.get(requirement.key) : undefined;
-      if (reason === undefined) return requirement;
+      if (requirement.verification !== "sourced") return requirement;
+      if (unread.has(requirement.key)) return { ...requirement, claimsChecked: false };
+      const reason = reasons.get(requirement.key);
+      if (reason === undefined) return { ...requirement, claimsChecked: Boolean(requirement.evidence) };
       return {
         ...requirement,
         verification: "needs_verification",
+        claimsChecked: true,
         problems: [...requirement.problems, `The quote doesn’t show this requirement${reason ? `: ${reason}` : ""}`],
         confirmedBy: [],
         feeUsd: null,
@@ -68,6 +85,11 @@ export async function checkClaims(
       };
     }),
   };
+}
+
+// When there's no time for the check: quotes found on the page stay, marked as not read by it
+export function skippedClaims(requirements: readonly VerifiedRequirement[]): VerifiedRequirement[] {
+  return requirements.map((requirement) => (requirement.verification === "sourced" ? { ...requirement, claimsChecked: false } : requirement));
 }
 
 function claimsMessage(requirements: readonly VerifiedRequirement[]): string {

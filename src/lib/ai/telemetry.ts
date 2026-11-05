@@ -17,7 +17,9 @@ export type AIEvent =
   // A temporary provider failure about to be tried again
   | { type: "retry"; status: number | null; waitMs: number }
   // One web search request; Meta bills each query on top of tokens
-  | { type: "search"; ms: number; queries: number; usage: TokenUsage | null };
+  | { type: "search"; ms: number; queries: number; usage: TokenUsage | null }
+  // A slow call got a backup at a lower effort (generateObjectInTime)
+  | { type: "fallback"; name: string; effort: string; timeoutMs: number };
 
 type Listener = (event: AIEvent) => void;
 

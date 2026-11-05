@@ -1,0 +1,333 @@
+{
+  "case": "miami-fl-cleaning",
+  "checked": "2026-11-04",
+  "requirements": [
+    {
+      "id": "fl-fictitious-name-registration",
+      "title": "Register the fictitious name (Bright Nest Cleaning) with Sunbiz",
+      "level": "state",
+      "agency": "Florida Department of State, Division of Corporations",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.flsenate.gov/Laws/Statutes/2026/865.09",
+      "domain_is_gov": true,
+      "quote": "A person may not engage in business under a fictitious name unless the person first registers the name with the division by filing a registration listing:",
+      "notes": "A fictitious name is any name other than the owner's legal name, so the trade name must be registered first; Sunbiz lists a $50 online registration fee (efile.sunbiz.org/ficinfo.html), valid 5 years."
+    },
+    {
+      "id": "fl-fictitious-name-newspaper-ad",
+      "title": "Advertise the fictitious name once in a Miami-Dade County newspaper",
+      "level": "state",
+      "agency": "Florida Department of State, Division of Corporations",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://efile.sunbiz.org/ficinfo.html",
+      "domain_is_gov": false,
+      "quote": "The name to be registered must be advertised at least once in a newspaper as defined in Chapter 50, Florida Statutes, in the county where the principal place of business of the applicant will be located.",
+      "notes": "No proof is filed; the applicant certifies in the signature block that the ad ran, so it must run before registering."
+    },
+    {
+      "id": "miami-home-office-accessory-use",
+      "title": "City of Miami home office accessory use certificate (instead of a Certificate of Use)",
+      "level": "city",
+      "agency": "City of Miami Planning and Zoning",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.miami.gov/Service-Directory/Apply-for-a-Certificate-of-Use-CU",
+      "domain_is_gov": true,
+      "quote": "NOTE: If you will be using a home office, you will be applying for an \"accessory of use\" rather than a certificate of use.",
+      "notes": "The City fee schedule lists a Home Office Accessory Use Certificate at $94.00, no fee for seniors 65+ (miami.gov Certificate of Use and Accessory Use fee page), and it comes before the City BTR."
+    },
+    {
+      "id": "miami-city-btr",
+      "title": "City of Miami Business Tax Receipt",
+      "level": "city",
+      "agency": "City of Miami Finance Department, Business Tax Receipt section",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.miami.gov/Business/Business-Tax-Receipt-BTR",
+      "domain_is_gov": true,
+      "quote": "Every business needs to obtain a Business Tax Receipt to operate in the City (also known as an Occupational License). Most businesses need a CU before they can get a BTR.",
+      "notes": "For a home office the accessory use approval stands in for the CU; the City fee for this classification was not published on the pages checked."
+    },
+    {
+      "id": "miami-dade-county-lbt",
+      "title": "Miami-Dade County Local Business Tax Receipt",
+      "level": "county",
+      "agency": "Miami-Dade County Tax Collector",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.miami.gov/Business/Business-Tax-Receipt-BTR",
+      "domain_is_gov": true,
+      "quote": "In addition, every business is also required to obtain a Miami-Dade County Local Business Tax Receipt (formerly known as an Occupational License).",
+      "notes": "Required on top of the City receipt for businesses inside the City of Miami; the Tax Collector's own site blocked automated access, so the county fee was not confirmed."
+    },
+    {
+      "id": "business-tax-receipt-renewal",
+      "title": "Renew City and County business tax receipts by September 30",
+      "level": "county",
+      "agency": "Miami-Dade County Tax Collector and City of Miami",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.flsenate.gov/Laws/Statutes/2026/205.053",
+      "domain_is_gov": true,
+      "quote": "All business tax receipts shall be sold by the appropriate tax collector beginning July 1 of each year, are due and payable on or before September 30 of each year, and expire on September 30 of the succeeding year.",
+      "notes": "Receipts bought in late 2026 expire September 30, 2027, so both must be renewed within the first year; late renewal draws a 10% penalty for October plus 5% a month up to 25%."
+    },
+    {
+      "id": "fl-sales-tax-registration",
+      "title": "Florida sales tax registration for residential cleaning",
+      "level": "state",
+      "agency": "Florida Department of Revenue",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.flrules.org/gateway/ruleNo.asp?id=12A-1.0091",
+      "domain_is_gov": false,
+      "quote": "Residential cleaning services are not taxable.",
+      "notes": "Rule 12A-1.0091(1)(b) covers single-family homes, apartments, condominiums and their common areas, so a residential-only cleaner has nothing to collect sales tax on."
+    },
+    {
+      "id": "fl-sales-tax-nonresidential-cleaning",
+      "title": "Florida sales tax registration if nonresidential cleaning is added",
+      "level": "state",
+      "agency": "Florida Department of Revenue",
+      "verdict": "conditional",
+      "condition": "Only if the business also cleans offices or other nonresidential building interiors.",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://floridarevenue.com/taxes/taxesfees/Pages/sales_tax.aspx",
+      "domain_is_gov": false,
+      "quote": "Providing taxable services (for example, investigative and crime protection services, interior nonresidential cleaning services, or nonresidential pest control services)",
+      "notes": "Listed by the Department of Revenue among activities that require registering to collect sales tax; not triggered by the stated residential-only business."
+    },
+    {
+      "id": "fl-state-cleaning-license",
+      "title": "State occupational license for house cleaning",
+      "level": "state",
+      "agency": "Florida Department of Business and Professional Regulation",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www2.myfloridalicense.com/services-requiring-a-dbpr-license/",
+      "domain_is_gov": false,
+      "quote": "You should also check with your county or city to learn whether or not a local business tax receipt or certificate of competency is required for services that do not require a state license.",
+      "notes": "DBPR's list of services needing a state license covers things like duct cleaning and mold remediation but not residential house cleaning; local business tax receipts are the only licensing found."
+    },
+    {
+      "id": "miami-dade-certificate-of-use",
+      "title": "Miami-Dade County Certificate of Use / county home occupation permit",
+      "level": "county",
+      "agency": "Miami-Dade County Regulatory and Economic Resources (Zoning)",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.miamidade.gov/global/economy/building/cert-of-occupancy.page",
+      "domain_is_gov": true,
+      "quote": "Prior to opening any business in unincorporated Miami-Dade County, a Certificate of Use (CU) must be applied for and obtained.",
+      "notes": "The county CU and its home occupation rules (which bar vehicle-based uses like carpet cleaning) cover unincorporated areas; a home inside City of Miami limits uses the City's zoning approval instead."
+    },
+    {
+      "id": "federal-ein",
+      "title": "Federal Employer Identification Number (EIN)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/employer-identification-number",
+      "domain_is_gov": true,
+      "quote": "You need an EIN if you: Have employees",
+      "notes": "Needed before paying the first employee; a sole proprietor with no employees can use an SSN, and the IRS issues EINs free."
+    },
+    {
+      "id": "fl-reemployment-tax-registration",
+      "title": "Florida reemployment (unemployment) tax registration",
+      "level": "state",
+      "agency": "Florida Department of Revenue",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://floridarevenue.com/taxes/taxesfees/Pages/reemployment.aspx",
+      "domain_is_gov": false,
+      "quote": "An employer is liable to pay reemployment tax if it meets any of the following conditions: At least one quarterly payroll totaling $1,500 or more (including wages for both full and part-time employees) in a calendar year.",
+      "notes": "Also liable with one or more employees in any 20 weeks of a year; register (Form DR-1 or online) by the end of the month after the quarter liability starts, then file RT-6 quarterly."
+    },
+    {
+      "id": "fl-new-hire-reporting",
+      "title": "Report new hires to the Florida New Hire Reporting Center",
+      "level": "state",
+      "agency": "Florida Department of Revenue, Child Support Program",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://floridarevenue.com/taxes/taxesfees/Pages/rt_addtl_topics.aspx",
+      "domain_is_gov": false,
+      "quote": "Federal and state laws require employers to report newly hired, re-hired and temporary employees within 20 days of an employee’s start date.",
+      "notes": "Applies to each of the planned 1-2 hires."
+    },
+    {
+      "id": "fl-workers-comp",
+      "title": "Florida workers' compensation insurance",
+      "level": "state",
+      "agency": "Florida Department of Financial Services, Division of Workers' Compensation",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.myfloridacfo.com/division/wc/employer/coverage-requirements",
+      "domain_is_gov": false,
+      "quote": "Employers with four (4) or more employees, including business owners who are corporate officers or Limited Liability Company (LLC) members, must have workers' compensation coverage.",
+      "notes": "House cleaning is non-construction and the owner plans only 1-2 employees, below the threshold of four (s. 440.02(17)(b)2); it becomes required at a fourth employee."
+    },
+    {
+      "id": "fl-e-verify",
+      "title": "Florida E-Verify requirement for private employers",
+      "level": "state",
+      "agency": "Florida Legislature (s. 448.095, F.S.)",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.flsenate.gov/Laws/Statutes/2026/448.095",
+      "domain_is_gov": true,
+      "quote": "Beginning on July 1, 2023, a private employer with 25 or more employees shall use the E-Verify system to verify a new employee’s employment eligibility",
+      "notes": "With 1-2 employees E-Verify is optional; Form I-9 is still required."
+    },
+    {
+      "id": "federal-form-i9",
+      "title": "Form I-9 employment eligibility verification",
+      "level": "federal",
+      "agency": "U.S. Citizenship and Immigration Services (per IRS hiring guidance)",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/hiring-employees",
+      "domain_is_gov": true,
+      "quote": "All U.S. employers must properly complete Form I-9 for every individual they hire for employment in the United States.",
+      "notes": "Completed for each hire; Florida law separately sets a 3-business-day verification window (s. 448.095(2)(a))."
+    },
+    {
+      "id": "federal-payroll-withholding",
+      "title": "Federal income tax withholding, Form W-4 and payroll tax deposits",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/hiring-employees",
+      "domain_is_gov": true,
+      "quote": "Ask all new employees to give you a signed Form W-4 when they start work.",
+      "notes": "Once paying wages the owner withholds income, Social Security and Medicare taxes and reports them (Form 941, W-2) under the EIN."
+    },
+    {
+      "id": "federal-futa",
+      "title": "Federal unemployment tax (FUTA, Form 940)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/taxtopics/tc759",
+      "domain_is_gov": true,
+      "quote": "You paid wages of $1,500 or more to employees in any calendar quarter during 2024 or 2025, or",
+      "notes": "Applies once wages reach $1,500 in a quarter or an employee works in 20 different weeks; most hires will cross this in the first year."
+    },
+    {
+      "id": "federal-self-employment-tax",
+      "title": "Self-employment tax (Schedule SE)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "conditional",
+      "condition": "If the owner's net earnings from self-employment are $400 or more for the year.",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employment-tax-social-security-and-medicare-taxes",
+      "domain_is_gov": true,
+      "quote": "You must pay self-employment tax and file Schedule SE (Form 1040) if either of the following applies. Your net earnings from self-employment (excluding church employee income) were $400 or more.",
+      "notes": "Reported with the owner's Form 1040 and Schedule C for the first tax year."
+    },
+    {
+      "id": "federal-estimated-tax",
+      "title": "Federal quarterly estimated tax payments (Form 1040-ES)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "conditional",
+      "condition": "If the owner expects to owe $1,000 or more in tax for the year.",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/estimated-taxes",
+      "domain_is_gov": true,
+      "quote": "Individuals, including sole proprietors, partners, and S corporation shareholders, generally have to make estimated tax payments if they expect to owe tax of $1,000 or more when their return is filed.",
+      "notes": "Florida has no state estimated payment for this business."
+    }
+  ],
+  "hard_calls": [
+    {
+      "about": "City of Miami home office approval vs Florida's home-based business law",
+      "explanation": "Fla. Stat. 559.955 says a qualifying home-based business may not be licensed differently from other businesses and is only subject to business taxes under chapter 205, yet the City still routes home offices through an accessory use certificate ($94). Whether the City approval is enforceable against a home-based cleaner is unsettled; the City's process is listed as required.",
+      "urls": [
+        "https://www.flsenate.gov/Laws/Statutes/2026/559.955",
+        "https://www.miami.gov/Service-Directory/Apply-for-a-Certificate-of-Use-CU"
+      ]
+    },
+    {
+      "about": "EIN demanded by the City of Miami BTR application",
+      "explanation": "The City's opening-a-business guide says 'You must provide the Federal Employee Identification Number (EIN) for your Business' for a BTR, while the IRS says an EIN is needed only with employees (or certain taxes), so a sole proprietor could use an SSN. In practice the owner may need a free EIN before the City BTR even before hiring.",
+      "urls": [
+        "https://miami.gov/Business-Licenses/Business-Licensing/Guide-to-Opening-a-Business-in-The-City-of-Miami",
+        "https://www.irs.gov/businesses/employer-identification-number"
+      ]
+    },
+    {
+      "about": "No official statement that house cleaning needs no state license",
+      "explanation": "No Florida page says outright that residential cleaning is unlicensed; DBPR's list of license-requiring services omits it but says the list is not all-inclusive. Treated as not required from the absence of any licensing category.",
+      "urls": [
+        "https://www2.myfloridalicense.com/services-requiring-a-dbpr-license/"
+      ]
+    },
+    {
+      "about": "Miami 21 home office limits with off-site employees",
+      "explanation": "Miami 21 Article 6 (as summarized in a 2010 City zoning interpretation) allows a home office with a maximum of two staff, one living on site; the same memo says employees who work elsewhere do not count. The current Article 6 text was not retrieved, so this rests on the 2010 interpretation.",
+      "urls": [
+        "https://archive.miami.gov/planning/docs/zoning/2010-0001.pdf"
+      ]
+    },
+    {
+      "about": "Miami-Dade County Tax Collector pages not readable",
+      "explanation": "mdctaxcollector.gov returned a Cloudflare block to automated requests, so the county LBT requirement is taken from the City of Miami's page and the county fee for a cleaning classification is unconfirmed.",
+      "urls": [
+        "https://mdctaxcollector.gov/services/local-business-tax-receipt",
+        "https://www.miami.gov/Business/Business-Tax-Receipt-BTR"
+      ]
+    },
+    {
+      "about": "Order of City and County receipts",
+      "explanation": "The City says most businesses need zoning approval before the City BTR, and both City and County receipts are required, but no page read states whether the County receipt must come before or after the City receipt for a home office.",
+      "urls": [
+        "https://www.miami.gov/Business/Business-Tax-Receipt-BTR"
+      ]
+    }
+  ]
+}

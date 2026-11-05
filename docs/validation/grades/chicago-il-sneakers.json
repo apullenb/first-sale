@@ -1,0 +1,56 @@
+{
+  "case": "chicago-il-sneakers",
+  "items": [
+    { "key_id": "cook-county-assumed-name", "key_verdict": "required", "before_first_sale": true, "app_keys": ["illinois-assumed-name", "cook-assumed-name"], "app_status": "verified", "grade": "found", "note": "County clerk filing found twice (verified state-guide item plus unsourced Cook County duplicate); $50 fee not given." },
+    { "key_id": "assumed-name-newspaper-publication", "key_verdict": "required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "missed", "note": "No mention of the 3-week newspaper notice or proof of publication; skipping it voids the registration." },
+    { "key_id": "il-sos-assumed-name", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "App sends the sole proprietor to the county clerk only." },
+    { "key_id": "il-sales-tax-registration", "key_verdict": "required", "before_first_sale": true, "app_keys": ["illinois-sales-tax-registration"], "app_status": "needs_confirmation", "grade": "found", "note": "Right step, but the quote wasn't found on the cited pages, so it fell to needs_confirmation; no REG-1/MyTax detail." },
+    { "key_id": "il-own-website-sales-tax", "key_verdict": "required", "before_first_sale": true, "app_keys": ["illinois-sales-tax-filing"], "app_status": "needs_confirmation", "grade": "found", "note": "Return filing step found; an open-question answer says own-website sales are the owner's duty, but no origin-rate detail." },
+    { "key_id": "il-marketplace-facilitator-sales", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "No step to self-collect on eBay/StockX; open-question answer says large marketplaces often collect for you." },
+    { "key_id": "chicago-city-sales-tax-account", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "No separate city sales tax registration listed." },
+    { "key_id": "chicago-home-occupation-license", "key_verdict": "required", "before_first_sale": true, "app_keys": ["chicago-business-license", "chicago-home-zoning"], "app_status": "to_find_out", "grade": "found_unresolved", "note": "Left as 'confirm with the office'; the BACP home-based business page that settles it errored and was never read; $1,000 fee absent." },
+    { "key_id": "chicago-limited-business-license", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "No storefront license step; the generic retail-license question is counted under the home occupation item." },
+    { "key_id": "cook-county-general-business-license", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "Not listed; business is inside Chicago." },
+    { "key_id": "federal-ein", "key_verdict": "not_required", "before_first_sale": false, "app_keys": ["federal-ein"], "app_status": "optional", "grade": "correctly_omitted", "note": "Shown as 'Your choice', matching the key." },
+    { "key_id": "fincen-boi-report", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "Not listed." },
+    { "key_id": "ftc-mail-order-rule", "key_verdict": "required", "before_first_sale": true, "app_keys": [], "app_status": null, "grade": "missed", "note": "No FTC Mail/Internet Order Rule step for a ship-to-buyer online seller." },
+    { "key_id": "federal-income-tax-self-employment", "key_verdict": "required_later", "before_first_sale": false, "app_keys": ["federal-self-employment-tax"], "app_status": "verified", "grade": "found", "note": "Verified with the IRS $400 quote, matching the key." },
+    { "key_id": "federal-estimated-tax", "key_verdict": "conditional", "before_first_sale": false, "app_keys": ["federal-estimated-tax"], "app_status": "conditional", "grade": "found", "note": "Condition matches the key exactly ($1,000 or more owed)." },
+    { "key_id": "uspto-trademark", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "Not listed." }
+  ],
+  "unconfirmed": ["chicago-secondhand-dealer-license"],
+  "extras": [
+    { "app_key": "choose-business-structure", "title": "Choose sole proprietorship as business structure", "status": "needs_confirmation", "grade": "reasonable", "note": "Owner decision step; fine." },
+    { "app_key": "ftc-textile-label-compliance", "title": "Keep required fiber, origin, and care labels on sneakers", "status": "conditional", "grade": "unneeded", "note": "Not in the key; labeling duty sits with manufacturers/importers, and the app's own claim check says the quote doesn't show a reseller duty." },
+    { "app_key": "illinois-income-tax", "title": "File Illinois income tax on business profits", "status": "needs_confirmation", "grade": "reasonable", "note": "Correct for an Illinois sole proprietor, but no source cited." },
+    { "app_key": "federal-hiring-obligations", "title": "Meet federal hiring requirements if you hire", "status": "conditional", "grade": "reasonable", "note": "Conditional on hiring; harmless." },
+    { "app_key": "illinois-hiring-taxes", "title": "Register for Illinois withholding and unemployment insurance if you hire", "status": "conditional", "grade": "reasonable", "note": "Conditional on hiring; quoted from an IL page." },
+    { "app_key": "chicago-business-license-renewal", "title": "Renew City of Chicago business license", "status": "needs_confirmation", "grade": "reasonable", "note": "Home occupation license does run two years, but it's shown as 'Applies to you' while the license itself is unresolved; unsourced." },
+    { "app_key": "cook-assumed-name-renewal", "title": "Renew Cook County assumed name registration", "status": "needs_confirmation", "grade": "reasonable", "note": "Assumed-name certificates expire; unsourced, no period given." },
+    { "app_key": "chicago-secondhand-rules", "title": "Meet City rules for selling secondhand sneakers", "status": "unlikely", "grade": "wrong", "note": "Matches an unconfirmed key item; the unsourced reason omits BACP's 'sporting or athletic equipment' category, the open question." }
+  ],
+  "confirm_steps": [
+    { "app_key": "chicago-business-license", "title": "Get City of Chicago business license for retail sales", "grade": "sensible", "note": "Applies (home occupation license), though BACP's home-based page settles it as required; the app couldn't read that page." },
+    { "app_key": "chicago-home-zoning", "title": "Follow Chicago home business and zoning rules", "grade": "sensible", "note": "Zoning approval is part of the home occupation license; inventory storage vs. 'warehousing' is genuinely unclear." }
+  ],
+  "fees": [],
+  "verified_wrong": [],
+  "not_needed_wrong": [],
+  "summary": {
+    "found": 5,
+    "found_unresolved": 1,
+    "missed": 2,
+    "correctly_omitted": 8,
+    "unneeded_step": 0,
+    "unneeded_question": 0,
+    "extras_reasonable": 6,
+    "extras_unneeded": 1,
+    "extras_wrong": 1,
+    "confirm_sensible": 2,
+    "confirm_irrelevant": 0,
+    "fees_checked": 0,
+    "verified_wrong": 0,
+    "not_needed_wrong": 0,
+    "needs_confirmation_unsourced_steps": 3
+  }
+}

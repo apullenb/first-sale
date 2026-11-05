@@ -1,0 +1,466 @@
+{
+  "case": "asheville-nc-dogtreats",
+  "checked": "2026-11-04",
+  "requirements": [
+    {
+      "id": "buncombe-assumed-name",
+      "title": "File an Assumed Business Name Certificate (Blue Ridge Biscuits) with the Buncombe County Register of Deeds",
+      "level": "county",
+      "agency": "Buncombe County Register of Deeds",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_66/GS_66-71.4.html",
+      "domain_is_gov": true,
+      "quote": "Before any person engages in business in this State under an assumed business name, the person must file an assumed business name certificate in the office of the register of deeds of the county...",
+      "notes": "The Buncombe Register of Deeds page (https://www.buncombenc.gov/468/Assumed-Business-Names) says 'The fee for recording is $26.' Certificates filed after December 1, 2017 do not expire."
+    },
+    {
+      "id": "nc-sos-name-registration",
+      "title": "Register the business name with the NC Secretary of State",
+      "level": "state",
+      "agency": "N.C. Secretary of State",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.ncagr.gov/divisions/food-drug-protection/feed-program/startups",
+      "domain_is_gov": true,
+      "quote": "A Certificate of Assumed Name for sole proprietorships and partnerships must be filed with the Register of Deeds ... Corporations or Limited Liability Companies must register their business names with the N.C. Secretary of State",
+      "notes": "A sole proprietor files only with the county Register of Deeds."
+    },
+    {
+      "id": "nc-sales-tax-registration",
+      "title": "Register with the NC Department of Revenue for a sales and use tax Certificate of Registration (Form NC-BR or online)",
+      "level": "state",
+      "agency": "North Carolina Department of Revenue (NCDOR)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/who-should-register-sales-and-use-tax",
+      "domain_is_gov": true,
+      "quote": "Every business, person, or facilitator engaged in business in North Carolina of one or more of the following must register online or by mail with the Department to obtain a Certificate of Registration: Selling tangible personal property at retail.",
+      "notes": "NCDOR says there is no fee to apply. Dog treats are taxed at the general state and local rate, and the owner files Form E-500 returns."
+    },
+    {
+      "id": "nc-specialty-market-certificate",
+      "title": "Give the farmers market operator your sales tax registration number and display the certificate at your stall",
+      "level": "state",
+      "agency": "North Carolina Department of Revenue (NCDOR)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/specialty-markets-or-other-events",
+      "domain_is_gov": true,
+      "quote": "These vendors must provide the specialty market operator their name, permanent address, and certificate of registration number. In addition, these vendors must display a copy of their certificate of registration.",
+      "notes": "Applies to vendors at flea markets, fairs and similar markets; NCDOR may collect tax on site from unregistered vendors."
+    },
+    {
+      "id": "nc-farmer-exemption",
+      "title": "Qualifying farmer exemption from sales tax registration at markets",
+      "level": "state",
+      "agency": "North Carolina Department of Revenue (NCDOR)",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/specialty-markets-or-other-events",
+      "domain_is_gov": true,
+      "quote": "A farmer who only sells products produced by their own farm and sold in their original state are not required to obtain a Certificate of Registration or collect and remit sales and use tax.",
+      "notes": "Baked treats are not farm products in their original state, so this exemption does not apply and the seller must register."
+    },
+    {
+      "id": "nc-reduced-food-rate",
+      "title": "Reduced 2% food sales tax rate for the treats",
+      "level": "state",
+      "agency": "North Carolina Department of Revenue (NCDOR)",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/food-non-qualifying-food-and-prepaid-meal-plans",
+      "domain_is_gov": true,
+      "quote": "For purposes of sales and use tax, food is defined as substances that are sold for ingestion or chewing by humans and are consumed for their taste or nutritional value.",
+      "notes": "Pet treats are not 'food' under this definition, so the general state and local rate applies rather than the 2% food rate."
+    },
+    {
+      "id": "nc-marketplace-facilitator",
+      "title": "Marketplace facilitator collects NC tax on marketplace sales; the seller collects on own-website sales",
+      "level": "state",
+      "agency": "North Carolina Department of Revenue (NCDOR)",
+      "verdict": "conditional",
+      "condition": "Only if some online sales go through a marketplace (e.g., Etsy, Amazon); own-website and market-stall sales stay with the seller",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/marketplace-facilitators-and-marketplace-sellers/marketplace-facilitators-and-marketplace-sellers-frequently-asked-questions",
+      "domain_is_gov": true,
+      "quote": "A marketplace facilitator engaged in business in this state is responsible for collecting and remitting sales and use tax on marketplace-facilitated sales.",
+      "notes": "The seller is engaged in business in NC, so it must still register and collect tax on its direct sales."
+    },
+    {
+      "id": "ncda-feed-product-registration",
+      "title": "Register each dog treat product with the NCDA&CS Animal Feed Program (commercial feed / pet food registration)",
+      "level": "state",
+      "agency": "NC Department of Agriculture & Consumer Services, Food & Drug Protection Division, Animal Feed Program",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": "$40 per product per year for packages of 5 lb or less ($5 if over 5 lb)",
+      "url": "https://www.ncagr.gov/divisions/food-drug-protection/feed-program",
+      "domain_is_gov": true,
+      "quote": "It provides for annual registration of commercial feed and pet food that is distributed in the state. The annual registration fee is $5.00 for packages of over 5 pounds net weight, $40.00 for packages of only 5 pounds or less...",
+      "notes": "NCDA's startup page lists 'Baked Pet Treats' as requiring registration, G.S. 106-284.34(c) bars distributing unregistered feed, and registrations expire December 31 each year."
+    },
+    {
+      "id": "ncda-firm-facility-registration",
+      "title": "File firm and home-kitchen manufacturing facility information with NCDA&CS (and apply for the reporting permit)",
+      "level": "state",
+      "agency": "NC Department of Agriculture & Consumer Services, Animal Feed Program",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_106/GS_106-284.34.html",
+      "domain_is_gov": true,
+      "quote": "No person shall manufacture or distribute a commercial feed in this State, unless he has filed with the Commissioner on forms provided by the Commissioner, his name, place of business, and location of each manufacturing facility in this State",
+      "notes": "Done with NCDA's Firm Contact Information Form and New NC Manufacturing/Distribution Facility Registration form; the form has a box for a personal residence, and the home kitchen is where inspections happen."
+    },
+    {
+      "id": "ncda-tonnage-reports",
+      "title": "Quarterly tonnage reports and inspection fees on feed sold in NC",
+      "level": "state",
+      "agency": "NC Department of Agriculture & Consumer Services, Animal Feed Program",
+      "verdict": "conditional",
+      "condition": "Only if any product is sold in NC in packages over 5 lb; products sold only in packages of 5 lb or less pay the $40 registration fee instead",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_106/GS_106-284.40.html",
+      "domain_is_gov": true,
+      "quote": "...distributed in the State only in packages of five pounds or less, an annual registration fee of forty dollars ($40.00) shall be paid in lieu of the inspection fee specified above.",
+      "notes": "Otherwise 12 cents per ton (minimum $10 per quarter) is reported by the last day of January, April, July and October."
+    },
+    {
+      "id": "nc-feed-labeling",
+      "title": "Label each treat package to NC Commercial Feed Law requirements (net weight, product/brand name, guaranteed analysis, ingredients, name and address)",
+      "level": "state",
+      "agency": "NC Department of Agriculture & Consumer Services, Animal Feed Program",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_106/GS_106-284.35.html",
+      "domain_is_gov": true,
+      "quote": "A commercial feed shall be labeled as follows: (1) In case of commercial feed, except a customer-formula feed, it shall be accompanied by a label bearing the following information: a. The net weight.",
+      "notes": "Label copies must be submitted with product registration, and the format rules are in 02 NCAC 09E .0104; ingredients must use AAFCO names."
+    },
+    {
+      "id": "ncda-cgmp-part507-subpart-b",
+      "title": "Meet animal food current good manufacturing practices (21 CFR 507 Subpart B) as required by NC",
+      "level": "state",
+      "agency": "NC Department of Agriculture & Consumer Services, Animal Feed Program",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.ncagr.gov/divisions/food-drug-protection/feed-program/startups",
+      "domain_is_gov": true,
+      "quote": "At minimum, you will need to be compliant with the NC Commercial Feed Law and Subpart B of these regulations as an animal food manufacturer in NC",
+      "notes": "NC applies federal animal-food cGMPs to home kitchens even though FDA's own Part 507 duties attach only to registered facilities, and the home kitchen is subject to NCDA inspection."
+    },
+    {
+      "id": "ncda-preopening-inspection",
+      "title": "Pre-opening NCDA kitchen inspection or permit before selling pet treats",
+      "level": "state",
+      "agency": "NC Department of Agriculture & Consumer Services, Animal Feed Program",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.ncagr.gov/divisions/food-drug-protection/feed-program/startups",
+      "domain_is_gov": true,
+      "quote": "If you are interested in manufacturing and distributing animal food products in NC, there is no inspection required by our program prior to beginning operations. This includes anyone manufacturing/distributing from a home, commercial kitchen, or other type of facility.",
+      "notes": "Registration is still required, and inspections can happen after operations start."
+    },
+    {
+      "id": "nc-home-processor-program",
+      "title": "NCDA&CS Home Processor (cottage food) kitchen inspection",
+      "level": "state",
+      "agency": "NC Department of Agriculture & Consumer Services, Food Program",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.ncagr.gov/divisions/food-drug-protection/food-program/food-drug-food-program-home-processor",
+      "domain_is_gov": true,
+      "quote": "If you are interested in producing and selling food products for human consumption from your home, you will need to first have your home kitchen inspected before doing so.",
+      "notes": "The home processing program covers human food only; dog treats fall under the Animal Feed Program instead."
+    },
+    {
+      "id": "fda-pet-food-labeling",
+      "title": "Meet FDA pet food labeling rules (statement of identity, net quantity, manufacturer/distributor name and place of business, ingredients by weight)",
+      "level": "federal",
+      "agency": "U.S. Food and Drug Administration, Center for Veterinary Medicine",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.fda.gov/animal-veterinary/animal-foods-feeds/pet-food",
+      "domain_is_gov": true,
+      "quote": "The current FDA regulations require proper identification of the product, net quantity statement, name, and place of business of the manufacturer or distributor, and proper listing of all the ingredients in the product from most to least, based on weight.",
+      "notes": "The treats must also be safe, sanitary and truthfully labeled under the FD&C Act, and disease-treatment claims would make them drugs."
+    },
+    {
+      "id": "fda-food-facility-registration",
+      "title": "FDA food facility registration for the home kitchen",
+      "level": "federal",
+      "agency": "U.S. Food and Drug Administration",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.fda.gov/food/food-industry/how-start-food-business",
+      "domain_is_gov": true,
+      "quote": "Under federal regulations at Title 21, Code of Federal Regulations (CFR), section 1.227 (21 CFR 1.227), a private residence is not a “facility” and as a result, is not required to register with FDA.",
+      "notes": "FDA's 'How do I Start an Animal Food Business?' chart also marks facility registration and receipt/distribution records 'no' for in-home businesses."
+    },
+    {
+      "id": "fda-preventive-controls-animal-food",
+      "title": "FDA FSMA food safety plan (Preventive Controls for Animal Food, 21 CFR 507) as a federal duty",
+      "level": "federal",
+      "agency": "U.S. Food and Drug Administration",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.fda.gov/animal-veterinary/animal-health-literacy/fdas-regulation-pet-food",
+      "domain_is_gov": true,
+      "quote": "The above FSMA requirements apply to companies that must register as an animal food facility because they manufacture, process, pack, or hold animal food for consumption in the United States.",
+      "notes": "No federal food safety plan is needed because the home isn't a registered facility, but NC separately requires Part 507 Subpart B cGMPs."
+    },
+    {
+      "id": "fda-premarket-approval",
+      "title": "FDA pre-market approval of the treats",
+      "level": "federal",
+      "agency": "U.S. Food and Drug Administration",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.fda.gov/animal-veterinary/animal-health-literacy/fdas-regulation-pet-food",
+      "domain_is_gov": true,
+      "quote": "As opposed to an animal drug, food for animals doesn’t need FDA’s pre-market review to be legally marketed (unless the substance is a food additive).",
+      "notes": "Ingredients must still be approved additives, GRAS or AAFCO-listed."
+    },
+    {
+      "id": "other-state-pet-food-registration",
+      "title": "Register the treats with other states' feed control offices for online orders shipped there",
+      "level": "state",
+      "agency": "Feed control official of each destination state",
+      "verdict": "conditional",
+      "condition": "If treats are shipped to customers in states that require pet food or treat registration",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.fda.gov/animal-veterinary/animal-foods-feeds/how-do-i-start-animal-food-business",
+      "domain_is_gov": true,
+      "quote": "In addition to meeting federal requirements, your animal food business may also have to follow certain state regulatory requirements.",
+      "notes": "Each state sets its own rules, and NCDA points sellers to AAFCO's state summaries when selling in other states."
+    },
+    {
+      "id": "asheville-home-occupation-permit",
+      "title": "City of Asheville Home Occupation Use Permit",
+      "level": "city",
+      "agency": "City of Asheville Development Services Department",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": "$50 plus technology fee",
+      "url": "https://drive.google.com/file/d/1J7FR9kEBp3JFqNlDjZxwkvlUF2-2dLkn/view",
+      "domain_is_gov": false,
+      "quote": "Completed application, site plan, drawings, and supplemental information are required at the time of submittal. Application Fee: $50; all fees are subject to a technology fee.",
+      "notes": "This is the City's 2026 application, linked from ashevillenc.gov under 'Get a Permit to Run a Business from Your Home'. UDO standards bar on-premises retail sales, cap the home occupation at 30% of floor area, and allow at most 6 visitors a day."
+    },
+    {
+      "id": "asheville-business-license",
+      "title": "City of Asheville general business license / privilege license",
+      "level": "city",
+      "agency": "City of Asheville",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.ashevillenc.gov/department/development-services/commercial-permits-and-development/apply/",
+      "domain_is_gov": true,
+      "quote": "The City of Asheville no longer collects a general business tax (also called a privilege license). This change happened because of a North Carolina state law in 2015.",
+      "notes": "The city has no general business license; only the home occupation permit applies."
+    },
+    {
+      "id": "nc-state-privilege-license",
+      "title": "NC state privilege license tax",
+      "level": "state",
+      "agency": "North Carolina Department of Revenue (NCDOR)",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.ncdor.gov/taxes-forms/privilege-license-tax/important-notice-repeal-state-privilege-tax-professionals",
+      "domain_is_gov": true,
+      "quote": "Effective July 1, 2024, the requirement for certain professions and businesses to obtain a yearly privilege license pursuant to N.C. Gen. Stat. § 105-41 is repealed.",
+      "notes": "Asheville's page still says a state privilege tax may apply, but that is outdated, and the tax never covered pet treat bakers."
+    },
+    {
+      "id": "federal-ein",
+      "title": "Federal Employer Identification Number (EIN)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/employer-identification-number",
+      "domain_is_gov": true,
+      "quote": "You need an EIN if you: Have employees Will need to pay employment, excise or alcohol, tobacco, and firearms taxes Withhold taxes on income, other than wages, paid to a non-resident alien",
+      "notes": "A sole proprietor with no employees can use their SSN; an EIN is optional for banking."
+    },
+    {
+      "id": "fincen-boi-report",
+      "title": "FinCEN beneficial ownership information (BOI) report",
+      "level": "federal",
+      "agency": "Financial Crimes Enforcement Network (FinCEN)",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.fincen.gov/boi",
+      "domain_is_gov": true,
+      "quote": "U.S. companies are exempt from the Beneficial Ownership Information (BOI) reporting requirements and therefore, are no longer required to file BOI reports.",
+      "notes": "A sole proprietorship is not a registered entity, and U.S. companies are now exempt in any case."
+    },
+    {
+      "id": "ftc-mail-order-rule",
+      "title": "Follow the FTC Mail, Internet, or Telephone Order Merchandise Rule for online orders",
+      "level": "federal",
+      "agency": "Federal Trade Commission",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.ftc.gov/business-guidance/resources/business-guide-ftcs-mail-internet-or-telephone-order-merchandise-rule",
+      "domain_is_gov": true,
+      "quote": "It applies to most goods a customer orders from the seller by mail, telephone, fax, or on the Internet.",
+      "notes": "No filing; ship within the stated time, or within 30 days if none is stated, or get consent to the delay or refund."
+    },
+    {
+      "id": "federal-income-tax-self-employment",
+      "title": "Report business profit and self-employment tax on the federal return (Schedule C / SE)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+      "domain_is_gov": true,
+      "quote": "You have to file an income tax return if your net earnings from self-employment were $400 or more.",
+      "notes": "Due with the owner's first-year individual return."
+    },
+    {
+      "id": "federal-estimated-tax",
+      "title": "Quarterly federal estimated tax payments",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "conditional",
+      "condition": "If the owner expects to owe $1,000 or more of federal tax for the year",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/estimated-taxes",
+      "domain_is_gov": true,
+      "quote": "Individuals, including sole proprietors, partners, and S corporation shareholders, generally have to make estimated tax payments if they expect to owe tax of $1,000 or more when their return is filed.",
+      "notes": "Depends on first-year profit; not a pre-sale step."
+    },
+    {
+      "id": "uspto-trademark",
+      "title": "Federal trademark registration for the trade name",
+      "level": "federal",
+      "agency": "U.S. Patent and Trademark Office",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.uspto.gov/trademarks/basics/what-trademark",
+      "domain_is_gov": true,
+      "quote": "You’re not required to register your trademark. However, a registered trademark provides broader rights and protections than an unregistered one.",
+      "notes": "Optional; the Register of Deeds assumed-name filing is the required name step."
+    }
+  ],
+  "hard_calls": [
+    {
+      "about": "Whether NCDA will register products for a sole proprietor",
+      "explanation": "NCDA's New Firm instructions say 'A firm must be a legal entity to distribute products in NC and supply their articles of organization'. A sole proprietorship has no articles of organization. However, G.S. 106-284.33(17) defines 'person' to include an individual, and G.S. 106-284.34 lets any 'person' register. The instructions may effectively push owners toward forming an entity, but the statute does not require one, so ask NCDA how a sole proprietor applies.",
+      "urls": [
+        "https://www.ncagr.gov/fdfr-new-firmnew-product-registration-instructions/download?attachment",
+        "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_106/GS_106-284.33.html"
+      ]
+    },
+    {
+      "about": "Making dog treats in a home that has pets",
+      "explanation": "NCDA's Home Processor program (human food) treats indoor pets as pests and bars home processing for anyone with a pet. The Animal Feed Program requires 21 CFR 507 Subpart B cGMP compliance and inspects the home kitchen, but it does not say whether a home with dogs can comply. This is not published either way.",
+      "urls": [
+        "https://www.ncagr.gov/divisions/food-drug-protection/food-program/food-drug-food-program-home-processor",
+        "https://www.ncagr.gov/divisions/food-drug-protection/feed-program/startups"
+      ]
+    },
+    {
+      "about": "Reporting permit and tonnage reports for small-package treats",
+      "explanation": "G.S. 106-284.34(a) requires every manufacturer or distributor to apply for 'a permit to report the quantity of commercial feed distributed'. G.S. 106-284.40(b)(4) replaces the per-ton inspection fee with a $40 registration fee when a product is sold only in packages of 5 lb or less. It is unclear whether a small-package-only seller must still hold the reporting permit and file quarterly zero or nominal reports. NCDA's tonnage permit form could not be read as text.",
+      "urls": [
+        "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_106/GS_106-284.34.html",
+        "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_106/GS_106-284.40.html",
+        "https://www.ncagr.gov/divisions/budget-and-finance/feed-tonnage-permit-application-2025/download?attachment"
+      ]
+    },
+    {
+      "about": "Federal vs. NC food-safety duties for an in-home pet treat business",
+      "explanation": "FDA says a private residence is not a facility, and its chart marks facility registration and receipt/distribution records 'no' for in-home businesses, so federal Part 507 does not attach. NCDA nonetheless requires Part 507 Subpart B cGMP compliance as a state requirement. An app should not add FDA registration, but should add the NC cGMP duty.",
+      "urls": [
+        "https://www.fda.gov/animal-veterinary/animal-foods-feeds/how-do-i-start-animal-food-business",
+        "https://www.ncagr.gov/divisions/food-drug-protection/feed-program/startups"
+      ]
+    },
+    {
+      "about": "Asheville home occupation permit: required, and on what terms",
+      "explanation": "The city's Development Services page offers a Home Occupation Use Permit application ($50). UDO 7-5-4 requires a permit for 'uses by right, subject to special requirements', and home occupation is one of those uses (UDO 7-16-1). Some non-government summaries claim no permit is needed. The code is hosted by American Legal Publishing, which is not a government domain, and the application form is on Google Drive. The standards also say 'On-premises retail sales shall not be a component of the home occupation', so offering local pickup of web orders at home could conflict.",
+      "urls": [
+        "https://www.ashevillenc.gov/department/development-services/residential-permits-and-development/apply/",
+        "https://codelibrary.amlegal.com/codes/ashevillenc/latest/asheville_nc/0-0-0-4054",
+        "https://codelibrary.amlegal.com/codes/ashevillenc/latest/asheville_nc/0-0-0-8684"
+      ]
+    },
+    {
+      "about": "Buncombe County's DBA page wording vs. the statute",
+      "explanation": "The Register of Deeds page says a sole proprietorship 'might consider recording a DBA form', which sounds optional. G.S. 66-71.4(a) makes filing mandatory before doing business under an assumed name, so the key follows the statute.",
+      "urls": [
+        "https://www.buncombenc.gov/468/Assumed-Business-Names",
+        "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_66/GS_66-71.4.html"
+      ]
+    },
+    {
+      "about": "Stale state privilege tax note on Asheville's site",
+      "explanation": "Asheville's commercial permits page says owners 'may still need to pay a privilege tax to the State of North Carolina'. NCDOR repealed the state privilege license tax (G.S. 105-41) effective July 1, 2024, and it applied only to listed professions in any case.",
+      "urls": [
+        "https://www.ashevillenc.gov/department/development-services/commercial-permits-and-development/apply/",
+        "https://www.ncdor.gov/taxes-forms/privilege-license-tax/important-notice-repeal-state-privilege-tax-professionals"
+      ]
+    },
+    {
+      "about": "Out-of-state shipments: pet food registration and sales tax",
+      "explanation": "Most states require pet food and treats distributed into them to be registered with their feed control office, and some apply this to direct internet or mail-order shipments. FDA's former 'Information on Marketing a Pet Food Product' page said so, but it now returns 404 and its replacement only says state requirements 'may' apply. Rules and fees vary by state and were not researched one by one. Other states' sales tax applies only once their economic-nexus thresholds are met, which is unlikely in year one but not confirmed.",
+      "urls": [
+        "https://www.fda.gov/animal-veterinary/animal-foods-feeds/how-do-i-start-animal-food-business",
+        "https://www.ncagr.gov/divisions/food-drug-protection/feed-program/startups"
+      ]
+    }
+  ]
+}

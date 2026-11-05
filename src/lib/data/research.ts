@@ -141,6 +141,7 @@ export async function saveResearchForOwner(
           doneWhen: requirement.doneWhen,
           dependsOn: requirement.dependsOn,
           verification: requirement.verification,
+          claimsChecked: requirement.claimsChecked ?? null,
           problems: requirement.problems,
           position,
           checkedAt: research.checkedAt,
@@ -198,6 +199,21 @@ export async function saveFollowUpForOwner(
       );
     }
     const settled = { applicability: "applies" as const, condition: "" };
+    // Quotes read again by the claims check: passed, or rejected and looked into below
+    for (const each of result.rechecked) {
+      await tx
+        .update(requirements)
+        .set({
+          verification: each.verification,
+          claimsChecked: each.claimsChecked ?? false,
+          problems: each.problems,
+          feeCents: each.feeUsd === null ? null : Math.round(each.feeUsd * 100),
+          deadline: each.deadline,
+          renewal: each.renewal,
+          renewalFeeCents: each.renewalFeeUsd === null ? null : Math.round(each.renewalFeeUsd * 100),
+        })
+        .where(and(eq(requirements.businessId, business.id), eq(requirements.key, each.key)));
+    }
     for (const confirmed of result.confirmed) {
       await tx
         .update(requirements)
@@ -208,17 +224,20 @@ export async function saveFollowUpForOwner(
           feeCents: confirmed.feeUsd === null ? null : Math.round(confirmed.feeUsd * 100),
           deadline: confirmed.deadline,
           verification: "sourced",
+          claimsChecked: confirmed.claimsChecked ?? false,
           problems: [],
           background: "",
           verdict: "applies",
+          trail: null,
         })
         .where(and(eq(requirements.businessId, business.id), eq(requirements.key, confirmed.key)));
     }
     for (const note of result.notes) {
-      const quoted = note.evidence ? { sourceIds: note.sourceIds, evidence: note.evidence, verification: "sourced" as const, problems: [] } : {};
+      // Only a "not needed" carries a quote, and only one both checks passed
+      const quoted = note.evidence ? { sourceIds: note.sourceIds, evidence: note.evidence, verification: "sourced" as const, claimsChecked: true, problems: [] } : {};
       await tx
         .update(requirements)
-        .set({ ...settled, ...quoted, background: note.background, verdict: note.verdict, ...(note.questions.length ? { whatToAsk: note.questions } : {}) })
+        .set({ ...settled, ...quoted, background: note.background, verdict: note.verdict, trail: note.trail, ...(note.questions.length ? { whatToAsk: note.questions } : {}) })
         .where(and(eq(requirements.businessId, business.id), eq(requirements.key, note.key)));
     }
     const answered = new Map(result.answers.map((each) => [each.question, each.answer]));
@@ -232,7 +251,7 @@ export async function saveFollowUpForOwner(
 }
 
 // A saved requirement in the shape research works with
-export function draftOf(row: ResearchSnapshot["requirements"][number]): RequirementDraft & { verification: VerificationState } {
+export function draftOf(row: ResearchSnapshot["requirements"][number]): RequirementDraft & { verification: VerificationState; claimsChecked: boolean | null } {
   return {
     key: row.key,
     title: row.title,
@@ -258,5 +277,6 @@ export function draftOf(row: ResearchSnapshot["requirements"][number]): Requirem
     renewalFeeUsd: row.renewalFeeCents === null ? null : row.renewalFeeCents / 100,
     ownerAction: row.ownerAction,
     verification: row.verification,
+    claimsChecked: row.claimsChecked,
   };
 }

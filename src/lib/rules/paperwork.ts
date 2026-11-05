@@ -119,7 +119,17 @@ export function standingOf<T extends PaperStep>(step: T, context: PaperworkConte
   const fromIntake = question && !own ? intakeAnswer(question, context.profile) : null;
   const saved = own ?? fromIntake?.answer ?? null;
   const classified = classify(
-    { key: step.key, title: step.title, topic: step.topic, level: step.level, applicability, condition: question, forStructures: [...step.forStructures], verification: step.verification },
+    {
+      key: step.key,
+      title: step.title,
+      topic: step.topic,
+      level: step.level,
+      applicability,
+      condition: question,
+      forStructures: [...step.forStructures],
+      verification: step.verification,
+      claimsChecked: step.requirementStatus === "quote_unchecked" ? false : null,
+    },
     context.profile,
     context.place,
     context.decision,
@@ -148,8 +158,8 @@ export function standingOf<T extends PaperStep>(step: T, context: PaperworkConte
   // An unsure answer plans on the step, so the owner is covered either way
   const requirementStatus: RequirementStatus =
     inclusion === "task"
-      ? classified.status === "verified"
-        ? "verified"
+      ? classified.status === "verified" || classified.status === "quote_unchecked"
+        ? classified.status
         : "needs_confirmation"
       : inclusion === "confirm"
         ? "to_find_out"

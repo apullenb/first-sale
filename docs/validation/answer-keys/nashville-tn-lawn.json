@@ -1,0 +1,377 @@
+{
+  "case": "nashville-tn-lawn",
+  "checked": "2026-11-04",
+  "requirements": [
+    {
+      "id": "davidson-business-license",
+      "title": "Business license (minimal activity or standard) from the Davidson County Clerk",
+      "level": "county",
+      "agency": "Davidson County Clerk, Business Tax Division (Metro Nashville)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": "$30",
+      "url": "https://www.nashville.gov/departments/county-clerk/business-services/apply-business-license",
+      "domain_is_gov": true,
+      "quote": "The license fee will be $30 if your business is located within Nashville city limits (Urban Service District – USD) in order to obtain your business license or minimal activity license.",
+      "notes": "Per the TN Department of Revenue (tn.gov/revenue/taxes/business-tax/registration-and-licensing.html), an in-state business with gross receipts over $3,000 but under $100,000 needs a minimal activity license, $100,000 or more needs a standard license, and it may not operate until the license is obtained and posted."
+    },
+    {
+      "id": "tn-business-tax-registration",
+      "title": "Tennessee business tax registration and annual return",
+      "level": "state",
+      "agency": "Tennessee Department of Revenue",
+      "verdict": "conditional",
+      "condition": "Gross receipts of $100,000 or more in a year in the jurisdiction (Davidson County/Metro).",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.tn.gov/revenue/taxes/business-tax.html",
+      "domain_is_gov": true,
+      "quote": "Generally, if you conduct business within any county and/or incorporated municipality in Tennessee, and your business grosses $100,000 or more, then you should register for and remit business tax.",
+      "notes": "Below $100,000 the minimal activity license is enough and no business tax is paid; at $100,000 or more the owner registers in TNTAP, holds a standard license and files a business tax return annually."
+    },
+    {
+      "id": "metro-home-occupation-permit",
+      "title": "Metro Nashville home occupation permit",
+      "level": "city",
+      "agency": "Metro Nashville Codes and Building Safety Department (zoning)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://nashville.legistar1.com/nashville/attachments/32ecef99-19ff-4793-a366-06a6ad571e72.pdf",
+      "domain_is_gov": false,
+      "quote": "Home occupations must acquire a permit for activity under this section unless they meet both of the following conditions: ... ii. The home occupation does not employ anyone who does not live within the dwelling.",
+      "notes": "Hiring two employees who do not live in the home triggers the permit under Substitute BL2026-1318 (Metro Code 17.16.250.D, effective May 29, 2026); apply by emailing Metro Codes with an affidavit, two proofs of primary residence and proof of written notice to adjacent owners (nashville.gov home occupation permits page)."
+    },
+    {
+      "id": "metro-home-occupation-limits",
+      "title": "Home occupation limits on non-resident employees, vehicles and storage",
+      "level": "city",
+      "agency": "Metro Nashville Codes and Building Safety Department (zoning)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://nashville.legistar1.com/nashville/attachments/32ecef99-19ff-4793-a366-06a6ad571e72.pdf",
+      "domain_is_gov": false,
+      "quote": "No more than one part-time or full-time employee not living within the dwelling may work at the home occupation location.",
+      "notes": "The same section limits vehicles associated with the home occupation to one passenger vehicle and requires all materials or goods to be stored completely within the dwelling unit or accessory building, which constrains storing mowers and trailers at home and having both employees report there."
+    },
+    {
+      "id": "tn-assumed-name-sos",
+      "title": "Assumed name (trade name) filing with the Tennessee Secretary of State",
+      "level": "state",
+      "agency": "Tennessee Secretary of State, Division of Business Services",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://sos.tn.gov/press-releases/division-of-business-services-announces-online-assumed-name-filings",
+      "domain_is_gov": true,
+      "quote": "Business entities that want to transact business under a name other than their legal name can apply for an assumed name (otherwise known as a trade name or fictitious name).",
+      "notes": "The state filing is for registered entities, not sole proprietors; the trade name is recorded on the Davidson County Clerk license application, which asks for the business name and the owner's legal name if different."
+    },
+    {
+      "id": "tn-landscaper-license",
+      "title": "Landscaper license (Tennessee Department of Agriculture)",
+      "level": "state",
+      "agency": "Tennessee Department of Agriculture, Plant Certification",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.tn.gov/agriculture/businesses/plants/forms.html",
+      "domain_is_gov": true,
+      "quote": "Landscaper License – is required for any person engaged in business as a landscaper.",
+      "notes": "Rule 0080-06-01-.02 defines a landscaper as any person who on a commercial basis moves and installs plants (rule text read on a non-government mirror), so the planting work triggers it; the same page's fee table lists $250."
+    },
+    {
+      "id": "tn-plant-dealer-license",
+      "title": "Plant dealer license (Tennessee Department of Agriculture)",
+      "level": "state",
+      "agency": "Tennessee Department of Agriculture, Plant Certification",
+      "verdict": "conditional",
+      "condition": "Only if the business holds, sells or distributes plants on a commercial basis beyond installing them under the landscaper license (for example, keeping plant stock at home for resale).",
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.tn.gov/agriculture/businesses/plants/forms.html",
+      "domain_is_gov": true,
+      "quote": "Plant Dealer License – is required for each location where a person who is not the original grower of nursery stock or annual plants, sells, offers for sale, distributes, or holds the plants for distribution on a commercial basis.",
+      "notes": "The department's page does not say whether a landscaper buying plants for each job also needs this license; fees run from $50 by sales area."
+    },
+    {
+      "id": "tn-pesticide-charter",
+      "title": "Pest control charter and commercial pesticide applicator license",
+      "level": "state",
+      "agency": "Tennessee Department of Agriculture, Pesticide Program",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.tn.gov/agriculture/businesses/pesticides/certification.html",
+      "domain_is_gov": true,
+      "quote": "TAPA requires that a company providing or offering for sale any custom pesticide application must have a pest control charter.",
+      "notes": "Not needed because the business applies no pesticides or herbicides; applying weed killers or weed-and-feed products for customers would require a charter and a Horticulture - Lawn and Turf license."
+    },
+    {
+      "id": "tn-contractor-license",
+      "title": "Tennessee contractor license (Board for Licensing Contractors)",
+      "level": "state",
+      "agency": "Tennessee Board for Licensing Contractors",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.tn.gov/commerce/regboards/contractors/license/get/contractor.html",
+      "domain_is_gov": true,
+      "quote": "A contractor’s license is required before contracting, including bidding, offering to engage, or negotiating a price, for projects of $25,000 or more when acting as a prime contractor, certain subcontractor, or construction manager/consultant.",
+      "notes": "Every job is well under $25,000, so no contractor license is needed."
+    },
+    {
+      "id": "tn-home-improvement-license",
+      "title": "Home improvement license (Davidson County residential jobs $3,000–$24,999)",
+      "level": "state",
+      "agency": "Tennessee Board for Licensing Contractors",
+      "verdict": "conditional",
+      "condition": "Any residential landscaping or planting job in Davidson County with a contract price from $3,000 to $24,999.",
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.tn.gov/commerce/regboards/contractors/license/get/home-improvement.html",
+      "domain_is_gov": true,
+      "quote": "A Home Improvement license is required for residential remodeling projects from $3,000 to $24,999; however, this only applies to the counties adopting the law.",
+      "notes": "Davidson is an adopting county and the definition lists landscaping, while routine mowing and trimming are not improvements; the application costs $250 and needs a $10,000 bond plus proof of general liability and workers' compensation insurance."
+    },
+    {
+      "id": "tn-sales-tax",
+      "title": "Tennessee sales and use tax registration",
+      "level": "state",
+      "agency": "Tennessee Department of Revenue",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.tn.gov/content/dam/tn/revenue/documents/taxpayer_education/sales/services_subject_to_sales_tax.pdf",
+      "domain_is_gov": true,
+      "quote": "Services such as grass cutting, trimming, bush trimming, leaf raking, and similar activities are all services performed on real property. Charges for such services are not subject to sales tax.",
+      "notes": "Lawn services are not taxable, so no sales tax account is needed unless the business also sells plants or goods separately from its services."
+    },
+    {
+      "id": "tn-income-tax-withholding",
+      "title": "Tennessee state income tax withholding on wages",
+      "level": "state",
+      "agency": "Tennessee Department of Revenue",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.tn.gov/content/dam/tn/revenue/documents/taxpayer_education/sales/services_subject_to_sales_tax.pdf",
+      "domain_is_gov": true,
+      "quote": "TN has no state income tax!",
+      "notes": "No state withholding account is needed for the two employees; federal withholding still applies."
+    },
+    {
+      "id": "tn-franchise-excise-tax",
+      "title": "Tennessee franchise and excise tax",
+      "level": "state",
+      "agency": "Tennessee Department of Revenue",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.tn.gov/revenue/taxes/franchise---excise-tax.html",
+      "domain_is_gov": true,
+      "quote": "If you are a corporation, limited partnership, limited liability company, or business trust chartered, qualified, or registered in Tennessee or doing business in this state, then you must register for and pay franchise and excise taxes.",
+      "notes": "A sole proprietorship is not one of the listed entity types."
+    },
+    {
+      "id": "irs-ein",
+      "title": "Employer Identification Number (EIN)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/employer-identification-number",
+      "domain_is_gov": true,
+      "quote": "You need an EIN if you: Have employees",
+      "notes": "Free from the IRS; needed before the first payroll because the owner is hiring two employees right away."
+    },
+    {
+      "id": "federal-form-i9",
+      "title": "Form I-9 employment eligibility verification",
+      "level": "federal",
+      "agency": "U.S. Citizenship and Immigration Services (via IRS hiring guidance)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/hiring-employees",
+      "domain_is_gov": true,
+      "quote": "All U.S. employers must properly complete Form I-9 for every individual they hire for employment in the United States.",
+      "notes": "Complete for each of the two hires and keep on file; uscis.gov was not reachable by automated fetch, so the IRS page is cited."
+    },
+    {
+      "id": "federal-employment-taxes",
+      "title": "Federal income tax withholding, Social Security and Medicare (Form W-4, deposits, Form 941, W-2)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/understanding-employment-taxes",
+      "domain_is_gov": true,
+      "quote": "Employers generally must withhold federal income tax from employees' wages.",
+      "notes": "Starts with the first payroll: collect a Form W-4 from each employee, withhold and pay Social Security and Medicare, deposit electronically, file quarterly returns, and issue Forms W-2 after year end."
+    },
+    {
+      "id": "federal-futa",
+      "title": "Federal unemployment tax (FUTA, Form 940)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/taxtopics/tc759",
+      "domain_is_gov": true,
+      "quote": "You paid wages of $1,500 or more to employees in any calendar quarter during 2024 or 2025, or",
+      "notes": "With two employees the $1,500-per-quarter test will almost certainly be met; Form 940 is filed annually by January 31 and FUTA is deposited quarterly once over $500."
+    },
+    {
+      "id": "tn-unemployment-insurance",
+      "title": "Tennessee unemployment insurance employer registration",
+      "level": "state",
+      "agency": "Tennessee Department of Labor and Workforce Development, Employer Accounts",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.tn.gov/workforce/employers/tax-and-insurance-redirect/unemployment-insurance-tax.html",
+      "domain_is_gov": true,
+      "quote": "Every employer in Tennessee is required to complete an online registration. Submitting this registration will determine the status of your liability for unemployment insurance.",
+      "notes": "Liability starts at $1,500 in gross wages in a calendar quarter or one employee in 20 weeks, which two employees will meet; liable employers get an account number and file quarterly wage reports."
+    },
+    {
+      "id": "tn-new-hire-reporting",
+      "title": "Tennessee new hire reporting",
+      "level": "state",
+      "agency": "Tennessee Department of Labor and Workforce Development",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.tn.gov/workforce/employers/staffing-redirect/hiring-regulations/new-hire-reporting.html",
+      "domain_is_gov": true,
+      "quote": "Employers must report their newly hired or rehired employees within 20 days of the date they are hired.",
+      "notes": "Report both employees within 20 days of hire."
+    },
+    {
+      "id": "tn-workers-comp",
+      "title": "Workers' compensation insurance",
+      "level": "state",
+      "agency": "Tennessee Bureau of Workers' Compensation",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.tn.gov/workforce/injuries-at-work/employers/employers/who-must-carry-insurance/construction.html",
+      "domain_is_gov": true,
+      "quote": "All employers in the construction industry (construction service providers or CSPs) with one or more employees are required to obtain workers’ compensation insurance coverage for those employees.",
+      "notes": "The Bureau's contracting codes list, which defines construction services providers, includes Landscape Gardening & Drivers (code 0042, planting), so the planting work brings the business under the one-employee rule rather than the five-employee rule for other employers."
+    },
+    {
+      "id": "tn-lawful-employment-act",
+      "title": "Tennessee Lawful Employment Act work-authorization documents (or E-Verify)",
+      "level": "state",
+      "agency": "Tennessee Department of Labor and Workforce Development",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.tn.gov/workforce/employers/staffing-redirect/hiring-regulations/employment-verification.html",
+      "domain_is_gov": true,
+      "quote": "Newly hired employees and non-employees are required to provide one of the following identity and employment authorization documents prior to performing work:",
+      "notes": "With fewer than 35 employees the owner may either use E-Verify or request and keep copies of the TLEA-listed documents (Social Security cards and I-9 forms do not count)."
+    },
+    {
+      "id": "tn-everify-mandate",
+      "title": "Mandatory E-Verify",
+      "level": "state",
+      "agency": "Tennessee Department of Labor and Workforce Development",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.tn.gov/workforce/employers/staffing-redirect/hiring-regulations/employment-verification.html",
+      "domain_is_gov": true,
+      "quote": "Effective January 1, 2023, private employers with 35 or more full-time equivalent employees under the same FEIN are required to use the federal E-Verify employment verification process.",
+      "notes": "Two employees is below the 35-employee threshold, so E-Verify is optional."
+    },
+    {
+      "id": "federal-self-employment-estimated-tax",
+      "title": "Federal self-employment tax and estimated tax payments",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/estimated-taxes",
+      "domain_is_gov": true,
+      "quote": "Individuals, including sole proprietors, partners, and S corporation shareholders, generally have to make estimated tax payments if they expect to owe tax of $1,000 or more when their return is filed.",
+      "notes": "Profit is reported on Schedule C and Schedule SE with Form 1040; Tennessee has no personal income tax on it."
+    }
+  ],
+  "hard_calls": [
+    {
+      "about": "Home occupation limits vs. a lawn crew based at home",
+      "explanation": "Substitute BL2026-1318 (effective May 29, 2026) requires a permit because the business employs non-residents, but also allows only one non-resident employee to work at the home, one passenger vehicle, and indoor-only storage of materials. Whether crew members who only pick up equipment 'work at the home occupation location', and whether mowers and a trailer can be kept at home, is not addressed; the nashville.gov permit page predates the ordinance and the ordinance text is hosted on Legistar (non-.gov).",
+      "urls": [
+        "https://nashville.legistar1.com/nashville/attachments/32ecef99-19ff-4793-a366-06a6ad571e72.pdf",
+        "https://www.nashville.gov/departments/codes/construction-and-permits/land-use-and-zoning-information/zoning-examinations/home-occupation-permits"
+      ]
+    },
+    {
+      "about": "Workers' compensation: is a lawn care and planting business 'construction'?",
+      "explanation": "Tennessee requires coverage from the first employee for construction services providers and from five employees for others. The Bureau's contracting codes list includes Landscape Gardening & Drivers (NCCI 0042, planting lawns, shrubs, trees), but lawn maintenance (code 9102) does not appear on it. A mowing-only business would fall under the five-employee rule; because Greenway also plants, the key treats coverage as required. Construction owners must also cover themselves or register an exemption.",
+      "urls": [
+        "https://www.tn.gov/workforce/injuries-at-work/employers/employers/who-must-carry-insurance.html",
+        "https://www.tn.gov/workforce/injuries-at-work/employers/employers/wc-exemption-registry/wc-contracting-codes-list.html"
+      ]
+    },
+    {
+      "about": "Home improvement license for planting jobs",
+      "explanation": "The Board's page lists landscaping as a home improvement in Davidson County for residential projects 'from $3,000 to $24,999', while the statute (T.C.A. 62-6-501) exempts contracts of $3,000 or less; the page does not say whether planting-only work counts. Jobs are only described as 'well under $25,000', so whether any job reaches $3,000 is unknown.",
+      "urls": [
+        "https://www.tn.gov/commerce/regboards/contractors/license/get/home-improvement.html"
+      ]
+    },
+    {
+      "about": "Landscaper license definition",
+      "explanation": "TDA's page says a landscaper license is required for anyone in business as a landscaper but does not define the term; the rule definition (moves and installs plants on a commercial basis) was read on a non-government mirror because the Secretary of State rules site (publications.tnsosfiles.com) refused automated access.",
+      "urls": [
+        "https://www.tn.gov/agriculture/businesses/plants/forms.html",
+        "https://www.law.cornell.edu/regulations/tennessee/Tenn-Comp-R-Regs-0080-06-01-.02"
+      ]
+    },
+    {
+      "about": "Trade name for a Tennessee sole proprietor",
+      "explanation": "No official Tennessee page found says how a sole proprietor registers a trade name; the Secretary of State's assumed-name filing is described for business entities, and the county license application simply records the business name. Searched sos.tn.gov, tn.gov/revenue and nashville.gov.",
+      "urls": [
+        "https://sos.tn.gov/press-releases/division-of-business-services-announces-online-assumed-name-filings",
+        "https://www.nashville.gov/sites/default/files/2024-03/Business-Tax-License-Application.pdf"
+      ]
+    },
+    {
+      "about": "Sales tax on plants installed during planting jobs",
+      "explanation": "The Department's 2021 services guide covers mowing and trimming; its Revenue Help article SUT-117 (which reportedly treats installing plants as a nontaxable service to real property) blocked automated access, so treatment of plant materials and whether separately itemized plant sales need a sales tax account is unconfirmed.",
+      "urls": [
+        "https://www.tn.gov/content/dam/tn/revenue/documents/taxpayer_education/sales/services_subject_to_sales_tax.pdf",
+        "https://revenue.support.tn.gov/hc/en-us/articles/360058684051-SUT-117-Services-Landscaping-Services"
+      ]
+    }
+  ]
+}

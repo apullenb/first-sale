@@ -22,6 +22,7 @@ function research(verified: VerifiedRequirement[], checkedAt: Date): ResearchRes
     model: "Mock",
     simulated: true,
     searched: false,
+    claimsChecked: true,
     pages,
     unread: [],
     requirements,
