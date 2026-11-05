@@ -1,5 +1,6 @@
 import {
   AIProviderError,
+  isTimeoutError,
   type ChatMessage,
   type CompletionRequest,
   type CompletionResult,
@@ -77,48 +78,76 @@ export function createOpenAICompatibleProvider(
     dataHandling: config.dataHandling,
 
     webSearch: config.capabilities.webSearch
-      ? (request) => withRetries(config, request.timeoutMs ?? 60_000, (ms) => webSearch(config, `${base}/responses`, { ...request, timeoutMs: ms }))
+      ? (request) => withRetries(config, request.timeoutMs ?? 60_000, undefined, (ms) => webSearch(config, `${base}/responses`, { ...request, timeoutMs: ms }))
       : undefined,
 
     async complete(request: CompletionRequest): Promise<CompletionResult> {
       const body = buildRequestBody(config, request);
       const timeoutMs = request.timeoutMs ?? config.timeoutMs ?? 120_000;
 
-      return withRetries(config, timeoutMs, async (ms) => {
-        let response: Response;
+      return withRetries(config, timeoutMs, request.signal, async (ms) => {
+        // Held until the whole reply is read, so the time limit covers streaming too
+        const limit = deadline(ms, request.signal);
         try {
-          response = await fetch(url, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${config.apiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-            signal: AbortSignal.timeout(ms),
-          });
-        } catch (error) {
-          const reason = error instanceof Error ? error.message : String(error);
-          throw new AIProviderError(`${config.name} request failed: ${reason}`, null, true);
-        }
+          let response: Response;
+          try {
+            response = await fetch(url, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${config.apiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(body),
+              signal: limit.signal,
+            });
+          } catch (error) {
+            const reason = error instanceof Error ? error.message : String(error);
+            throw new AIProviderError(`${config.name} request failed: ${reason}`, null, true, null, isTimeoutError(error));
+          }
 
-        if (!response.ok) throw await failedStatus(config.name, response);
-        return request.stream ? readStream(config.name, response) : readJson(config.name, response);
+          if (!response.ok) throw await failedStatus(config.name, response);
+          return await (request.stream ? readStream(config.name, response) : readJson(config.name, response));
+        } finally {
+          limit.done();
+        }
       });
     },
   };
 }
 
 // Retries what can pass on a second try (rate limits, server errors, dropped connections) with backoff and jitter.
+// A time limit that also ends when `cancel` does. Built by hand rather than with AbortSignal.any, whose timeout can be
+// garbage-collected before it fires; this one's timer is held until done() is called.
+export function deadline(ms: number, cancel?: AbortSignal): { signal: AbortSignal; done: () => void } {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new DOMException("The operation was aborted due to timeout", "TimeoutError")), ms);
+  const stop = () => controller.abort(cancel?.reason ?? new DOMException("This operation was aborted", "AbortError"));
+  if (cancel?.aborted) stop();
+  else cancel?.addEventListener("abort", stop, { once: true });
+  return {
+    signal: controller.signal,
+    done: () => {
+      clearTimeout(timer);
+      cancel?.removeEventListener("abort", stop);
+    },
+  };
+}
+
 // timeoutMs covers every attempt and wait together, so callers' time budgets hold. Never retries a bad request or a
 // gateway timeout, and only when, after waiting as long as the provider asks, a quarter of the time is still left.
-async function withRetries<T>(config: OpenAICompatibleConfig, timeoutMs: number, attempt: (ms: number) => Promise<T>): Promise<T> {
+async function withRetries<T>(
+  config: OpenAICompatibleConfig,
+  timeoutMs: number,
+  stop: AbortSignal | undefined,
+  attempt: (ms: number) => Promise<T>,
+): Promise<T> {
   const retries = config.retries ?? 2;
   const deadline = Date.now() + timeoutMs;
   for (let tries = 0; ; tries++) {
     try {
       return await attempt(Math.max(1, deadline - Date.now()));
     } catch (error) {
-      if (!(error instanceof AIProviderError) || !error.retryable || tries >= retries) throw error;
+      if (stop?.aborted || !(error instanceof AIProviderError) || !error.retryable || tries >= retries) throw error;
       const wait = backoffMs(tries, error.retryAfterMs);
       if (deadline - Date.now() - wait < timeoutMs / 4) throw error;
       emitAIEvent({ type: "retry", status: error.status, waitMs: Math.round(wait) });
@@ -219,7 +248,7 @@ async function readStream(name: string, response: Response): Promise<CompletionR
     await reader.cancel().catch(() => {});
     if (error instanceof AIProviderError) throw error;
     const reason = error instanceof Error ? error.message : String(error);
-    throw new AIProviderError(`${name} stream failed: ${reason}`, response.status, true);
+    throw new AIProviderError(`${name} stream failed: ${reason}`, response.status, true, null, isTimeoutError(error));
   }
 
   // A dropped connection ends the stream without either marker
@@ -341,7 +370,7 @@ async function webSearch(
     });
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    throw new AIProviderError(`${config.name} search failed: ${reason}`, null, true);
+    throw new AIProviderError(`${config.name} search failed: ${reason}`, null, true, null, isTimeoutError(error));
   }
   if (!response.ok) throw await failedStatus(config.name, response, "search returned");
 

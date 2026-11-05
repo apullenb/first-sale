@@ -1,6 +1,7 @@
 import type { BusinessStructure, JurisdictionLevel, PlanTopic, RequirementDraft, TaskStatus, VerificationState } from "@/lib/domain";
 import { type Place, questionOf, type RequirementStatus } from "@/lib/research/applicability";
 import type { Contacts } from "@/lib/research/contacts";
+import type { SearchTrail } from "@/lib/research/follow-up";
 import { type OfficeContact, officeOf, orderLinks } from "@/lib/research/office";
 import { orderTasks } from "./checklist";
 
@@ -48,12 +49,20 @@ export interface PlanTaskDraft {
   alreadyHave: string | null;
   // The model's condition, asked of the owner on What applies to you; empty when it doesn't depend on one
   question: string;
-  // Why SnapStart decided this applies, when no official page spells it out
-  notes?: { title: string; background: string }[];
+  // Why SnapStart decided this applies, when no official page spells it out; for a rule it couldn't settle, where it looked
+  notes?: PlanNote[];
   // Read from the office's official pages
   contacts?: Contacts | null;
   // The model's read of what the owner does; stepKindOf decides
   ownerAction?: RequirementDraft["ownerAction"];
+}
+
+export interface PlanNote {
+  title: string;
+  background: string;
+  // What the requirement is for, so a step that groups several can say it for each
+  why?: string;
+  trail?: SearchTrail | null;
 }
 
 // The rule-written part of a step, for plans saved before it existed
@@ -79,6 +88,9 @@ type CheckedRequirement = RequirementDraft & {
   alreadyHave?: string | null;
   // From the follow-up check; empty until it runs
   background?: string;
+  trail?: SearchTrail | null;
+  // Whether the claims check read the quote; null on rows saved before this was recorded
+  claimsChecked?: boolean | null;
 };
 
 export interface ReadSource {
@@ -113,7 +125,8 @@ export function buildPlan(
   simulated = false,
   options: { place?: Place; offices?: readonly OfficeContact[] } = {},
 ): PlanTaskDraft[] {
-  const requirements = allRequirements.filter((requirement) => requirement.fitsStructure !== false && requirement.status !== "not_needed");
+  // Not needed, and likely doesn't apply, are listed with their reasons but aren't steps
+  const requirements = allRequirements.filter((requirement) => requirement.fitsStructure !== false && requirement.status !== "not_needed" && requirement.status !== "unlikely");
   const byId = new Map(sources.map((source) => [source.id, source]));
   const keyFor = new Map<string, string>();
   const used = new Set<string>();
@@ -129,6 +142,8 @@ export function buildPlan(
   const drafts = requirements.map((requirement, index): PlanTaskDraft => {
     const cited = requirement.sourceIds.flatMap((id) => byId.get(id) ?? []);
     const sourced = requirement.verification === "sourced";
+    // A quote the claims check never read is on the page, but isn't shown as confirming the step
+    const confirming = sourced && requirement.claimsChecked !== false;
     // SnapStart decides; the reason it gives (notes) replaces any doubt passed on to the owner
     const uncertainty: string[] = [];
 
@@ -146,7 +161,7 @@ export function buildPlan(
           url: source.url,
           government: source.government,
           // Only the page the quote was actually found on
-          confirms: sourced && (requirement.confirmedBy ? requirement.confirmedBy.includes(source.id) : true),
+          confirms: confirming && (requirement.confirmedBy ? requirement.confirmedBy.includes(source.id) : true),
         })),
         requirement.level,
       ),
@@ -162,7 +177,7 @@ export function buildPlan(
       doneWhen: requirement.doneWhen,
       prerequisites: [],
       simulated,
-      requirementStatus: requirement.status ?? (sourced ? "verified" : "needs_confirmation"),
+      requirementStatus: requirement.status ?? (sourced ? (confirming ? "verified" : "quote_unchecked") : "needs_confirmation"),
       conditions: requirement.conditions ?? [],
       timing: requirement.timing,
       forStructures: requirement.forStructures,
@@ -170,7 +185,9 @@ export function buildPlan(
       jurisdiction: [...new Set(cited.filter((source) => source.government).map((source) => source.government))].join(", "),
       alreadyHave: requirement.alreadyHave ?? null,
       question: questionOf(requirement) ?? "",
-      notes: requirement.background ? [{ title: requirement.title, background: requirement.background }] : [],
+      notes: requirement.background
+        ? [{ title: requirement.title, background: requirement.background, why: requirement.whyItApplies, ...(requirement.trail ? { trail: requirement.trail } : {}) }]
+        : [],
       contacts: null,
       ownerAction: requirement.ownerAction ?? null,
     };

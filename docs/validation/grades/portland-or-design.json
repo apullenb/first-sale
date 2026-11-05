@@ -1,0 +1,290 @@
+{
+  "case": "portland-or-design",
+  "items": [
+    {
+      "key_id": "oregon-assumed-business-name",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "oregon-assumed-business-name"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "In plan before selling; evidence is a generic SBA line, not Oregon's page, and the $50 fee isn't shown."
+    },
+    {
+      "key_id": "portland-multco-tax-account",
+      "key_verdict": "required",
+      "before_first_sale": false,
+      "app_keys": [
+        "portland-revenue-tax-account"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Covered; app puts it before selling, stricter than the key's 60-day window."
+    },
+    {
+      "key_id": "portland-multco-annual-return",
+      "key_verdict": "required_later",
+      "before_first_sale": false,
+      "app_keys": [
+        "multnomah-county-bit-filing",
+        "portland-business-license-tax-filing"
+      ],
+      "app_status": "verified / needs_confirmation",
+      "grade": "found",
+      "note": "Filing steps cover the combined return, but neither says the return is filed even when exempt."
+    },
+    {
+      "key_id": "portland-business-license-tax-payment",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [
+        "portland-business-license-tax-filing"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "unneeded_step",
+      "note": "Step says 'File and pay'; under $25k is below the $75k exemption, so no tax is owed (filing half is right)."
+    },
+    {
+      "key_id": "multnomah-business-income-tax-payment",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [
+        "multnomah-county-bit-filing"
+      ],
+      "app_status": "verified",
+      "grade": "unneeded_step",
+      "note": "Verified step says 'File and pay' MCBIT; key says this owner is exempt and owes nothing (filing half is right)."
+    },
+    {
+      "key_id": "metro-shs-business-income-tax",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed; mentioned only inside a registration quote."
+    },
+    {
+      "key_id": "metro-shs-personal-income-tax",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "multnomah-preschool-for-all-tax",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "portland-home-occupation-permit",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [
+        "portland-type-a-home-rules",
+        "portland-type-b-home-permit"
+      ],
+      "app_status": "verified / conditional",
+      "grade": "correctly_omitted",
+      "note": "App says Type A needs no permit; Type B permit only if clients or a helper come to the home (right condition)."
+    },
+    {
+      "key_id": "multnomah-business-personal-property-return",
+      "key_verdict": "required_later",
+      "before_first_sale": false,
+      "app_keys": [
+        "multnomah-personal-property"
+      ],
+      "app_status": "conditional",
+      "grade": "found",
+      "note": "Listed, but conditional on gear worth 'more than a few thousand dollars'; key says the return is expected even below the cancellation threshold. No quote."
+    },
+    {
+      "key_id": "trimet-self-employment-tax",
+      "key_verdict": "required_later",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "No TriMet self-employment tax (Form OR-TM) item; Oregon income tax step doesn't mention it."
+    },
+    {
+      "key_id": "oregon-estimated-tax",
+      "key_verdict": "conditional",
+      "before_first_sale": false,
+      "app_keys": [
+        "oregon-income-tax"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "missed",
+      "note": "Condition plausibly true; app's Oregon income tax step covers the yearly return only, no quarterly estimated payments."
+    },
+    {
+      "key_id": "oregon-sales-tax",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [
+        "or-no-sales-tax"
+      ],
+      "app_status": "verified",
+      "grade": "correctly_omitted",
+      "note": "App states no Oregon sales tax (sourced from GSA SmartPay, tagged federal level)."
+    },
+    {
+      "key_id": "oregon-corporate-activity-tax",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "oregon-general-business-license",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "oregon-workers-comp",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "federal-ein",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [
+        "ein"
+      ],
+      "app_status": "optional",
+      "grade": "correctly_omitted",
+      "note": "Optional, matching the key."
+    },
+    {
+      "key_id": "federal-self-employment-tax",
+      "key_verdict": "required_later",
+      "before_first_sale": false,
+      "app_keys": [
+        "federal-annual-tax"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Federal income tax plus SE tax step; $400 threshold not stated."
+    },
+    {
+      "key_id": "federal-estimated-tax",
+      "key_verdict": "conditional",
+      "before_first_sale": false,
+      "app_keys": [
+        "federal-estimated-tax"
+      ],
+      "app_status": "conditional",
+      "grade": "found",
+      "note": "Condition matches the key ($1,000 or more owed)."
+    },
+    {
+      "key_id": "federal-business-license",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "fincen-boi-report",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    }
+  ],
+  "unconfirmed": [],
+  "extras": [
+    {
+      "app_key": "business-structure-choice",
+      "title": "Choose a business structure — sole proprietorship",
+      "status": "needs_confirmation",
+      "grade": "reasonable",
+      "note": "Sensible first step for a new owner."
+    },
+    {
+      "app_key": "oregon-income-tax",
+      "title": "Pay Oregon personal income tax on business earnings",
+      "status": "needs_confirmation",
+      "grade": "reasonable",
+      "note": "Correct in substance (profit goes on the Oregon personal return) but has no quote or source."
+    },
+    {
+      "app_key": "federal-trademark-check",
+      "title": "Check the federal trademark database for Fernline Studio",
+      "status": "optional",
+      "grade": "reasonable",
+      "note": "Optional name check."
+    },
+    {
+      "app_key": "domain-name",
+      "title": "Register a website domain name for the studio",
+      "status": "optional",
+      "grade": "reasonable",
+      "note": "Optional; owner finds clients online."
+    }
+  ],
+  "confirm_steps": [],
+  "fees": [
+    {
+      "app_key": "portland-type-b-home-permit",
+      "fee_usd": 223,
+      "deadline": null,
+      "grade": "supported",
+      "note": "Quote from Portland's permit application states the $223 non-refundable fee for a 2-year permit; key gives no fee."
+    },
+    {
+      "app_key": "multnomah-county-bit-filing",
+      "fee_usd": null,
+      "deadline": "at the same time they file their federal and state income tax returns",
+      "grade": "supported",
+      "note": "Quote states it; matches the key's due date with the federal and state returns."
+    }
+  ],
+  "verified_wrong": [
+    "multnomah-county-bit-filing"
+  ],
+  "not_needed_wrong": [],
+  "summary": {
+    "items": {
+      "found": 6,
+      "unneeded_step": 2,
+      "correctly_omitted": 11,
+      "missed": 2
+    },
+    "extras": {
+      "reasonable": 4
+    },
+    "confirm_steps": {},
+    "fees": {
+      "supported": 2
+    },
+    "verified_wrong": 1,
+    "not_needed_wrong": 0,
+    "notes": "multnomah-county-bit-filing is verified_wrong in part: filing is right, but 'pay' ignores the exemption this owner falls under."
+  }
+}

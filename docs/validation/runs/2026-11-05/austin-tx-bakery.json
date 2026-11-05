@@ -1,0 +1,1791 @@
+{
+  "case": "austin-tx-bakery",
+  "label": "Home bakery, Austin, Texas",
+  "model": "Meta Muse (muse-spark-1.3)",
+  "simulated": false,
+  "ranAt": "2026-11-05T06:50:21.816Z",
+  "timeLimitSeconds": 600,
+  "ms": {
+    "research": 237381,
+    "followUp": 163994,
+    "total": 401377
+  },
+  "cost": {
+    "usd": 1.7436,
+    "modelCalls": 10,
+    "searches": 30,
+    "inputTokens": 1426850,
+    "outputTokens": 78659,
+    "failedCalls": [
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "research_follow_up: AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout",
+      "requirement_follow_up: AIProviderError: Meta Muse stream failed: This operation was aborted"
+    ],
+    "fallbacks": [
+      "requirement_follow_up"
+    ]
+  },
+  "calls": [
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8431,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8640,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14352,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16455,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17346,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17862,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18206,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 19516,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 23988,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 30382,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 31511,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 45003,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 103417,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 63531,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10461,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14246,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14898,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18947,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_follow_up",
+      "effort": "medium",
+      "ms": 40011,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 18729,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 25673,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 13629,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6038,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6126,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6247,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6749,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6975,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7636,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8416,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11524,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14183,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 15035,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16158,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 25497,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 25563,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 79457,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "low",
+      "ms": 29449,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: This operation was aborted"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 21029,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16651,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 18351,
+      "ok": true,
+      "error": null
+    }
+  ],
+  "claimsCheckedInResearch": true,
+  "followUp": {
+    "candidates": 8,
+    "rounds": 2,
+    "confirmed": 0,
+    "rechecked": 0
+  },
+  "pages": [
+    {
+      "id": "irs-ein",
+      "title": "IRS: Get an employer identification number",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "irs-business-structures",
+      "title": "IRS: Business structures",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-structure",
+      "title": "SBA: Choose a business structure",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-name",
+      "title": "SBA: Choose your business name",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-register-business",
+      "title": "SBA: Register your business",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#register-business",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-location",
+      "title": "SBA: Pick your business location",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-licenses-permits",
+      "title": "SBA: Apply for licenses and permits",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-tax-ids",
+      "title": "SBA: Get federal and state tax ID numbers",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "tx-sos-205",
+      "title": "Texas Secretary of State: Form 205, Certificate of Formation (LLC)",
+      "url": "https://www.sos.texas.gov/corp/forms/205_boc.pdf",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": false
+    },
+    {
+      "id": "tx-sos-503",
+      "title": "Texas Secretary of State: Form 503, Assumed Name Certificate",
+      "url": "https://www.sos.texas.gov/corp/forms/503_boc.pdf",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": false
+    },
+    {
+      "id": "tx-cpa-permit-faq",
+      "title": "Texas Comptroller: Obtaining a sales tax permit",
+      "url": "https://comptroller.texas.gov/taxes/sales/faq/permit.php",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": false
+    },
+    {
+      "id": "tx-cpa-permit",
+      "title": "Texas Comptroller: Sales tax permit application",
+      "url": "https://comptroller.texas.gov/taxes/permit/",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": false
+    },
+    {
+      "id": "tx-cpa-franchise",
+      "title": "Texas Comptroller: Franchise tax",
+      "url": "https://comptroller.texas.gov/taxes/franchise/",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": false
+    },
+    {
+      "id": "tx-cpa-bakery",
+      "title": "Texas Comptroller: Grocery and convenience stores (bakery items)",
+      "url": "https://comptroller.texas.gov/taxes/publications/96-280.php",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": false
+    },
+    {
+      "id": "tx-dshs-cottage",
+      "title": "Texas DSHS: Cottage food production",
+      "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": false
+    },
+    {
+      "id": "tx-travis-dba",
+      "title": "Travis County Clerk: Assumed names (DBAs)",
+      "url": "https://countyclerk.traviscountytx.gov/departments/recording/dbas/",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": false
+    },
+    {
+      "id": "tx-austin-home",
+      "title": "City of Austin: Small business permitting and home businesses",
+      "url": "https://www.austintexas.gov/development-services/small-business-permitting",
+      "level": "city",
+      "government": "City of Austin",
+      "discovered": false
+    },
+    {
+      "id": "state-name-1",
+      "title": "Business Entities Using Assumed Names (DBAs)",
+      "url": "https://dfps.texas.gov/Doing_Business/Contract_Handbook/Chapter_3/3-02-01-01-Assumed_Names_DBA.asp",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "state-sales-tax-1",
+      "title": "Texas Online Tax Registration Application",
+      "url": "https://comptroller.texas.gov/taxes/permit/?shem=rimspwouoe%2C",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "state-sales-tax-2",
+      "title": "Tax Help Frequently Asked Questions",
+      "url": "https://comptroller.texas.gov/taxes/faqs/tax-help.php",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "state-food-1",
+      "title": "Texas Cottage Food Production",
+      "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "state-food-2",
+      "title": "Salsa2Bills 1..4",
+      "url": "https://capitol.texas.gov/tlodocs/81R/billtext/pdf/HB03282H.pdf",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-2",
+      "title": "Texas Department of Information Resources",
+      "url": "https://capitol.texas.gov/tlodocs/89R/analysis/html/SB00541F.htm",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-1",
+      "title": "How to Start a Food Business",
+      "url": "https://www.fda.gov/food/food-industry/how-start-food-business",
+      "level": "federal",
+      "government": "Food and Drug Administration (Department of Health and Human Services)",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-2",
+      "title": "GRAS Notice (GRN) 1292 Agency Response Letter",
+      "url": "https://www.fda.gov/media/192504/download",
+      "level": "federal",
+      "government": "Food and Drug Administration (Department of Health and Human Services)",
+      "discovered": true
+    },
+    {
+      "id": "state-ongoing-1",
+      "title": "Starting a Business in Texas",
+      "url": "https://www.texas.gov/starting-business-texas/",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "state-ongoing-2",
+      "title": "THE FOLLOWING IS AN UNEDITED ROUGH DRAFT TRANSLATION FROM THE CART PROVIDER'S OUTPUT",
+      "url": "https://gov.texas.gov/uploads/files/business/2021-05-13_Small_Business_Webinar_Transcript.pdf",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-1",
+      "title": "Self-employment tax (Social Security and Medicare taxes)",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employment-tax-social-security-and-medicare-taxes",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-2",
+      "title": "Making Estimated Tax Payments - TAS",
+      "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/estimated-payments/2026/01/",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "county-food-1",
+      "title": "Travis County Code",
+      "url": "https://www.traviscountytx.gov/commissioners-court/county-code",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "county-food-2",
+      "title": "Commissioners Court, September 28, 1999",
+      "url": "https://www2.traviscountytx.gov/commissioners_court/agendas/1999/09/VS990928.asp",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "city-license-2",
+      "title": "Microsoft Word - second Hand Property Ordinance JS Aug 16.doc",
+      "url": "https://services.austintexas.gov/edims/document.cfm?id=174504",
+      "level": "city",
+      "government": "City of Austin",
+      "discovered": true
+    },
+    {
+      "id": "city-home-1",
+      "title": "Small Business Permitting",
+      "url": "https://www.austintexas.gov/development-services/small-business-permitting",
+      "level": "city",
+      "government": "City of Austin",
+      "discovered": true
+    },
+    {
+      "id": "city-home-2",
+      "title": "1  RESOLUTION NO.",
+      "url": "https://services.austintexas.gov/edims/document.cfm?id=469451",
+      "level": "city",
+      "government": "City of Austin",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-1-1",
+      "title": "Grocery and Convenience Stores",
+      "url": "https://comptroller.texas.gov/taxes/publications/96-280.php?utm_source=ppc&utm_medium=google&utm_term=keyword&utm_campaign=campaign.name&gclid=CjwKCAiAtYy9BhBcEiwANWQQL4fF3u9xovmN-qXkp7kjGvvA7m0yYW_GlyNV8-_GvXjnISwwq-oIaBoCdtIQAvD_BwE",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-1-2",
+      "title": "Food and Beverage Revenue",
+      "url": "https://comptroller.Texas.gov/taxes/hotel/docs/hotel-f-b-rev.pdf",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-2-1",
+      "title": "Small Business Nutrition Labeling Exemption Guidance",
+      "url": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/small-business-nutrition-labeling-exemption-guidance",
+      "level": "federal",
+      "government": "Food and Drug Administration (Department of Health and Human Services)",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-2-2",
+      "title": "FDA Unified Registration and Listing Systems (FURLS): Small Business Nutrition Labeling Exemption (SBNLE) Overview",
+      "url": "https://www.access.fda.gov/access_images/FURLS_HFP_SBNLE_Overview.pdf",
+      "level": "federal",
+      "government": "Food and Drug Administration (Department of Health and Human Services)",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-3-2",
+      "title": "City of Austin Council Meeting Backup: October 9, 2025 File ID: 25-2151",
+      "url": "https://services.austintexas.gov/edims/document.cfm?id=459957",
+      "level": "city",
+      "government": "City of Austin",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-4-1",
+      "title": "Farmers Markets | Austin Public Health | AustinTexas.gov",
+      "url": "https://www.austintexas.gov/health/farmers-markets",
+      "level": "city",
+      "government": "City of Austin",
+      "discovered": true
+    },
+    {
+      "id": "fu-texas-allowed-foods-limit-1",
+      "title": "86(R) SB 572 - Enrolled version",
+      "url": "https://capitol.texas.gov/tlodocs/86R/billtext/pdf/SB00572F.pdf",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "fu-texas-allowed-foods-limit-2",
+      "title": "86(R) SB 572 - Engrossed version - Bill Text",
+      "url": "https://capitol.texas.gov/tlodocs/86R/billtext/html/SB00572E.htm",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "fu-texas-allowed-foods-limit-3",
+      "title": "88(R) SB 829 - Introduced version - Bill Text",
+      "url": "https://capitol.texas.gov/tlodocs/88R/billtext/html/SB00829I.htm",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "fu-texas-cottage-labeling-1",
+      "title": "Texas Cottage Food Production",
+      "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "fu-texas-cottage-labeling-2",
+      "title": "83(R) HB 970 - Engrossed version - Bill Analysis",
+      "url": "https://capitol.texas.gov/tlodocs/83R/analysis/html/HB00970E.htm",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "fu-texas-cottage-labeling-3",
+      "title": "\n  ",
+      "url": "https://capitol.texas.gov/tlodocs/89R/analysis/pdf/SB00541F.pdf",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "fu-texas-sales-tax-permit-1",
+      "title": "Texas Online Tax Registration Application",
+      "url": "https://comptroller.texas.gov/taxes/permit/",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "fu-texas-sales-tax-permit-2",
+      "title": "HB05089H",
+      "url": "https://capitol.texas.gov/tlodocs/88R/analysis/pdf/HB05089H.pdf",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "fu-texas-sales-tax-permit-3",
+      "title": "Form AP-220, Instructions for Sales Tax Application",
+      "url": "https://comptroller.texas.gov/forms/ap-220.pdf?gclid=Cj0KCQjwm7q-BhDRARIsACD6-fWLW2mBhHQLomhyCWG908Z-wk54IpZIkX4EpSepNsWQgunzIFjaMVwaAmxFEALw_wcB",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "fu-texas-bakery-tax-handling-2",
+      "title": "Grocery and Convenience Stores",
+      "url": "https://comptroller.texas.gov/taxes/publications/96-280.php?utm_source=ppc&utm_medium=google&utm_term=keyword&utm_campaign=campaign.name&gclid=CjwKCAiAtYy9BhBcEiwANWQQL4fF3u9xovmN-qXkp7kjGvvA7m0yYW_GlyNV8-_GvXjnISwwq-oIaBoCdtIQAvD_BwE",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "fu-texas-bakery-tax-handling-3",
+      "title": "85(R) HB 4054 - Engrossed version",
+      "url": "https://capitol.texas.gov/tlodocs/85R/billtext/pdf/HB04054E.pdf",
+      "level": "state",
+      "government": "Texas Department of Information Resources",
+      "discovered": true
+    },
+    {
+      "id": "fu-travis-county-dba-1",
+      "title": "DBAs - Travis County Clerk",
+      "url": "https://countyclerk.traviscountytx.gov/departments/recording/dbas/",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-travis-county-dba-2",
+      "title": "Recording - Abandonment Assumed Name",
+      "url": "https://countyclerk.traviscountytx.gov/wp-content/uploads/recording/DBAabandonmentDLM.pdf",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-travis-county-dba-3",
+      "title": "Recording - DBA_Assumed Name_2014",
+      "url": "https://countyclerk.traviscountytx.gov/wp-content/uploads/recording/pdfs/pdf_tc_rec_dba.pdf",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-austin-home-business-rules-1",
+      "title": "Small Business Permitting",
+      "url": "https://www.austintexas.gov/development-services/small-business-permitting",
+      "level": "city",
+      "government": "City of Austin",
+      "discovered": true
+    },
+    {
+      "id": "fu-austin-home-business-rules-3",
+      "title": "Small Business Permitting",
+      "url": "https://www.austintexas.gov/development-services/small-business-permitting",
+      "level": "city",
+      "government": "City of Austin",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-austin-home-business-rules-1",
+      "title": "ORDINANCE NO",
+      "url": "https://services.austintexas.gov/edims/document.cfm?id=415477",
+      "level": "city",
+      "government": "City of Austin",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-austin-home-business-rules-3",
+      "title": "ORDINANCE AMENDMENT REVIEW SHEET",
+      "url": "https://services.austintexas.gov/edims/document.cfm?id=406730",
+      "level": "city",
+      "government": "City of Austin",
+      "discovered": true
+    },
+    {
+      "id": "fu-travis-personal-property-rendition-1",
+      "title": "Property tax important dates",
+      "url": "https://tax-office.traviscountytx.gov/properties/taxes/important-dates",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-travis-personal-property-rendition-3",
+      "title": "Payroll and Benefits Auditing | Travis County, Texas",
+      "url": "https://www.traviscountytx.gov/county-auditor/divisions/payroll-and-benefits-auditing",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-travis-personal-property-rendition-1",
+      "title": "Heavy Equipment Filing Requirements",
+      "url": "https://tax-office.traviscountytx.gov/special-inventory-tax/heavy-equipment-filing-requirements",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-travis-personal-property-rendition-2",
+      "title": "Motor Vehicle Dealer Special Inventory Frequently Asked Questions",
+      "url": "https://tax-office.traviscountytx.gov/special-inventory-tax/special-tax-inventory-faq",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-travis-personal-property-rendition-3",
+      "title": "FY 2027 Budget Rules Final without IDC Rates",
+      "url": "https://www.traviscountytx.gov/images/planning_budget/Docs/2027/FY_2027_Budget_Rules_Final_without_IDC_Rates.pdf",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-travis-county-clerk-1",
+      "title": "Contact Us | Travis County, Texas",
+      "url": "https://www.traviscountytx.gov/tnr/contact-us",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-travis-county-clerk-2",
+      "title": "Contact | Travis County, Texas",
+      "url": "https://www.traviscountytx.gov/tnr/permits/contact",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-travis-county-clerk-3",
+      "title": "TNR Digital Brochure - Web Version",
+      "url": "https://www.traviscountytx.gov/images/ChrisPDFs/TNR_Digital_Brochure_FINAL3.pdf",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-austin-2",
+      "title": "Development Process Team | AustinTexas.gov",
+      "url": "https://www.austintexas.gov/development-services/development-process-team",
+      "level": "city",
+      "government": "City of Austin",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-travis-central-appraisal-district-2",
+      "title": "Subdivision: Construction Plan",
+      "url": "https://www.traviscountytx.gov/tnr/development-services/apply-for-a-permit/subdivision-construction-plan",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-travis-central-appraisal-district-3",
+      "title": "Development Services | Travis County, Texas",
+      "url": "https://www.traviscountytx.gov/tnr/development-services",
+      "level": "county",
+      "government": "Travis County Information Technology Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-again-business-structure-1",
+      "title": "How to Start a Food Business",
+      "url": "https://www.fda.gov/food/food-industry/how-start-food-business",
+      "level": "federal",
+      "government": "Food and Drug Administration (Department of Health and Human Services)",
+      "discovered": true
+    },
+    {
+      "id": "fu-again-business-structure-3",
+      "title": "How to Build Business Credit Quickly: 5 Simple Steps",
+      "url": "https://legacy.sba.gov/blog/how-build-business-credit-quickly-5-simple-steps",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": true
+    }
+  ],
+  "unread": [
+    {
+      "title": "BRK - Broker",
+      "url": "https://www.puc.texas.gov/industry/electric/business/brk/brk_qa/",
+      "reason": "The page had no readable text"
+    },
+    {
+      "title": "How to Start a MV business.pdf",
+      "url": "https://www.austintexas.gov/sites/default/files/files/APH%20Comms/How-to-Start--MV-Business-1-7-25.pdf",
+      "reason": "The site answered with error 404"
+    }
+  ],
+  "requirements": [
+    {
+      "key": "business-structure",
+      "title": "Choose to operate as a sole proprietorship",
+      "level": "federal",
+      "topic": "structure",
+      "agency": "Small Business Administration",
+      "status": "unlikely",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "unlikely",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-structure"
+      ],
+      "evidence": "You’re automatically considered to be a sole proprietorship if you do business activities but don’t register as any other kind of business.",
+      "why": "You have 1 owner and chose sole proprietorship. This choice sets how you pay tax and that you and the business are the same legal person.",
+      "background": "A sole proprietorship needs no formation filing, so there is nothing to file for this choice.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not say anything about how tax is paid or that owner and business are the same legal person."
+      ],
+      "trail": {
+        "searched": [
+          {
+            "where": "United States",
+            "what": "who needs it and who doesn’t, such as exemptions or answers to common questions",
+            "pages": 3
+          }
+        ],
+        "read": [
+          {
+            "title": "How to Start a Food Business",
+            "url": "https://www.fda.gov/food/food-industry/how-start-food-business"
+          },
+          {
+            "title": "How to Build Business Credit Quickly: 5 Simple Steps",
+            "url": "https://legacy.sba.gov/blog/how-build-business-credit-quickly-5-simple-steps"
+          }
+        ],
+        "unread": [
+          {
+            "title": "How to Build Business Credit Quickly: 5 Simple Steps | U.S. Small Business Administration",
+            "url": "https://cloudfront.www.sba.gov/blog/how-build-business-credit-quickly-5-simple-steps",
+            "reason": "Couldn’t reach the site"
+          }
+        ],
+        "found": "The small business guide explains that a sole proprietorship does not create a separate legal entity.",
+        "missing": "No source lists a filing this owner must make to use that structure.",
+        "leaning": "not_needed",
+        "quoteSetAside": false,
+        "rounds": 2
+      }
+    },
+    {
+      "key": "texas-cottage-food-status",
+      "title": "Operate as a Texas cottage-food bakery",
+      "level": "state",
+      "topic": "license_permit",
+      "agency": "Texas Department of State Health Services",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production"
+      ],
+      "evidence": "A cottage food production operation is exempt from the requirements of a food service establishment and does not have to comply with the Texas Food Establishment Rules.",
+      "why": "You bake at home and sell cookies, breads and cakes that do not need cold holding. Texas lets this kind of home operation sell without a food-establishment license.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "texas-allowed-foods-limit",
+      "title": "Sell only allowed foods and stay under the sales cap",
+      "level": "state",
+      "topic": "license_permit",
+      "agency": "Texas Department of State Health Services",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production"
+      ],
+      "evidence": "The CFPO definition has been updated to include nonprofit organizations and increases the annual gross income threshold to $150,000.",
+      "why": "You expect $5,000 to $25,000 in first-year sales, which is under the $150,000 cottage-food limit. You must avoid banned foods like meat, seafood, ice, low-acid canned goods, CBD/THC foods, and raw milk.",
+      "background": "Your plain cookies, breads and cakes are allowed cottage foods and your expected sales sit well below the state yearly cap, while you avoid banned meats and similar items.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote shows the $150,000 threshold but does not list any banned foods like meat, seafood, or raw milk."
+      ],
+      "trail": null
+    },
+    {
+      "key": "texas-food-handler-training",
+      "title": "Complete food-handler training",
+      "level": "state",
+      "topic": "other",
+      "agency": "Texas Department of State Health Services",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production"
+      ],
+      "evidence": "An individual who operates a cottage food production operation must successfully complete a basic food safety education or training program for food handlers accredited under Health and Safety Code, Chapter 438(D) .",
+      "why": "Texas requires every cottage-food operator to finish accredited food-handler training before starting.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "texas-cottage-labeling",
+      "title": "Package and label cottage foods the Texas way",
+      "level": "state",
+      "topic": "license_permit",
+      "agency": "Texas Department of State Health Services",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production"
+      ],
+      "evidence": "Foods sold by a cottage food production operation must be packaged and labeled.",
+      "why": "You will sell packaged cookies, breads and cakes in person and at markets. Texas requires safe packaging and a label with your operation name, address or ID, product name, allergens, and the home-produced disclosure.",
+      "background": "Texas requires cottage foods to be safely packed with a full label showing your business, product, allergens and the home-made disclosure.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote says foods must be packaged and labeled but does not show the specific required label contents."
+      ],
+      "trail": null
+    },
+    {
+      "key": "texas-sales-tax-permit",
+      "title": "Get a Texas sales and use tax permit",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Texas Comptroller of Public Accounts",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://comptroller.texas.gov/taxes/sales/faq/permit.php"
+      ],
+      "evidence": "There is no fee for the permit, but you may be required to post a security bond.",
+      "why": "You will sell tangible goods — cookies, breads and cakes — in Texas at markets and from home. Texas requires sellers of tangible goods to hold a sales-tax permit before selling.",
+      "background": "Selling cookies, breads and cakes in Texas means selling tangible goods in the state, which calls for a state sales tax permit before you start.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote shows there is no fee but does not say sellers of tangible goods must hold a permit before selling."
+      ],
+      "trail": null
+    },
+    {
+      "key": "texas-bakery-tax-handling",
+      "title": "Handle sales tax correctly on bakery sales",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Texas Comptroller of Public Accounts",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://comptroller.texas.gov/taxes/publications/96-280.php"
+      ],
+      "evidence": "Bakery items sold by a business that qualifies as a bakery are not taxable.",
+      "why": "Most plain bakery goods for eating later are not taxable, but if you heat items or give eating utensils the sale can become taxable. You need to apply the bakery rule to each sale.",
+      "background": "Texas taxes bakery goods differently based on whether the seller qualifies as a bakery and whether items are heated or sold with utensils.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote says bakery items from a qualifying bakery are not taxable but does not mention heating items or utensils making a sale taxable."
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-food-safety-labeling",
+      "title": "Follow federal food safety and labeling rules if you sell across state lines",
+      "level": "federal",
+      "topic": "license_permit",
+      "agency": "Food and Drug Administration",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you ship orders to customers outside Texas?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.fda.gov/food/food-industry/how-start-food-business"
+      ],
+      "evidence": "All labeling of FDA-regulated food products must be truthful and not misleading.",
+      "why": "You did not say if you will ship orders. Federal food safety and truthful-labeling rules apply when food is sold across state lines, so shipping would turn them on.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote requires truthful non-misleading labeling but does not say the rules apply when food is sold across state lines."
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-ein",
+      "title": "Consider getting a federal EIN",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "optional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number"
+      ],
+      "evidence": "Beware of websites that charge for an EIN. You never have to pay a fee for an EIN.",
+      "why": "As a sole proprietor with no employees you can often use your Social Security number, but a free EIN can help open a bank account and keep your personal number private.",
+      "background": "",
+      "problems": [
+        "Fee not found in the quote"
+      ],
+      "trail": null
+    },
+    {
+      "key": "texas-cottage-id-registration",
+      "title": "Register for a state ID to hide your home address on labels",
+      "level": "state",
+      "topic": "other",
+      "agency": "Texas Department of State Health Services",
+      "status": "optional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production"
+      ],
+      "evidence": "Instead of providing a physical home address on the label, operators may register on the DSHS Online Licensing Registry and place their registration number on the label.",
+      "why": "You sell from home and customers pick up at home, and you use a business name instead of your legal name. Registration is optional for non-cold foods but lets you put an ID number on the label instead of your home address.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote allows using a registration number instead of a home address but does not say registration is optional for non-cold foods."
+      ],
+      "trail": null
+    },
+    {
+      "key": "texas-sales-tax-returns",
+      "title": "File Texas sales-tax returns on schedule",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Texas Comptroller of Public Accounts",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://comptroller.texas.gov/taxes/sales/faq/permit.php"
+      ],
+      "evidence": "You are required to file a sales and use tax return even if there are no taxable sales or purchases to report during that filing period.",
+      "why": "Once you hold a Texas sales-tax permit you must keep filing returns, even if your bakery sales are nontaxable in that period.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "federal-self-employment-tax",
+      "title": "Pay federal self-employment tax",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employment-tax-social-security-and-medicare-taxes"
+      ],
+      "evidence": "Your net earnings from self-employment (excluding church employee income) were $400 or more.",
+      "why": "As a sole proprietor you are self-employed. With $5,000 to $25,000 in expected sales you will likely have over $400 in net earnings, which triggers this yearly Social Security and Medicare tax.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "federal-estimated-taxes",
+      "title": "Pay quarterly estimated taxes if you will owe enough",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.taxpayeradvocate.irs.gov/news/tax-tips/estimated-payments/2026/01/"
+      ],
+      "evidence": "Individuals, including sole proprietors, partners, and S corporation shareholders, generally must make estimated tax payments if they expect to owe tax of $1,000 or more when their return is filed.",
+      "why": "Side bakery income usually has no tax withheld. Whether quarterly payments are needed depends on how much total tax you will owe when you file.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "texas-hiring-registration",
+      "title": "Register for Texas employer taxes if you hire",
+      "level": "state",
+      "topic": "employer",
+      "agency": "Texas Workforce Commission",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you hire employees in the future?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You plan no hiring now, so this stays on hold. If you later hire help for baking, markets, or deliveries, Texas employer registration and payroll duties would apply.",
+      "background": "",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "travis-county-dba",
+      "title": "File your assumed business name in Travis County",
+      "level": "county",
+      "topic": "name_registration",
+      "agency": "Travis County Clerk",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://dfps.texas.gov/Doing_Business/Contract_Handbook/Chapter_3/3-02-01-01-Assumed_Names_DBA.asp",
+        "https://countyclerk.traviscountytx.gov/departments/recording/dbas/"
+      ],
+      "evidence": "The following business entity types must file an assumed name certificate with the county clerk in each county in which they have a business office. Filing fee is $23.00 for business name and one owner.",
+      "why": "You are a sole proprietor using Rise & Crumb instead of your own legal name, with your business office at home in Travis County.",
+      "background": "Texas expects a sole proprietor who works under a shop name different from the owner legal name to file that name with the county clerk.",
+      "problems": [
+        "Quote not found on the cited pages"
+      ],
+      "trail": null
+    },
+    {
+      "key": "austin-home-business-rules",
+      "title": "Follow Austin home business compatibility rules",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "City of Austin Development Services",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.austintexas.gov/development-services/small-business-permitting"
+      ],
+      "evidence": "A home-based business is a business that operates from a residential property, by the owner or tenant of the property, and is used for the purpose of manufacturing, providing, or selling a lawful good or providing a lawful service. The City of Austin cannot prohibit or require permits for home-based businesses that do not exceed occupancy limits, generate significant traffic, or create visible or noise disturbances.",
+      "why": "You will bake at home inside Austin and have customers pick up at home, so you must meet the City health, safety and neighborhood compatibility rules.",
+      "background": "Austin enforces health, safety and neighborhood compatibility for home businesses, which covers a home bakery with customer pickups.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote defines a home-based business and limits on city action but does not show a health, safety and compatibility requirement for home baking with pickups."
+      ],
+      "trail": null
+    },
+    {
+      "key": "austin-sign-permit",
+      "title": "Get an Austin sign permit if you put up an outdoor business sign",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Austin Development Services",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you put up an outdoor sign at your home?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.austintexas.gov/development-services/small-business-permitting"
+      ],
+      "evidence": "Required for outdoor signage.",
+      "why": "You have home pickups, so you might want an outdoor sign, and Austin requires a permit for outdoor business signs.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote says something is required for outdoor signage but does not show that an Austin sign permit is required."
+      ],
+      "trail": null
+    },
+    {
+      "key": "travis-personal-property-rendition",
+      "title": "Report taxable business equipment to Travis County each year",
+      "level": "county",
+      "topic": "tax_registration",
+      "agency": "Travis Central Appraisal District",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "Home bakeries commonly own business tools and equipment at home, and Texas counties tax business personal property each year.",
+      "background": "Texas taxes business equipment separately, and Travis County sets a yearly filing for owners to list that property.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    }
+  ],
+  "plan": [
+    {
+      "key": "texas-cottage-food-status",
+      "title": "Operate as a Texas cottage-food bakery",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "texas-allowed-foods-limit",
+      "title": "Sell only allowed foods and stay under the sales cap",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "texas-food-handler-training",
+      "title": "Complete food-handler training",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "texas-cottage-labeling",
+      "title": "Package and label cottage foods the Texas way",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "texas-sales-tax-permit",
+      "title": "Get a Texas sales and use tax permit",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://comptroller.texas.gov/taxes/sales/faq/permit.php",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "texas-bakery-tax-handling",
+      "title": "Handle sales tax correctly on bakery sales",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://comptroller.texas.gov/taxes/publications/96-280.php",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-food-safety-labeling",
+      "title": "Follow federal food safety and labeling rules if you sell across state lines",
+      "status": "conditional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.fda.gov/food/food-industry/how-start-food-business",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-ein",
+      "title": "Consider getting a federal EIN",
+      "status": "optional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "texas-cottage-id-registration",
+      "title": "Register for a state ID to hide your home address on labels",
+      "status": "optional",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "texas-sales-tax-returns",
+      "title": "File Texas sales-tax returns on schedule",
+      "status": "verified",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://comptroller.texas.gov/taxes/sales/faq/permit.php",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "federal-self-employment-tax",
+      "title": "Pay federal self-employment tax",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employment-tax-social-security-and-medicare-taxes",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "federal-estimated-taxes",
+      "title": "Pay quarterly estimated taxes if you will owe enough",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/estimated-payments/2026/01/",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "texas-hiring-registration",
+      "title": "Register for Texas employer taxes if you hire",
+      "status": "conditional",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "travis-county-dba",
+      "title": "File your assumed business name in Travis County",
+      "status": "needs_confirmation",
+      "level": "county",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://countyclerk.traviscountytx.gov/departments/recording/dbas/",
+          "confirms": false
+        },
+        {
+          "url": "https://dfps.texas.gov/Doing_Business/Contract_Handbook/Chapter_3/3-02-01-01-Assumed_Names_DBA.asp",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "austin-home-business-rules",
+      "title": "Follow Austin home business compatibility rules",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.austintexas.gov/development-services/small-business-permitting",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "austin-sign-permit",
+      "title": "Get an Austin sign permit if you put up an outdoor business sign",
+      "status": "conditional",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.austintexas.gov/development-services/small-business-permitting",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "travis-personal-property-rendition",
+      "title": "Report taxable business equipment to Travis County each year",
+      "status": "needs_confirmation",
+      "level": "county",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    }
+  ],
+  "openQuestions": [
+    {
+      "question": "We couldn’t find an official page about forming an LLC or other business entity in Texas. That doesn’t mean nothing applies, so ask.",
+      "answer": "You already chose to work as a sole proprietor, so you do not need to create a separate business entity. If you later want liability protection you could form a Texas entity with the state, but that is a choice not a requirement for this bakery."
+    },
+    {
+      "question": "Our search for official pages about business licenses in Travis County didn’t finish. Re-check later, or ask.",
+      "answer": "Texas cottage food law bars cities and counties from requiring a local license or permit or fee to make cottage food at home and sell it directly to customers. You still must follow labeling and food rules, but you do not need a county business license for these direct sales."
+    },
+    {
+      "question": "Does a home bakery selling only at markets and from home count as a bakery for Texas sales tax?",
+      "answer": "Texas treats a shop that mostly sells bakery goods for eating off site as a bakery, and plain cookies and breads for eating later are generally not taxable. Your sales stay nontaxable when you do not heat items and do not hand out plates or utensils with them."
+    },
+    {
+      "question": "Does the small-business exemption from federal nutrition labeling apply at your expected sales level?",
+      "answer": "The pages provided do not explain federal nutrition labeling or any small business exemption, so this cannot be settled from them. A food labeling specialist or the federal food labeling rules would need to confirm whether your bakery qualifies."
+    },
+    {
+      "question": "Do weekly home pickups for cookies and cakes count as significant traffic that would allow the City to restrict the home business?",
+      "answer": "The city only restricts home businesses that create noticeable neighborhood impacts such as heavy traffic, noise, or visible signs of business. Occasional quiet pickups are usually fine, but regular customer cars coming and going could be seen as significant, so keep visits few and quiet."
+    },
+    {
+      "question": "Do Austin farmers markets or other in-person sites need any separate city approval for a cottage-food seller who already sells direct to customers?",
+      "answer": "A cottage baker who sells directly to customers does not need extra city food approval to sell at markets or from home under state cottage law. The market itself may have its own vendor rules and stall requirements, so follow those market rules."
+    },
+    {
+      "question": "What is the current Travis County process and total fee to file and renew an assumed name for one owner, online or in person?",
+      "answer": "You file an assumed name certificate with the county clerk in person with ID for all owners or by mail with a notarized form, and staff can also check name availability for you. The clerk lists a modest base filing charge with a small extra amount for each added owner and for in-office acknowledgment, so check the current clerk schedule before you go."
+    }
+  ],
+  "coverage": [
+    {
+      "category": "formation",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "formation",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 3
+    },
+    {
+      "category": "tax",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "tax",
+      "level": "state",
+      "state": "confirmed",
+      "pagesRead": 7
+    },
+    {
+      "category": "licenses",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "state",
+      "state": "not_searched",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "county",
+      "state": "search_failed",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "city",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "zoning",
+      "level": "city",
+      "state": "read_unconfirmed",
+      "pagesRead": 3
+    },
+    {
+      "category": "food",
+      "level": "state",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "food",
+      "level": "county",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    }
+  ],
+  "conflicts": [
+    {
+      "about": "Whether a home business can be visible to neighbors and customers",
+      "explanation": "One city page says home occupations strictly prohibit visible storefronts, on-site signage and exterior business operations, while another says the City cannot prohibit or require permits for home businesses that stay within occupancy, traffic and noise limits. It is unclear if pickup sales and a small sign are allowed by-right today or only in a future pilot area.",
+      "sourceIds": [
+        "city-home-1",
+        "city-home-2"
+      ]
+    }
+  ]
+}

@@ -96,6 +96,41 @@ describe("readDocument", () => {
     expect(content.pages[0].text).toContain("Payment voucher");
   });
 
+  describe("numbers SnapStart never keeps", () => {
+    it("takes them out of a text PDF in code, before the model looks for blanks", async () => {
+      const responder = vi.fn<(request: CompletionRequest) => string>(() => JSON.stringify({ fields: [] }));
+      const data = await textPdf([["Taxpayer letter", "SSN: 123-45-6789", "Routing number: 021000021", "Applicant name:"]]);
+      const content = await readDocument(createMockProvider(responder), { type: "application/pdf", data }, NOW);
+      expect(content.pages[0].text).toContain("SSN: [Social Security number removed]");
+      expect(content.pages[0].text).toContain("Routing number: [routing number removed]");
+      expect(content.removed).toEqual({ ssn: 1, routing: 1 });
+      const sent = JSON.stringify(responder.mock.calls[0][0].messages);
+      expect(sent).not.toContain("123-45-6789");
+      expect(sent).not.toContain("021000021");
+    });
+
+    it("takes them out of a model's reading of a photo before it's kept", async () => {
+      const model = seeingModel(() =>
+        JSON.stringify({ pages: [{ number: 1, text: "Notice CP575\nEIN 12-3456789\nCard 4111 1111 1111 1111" }], fields: [], unclear: [{ page: 1, where: "Near SSN 123-45-6789", why: "Glare" }] }),
+      );
+      const content = await readDocument(model, { type: "image/png", data: PNG, findBlanks: false }, NOW);
+      expect(content.pages[0].text).toBe("Notice CP575\nEIN [tax ID number removed]\nCard [card number removed]");
+      expect(content.unclear[0].where).toBe("Near SSN [Social Security number removed]");
+      expect(content.removed).toEqual({ ein: 1, card: 1, ssn: 1 });
+    });
+
+    it("takes them out of pasted text", async () => {
+      const content = await readDocument(createMockProvider(), { type: "text/plain", text: "Vendor form\nOwner SSN 123-45-6789\nBusiness name:" }, NOW);
+      expect(content.pages[0].text).toBe("Vendor form\nOwner SSN [Social Security number removed]\nBusiness name:");
+      expect(content.removed).toEqual({ ssn: 1 });
+    });
+
+    it("leaves a form without them as it was", async () => {
+      const content = await readDocument(createMockProvider(), { type: "text/plain", text: "Vendor form\nBusiness name:\nPhone: 512-555-0123" }, NOW);
+      expect(content.removed).toBeUndefined();
+    });
+  });
+
   it("says a scan needs the AI service when the model can't read PDFs", async () => {
     const content = await readDocument(createMockProvider(), { type: "application/pdf", data: await textPdf([[]]) }, NOW);
     expect(content).toMatchObject({ readMethod: "none", fields: [] });

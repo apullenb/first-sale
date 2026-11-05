@@ -36,11 +36,12 @@ describe("checkClaims", () => {
     expect(checked).toBe(true);
     expect(requirements[0]).toMatchObject({
       verification: "needs_verification",
+      claimsChecked: true,
       feeUsd: null,
       confirmedBy: [],
       problems: ["The quote doesn’t show this requirement: The quote is about the fee, not who needs one."],
     });
-    expect(requirements[1]).toEqual(other);
+    expect(requirements[1]).toEqual({ ...other, claimsChecked: true });
     // One call judges every sourced claim, with its quote, as data
     expect(requests).toHaveLength(1);
     const sent = String(requests[0].messages[1].content);
@@ -48,12 +49,31 @@ describe("checkClaims", () => {
     expect(sent).toContain("You never have to pay a fee for an EIN.");
   });
 
-  it("never blocks results: if the check fails, the code checks stand", async () => {
+  // Regression: a failed check used to leave quotes looking fully checked
+  it("never blocks results: if the check fails, quotes stay but are marked as not read by it", async () => {
     const { model } = judge(new Error("service down"));
-    const input = [sourced()];
+    const input = [sourced(), sourced({ key: "other", verification: "needs_verification" })];
     const { requirements, checked } = await checkClaims(model, input);
     expect(checked).toBe(false);
-    expect(requirements).toEqual(input);
+    expect(requirements).toEqual([{ ...input[0], claimsChecked: false }, input[1]]);
+  });
+
+  it("reads a few claims a call, in parallel, so one slow call leaves only its own claims unread", async () => {
+    const requests: CompletionRequest[] = [];
+    const base = createMockProvider();
+    const model: ModelProvider = {
+      ...base,
+      async complete(request) {
+        requests.push(request);
+        if (requests.length === 1) throw new Error("timed out");
+        return { text: JSON.stringify({ unsupported: [] }), finishReason: "stop", usage: null };
+      },
+    };
+    const input = Array.from({ length: 8 }, (_, index) => sourced({ key: `r${index}` }));
+    const { requirements, checked } = await checkClaims(model, input);
+    expect(requests).toHaveLength(2);
+    expect(checked).toBe(false);
+    expect(requirements.map((each) => each.claimsChecked)).toEqual([false, false, false, false, false, false, true, true]);
   });
 
   it("only judges requirements that code already found quoted on an official page", async () => {
@@ -69,6 +89,6 @@ describe("checkClaims", () => {
     const input = [sourced()];
     const { requirements, checked } = await checkClaims(createMockProvider(), input);
     expect(checked).toBe(true);
-    expect(requirements).toEqual(input);
+    expect(requirements).toEqual([{ ...input[0], claimsChecked: true }]);
   });
 });

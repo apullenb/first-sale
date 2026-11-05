@@ -1,0 +1,1631 @@
+{
+  "case": "columbus-oh-vintage",
+  "label": "Vintage clothing resale, two owners, Columbus, Ohio",
+  "model": "Meta Muse (muse-spark-1.3)",
+  "simulated": false,
+  "ranAt": "2026-11-05T06:55:57.758Z",
+  "timeLimitSeconds": 600,
+  "ms": {
+    "research": 275309,
+    "followUp": 176192,
+    "total": 451504
+  },
+  "cost": {
+    "usd": 1.9106,
+    "modelCalls": 10,
+    "searches": 30,
+    "inputTokens": 1474662,
+    "outputTokens": 93055,
+    "failedCalls": [
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "research_follow_up: AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    ],
+    "fallbacks": []
+  },
+  "calls": [
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6053,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 9420,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10973,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16086,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17595,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18677,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20402,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20460,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 28556,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 41910,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 102035,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 117179,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8623,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20002,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20001,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20002,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_follow_up",
+      "effort": "medium",
+      "ms": 40007,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 28203,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 8339,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 25960,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 5641,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6692,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 9815,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11401,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11453,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11769,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13983,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14178,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14755,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 15293,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 15484,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16996,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 24697,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 33955,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 55535,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 13277,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12855,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 25004,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 35388,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 11158,
+      "ok": true,
+      "error": null
+    }
+  ],
+  "claimsCheckedInResearch": true,
+  "followUp": {
+    "candidates": 9,
+    "rounds": 2,
+    "confirmed": 1,
+    "rechecked": 0
+  },
+  "followUpError": null,
+  "pages": [
+    {
+      "id": "irs-ein",
+      "title": "IRS: Get an employer identification number",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "irs-business-structures",
+      "title": "IRS: Business structures",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-structure",
+      "title": "SBA: Choose a business structure",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-name",
+      "title": "SBA: Choose your business name",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-register-business",
+      "title": "SBA: Register your business",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#register-business",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-location",
+      "title": "SBA: Pick your business location",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-licenses-permits",
+      "title": "SBA: Apply for licenses and permits",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-tax-ids",
+      "title": "SBA: Get federal and state tax ID numbers",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "state-sales-tax-2",
+      "title": "2026 Ohio Small Business Tax Guide",
+      "url": "https://dam.assets.ohio.gov/image/upload/tax.ohio.gov/documents/Small_Business_Tax_Guide_2026.pdf",
+      "level": "state",
+      "government": "State of Ohio, Office of IT",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-1",
+      "title": "Ohio Administrative Code",
+      "url": "https://codes.ohio.gov/assets/laws/administrative-code/authenticated/4101/6/1/4101$6-1-03_20150913.pdf",
+      "level": "state",
+      "government": "State of Ohio, Office of IT",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-1",
+      "title": "Resale/Thrift Stores | CPSC.gov",
+      "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/ResaleThrift-Stores-Information-Center",
+      "level": "federal",
+      "government": "Consumer Product Safety Commission",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-2",
+      "title": "Threading Your Way Through the Labeling Requirements Under the Textile and Wool Acts",
+      "url": "https://www.ftc.gov/business-guidance/resources/threading-your-way-through-labeling-requirements-under-textile-wool-acts",
+      "level": "federal",
+      "government": "Federal Trade Commission",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-1",
+      "title": "Self-employed individuals tax center",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-2",
+      "title": "Small Business Filing and Recordkeeping Requirements",
+      "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "county-license-1",
+      "title": "Business Location and Compliance",
+      "url": "https://www.franklincountyohio.gov/Business-Development/Development-Planning/Food-Action-Plan/Food-Business-Portal/Business-Location-Compliance",
+      "level": "county",
+      "government": "Franklin County Data Center",
+      "discovered": true
+    },
+    {
+      "id": "county-license-2",
+      "title": "Checklist - Franklin County, Ohio",
+      "url": "https://www.franklincountyohio.gov/Business-Development/Development-Planning/Food-Action-Plan/Food-Business-Portal/Business-Launch",
+      "level": "county",
+      "government": "Franklin County Data Center",
+      "discovered": true
+    },
+    {
+      "id": "city-license-1",
+      "title": "Commercial Sales Application",
+      "url": "https://www.columbus.gov/files/sharedassets/city/v/6/bzs/business-licenses/commercial-sales-application-packet.pdf",
+      "level": "city",
+      "government": "City of Columbus",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-2-2",
+      "title": "Section 1329.01 - Ohio Revised Code | Ohio Laws",
+      "url": "https://codes.ohio.gov/ohio-revised-code/section-1329.01/9-28-2018",
+      "level": "state",
+      "government": "State of Ohio, Office of IT",
+      "discovered": true
+    },
+    {
+      "id": "fu-ohio-vendors-license-3",
+      "title": "Section 5739.31 - Ohio Revised Code | Ohio Laws",
+      "url": "https://codes.ohio.gov/ohio-revised-code/section-5739.31/9-6-2002",
+      "level": "state",
+      "government": "State of Ohio, Office of IT",
+      "discovered": true
+    },
+    {
+      "id": "fu-ohio-sales-tax-returns-2",
+      "title": "2026 Ohio Small Business Tax Guide",
+      "url": "https://dam.assets.ohio.gov/image/upload/tax.ohio.gov/documents/Small_Business_Tax_Guide_2026.pdf",
+      "level": "state",
+      "government": "State of Ohio, Office of IT",
+      "discovered": true
+    },
+    {
+      "id": "fu-ohio-sales-tax-returns-3",
+      "title": "2025",
+      "url": "https://dam.assets.ohio.gov/image/upload/tax.ohio.gov/sales_and_use/information_releases/ST1993-04_Exterminating_Service.pdf",
+      "level": "state",
+      "government": "State of Ohio, Office of IT",
+      "discovered": true
+    },
+    {
+      "id": "fu-ohio-income-tax-3",
+      "title": "Office of Research and Drafting  LSC  Legislative Budget Office DEPARTMENT OF TAXATION",
+      "url": "https://www.lsc.ohio.gov/assets/legislation/133/hb166/en/files/hb166-tax-bill-analysis-as-enrolled-133rd-general-assembly.pdf",
+      "level": "state",
+      "government": "State of Ohio, Office of IT",
+      "discovered": true
+    },
+    {
+      "id": "fu-columbus-home-zoning-check-2",
+      "title": "Zoning Maps - City of Columbus, Ohio",
+      "url": "https://www.columbus.gov/Business-Development/Building-Zoning-Services/Zoning-Maps?lang_update=639294408676853773",
+      "level": "city",
+      "government": "City of Columbus",
+      "discovered": true
+    },
+    {
+      "id": "fu-columbus-home-zoning-check-3",
+      "title": "Business & Development",
+      "url": "https://www.columbus.gov/Business-Development?lang_update=638528681811337430",
+      "level": "city",
+      "government": "City of Columbus",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-columbus-home-zoning-check-2",
+      "title": "Zoning Review Application",
+      "url": "https://www.columbus.gov/files/sharedassets/city/v/4/bzs/zoning/zoning-review-application-2026.pdf",
+      "level": "city",
+      "government": "City of Columbus",
+      "discovered": true
+    },
+    {
+      "id": "fu-columbus-municipal-income-tax-registrati-1",
+      "title": "General Income Tax Information",
+      "url": "https://www.columbus.gov/Government/City-Auditor/Income-Tax-Division/General-Income-Tax-Information?lang_update=639294408679041278",
+      "level": "city",
+      "government": "City of Columbus",
+      "discovered": true
+    },
+    {
+      "id": "fu-columbus-municipal-income-tax-registrati-2",
+      "title": "Microsoft Word - Income Tax Video script 10.29.2025.docx",
+      "url": "https://www.columbus.gov/files/sharedassets/city/v/2/city-auditor/income-tax/video-8-combined-videos.pdf",
+      "level": "city",
+      "government": "City of Columbus",
+      "discovered": true
+    },
+    {
+      "id": "fu-columbus-municipal-income-tax-registrati-3",
+      "title": "2025 BR-25 Instructions",
+      "url": "https://www.columbus.gov/files/sharedassets/city/v/6/city-auditor/tax-forms/businesses/2025-br-25-instructions.pdf",
+      "level": "city",
+      "government": "City of Columbus",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-columbus-municipal-income-tax-registrati-2",
+      "title": "Tax Codes - City of Columbus, Ohio",
+      "url": "https://www.columbus.gov/Government/City-Auditor/Income-Tax-Division/ACH-Credit-Transactions/Tax-Codes?lang_update=638565594324121640",
+      "level": "city",
+      "government": "City of Columbus",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-columbus-municipal-income-tax-registrati-3",
+      "title": "Income Tax Division",
+      "url": "https://www.columbus.gov/Government/City-Auditor/Income-Tax-Division",
+      "level": "city",
+      "government": "City of Columbus",
+      "discovered": true
+    },
+    {
+      "id": "fu-franklin-county-zoning-for-markets-1",
+      "title": "Business Location and Compliance",
+      "url": "https://www.franklincountyohio.gov/Business-Development/Development-Planning/Food-Action-Plan/Food-Business-Portal/Business-Location-Compliance",
+      "level": "county",
+      "government": "Franklin County Data Center",
+      "discovered": true
+    },
+    {
+      "id": "fu-franklin-county-zoning-for-markets-2",
+      "title": "EDP Forms & Applications",
+      "url": "https://www.franklincountyohio.gov/Business-Development/Development-Planning/EDP-Forms-Applications",
+      "level": "county",
+      "government": "Franklin County Data Center",
+      "discovered": true
+    },
+    {
+      "id": "fu-franklin-county-zoning-for-markets-3",
+      "title": "Economic Development & Planning",
+      "url": "https://www.franklincountyohio.gov/Agency-Directory/Economic-Development-Planning",
+      "level": "county",
+      "government": "Franklin County Data Center",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-franklin-county-zoning-for-markets-1",
+      "title": "Economic Development & Planning",
+      "url": "https://www.franklincountyohio.gov/Agency-Directory/Economic-Development-Planning?lang=en-US",
+      "level": "county",
+      "government": "Franklin County Data Center",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-franklin-county-zoning-for-markets-3",
+      "title": "Zoning - Franklin County, Ohio",
+      "url": "https://www.franklincountyohio.gov/Business-Development/Development-Planning/Planning-Zoning/Zoning",
+      "level": "county",
+      "government": "Franklin County Data Center",
+      "discovered": true
+    },
+    {
+      "id": "fu-columbus-municipal-income-tax-filings-2",
+      "title": "Income Tax Division",
+      "url": "https://www.columbus.gov/Government/City-Auditor/Income-Tax-Division?OC_EA_EmergencyAnnouncementList_Dismiss=cef5e72f-e3ed-47bf-b43f-c4f9ad146ef0&lang_update=638599362840186213",
+      "level": "city",
+      "government": "City of Columbus",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-columbus-1",
+      "title": "General Contractor Application 2026",
+      "url": "https://www.columbus.gov/files/sharedassets/city/v/6/bzs/licensing/general-contractor-application.pdf",
+      "level": "city",
+      "government": "City of Columbus",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-columbus-2",
+      "title": "Building & Zoning Services",
+      "url": "https://www.columbus.gov/Business-Development/Building-Zoning-Services?lang_update=638540660808084417",
+      "level": "city",
+      "government": "City of Columbus",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-columbus-3",
+      "title": "BZS Contact Sheet 2026",
+      "url": "https://www.columbus.gov/files/sharedassets/city/v/7/bzs/bzs-contact-sheet-2026.pdf",
+      "level": "city",
+      "government": "City of Columbus",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-franklin-county-economic-development-pla-1",
+      "title": "Economic Development & Planning",
+      "url": "https://www.franklincountyohio.gov/Agency-Directory/Economic-Development-Planning",
+      "level": "county",
+      "government": "Franklin County Data Center",
+      "discovered": true
+    },
+    {
+      "id": "fu-again-ohio-business-registration-3",
+      "title": "Section 1329.01 - Ohio Revised Code | Ohio Laws",
+      "url": "https://codes.ohio.gov/ohio-revised-code/section-1329.01/9-24-2015",
+      "level": "state",
+      "government": "State of Ohio, Office of IT",
+      "discovered": true
+    }
+  ],
+  "unread": [
+    {
+      "title": "Toll-free: 877-767-3453",
+      "url": "https://www.OhioSos.gov/assets/534a.pdf",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Ohio Business FAQ | Secretary of State Filings, Names, Agents & Complaints",
+      "url": "https://www.ohiosos.gov/business/ohio-business-roadmap/frequently-asked-questions",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "COMPANY",
+      "url": "https://www.ohiosos.gov/assets/business-start-a-llc.pdf",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "OHIO LEGISLATIVE SERVICE COMMISSION",
+      "url": "https://www.legislature.ohio.gov/download?key=14309",
+      "reason": "Couldn’t reach the site"
+    },
+    {
+      "title": "Application for Vendor's License to Make Taxable Sales",
+      "url": "https://tax.ohio.gov/wps/portal/gov/tax/home/forms/landing-page-area/st1",
+      "reason": "The site answered with error 404"
+    },
+    {
+      "title": "Bedding License Facts",
+      "url": "https://com.ohio.gov/divisions-and-programs/industrial-compliance/bedding-upholstered-furniture-toys/bedding-license-facts",
+      "reason": "The site answered with error 404"
+    },
+    {
+      "title": "How to Start a Business in Ohio – Step-by-Step Guide | Ohio Secretary of State",
+      "url": "https://www.ohiosos.gov/business/ohio-business-roadmap/starting-a-business",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "LICENSE SECTION",
+      "url": "https://www.columbus.gov/files/sharedassets/city/v/2/business-and-development/business-licenses-amp-resources/commerical-sales-promoter-application-02-06-2024.pdf",
+      "reason": "The site answered with error 404"
+    },
+    {
+      "title": "COLUMBUS ZONING CODE",
+      "url": "https://www.columbus.gov/WorkArea/DownloadAsset.aspx?id=45543",
+      "reason": "The site answered with error 404"
+    },
+    {
+      "title": "ADU_Guidebook_Template",
+      "url": "https://columbus.gov/files/sharedassets/city/v/1/bzs/zoning/accessory-dwelling-unit-adu-handbook-columbus.pdf",
+      "reason": "The file is too large"
+    }
+  ],
+  "requirements": [
+    {
+      "key": "business-structure",
+      "title": "Choose partnership as your business structure",
+      "level": "federal",
+      "topic": "structure",
+      "agency": "Small Business Administration",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-structure"
+      ],
+      "evidence": "Your business structure affects how much you pay in taxes, your ability to raise money, the paperwork you need to file, and your personal liability. You’ll need to choose a business structure before you register your business with the state.",
+      "why": "You are two siblings starting together and you chose partnership. Your structure decides taxes, paperwork, and liability.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "ein",
+      "title": "Get a federal EIN for the partnership",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+        "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number"
+      ],
+      "evidence": "Your Employer Identification Number (EIN) is your business’s federal tax ID number. You need it to pay federal taxes, hire employees, open a bank account, and apply for business licenses and permits.",
+      "why": "You will operate as a partnership that will pay taxes, open a bank account, and apply for licenses and permits.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "ohio-business-registration",
+      "title": "Register the partnership with Ohio",
+      "level": "state",
+      "topic": "structure",
+      "agency": "Ohio Secretary of State",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#register-business"
+      ],
+      "evidence": "If your business is a limited liability company (LLC), corporation, partnership, or nonprofit corporation, you’ll probably need to register with any state where you conduct business activities.",
+      "why": "You will run a two-owner partnership based at home in Columbus and sell in Ohio.",
+      "background": "Your partnership will sell under a shop name, so state law calls for filing that trade or fictitious name with the Secretary of State.",
+      "problems": [
+        "Only federal pages were cited for a state requirement"
+      ],
+      "trail": null
+    },
+    {
+      "key": "ohio-trade-name",
+      "title": "Register Second Stitch Vintage as a trade name if you use it",
+      "level": "state",
+      "topic": "name_registration",
+      "agency": "Ohio Secretary of State",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you do business as Second Stitch Vintage instead of the owners’ legal names?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-name"
+      ],
+      "evidence": "You might need to register your DBA — also known as a trade name, fictitious name, or assumed name — with the state, county, or city your business is located in. Registering your DBA name doesn’t provide legal protection by itself, but most states require you to register your DBA if you use one.",
+      "why": "You plan to sell as Second Stitch Vintage, which is different from the siblings’ personal legal names.",
+      "background": "",
+      "problems": [
+        "Only federal pages were cited for a state requirement"
+      ],
+      "trail": null
+    },
+    {
+      "key": "ohio-vendors-license",
+      "title": "Get an Ohio vendor's license for retail clothing sales",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Ohio Department of Taxation",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://codes.ohio.gov/ohio-revised-code/section-5739.31/9-6-2002"
+      ],
+      "evidence": "(A)(1) No person shall engage in the business of selling at retail or sell at retail incidental to any other regularly conducted business without having a license therefor, as required by sections 5739.01 to 5739.31 of the Revised Code.",
+      "why": "You will sell tangible vintage clothing at pop-up markets and ship orders to Ohio customers.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "cpsc-resale-safety",
+      "title": "Follow federal safety rules for reselling used products",
+      "level": "federal",
+      "topic": "other",
+      "agency": "U.S. Consumer Product Safety Commission",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.cpsc.gov/Business--Manufacturing/Business-Education/ResaleThrift-Stores-Information-Center"
+      ],
+      "evidence": "CPSC’s laws and regulations apply to anyone who sells or distributes consumer products. This includes thrift stores, consignment stores, charities and people holding yard sales and flea markets..",
+      "why": "You resell secondhand clothing online and at markets, which counts as selling consumer products.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "ftc-textile-labeling",
+      "title": "Follow textile labeling rules if you state fiber content",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Federal Trade Commission",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you describe what fabric or fiber your clothing is made of in listings or tags?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.ftc.gov/business-guidance/resources/threading-your-way-through-labeling-requirements-under-textile-wool-acts"
+      ],
+      "evidence": "If you manufacture, import, sell, offer to sell, distribute or advertise products covered by the Textile and Wool Acts, you must comply with the labeling requirements. The following items are excluded from the Textile labeling requirements unless you decide to make a statement about the fiber content.",
+      "why": "You will advertise and sell used clothing online where you may list fabric like cotton or wool.",
+      "background": "",
+      "problems": [
+        "Quote not found on the cited pages"
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-partnership-return",
+      "title": "File the annual federal partnership tax return",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/"
+      ],
+      "evidence": "Generally, the federal tax forms you will need to file vary depending on the type of business:",
+      "why": "As a partnership with two owners, your business tax forms depend on your business type.",
+      "background": "A business owned by more than one person is treated as a partnership under federal law, which calls for an annual partnership information return.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote only says federal tax forms vary by business type and does not mention filing an annual partnership tax return."
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-self-employment-tax",
+      "title": "Pay federal self-employment tax and quarterly estimated taxes",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center"
+      ],
+      "evidence": "Self-employed individuals generally must pay self-employment (SE) tax as well as income tax. As a self-employed individual, generally you are required to file an annual income tax return and pay estimated taxes quarterly.",
+      "why": "You two siblings will work for yourselves in a partnership, so each owes Social Security, Medicare, and income taxes.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "federal-recordkeeping",
+      "title": "Keep business records to support income and deductions",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/"
+      ],
+      "evidence": "You may need to substantiate income and deductions.",
+      "why": "You will have online, marketplace, and pop-up sales plus shipping costs that must be tracked for taxes.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "ohio-sales-tax-returns",
+      "title": "File Ohio sales tax returns for the vendor's license",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Ohio Department of Taxation",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "Once you hold an Ohio vendor's license for clothing sales, you must report and pay sales tax.",
+      "background": "Once you hold a vendor license for retail clothing sales, Ohio expects regular sales tax returns even when no sales occur.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "ohio-income-tax",
+      "title": "Pay Ohio income tax on partnership earnings",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Ohio Department of Taxation",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "Ohio taxes income, and your two-partner business expects $5,000 to $25,000 in first-year sales.",
+      "background": "Ohio taxes business earnings of residents, and earnings from resale pass through to the owners for state income tax.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "columbus-commercial-sales-license",
+      "title": "Columbus Commercial Sales license for in-person pop-up sales",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Columbus License Section",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you sell in person at pop-ups in Columbus?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.columbus.gov/files/sharedassets/city/v/6/bzs/business-licenses/commercial-sales-application-packet.pdf"
+      ],
+      "evidence": "*If yes, a State of Ohio Transient Vendor license is required. Do you agree to conform to and abide by all statutes contained within Chapter 523 (governing Commercial Sales)?",
+      "why": "You plan in-person sales at pop-up markets and live inside Columbus. The city has a Commercial Sales license for vendors selling tangible goods like shirts. Your vintage clothing is tangible goods.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not mention a Columbus Commercial Sales license for pop-up vendors or tangible goods like shirts."
+      ],
+      "trail": null
+    },
+    {
+      "key": "columbus-home-zoning-check",
+      "title": "Columbus home zoning check for home-based business",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "Columbus Building & Zoning Services",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.franklincountyohio.gov/Business-Development/Development-Planning/Food-Action-Plan/Food-Business-Portal/Business-Location-Compliance"
+      ],
+      "evidence": "Many residential areas do not allow for commercial or retail businesses so it’s important that you make sure your zoning allows you to operate legally. Contact Columbus Building & Zoning Services if you’re located in Columbus or Franklin County Economic Development & Planning if you’re located in unincorporated Franklin County.",
+      "why": "You will work from a home in Columbus with no customer visits. Many home areas limit business use, so you must confirm your home allows your use.",
+      "background": "You will store and ship clothing from a Columbus home with no visits, but home areas still limit business use, so a zoning check is needed.",
+      "problems": [
+        "Only county pages were cited for a city requirement"
+      ],
+      "trail": null
+    },
+    {
+      "key": "columbus-municipal-income-tax-registration",
+      "title": "Columbus city business income tax registration",
+      "level": "city",
+      "topic": "tax_registration",
+      "agency": "Columbus Income Tax Division",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will run a partnership from a home in Columbus. Ohio cities commonly tax business income earned there, so you likely must register with the city tax office.",
+      "background": "A partnership run from a Columbus home earns income in the city, so city income tax sign-up is expected.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "franklin-county-zoning-for-markets",
+      "title": "Franklin County zoning check for markets outside Columbus",
+      "level": "county",
+      "topic": "location_zoning",
+      "agency": "Franklin County Economic Development & Planning",
+      "status": "not_needed",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": "not_needed",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.franklincountyohio.gov/Business-Development/Development-Planning/Food-Action-Plan/Food-Business-Portal/Business-Location-Compliance"
+      ],
+      "evidence": "Contact Columbus Building & Zoning Services if you’re located in Columbus or Franklin County Economic Development & Planning if you’re located in unincorporated Franklin County.",
+      "why": "Your home is in Columbus, but pop-up markets could be elsewhere in Franklin County. Rules change by location, so county rules would matter for those sales.",
+      "background": "Your home is in Columbus so city zoning covers the home, and the county office handles only homes in unincorporated county.",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "columbus-building-permit-home-work",
+      "title": "Columbus building permit if you change your home for the business",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "Columbus Building & Zoning Services",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you build or change your home for the business?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.franklincountyohio.gov/Business-Development/Development-Planning/Food-Action-Plan/Food-Business-Portal/Business-Location-Compliance"
+      ],
+      "evidence": "You may also need a building permit if you’re making any changes to your home.",
+      "why": "You work from home. Most storage and shipping needs no construction, but a permit would matter only if you remodel or change the home for the business.",
+      "background": "",
+      "problems": [
+        "Only county pages were cited for a city requirement"
+      ],
+      "trail": null
+    },
+    {
+      "key": "columbus-municipal-income-tax-filings",
+      "title": "Columbus city business income tax filings",
+      "level": "city",
+      "topic": "tax_registration",
+      "agency": "Columbus Income Tax Division",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "Once registered for city tax, you must file city returns each year you have income from Columbus.",
+      "background": "Columbus calls for yearly business filing, so your home partnership must file while it operates in the city.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "columbus-commercial-sales-renewal",
+      "title": "Renew Columbus Commercial Sales license",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Columbus License Section",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you keep selling in person at pop-ups in Columbus?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.columbus.gov/files/sharedassets/city/v/6/bzs/business-licenses/commercial-sales-application-packet.pdf"
+      ],
+      "evidence": "*If yes, a State of Ohio Transient Vendor license is required. Do you agree to conform to and abide by all statutes contained within Chapter 523 (governing Commercial Sales)?",
+      "why": "If you get this license for Columbus pop-ups, you must keep it active while you keep selling in person.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not mention renewing a license or keeping it active while selling."
+      ],
+      "trail": null
+    },
+    {
+      "key": "columbus-employer-withholding-if-hiring",
+      "title": "Columbus employer tax steps if you hire later",
+      "level": "city",
+      "topic": "employer",
+      "agency": "Columbus Income Tax Division",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you hire workers in the future?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You have no hiring plans now. If you later hire workers in Columbus, city employer tax steps would apply.",
+      "background": "",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    }
+  ],
+  "plan": [
+    {
+      "key": "business-structure",
+      "title": "Choose partnership as your business structure",
+      "status": "verified",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "ein",
+      "title": "Get a federal EIN for the partnership",
+      "status": "verified",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+          "confirms": true
+        },
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "ohio-business-registration",
+      "title": "Register the partnership with Ohio",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#register-business",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "ohio-trade-name",
+      "title": "Register Second Stitch Vintage as a trade name if you use it",
+      "status": "conditional",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "ohio-vendors-license",
+      "title": "Get an Ohio vendor's license for retail clothing sales",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://codes.ohio.gov/ohio-revised-code/section-5739.31/9-6-2002",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "cpsc-resale-safety",
+      "title": "Follow federal safety rules for reselling used products",
+      "status": "verified",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/ResaleThrift-Stores-Information-Center",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "ftc-textile-labeling",
+      "title": "Follow textile labeling rules if you state fiber content",
+      "status": "conditional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.ftc.gov/business-guidance/resources/threading-your-way-through-labeling-requirements-under-textile-wool-acts",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-partnership-return",
+      "title": "File the annual federal partnership tax return",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-self-employment-tax",
+      "title": "Pay federal self-employment tax and quarterly estimated taxes",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "federal-recordkeeping",
+      "title": "Keep business records to support income and deductions",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "ohio-sales-tax-returns",
+      "title": "File Ohio sales tax returns for the vendor's license",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "ohio-income-tax",
+      "title": "Pay Ohio income tax on partnership earnings",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "columbus-commercial-sales-license",
+      "title": "Columbus Commercial Sales license for in-person pop-up sales",
+      "status": "conditional",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.columbus.gov/files/sharedassets/city/v/6/bzs/business-licenses/commercial-sales-application-packet.pdf",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "columbus-home-zoning-check",
+      "title": "Columbus home zoning check for home-based business",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.franklincountyohio.gov/Business-Development/Development-Planning/Food-Action-Plan/Food-Business-Portal/Business-Location-Compliance",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "columbus-municipal-income-tax-registrati",
+      "title": "Columbus city business income tax registration",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "columbus-building-permit-home-work",
+      "title": "Columbus building permit if you change your home for the business",
+      "status": "conditional",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.franklincountyohio.gov/Business-Development/Development-Planning/Food-Action-Plan/Food-Business-Portal/Business-Location-Compliance",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "columbus-municipal-income-tax-filings",
+      "title": "Columbus city business income tax filings",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "columbus-commercial-sales-renewal",
+      "title": "Renew Columbus Commercial Sales license",
+      "status": "conditional",
+      "level": "city",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.columbus.gov/files/sharedassets/city/v/6/bzs/business-licenses/commercial-sales-application-packet.pdf",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "columbus-employer-withholding-if-hiring",
+      "title": "Columbus employer tax steps if you hire later",
+      "status": "conditional",
+      "level": "city",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    }
+  ],
+  "openQuestions": [
+    {
+      "question": "Which Ohio vendor's license type covers online sales plus pop-up markets and shipping in-state and out-of-state?",
+      "answer": "With a fixed home base in Ohio you generally operate under a county vendor license, which covers sales from that base including online orders and in-state shipments as well as pop-up sales around the state. Out-of-state shipments are generally not subject to Ohio tax, and you would follow the other state rules where you have a sales presence."
+    },
+    {
+      "question": "Does a general partnership in Ohio need to file a statement or trade name with the Secretary of State for Second Stitch Vintage?",
+      "answer": "An Ohio general partnership does not have to file to form, but doing business under a shop name that is not the owners own names generally calls for a trade name filing with the state office. Check the exact shop name you will use to see if that filing fits."
+    },
+    {
+      "question": "How does Ohio sales tax apply to secondhand clothing, including sales through marketplaces that may collect tax?",
+      "answer": "Secondhand clothing sold at retail is generally subject to Ohio sales tax the same as new clothing, and you must collect and send it on your own website, market, and shipped orders. When a marketplace is the seller for tax purposes, that marketplace generally collects instead, and you should not collect again on those same sales but keep records."
+    },
+    {
+      "question": "Does a booth inside an organized pop-up market in Columbus need a Commercial Sales license?",
+      "answer": "None of the city pages provided describe a commercial sales license for a booth inside an organized market. Confirm with the market organizer and the city zoning office whether the market holds permission that covers its vendors."
+    },
+    {
+      "question": "What home occupation rules apply to online resale with storage and shipping but no customer visits?",
+      "answer": "Columbus home areas limit business use, so you should confirm with building and zoning services that storage, packing, and shipping from home without customer visits is allowed where you live. Keep stock and packing inside the home without signs, outside storage, or changes to the home."
+    },
+    {
+      "question": "How does Columbus city income tax apply to a small home partnership with online and market sales?",
+      "answer": "Columbus taxes business income earned in the city and calls for yearly filing even in a loss year. As a Columbus home business you should expect to file each year you operate and claim credit for municipal tax paid to another city on the same income."
+    },
+    {
+      "question": "Are there extra rules for temporary sales at markets in unincorporated Franklin County?",
+      "answer": "County zoning only covers parts of the county outside cities and some townships handle their own zoning, so rules depend on the exact market spot. Ask the market organizer what permission covers vendors and confirm with the county planning office or township for that address."
+    }
+  ],
+  "coverage": [
+    {
+      "category": "formation",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "formation",
+      "level": "state",
+      "state": "unreadable",
+      "pagesRead": 0
+    },
+    {
+      "category": "tax",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "tax",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 1
+    },
+    {
+      "category": "licenses",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "state",
+      "state": "not_searched",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "county",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "city",
+      "state": "read_unconfirmed",
+      "pagesRead": 1
+    },
+    {
+      "category": "zoning",
+      "level": "city",
+      "state": "unreadable",
+      "pagesRead": 0
+    },
+    {
+      "category": "activity",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "activity",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 1
+    }
+  ],
+  "conflicts": [
+    {
+      "about": "Whether Columbus Commercial Sales license covers organized market booths",
+      "explanation": "The city form asks about taxable items and where items will be sold and cites Chapter 523 governing Commercial Sales, but the text provided does not say if a vendor inside an organized pop-up market needs it or is covered by the market. This matters because you plan pop-up markets.",
+      "sourceIds": [
+        "city-license-1"
+      ]
+    },
+    {
+      "about": "What home rules apply when no customers visit",
+      "explanation": "The county page says many home areas limit business use and to contact the city zoning office, but it does not list what is allowed for storage, packing and shipping with no visits. This matters because you will work from home with no visits.",
+      "sourceIds": [
+        "county-license-1"
+      ]
+    }
+  ]
+}

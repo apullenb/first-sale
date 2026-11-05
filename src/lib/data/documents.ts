@@ -6,8 +6,25 @@ import type { DocumentOrigin, GeneratedKind } from "@/lib/domain";
 import type { DocumentRole } from "@/lib/documents/library";
 import type { FormVerification } from "@/lib/documents/official-forms";
 import type { DocumentContent, DocumentGuide, DocumentQuestion, DraftAnswers, GeneratedContent } from "@/lib/documents/types";
+import { documentContext, masterKeys, openFile, sealFile } from "@/lib/privacy/envelope";
 
 // Owner-scoped like businesses.ts. File bytes are only read by getDocumentFileForOwner.
+// They're stored sealed (envelope encryption, src/lib/privacy/envelope.ts) whenever a document key is configured.
+
+let warned = false;
+function fileKeys() {
+  const keys = masterKeys();
+  if (!keys && !warned && process.env.NODE_ENV === "production") {
+    warned = true;
+    console.warn("Document files are stored without encryption: set DOCUMENT_ENCRYPTION_KEY.");
+  }
+  return keys;
+}
+
+function seal(data: Uint8Array, businessId: string, documentId: string): Uint8Array {
+  const keys = fileKeys();
+  return keys ? sealFile(data, documentContext(businessId, documentId), keys) : data;
+}
 
 export const DOCUMENT_LIMITS = { count: 60, totalBytes: 150_000_000 } as const;
 
@@ -97,11 +114,12 @@ export async function getDocumentFileForOwner(
   id: string,
 ): Promise<{ title: string; mimeType: string; data: Uint8Array } | null> {
   const [row] = await db
-    .select({ title: documents.title, mimeType: documents.mimeType, data: documents.data })
+    .select({ title: documents.title, mimeType: documents.mimeType, data: documents.data, businessId: documents.businessId })
     .from(documents)
     .innerJoin(businesses, eq(businesses.id, documents.businessId))
     .where(and(eq(businesses.ownerId, ownerId), eq(documents.id, id)));
-  return row?.data ? { title: row.title, mimeType: row.mimeType, data: new Uint8Array(row.data) } : null;
+  if (!row?.data) return null;
+  return { title: row.title, mimeType: row.mimeType, data: openFile(new Uint8Array(row.data), documentContext(row.businessId, id), fileKeys()) };
 }
 
 // Locked per business so parallel uploads can't pass the limits together
@@ -159,7 +177,7 @@ export async function createDocumentForOwner(db: Db, ownerId: string, input: New
         mimeType: input.mimeType,
         byteSize: size,
         sha256: input.sha256,
-        data: input.data,
+        data: input.data ? seal(input.data, business.id, id) : null,
         sourceUrl: input.sourceUrl ?? null,
         taskId: input.taskId ?? null,
         fromDocumentId: input.fromDocumentId ?? null,
@@ -219,7 +237,10 @@ export async function updateDocumentForOwner(
     const [found] = await tx.select({ id: documents.id, draft: documents.draft }).from(documents).where(where).for("update");
     if (!found || (when && !when(found))) return false;
     const set: Partial<typeof documents.$inferInsert> = { ...patch, updatedAt: now };
-    if (patch.data !== undefined) set.byteSize = patch.data?.byteLength ?? 0;
+    if (patch.data !== undefined) {
+      set.byteSize = patch.data?.byteLength ?? 0;
+      set.data = patch.data ? seal(patch.data, business.id, id) : null;
+    }
     await tx.update(documents).set(set).where(where);
     return true;
   });

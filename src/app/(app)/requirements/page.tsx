@@ -21,6 +21,7 @@ import type { BusinessProfile } from "@/lib/domain";
 import { classify, type Place, placeLabel, placeOf, STRUCTURE_NAMES } from "@/lib/research/applicability";
 import { answerChanges } from "@/lib/research/changes";
 import { followUpCandidates } from "@/lib/research/follow-up";
+import { officeOf } from "@/lib/research/office";
 import { profileKey } from "@/lib/research/requirements";
 import { type PaperworkGroup, type Standing, summaryOf } from "@/lib/rules/paperwork";
 import { CHECK_MINUTES, formatMinutes, MAX_SITTING_MINUTES } from "@/lib/rules/progress";
@@ -179,6 +180,9 @@ function Results({ profile, research, paper, running }: { profile: BusinessProfi
   const applies = view.tasks.length;
   // Looked into and decided against, each with SnapStart's reason
   const notNeeded = research.requirements.filter((requirement) => classify(requirement, context.profile, place, decision).status === "not_needed");
+  // Probably not for this business, and no official page says either way: listed, never a step
+  const unlikely = research.requirements.filter((requirement) => classify(requirement, context.profile, place, decision).status === "unlikely");
+  const contactFor = (requirement: (typeof unlikely)[number]) => research.offices.find((office) => office.key === officeOf(requirement, place).key) ?? null;
   const answers = research.openQuestions.filter((item) => item.answer);
   // The deeper look didn't finish, such as after a failed attempt: it runs again now
   const deeper = !research.followedUpAt && (followUpCandidates(research.requirements).length > 0 || research.openQuestions.some((item) => !item.answer));
@@ -331,7 +335,7 @@ function Results({ profile, research, paper, running }: { profile: BusinessProfi
         ) : null}
 
         {notNeeded.length ? (
-          <Fold title={`Not needed for your business (${notNeeded.length})`} summary="SnapStart looked into these, and they don’t apply to you" icon="minus">
+          <Fold title={`Not needed for your business (${notNeeded.length})`} summary="An official page shows each one doesn’t apply to you" icon="minus">
             <ul className="flex flex-col divide-y divide-line">
               {notNeeded.map((requirement) => (
                 <li key={requirement.id} className="flex flex-col gap-0.5 py-2.5 first:pt-0 last:pb-0">
@@ -340,6 +344,44 @@ function Results({ profile, research, paper, running }: { profile: BusinessProfi
                   {requirement.evidence ? <span className="text-sm text-muted">From the official page: “{requirement.evidence}”</span> : null}
                 </li>
               ))}
+            </ul>
+          </Fold>
+        ) : null}
+
+        {unlikely.length ? (
+          <Fold title={`Likely doesn’t apply (${unlikely.length})`} summary="Not steps. Here in case you want to check" icon="minus">
+            <ul className="flex flex-col divide-y divide-line">
+              {unlikely.map((requirement) => {
+                const office = contactFor(requirement);
+                const email = office?.contacts.emails[0] ?? null;
+                const phone = office?.contacts.phones[0] ?? null;
+                return (
+                  <li key={requirement.id} className="flex flex-col gap-0.5 py-2.5 first:pt-0 last:pb-0">
+                    <span className="font-semibold">{requirement.title}</span>
+                    {requirement.background ? <span className="text-[15px] text-rule">{requirement.background}</span> : null}
+                    <span className="text-sm text-muted">
+                      If you’d like to be sure, {office?.name ?? requirement.whoToCall ?? "the office that handles it"} can tell you
+                      {email ? (
+                        <>
+                          {" "}at{" "}
+                          <a href={`mailto:${email.value}`} className={`${TEXT_LINK} break-all`}>
+                            {email.value}
+                          </a>
+                        </>
+                      ) : null}
+                      {phone ? (
+                        <>
+                          {email ? " or " : " at "}
+                          <a href={`tel:${phone.value.replace(/\D/g, "")}`} className={TEXT_LINK}>
+                            {phone.value}
+                          </a>
+                        </>
+                      ) : null}
+                      .
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           </Fold>
         ) : null}

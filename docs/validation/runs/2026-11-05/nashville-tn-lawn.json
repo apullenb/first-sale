@@ -1,0 +1,1344 @@
+{
+  "case": "nashville-tn-lawn",
+  "label": "Lawn care, hiring two employees now, Nashville, Tennessee",
+  "model": "Meta Muse (muse-spark-1.3)",
+  "simulated": false,
+  "ranAt": "2026-11-05T06:50:21.812Z",
+  "timeLimitSeconds": 600,
+  "ms": {
+    "research": 220951,
+    "followUp": 66620,
+    "total": 287572
+  },
+  "cost": {
+    "usd": 1.3555,
+    "modelCalls": 6,
+    "searches": 28,
+    "inputTokens": 1066490,
+    "outputTokens": 67573,
+    "failedCalls": [
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    ],
+    "fallbacks": []
+  },
+  "calls": [
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8557,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 9635,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11171,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12845,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13252,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17182,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 19091,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 23338,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 25809,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 39940,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 97106,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 52784,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 5181,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 9506,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16102,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20004,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_follow_up",
+      "effort": "medium",
+      "ms": 35997,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 26129,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 22506,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 5940,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6499,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7320,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7580,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8447,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 9168,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10419,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10620,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11442,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14128,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14912,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16776,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18096,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18170,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 48118,
+      "ok": true,
+      "error": null
+    }
+  ],
+  "claimsCheckedInResearch": true,
+  "followUp": {
+    "candidates": 11,
+    "rounds": 1,
+    "confirmed": 0,
+    "rechecked": 0
+  },
+  "pages": [
+    {
+      "id": "irs-ein",
+      "title": "IRS: Get an employer identification number",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "irs-business-structures",
+      "title": "IRS: Business structures",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-structure",
+      "title": "SBA: Choose a business structure",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-name",
+      "title": "SBA: Choose your business name",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-register-business",
+      "title": "SBA: Register your business",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#register-business",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-location",
+      "title": "SBA: Pick your business location",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-licenses-permits",
+      "title": "SBA: Apply for licenses and permits",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-tax-ids",
+      "title": "SBA: Get federal and state tax ID numbers",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-hire-employees",
+      "title": "SBA: Hire and manage employees",
+      "url": "https://www.sba.gov/counseling/manage-your-business/#hire-and-manage",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "federal-activity-1",
+      "title": "Power Lawn Mowers (Walk Behind)",
+      "url": "https://www.Cpsc.Gov/FAQ/Power-Lawn-Mowers-Walk-Behind",
+      "level": "federal",
+      "government": "Consumer Product Safety Commission",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-2",
+      "title": "Where to report workplace safety violations",
+      "url": "https://www.usa.gov/report-safety-violations",
+      "level": "federal",
+      "government": "Federal Acquisition Service (General Services Administration)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-1",
+      "title": "Self-employed individuals tax center",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-2",
+      "title": "Small Business Filing and Recordkeeping Requirements",
+      "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-2-1",
+      "title": "Business Tax",
+      "url": "https://www.tn.gov/revenue/taxes/business-tax",
+      "level": "state",
+      "government": "State of Tennessee",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-3-1",
+      "title": "Non-Construction",
+      "url": "https://www.tn.gov/workforce/injuries-at-work/employers/employers/who-must-carry-insurance/non-construction.html",
+      "level": "state",
+      "government": "State of Tennessee",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-3-2",
+      "title": "Who Must Carry Insurance",
+      "url": "https://www.tn.gov/content/tn/workforce/injuries-at-work/employers/employers/who-must-carry-insurance.html",
+      "level": "state",
+      "government": "State of Tennessee",
+      "discovered": true
+    },
+    {
+      "id": "fu-tn-new-hire-reporting-2",
+      "title": "Comptroller’s Office Hires Former U.S. Attorney Mike Dunavant",
+      "url": "https://comptroller.tn.gov/news/2021/5/18/comptroller-s-office-hires-former-u-s--attorney-mike-dunavant.html",
+      "level": "state",
+      "government": "State of Tennessee",
+      "discovered": true
+    }
+  ],
+  "unread": [
+    {
+      "title": "Business Forms & Fees | Tennessee Secretary of State",
+      "url": "https://sos.tn.gov/businesses/forms-and-fees",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "All Frequently Asked Questions for Businesses | Tennessee Secretary of State",
+      "url": "https://sos.tn.gov/businesses/faqs",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Search | Tennessee Secretary of State",
+      "url": "https://sos.tn.gov/search?archivists=&amp;facets_query=...&students=&facets_query=&genealogists=&f[0]=division_category:Corporations&f[1]=division_category:Existing Businesses",
+      "reason": "The page had no readable text"
+    },
+    {
+      "title": "Tax and Insurance",
+      "url": "https://www.tn.gov/workforce/employers/tax-and-insurance.html",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Unemployment Insurance Tax",
+      "url": "https://www.tn.gov/workforce/employers/tax-and-insurance-redirect/unemployment-insurance-tax.html",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Is a license needed for...?",
+      "url": "https://support.commerce.tn.gov/hc/en-us/articles/208927098-Is-a-license-needed-for",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Information on Bidding",
+      "url": "https://www.tn.gov/tdot/tdot-construction-division/bid-lettings/information-on-bidding.html",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Tax Filing Due Dates",
+      "url": "https://www.tn.gov/revenue/for-businesses/for-new-businesses/tax-filing-due-dates.html",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "BUS-16 –Short-Period Business Licenses and Returns",
+      "url": "https://revenue.support.tn.gov/hc/en-us/articles/360057134752-BUS-16-Short-Period-Business-Licenses-and-Returns",
+      "reason": "The site answered with error 403"
+    }
+  ],
+  "requirements": [
+    {
+      "key": "choose-structure",
+      "title": "Choose sole proprietorship as your business structure",
+      "level": "federal",
+      "topic": "structure",
+      "agency": "Internal Revenue Service and Small Business Administration",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+        "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures"
+      ],
+      "evidence": "You’ll need to choose a business structure before you register your business with the state. When beginning a business, you must decide what form of business entity to establish.",
+      "why": "You are a first-time owner with one owner and you chose sole proprietorship. Your structure decides how you pay tax and what you file.",
+      "background": "Every business needs a legal form for tax and liability, and working as a sole proprietorship fits a solo owner starting out.",
+      "problems": [
+        "Quote not found on the cited pages"
+      ],
+      "trail": null
+    },
+    {
+      "key": "ein",
+      "title": "Get a federal tax ID number (EIN)",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#tax-ids"
+      ],
+      "evidence": "Your Employer Identification Number (EIN) is your business’s federal tax ID number. You need it to pay federal taxes, hire employees, open a bank account, and apply for business licenses and permits.",
+      "why": "You plan to hire employees right away. A business that pays employees needs a federal EIN.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "tn-assumed-name",
+      "title": "Register your assumed business name Greenway Lawn Care",
+      "level": "state",
+      "topic": "name_registration",
+      "agency": "Tennessee business name office",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will do business as Greenway Lawn Care, which is not your own legal name. Businesses using a different name must register that name.",
+      "background": "You will use Greenway Lawn Care instead of your personal legal name, and that assumed name should be registered so the public can find the owner.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-payroll-setup",
+      "title": "Set up payroll for employees",
+      "level": "federal",
+      "topic": "employer",
+      "agency": "Internal Revenue Service and Department of Labor",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/manage-your-business/#hire-and-manage"
+      ],
+      "evidence": "Before finding the right person for the job, you’ll need to create a plan for paying employees.",
+      "why": "You said you will hire employees right away. You need a pay plan, withholding setup, and new-hire paperwork before they start.",
+      "background": "Hiring right away makes you an employer, and employers must set up withholding and complete new hire paperwork before pay starts.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote only mentions creating a plan for paying employees and does not show withholding setup or new-hire paperwork."
+      ],
+      "trail": null
+    },
+    {
+      "key": "tn-unemployment-insurance",
+      "title": "Register for Tennessee unemployment insurance tax",
+      "level": "state",
+      "topic": "employer",
+      "agency": "Tennessee Department of Labor and Workforce Development",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will pay employees in Tennessee. Employers with workers must register for state unemployment coverage.",
+      "background": "Paying workers in Tennessee makes you a state employer for jobless coverage, which requires registration with the state labor office.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "tn-new-hire-reporting",
+      "title": "Report new hires to Tennessee",
+      "level": "state",
+      "topic": "employer",
+      "agency": "Tennessee new hire reporting program",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will hire employees right away. Tennessee employers must report new workers after each hire.",
+      "background": "Tennessee employers must report new workers after hire, and you plan to hire right away.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "tn-workers-comp",
+      "title": "Get Tennessee workers compensation coverage if required",
+      "level": "state",
+      "topic": "employer",
+      "agency": "Tennessee Bureau of Workers Compensation",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you have 5 or more employees at one time?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will have employees doing physical lawn work. Whether coverage is required depends on how many employees you have at one time.",
+      "background": "",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "tn-sales-tax-permit",
+      "title": "Register for Tennessee sales tax if you sell taxable goods",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Tennessee Department of Revenue",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you sell plants, soil, or other items to customers?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You sell lawn services and planting, with yearly sales of $5,000 to $25,000. Whether you need sales tax registration depends on if you also sell goods like plants or soil.",
+      "background": "",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "self-employment-tax",
+      "title": "Pay federal self-employment and income tax on profits",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center"
+      ],
+      "evidence": "Self-employed individuals generally must pay self-employment (SE) tax as well as income tax. You have to file an income tax return if your net earnings from self-employment were $400 or more.",
+      "why": "As a sole proprietor you work for yourself. Self-employed people must pay Social Security and Medicare tax plus income tax on net profit.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "quarterly-estimated-tax",
+      "title": "Pay quarterly estimated taxes",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center"
+      ],
+      "evidence": "As a self-employed individual, generally you are required to file an annual income tax return and pay estimated taxes quarterly.",
+      "why": "You will be self-employed with no boss withholding tax. Self-employed people usually pay tax in four payments during the year.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "federal-employment-tax-returns",
+      "title": "File federal employment tax returns and keep payroll records",
+      "level": "federal",
+      "topic": "employer",
+      "agency": "Internal Revenue Service",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/manage-your-business/#hire-and-manage"
+      ],
+      "evidence": "(The IRS requires businesses to keep records of employment taxes for at least four years.)",
+      "why": "You will have employees. Employers must report payroll taxes and keep employment tax records.",
+      "background": "Having employees brings federal payroll filing and record duties that continue as long as you have workers.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote only mentions keeping records of employment taxes and does not show filing federal employment tax returns."
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-recordkeeping",
+      "title": "Keep business income and expense records",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/"
+      ],
+      "evidence": "You may need to substantiate income and deductions. Good records can assist you in preparing financial records, keeping track of property and deductions and so much more.",
+      "why": "You will earn service income and spend on mowers and supplies. Good records prove income and deductions at tax time.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "tn-state-tax-filings",
+      "title": "File Tennessee tax returns for each state account",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Tennessee Department of Revenue",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "Once you open Tennessee tax accounts for workers or sales, you must file the returns for those accounts going forward.",
+      "background": "Once state tax accounts are open for workers, you must file the returns for those accounts to stay in good standing.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-trademark",
+      "title": "Check trademarks and consider federal protection",
+      "level": "federal",
+      "topic": "name_registration",
+      "agency": "United States Patent and Trademark Office",
+      "status": "optional",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-name"
+      ],
+      "evidence": "A trademark can protect the name of your business, goods, and services at a national level. Businesses in every state are subject to trademark infringement lawsuits, which can prove costly.",
+      "why": "You picked a brand name for lawn services. Checking trademarks helps avoid costly fights with businesses using the same name.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "metro-business-license",
+      "title": "Get Metro Nashville business license",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "Metropolitan Government of Nashville and Davidson County",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#licenses-permits"
+      ],
+      "evidence": "The licenses and permits you need from the state, county, or city will depend on your business activities and business location. You may also need licenses from your county or city.",
+      "why": "You will work in Nashville inside city limits as a lawn service. Nashville regulates local business activity through a Metro license.",
+      "background": "Work done for customers inside Nashville is local business activity, which Metro expects to be licensed to operate legally.",
+      "problems": [
+        "Only federal pages were cited for a city requirement"
+      ],
+      "trail": null
+    },
+    {
+      "key": "home-zoning-compliance",
+      "title": "Follow Nashville home business zoning rules",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "City planning and zoning office",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-location"
+      ],
+      "evidence": "You might have fewer zoning restrictions if you base your business out of your home, but zoning ordinances can still apply even to home-based businesses. Zoning laws are typically controlled at the local level, so check with your department of city planning, or similar office, to find out about the zoning laws in your area.",
+      "why": "You will run the business from your home in Nashville and no customers will visit. Home rules still apply to storage and business use.",
+      "background": "Running the business from a Nashville home keeps it under residential rules, which still limit business storage and activity at the house.",
+      "problems": [
+        "Only federal pages were cited for a city requirement"
+      ],
+      "trail": null
+    },
+    {
+      "key": "county-personal-property",
+      "title": "File Davidson County business personal property return",
+      "level": "county",
+      "topic": "tax_registration",
+      "agency": "Davidson County assessor office",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will own mowers and lawn tools for the business in Davidson County. Counties commonly tax business equipment separately from income tax.",
+      "background": "Mowers and lawn tools used for the business are business equipment in Davidson County, which is listed and taxed apart from income tax.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "metro-business-license-renewal",
+      "title": "Renew Metro Nashville business license",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "Metropolitan Government of Nashville and Davidson County",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "Once you open, local licenses commonly must be renewed to keep working legally in Nashville.",
+      "background": "A Metro license stays valid only if renewed as required, so renewal is part of staying legal in Nashville.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "tn-business-tax-100k",
+      "title": "Register for Tennessee business tax if sales reach $100,000",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Tennessee Department of Revenue",
+      "status": "conditional",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Only if the business grosses $100,000 or more in Tennessee. Your expected $5k-$25k sales are below this level."
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.tn.gov/revenue/taxes/business-tax"
+      ],
+      "evidence": "Generally, if you conduct business within any county and/or incorporated municipality in Tennessee, and your business grosses $100,000 or more, then you should register for and remit business tax.",
+      "why": "You will run a lawn service for customers in Nashville, Tennessee. Tennessee requires businesses in a county or city that gross $100,000 or more to register for business tax.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "tn-workers-comp-5-employees",
+      "title": "Carry workers' compensation insurance if you have 5 or more workers",
+      "level": "state",
+      "topic": "employer",
+      "agency": "Tennessee Bureau of Workers' Compensation",
+      "status": "conditional",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Only if you have five or more employees. Count part-time workers, minors and family members; business owners under sole proprietorship, LLC or partnership are not counted."
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.tn.gov/workforce/injuries-at-work/employers/employers/who-must-carry-insurance/non-construction.html"
+      ],
+      "evidence": "Employers working in Tennessee (that are not in the construction industry) with five or more employees must secure workers’ compensation insurance coverage for their employees either by purchasing a policy from a licensed workers’ compensation insurance carrier or by qualifying as a self-insured employer through the Department of Commerce and Insurance, Self-Insured Division.",
+      "why": "You plan to hire employees right away for lawn work in Tennessee. Non-construction businesses like lawn care must have workers' compensation coverage when they have five or more employees.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    }
+  ],
+  "plan": [
+    {
+      "key": "choose-structure",
+      "title": "Choose sole proprietorship as your business structure",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+          "confirms": false
+        },
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "ein",
+      "title": "Get a federal tax ID number (EIN)",
+      "status": "verified",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "tn-assumed-name",
+      "title": "Register your assumed business name Greenway Lawn Care",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "federal-payroll-setup",
+      "title": "Set up payroll for employees",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/manage-your-business/#hire-and-manage",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "tn-unemployment-insurance",
+      "title": "Register for Tennessee unemployment insurance tax",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "tn-new-hire-reporting",
+      "title": "Report new hires to Tennessee",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "tn-workers-comp",
+      "title": "Get Tennessee workers compensation coverage if required",
+      "status": "conditional",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "tn-sales-tax-permit",
+      "title": "Register for Tennessee sales tax if you sell taxable goods",
+      "status": "conditional",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "self-employment-tax",
+      "title": "Pay federal self-employment and income tax on profits",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "quarterly-estimated-tax",
+      "title": "Pay quarterly estimated taxes",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "federal-employment-tax-returns",
+      "title": "File federal employment tax returns and keep payroll records",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/manage-your-business/#hire-and-manage",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-recordkeeping",
+      "title": "Keep business income and expense records",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "tn-state-tax-filings",
+      "title": "File Tennessee tax returns for each state account",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "federal-trademark",
+      "title": "Check trademarks and consider federal protection",
+      "status": "optional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "metro-business-license",
+      "title": "Get Metro Nashville business license",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "home-zoning-compliance",
+      "title": "Follow Nashville home business zoning rules",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "county-personal-property",
+      "title": "File Davidson County business personal property return",
+      "status": "needs_confirmation",
+      "level": "county",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "metro-business-license-renewal",
+      "title": "Renew Metro Nashville business license",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "tn-business-tax-100k",
+      "title": "Register for Tennessee business tax if sales reach $100,000",
+      "status": "conditional",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.tn.gov/revenue/taxes/business-tax",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "tn-workers-comp-5-employees",
+      "title": "Carry workers' compensation insurance if you have 5 or more workers",
+      "status": "conditional",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.tn.gov/workforce/injuries-at-work/employers/employers/who-must-carry-insurance/non-construction.html",
+          "confirms": true
+        }
+      ]
+    }
+  ],
+  "openQuestions": [
+    {
+      "question": "We couldn’t find an official page about business licenses in Davidson County. That doesn’t mean nothing applies, so ask.",
+      "answer": "Ask the county clerk office that handles business licenses whether a home based lawn service needs a county license. Bring your business name and home address and describe work done at customer homes."
+    },
+    {
+      "question": "We couldn’t find an official page about business licenses in Nashville. That doesn’t mean nothing applies, so ask.",
+      "answer": "Ask the Metro office that issues business licenses whether a lawn service working inside Nashville needs a Metro license. Describe your home base and your mowing and planting work and ask how to apply."
+    },
+    {
+      "question": "We couldn’t find an official page about running a business from home in Nashville. That doesn’t mean nothing applies, so ask.",
+      "answer": "Ask the Nashville zoning office what home rules apply when you run a lawn service from home with no customer visits. Describe where mowers, tools, and work vehicles are kept at the house."
+    },
+    {
+      "question": "Does Tennessee require a sales tax account for lawn mowing labor or for plants and materials sold with the job?",
+      "answer": "Routine yard labor is often treated differently than plants and materials sold with the job. Ask the state revenue office whether your mowing work needs a sales account and how to handle materials billed with the service."
+    },
+    {
+      "question": "What is the current Metro Nashville business license fee, renewal period, and application steps for a home-based lawn service?",
+      "answer": "The pages provided do not give the current cost, timing, or steps for a Metro license. Ask the Metro license office for the current application, cost, and renewal rule for a home based lawn service."
+    },
+    {
+      "question": "Does a home-based lawn care business with no customer visits need a home occupation permit or special zoning approval in Nashville?",
+      "answer": "The pages provided do not say whether a home permit is needed when customers never visit. Ask the Nashville zoning office if your home based lawn service needs a home occupation permit or other approval."
+    },
+    {
+      "question": "What is the Davidson County filing threshold and deadline for business tangible personal property used for lawn care?",
+      "answer": "The pages provided do not give the filing limit or due date for business equipment. Ask the Davidson County assessor office how and when to list mowers and lawn tools used for the business."
+    }
+  ],
+  "coverage": [
+    {
+      "category": "formation",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "formation",
+      "level": "state",
+      "state": "unreadable",
+      "pagesRead": 0
+    },
+    {
+      "category": "tax",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 5
+    },
+    {
+      "category": "tax",
+      "level": "state",
+      "state": "confirmed",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "state",
+      "state": "not_searched",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "county",
+      "state": "no_official_page",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "city",
+      "state": "no_official_page",
+      "pagesRead": 0
+    },
+    {
+      "category": "zoning",
+      "level": "city",
+      "state": "no_official_page",
+      "pagesRead": 0
+    }
+  ],
+  "conflicts": []
+}

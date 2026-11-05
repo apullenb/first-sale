@@ -7,9 +7,13 @@
 
 ### From “I have an idea” to a business that's legally set up, branded and selling.
 
-There are tools for forming a company, like LegalZoom, and tools for building a website, like Wix. SnapStart does both, plus the marketing plan, social media setup, ads, and managing products and sales. **It's the one guided kit that takes an owner from the idea on day one to their first sale.**
+There are tools for forming a company, like LegalZoom, and tools for building a website, like Wix. SnapStart does both, plus the marketing plan, social media setup, ads\*, and managing products and sales. **It's the one guided kit that takes an owner from the idea on day one to their first sale.\***
 
-SnapStart is a startup kit that tailors itself to the user's actual business. It finds the exact licenses, permits and registrations that apply to *their* business in *their* city, county and state, quoting the official government pages. It recommends the right structure, fills in the official forms, and builds their logo, brand photos and website. **Meta Muse reads, writes and draws, SnapStart's tested code checks every fact, and the owner always knows what to do next.**
+SnapStart is a startup kit that tailors itself to the user's actual business. It finds the exact licenses, permits and registrations that apply to *their* business in *their* city, county and state, quoting the official government pages. It recommends the right structure, fills in the official forms, and builds their logo, brand photos and website. **Meta Muse reads, writes and draws. SnapStart's tested code checks every quote against the official page it came from, so owners can see exactly where each step comes from, and a step only leaves their plan when an official page says it can.**
+
+> **[See how SnapStart was validated across 11 businesses in 11 states →](docs/VALIDATION.md)**
+
+<sub>\* Website hosting, online payments and paid ads run as working demos for the hackathon. Going live with them takes paid services from other companies, which a SnapStart subscription would cover. [What's live today →](#whats-live-today)</sub>
 
 **[Try the live demo →](https://snapstartkit.vercel.app/demo)**
 
@@ -21,7 +25,7 @@ SnapStart is a startup kit that tailors itself to the user's actual business. It
 ![Postgres](https://img.shields.io/badge/Postgres-Neon_%7C_PGlite-4169e1?logo=postgresql&logoColor=white)
 <br>
 ![Meta Muse](https://img.shields.io/badge/AI-Meta_Muse_Spark_%2B_Muse_Image-0866ff?logo=meta&logoColor=white)
-![Vitest](https://img.shields.io/badge/Vitest-1%2C556_tests_passing-6e9f18?logo=vitest&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-2%2C003_tests_passing-6e9f18?logo=vitest&logoColor=white)
 ![Playwright](https://img.shields.io/badge/Playwright-49_e2e_tests_passing-2ead33?logo=playwright&logoColor=white)
 ![Node 24](https://img.shields.io/badge/Node-24-5fa04e?logo=nodedotjs&logoColor=white)
 
@@ -196,7 +200,7 @@ Muse Image draws the logo ideas. From the chosen logo, SnapStart builds the stac
 
 Choose a platform and web address in a focused two-step setup, then open the website builder. SnapStart designs the theme from the saved brand brief, palette, audience, lettering and real imagery, and the designs go well beyond a template: split, photo-cover and editorial openings, framed product grids and story bands, with the see-through logo sitting cleanly on any background. Products and photos flow in from the product library, with header images from the Brand Library. Owners click the live page to edit, refine the theme with AI, arrange sections, adjust typography and colors, choose images and manage product details, with undo, redo and saved drafts.
 
-**Publish website** opens a final check: the finished site at computer and phone width, with SnapStart confirming everything is ready. One more step brings up SnapStart web hosting, a simple monthly subscription that puts the site online and keeps it current every time the owner makes a change. Existing Square sites can be connected; Wix and Shopify are marked Coming Soon.
+**Publish website** opens a final check: the finished site at computer and phone width, with SnapStart confirming everything is ready. One more step brings up SnapStart web hosting\*, a simple monthly subscription that puts the site online and keeps it current every time the owner makes a change. For the hackathon, this step is a clearly labeled demo, so anyone can walk the whole flow without a card or a live site. Existing Square sites can be connected; Wix and Shopify are marked Coming Soon.
 
 <p align="center"><img src="docs/media/website.webp" alt="Recording of the website for Hearth &amp; Wick Candle Co.: the setup page, the editor with the drafted page and its design controls, scrolling the preview through the collection and the owner's story, then Publish website with the final check at computer and phone width, and the SnapStart web hosting subscription" width="900"></p>
 
@@ -379,10 +383,10 @@ The AI drafts, and SnapStart checks each draft in code at a set step before the 
 
 | Where | Check |
 |---|---|
-| Research | `verifyRequirements` confirms each quote appears on a page SnapStart fetched, with fees and deadlines inside that quote. Then `checkClaims` asks Muse Spark to confirm each quote says what its requirement claims. |
+| Research | `verifyRequirements` confirms in code that each quote appears word for word on a page SnapStart fetched, with fees and deadlines inside that quote. Then `checkClaims` gives Muse Spark a second, narrower look: just the quote and the claim, to confirm the quote says what the requirement claims. Each requirement remembers whether that second reading finished (`claimsChecked`), so a step only gets the verified look once both checks pass. If the second reading didn't finish, the step says *Applies, quote not double-checked*, and the deeper look reads it again. |
 | Official sources | The CISA .gov registry (`official-sites.ts`) identifies official sites and which government each belongs to. |
-| Applicability | `classify` sorts each requirement into *Applies to you*, *Depends on something*, *Your choice* or *To find out*, from Muse Spark's reading plus the owner's answers. |
-| Open questions | A deeper look (`follow-up.ts`) searches the responsible office's own site and explains the answer in plain words. |
+| Applicability | `classify` sorts each requirement into *Applies to you*, *Depends on something*, *Your choice*, *Not needed* or *To find out*, from Muse Spark's reading plus the owner's answers. *Not needed* takes a step out of the plan, so code allows it only with a quote that passed both checks. |
+| Open questions | A deeper look (`follow-up.ts`) searches the responsible office's own site, its code and its forms. Anything still unsettled gets one more search aimed at who needs it and who's exempt. A decision without a checked quote can add a step but never remove one: "probably not needed" stays in the plan as *To find out*, with SnapStart's best read, where it searched, the pages it read, and one message to send the office. |
 | Structure | `advise.ts` keeps recommendations to options that fit the owners, with citations to verbatim IRS and SBA quotes. |
 | Website words | `claimConflicts` matches every price and delivery claim against the owner's saved prices and options. |
 | Logos | Muse Spark reads the lettering without being told the name, and SnapStart compares it letter by letter. A model-drawn version that drifted gets one automatic redraw. |
@@ -400,9 +404,13 @@ The AI drafts, and SnapStart checks each draft in code at a set step before the 
 
 Every long AI job goes through one runner (`src/lib/workflow-runner.ts`) and a workflow registry (`src/lib/workflows.ts`). It applies fair-use limits (30 requests an hour and 150 a day per owner, 2,000 a day overall by default) inside a Postgres advisory lock, runs one copy of a job at a time, and records each run in `workflow_runs` so a reload or another tab picks up the result. Picture requests carry a request key from the browser, so a retry after a dropped connection returns the picture already made.
 
+### Fast even when the AI is slow: hedged requests
+
+Requirements research has to finish inside a 300-second page, and a busy AI service can take longer to think. So the research call is hedged (`generateObjectInTime`): if Muse's high-effort answer isn't back after 70 seconds, a medium-effort answer starts alongside it, and whichever valid answer arrives first wins while the other is cancelled mid-stream. The deeper look does the same at 50 seconds, from medium to low effort. Both answers go through exactly the same checks, timeouts are told apart from other failures, and a cancelled call is never retried. It's the hedged-request technique from Google's paper *The Tail at Scale*, sized for a single page.
+
 ### Telemetry
 
-`onAIEvent()` emits per-call events: attempts, schema outcomes, finish reasons, token counts (including cached and reasoning tokens), retries and search query counts. The benchmark uses it to price every run.
+`onAIEvent()` emits per-call events: attempts, schema outcomes, finish reasons, token counts (including cached and reasoning tokens), retries, hedged backups and search query counts. The benchmark uses it to price every run.
 
 ---
 
@@ -417,7 +425,8 @@ Every long AI job goes through one runner (`src/lib/workflow-runner.ts`) and a w
 ## Safety and trust
 
 - **The owner stays in charge of filing.** SnapStart prepares the forms; the owner signs, submits them and tracks each one's status in the app. Prepared copies are marked "Not filed".
-- **Personal numbers stay personal.** Signature and ID number fields are left for the owner to fill in, and the app doesn't store Social Security or tax ID numbers.
+- **SnapStart doesn't keep private numbers.** Social Security and ITIN numbers, EINs, card numbers, and bank routing and account numbers are found in code with each one's own validity rules: SSA number ranges, IRS EIN prefixes, the Luhn check for cards, the ABA checksum for routing numbers, and a label for anything unformatted. They're replaced with a label like "[Social Security number removed]" before a document's text is saved, and every message to the AI is scrubbed the same way. The owner still keeps their file: a PDF that shows one is redacted before it's stored, with the numbers painted out of a fresh copy that has no hidden text left underneath, and that copy is what's kept. Photos and scans are read by the AI as images, so the upload box asks owners to cover those numbers first; SnapStart then blacks out what it found and keeps the copy once a fresh reading confirms nothing is left. Only the scrubbed text stays, and the owner is told what was removed. The *Your details* fields refuse these numbers outright, and signature and ID fields on forms are left for the owner. [The tested before-and-after PDFs →](docs/VALIDATION.md#private-numbers-in-uploaded-documents)
+- **Uploaded files are encrypted at rest.** Each file gets its own AES-256-GCM key, wrapped by a master key from the environment (`DOCUMENT_ENCRYPTION_KEY`). The file's business and document are bound in as associated data, so a copied file won't open anywhere else, and any change to the stored bytes is detected. Master keys carry an id, so a new one can be added and files re-wrapped without re-encrypting them. Photos and scans are still read by the AI service, and the upload box says so.
 - **Sources you can check.** Fees, times and steps quote the official page, with the date it was checked.
 - **Help when there's no clear answer.** When SnapStart can't find an official source for something, it gives the owner the contact details of the office that handles it and helps them write a message with their questions.
 - **Web pages are reference material.** Text from web pages and uploaded documents is passed to the AI as information to use, separate from the app's instructions, so the AI keeps following SnapStart's instructions even if a page contains text that tries to give it new ones (prompt injection).
@@ -448,10 +457,12 @@ Every long AI job goes through one runner (`src/lib/workflow-runner.ts`) and a w
 
 | Suite | Count | Command |
 |---|---|---|
-| Unit and integration (Vitest) | **1,556 tests** in 130 files, all passing | `npm test` |
+| Unit and integration (Vitest) | **2,003 tests** in 165 files, all passing | `npm test` |
 | End to end (Playwright) | **49 tests** in 16 specs, all passing | `npm run e2e` |
 | Types | | `npm run typecheck` |
 | AI benchmark | 25 tasks, graded in code | `npm run bench` |
+| **[Requirements validation](docs/VALIDATION.md)** | 10 businesses in 10 states plus a small-town edge case, live on Meta Muse, graded against independent answer keys | `npx tsx bench/validate.ts --case <id> --live --yes` |
+| **[Private-number check](docs/VALIDATION.md#private-numbers-in-uploaded-documents)** | 2 sample PDFs through the real upload path, with the before-and-after files published | `PUBLISH_PRIVACY_REPORT=1 npx vitest run src/lib/documents/sensitive-upload.test.ts` |
 
 - **Unit tests** cover the calculations in `src/lib/rules`, every quality check, each AI feature, and owner-only data access. Each database test gets its own in-memory Postgres. Quotes for Austin and Travis County are tested against saved copies of the official pages.
 - **End-to-end tests** sign up three owners (a mobile dog groomer in Columbus, a two-owner candle business in Denver, a taco truck in Phoenix) and walk them through the real app on a fresh database.
@@ -543,6 +554,8 @@ The production address and each preview's URLs are trusted for sign-in automatic
 
 ## Coming soon
 
+Here's what's next. For everything you can use today, see [What's live today](#whats-live-today).
+
 - **Full email integration**: connect the business inbox, and customer emails become orders, quote requests and drafted replies for the owner to approve.
 - **Order connections for websites and stores**, so orders arrive in tracking from the owner's sales channels.
 - **Publishing the website SnapStart builds**, with hosting and a custom web address built in.
@@ -552,3 +565,13 @@ The production address and each preview's URLs are trusted for sign-in automatic
 - **Custom automated workflows**, so owners can set up their own automations for everyday tasks like follow-ups, restock reminders and order updates.
 - **Product photo galleries** on the built website, straight from the owner's approved photos.
 - **Password recovery and email verification.**
+
+### What's live today
+
+SnapStart is a hackathon project with a real product's ambitions. A few features, like hosting the website, taking payments and running ads, rely on paid services from other companies: web hosting and domains, payment processing, ad platforms and email. For the hackathon, they're built as working demos you can click all the way through, clearly labeled in the app, so nothing is published, charged or sent. When SnapStart launches as a product, owners' subscriptions cover those services and these features go live.
+
+| Live today | Working demo, labeled in the app | Next up |
+|---|---|---|
+| Intake, requirements research with checked quotes, the business structure recommendation, official forms filled in and marked "Not filed", the owners' agreement, documents, brand, logo and photos, the website editor and preview, products and services, Square products, the marketing plan, social media setup, and order and job tracking | Publishing and hosting the website (the payment screen never asks for card details, and "Finish" publishes nothing), connecting a website the owner already has, and the connected sample inbox at `/email/demo` | Online payments through Stripe, paid ads, order connections from other sales channels, full email integration, custom workflows, and password recovery |
+
+Today, SnapStart takes an owner all the way to launch-ready: they know exactly what applies to them, their paperwork is filled in, and their brand and website are ready to go. Taking that first payment is next.

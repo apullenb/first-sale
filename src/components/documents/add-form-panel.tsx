@@ -245,6 +245,10 @@ export function AddFormPanel({ steps, initialStep, initialKind, initialMode, acc
               <div id={`${uid}-file-help`} className={`flex flex-col gap-1 ${HINT}`}>
                 <p>PDFs and photos (PNG, JPEG or WebP), up to {maxMb}. Large photos are made smaller before they’re sent.</p>
                 <p>
+                  SnapStart doesn’t need Social Security, bank, card or ID numbers, so it blacks out any it finds before keeping
+                  your file. Photos and scans are read by SnapStart’s AI service, so cover those numbers first if you can.
+                </p>
+                <p>
                   iPhone photos saved as HEIC only work if your browser converts them. If yours doesn’t, take a screenshot of
                   the photo and upload that.
                 </p>

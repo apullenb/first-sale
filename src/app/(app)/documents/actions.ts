@@ -36,6 +36,8 @@ import { fetchOfficialPage } from "@/lib/research/retrieve";
 import { readAndSave } from "@/lib/documents/read-and-save";
 import { isKept } from "@/lib/documents/library";
 import { readDocument } from "@/lib/documents/read";
+import { screenUpload } from "@/lib/documents/screen";
+import { countOf, redactSensitive } from "@/lib/privacy/sensitive";
 import { explainReceived } from "@/lib/documents/received";
 import { cleanMoney, ESTIMATES_KEY, type MoneyInputs, moneyInputsSchema } from "@/lib/rules/plan-money";
 import { runWorkflow } from "@/lib/workflow-runner";
@@ -69,17 +71,10 @@ export async function uploadDocumentAction(form: FormData): Promise<ActionResult
   const bytes = new Uint8Array(await file.arrayBuffer());
   const check = checkUpload(bytes, file.name);
   if (!check.ok) return check;
+  // A file showing a number SnapStart never keeps is read from memory, and only its scrubbed text is stored
+  const stored = await screenUpload(bytes, check.type, check.sha256);
 
-  const created = await createMyDocument({
-    title: check.title,
-    origin: "upload",
-    role: "form",
-    mimeType: check.type,
-    data: bytes,
-    sha256: check.sha256,
-    taskId: stepId.data,
-    content: EMPTY_CONTENT,
-  });
+  const created = await createMyDocument({ title: check.title, origin: "upload", role: "form", mimeType: check.type, taskId: stepId.data, ...stored });
   if (!created.ok) return createFailure(created);
   // Saved even if reading fails: the page offers to try again
   await readAndSave({ id: created.id, type: check.type, data: bytes });
@@ -93,17 +88,18 @@ export async function pasteDocumentAction(input: unknown): Promise<ActionResult<
   if (await isDemoSession()) return DEMO_REFUSAL;
   const parsed = pasteSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: `Paste up to ${MAX_PASTE_CHARS.toLocaleString("en-US")} characters.` };
-  const text = parsed.data.text.trim();
+  // Scrubbed before it's stored or sent anywhere
+  const { text, counts: removed } = redactSensitive(parsed.data.text.trim());
   if (text.length < 20) return { ok: false, message: "Paste the form’s text, including its questions." };
   const created = await createMyDocument({
-    title: cleanTitle(parsed.data.title || text.split("\n")[0]),
+    title: cleanTitle(redactSensitive(parsed.data.title).text || text.split("\n")[0]),
     origin: "paste",
     role: "form",
     mimeType: "text/plain",
     data: null,
     sha256: null,
     taskId: parsed.data.stepId,
-    content: { ...EMPTY_CONTENT, readMethod: "pasted", pages: [{ number: 1, text }] },
+    content: { ...EMPTY_CONTENT, readMethod: "pasted", pages: [{ number: 1, text }], ...(countOf(removed) ? { removed } : {}) },
   });
   if (!created.ok) return createFailure(created);
   await readAndSave({ id: created.id, type: "text/plain", text });

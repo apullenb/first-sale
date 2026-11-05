@@ -1,5 +1,6 @@
 // Stored shapes for the document workspace. Plain types, so the schema can import them.
 
+import type { SensitiveCounts } from "@/lib/privacy/sensitive";
 import type { MoneyInputs } from "@/lib/rules/plan-money";
 
 export const FIELD_KINDS = ["text", "checkbox", "choice", "signature", "date"] as const;
@@ -34,6 +35,14 @@ export interface DocumentContent {
   unclear: { page: number; where: string; why: string }[];
   readAt: string | null;
   simulated: boolean;
+  // Numbers SnapStart never keeps, taken out of this text in code: how many of each, never the numbers
+  removed?: SensitiveCounts;
+  // The stored file is a redacted copy: those numbers are painted out of it, with no text layer left under them
+  fileRedacted?: boolean;
+  // The file showed one of them and couldn't be redacted for sure, so only the scrubbed text was kept
+  fileRemoved?: boolean;
+  // Where the AI saw them on a photo or scan, for redacting; dropped before saving
+  regions?: { page: number; left: number; top: number; right: number; bottom: number }[];
 }
 
 export const EMPTY_CONTENT: DocumentContent = {

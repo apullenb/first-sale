@@ -180,6 +180,44 @@ describe("complete", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
+  it("marks a call that ran out of time as timed out, and never retries a cancelled one", async () => {
+    const timeout = Object.assign(new Error("The operation was aborted due to timeout"), { name: "TimeoutError" });
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(timeout));
+    const timedOut = await createOpenAICompatibleProvider({ ...config, retries: 0 })
+      .complete({ messages: [{ role: "user", content: "Hi" }] })
+      .catch((caught: unknown) => caught);
+    expect(timedOut).toMatchObject({ timedOut: true });
+
+    const stop = new AbortController();
+    stop.abort();
+    const fetchMock = vi.fn().mockRejectedValue(Object.assign(new Error("This operation was aborted"), { name: "AbortError" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const cancelled = await createOpenAICompatibleProvider({ ...config, wait: async () => {} })
+      .complete({ messages: [{ role: "user", content: "Hi" }], signal: stop.signal })
+      .catch((caught: unknown) => caught);
+    expect(cancelled).toMatchObject({ timedOut: false });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(true);
+  });
+
+  // Regression: combining the time limit with a cancel signal through AbortSignal.any let replies run past it
+  it("enforces the time limit on a call that can also be cancelled", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise((_resolve, reject) => init.signal!.addEventListener("abort", () => reject(init.signal!.reason))),
+      ),
+    );
+    const started = Date.now();
+    const cancel = new AbortController();
+    const error = await createOpenAICompatibleProvider({ ...config, retries: 0 })
+      .complete({ messages: [{ role: "user", content: "Hi" }], timeoutMs: 50, signal: cancel.signal })
+      .catch((caught: unknown) => caught);
+    expect(error).toMatchObject({ timedOut: true });
+    expect(Date.now() - started).toBeLessThan(1_000);
+  });
+
   it("retries a temporary failure, waiting as long as Retry-After asks", async () => {
     const waits: number[] = [];
     const fetchMock = vi

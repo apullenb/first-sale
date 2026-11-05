@@ -232,6 +232,13 @@
       "when": 1793820370858,
       "tag": "0032_bizarre_mandarin",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793852270391,
+      "tag": "0033_awesome_mauler",
+      "breakpoints": true
     }
   ]
 }

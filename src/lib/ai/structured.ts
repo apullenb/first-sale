@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { addCounts, countOf, redactSensitive, type SensitiveCounts } from "@/lib/privacy/sensitive";
 import { emitAIEvent } from "./telemetry";
-import type { ChatMessage, CompletionResult, Effort, ModelProvider } from "./types";
+import { AIProviderError, type ChatMessage, type CompletionResult, type Effort, type ModelProvider } from "./types";
 
 export interface GenerateObjectOptions<T> {
   name: string;
@@ -16,6 +17,8 @@ export interface GenerateObjectOptions<T> {
   userKey?: string;
   // Keep the cached prompt a day: only for calls that start with long public text, never uploads
   retainCache?: boolean;
+  // Cancels the call; see generateObjectInTime
+  signal?: AbortSignal;
 }
 
 export class StructuredOutputError extends Error {
@@ -26,6 +29,75 @@ export class StructuredOutputError extends Error {
     this.name = "StructuredOutputError";
     this.rawText = rawText;
   }
+}
+
+export interface TimeFallback {
+  // Effort for the backup: lower means less thinking and a sooner answer
+  effort: Effort;
+  // When the caller's own time runs out, as a Date.now() time
+  deadline: number;
+  // Start the backup if the first answer isn't back by then
+  hedgeAfterMs: number;
+  // The least time worth a backup, and the most it gets
+  minMs: number;
+  maxMs: number;
+}
+
+// A hedged request, for calls whose slowest replies would miss the caller's deadline. If the first answer isn't back
+// after hedgeAfterMs, or runs out of time before then, a backup starts at a lower effort; the first valid answer wins
+// and the other call is cancelled. Both go through the same schema, and the caller's same checks. Any other failure of
+// the first call, with no backup running, is thrown as is.
+export function generateObjectInTime<T>(model: ModelProvider, options: GenerateObjectOptions<T>, fallback: TimeFallback): Promise<T> {
+  const first = new AbortController();
+  const backup = new AbortController();
+  return new Promise<T>((resolve, reject) => {
+    let settled = false;
+    let second: Promise<T> | null = null;
+    let firstError: unknown = null;
+    let firstDone = false;
+    let secondDone = false;
+    const win = (value: T, loser: AbortController) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      loser.abort();
+      resolve(value);
+    };
+    // Fails only once nothing is left running
+    const lose = (error: unknown) => {
+      if (settled || !firstDone || (second && !secondDone)) return;
+      settled = true;
+      clearTimeout(timer);
+      reject(firstError ?? error);
+    };
+    const launch = () => {
+      if (settled || second) return;
+      const left = fallback.deadline - Date.now();
+      if (left < fallback.minMs) return lose(firstError);
+      const timeoutMs = Math.min(fallback.maxMs, left);
+      emitAIEvent({ type: "fallback", name: options.name, effort: fallback.effort, timeoutMs });
+      // No repair round: it has to finish inside the caller's deadline
+      second = generateObject(model, { ...options, effort: fallback.effort, timeoutMs, maxRepairs: 0, signal: backup.signal });
+      second.then(
+        (value) => win(value, first),
+        (error) => {
+          secondDone = true;
+          lose(error);
+        },
+      );
+    };
+    const timer = setTimeout(launch, Math.max(0, fallback.hedgeAfterMs));
+    generateObject(model, { ...options, signal: first.signal }).then(
+      (value) => win(value, backup),
+      (error) => {
+        firstDone = true;
+        firstError = error;
+        if (!second && error instanceof AIProviderError && error.timedOut) return launch();
+        if (!second) clearTimeout(timer);
+        lose(error);
+      },
+    );
+  });
 }
 
 // Format OpenAI-compatible APIs require for response_format names
@@ -40,7 +112,11 @@ export async function generateObject<T>(
     throw new Error(`Schema name "${options.name}" must be 1–64 letters, digits, "_" or "-"`);
   }
   const jsonSchema = toJsonSchema(options.schema);
-  const messages: ChatMessage[] = [...options.messages];
+  // Last line of defense: numbers SnapStart never sends are taken out of every message's text, in code.
+  // Images and PDFs can't be scrubbed here; uploads say so before they're read.
+  const { messages: scrubbed, counts } = scrubMessages(options.messages);
+  if (countOf(counts)) console.info(`AI ${options.name}: removed ${countOf(counts)} sensitive numbers before sending`);
+  const messages: ChatMessage[] = [...scrubbed];
   if (!model.capabilities.jsonSchema) {
     messages.push({
       role: "user",
@@ -62,6 +138,7 @@ export async function generateObject<T>(
       // Each task's system prompt is a stable prefix, so its schema name names the cache
       cacheKey: options.name,
       retainCache: options.retainCache,
+      signal: options.signal,
     });
     const ms = Date.now() - started;
     logUsage(options.name, result.usage, ms);
@@ -122,4 +199,19 @@ function validate<T>(schema: z.ZodType<T>, text: string): Validation<T> {
 function stripCodeFence(text: string): string {
   const match = text.trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
   return match ? match[1] : text.trim();
+}
+
+export function scrubMessages(messages: readonly ChatMessage[]): { messages: ChatMessage[]; counts: SensitiveCounts } {
+  let counts: SensitiveCounts = {};
+  const clean = (text: string) => {
+    const result = redactSensitive(text);
+    counts = addCounts(counts, result.counts);
+    return result.text;
+  };
+  const out = messages.map((message): ChatMessage => {
+    if (message.role !== "user") return { ...message, content: clean(message.content) };
+    if (typeof message.content === "string") return { ...message, content: clean(message.content) };
+    return { ...message, content: message.content.map((part) => (part.type === "text" ? { ...part, text: clean(part.text) } : part)) };
+  });
+  return { messages: out, counts };
 }

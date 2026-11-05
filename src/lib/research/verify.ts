@@ -43,8 +43,9 @@ export interface ReadPage extends RetrievedSource {
   text: string;
 }
 
-// confirmedBy: the page the quote was found on, when it's sourced
-export type VerifiedRequirement = Verified<RequirementDraft> & { confirmedBy?: string[] };
+// confirmedBy: the page the quote was found on, when it's sourced.
+// claimsChecked: whether the claims check read the quote and agreed; unset until it runs.
+export type VerifiedRequirement = Verified<RequirementDraft> & { confirmedBy?: string[]; claimsChecked?: boolean };
 
 // verifyCitations, then: the quote must be on a cited page, any fee or deadline inside that quote,
 // and a state or local requirement needs a page from that level, not just general federal guidance.
@@ -109,6 +110,10 @@ export function verifyRequirements(
 const MIN_PIECE = 20;
 const MAX_PIECES = 3;
 const MAX_GAP = 200;
+// Whole sentences quoted together that aren't side by side on the page: each word for word, in the same part of it
+const MAX_SENTENCES = 4;
+const MIN_SENTENCE = 15;
+const MAX_SPREAD = 2_000;
 
 // A cited page's normalized text, and the stretches of it the quote shows
 interface Quoted {
@@ -130,7 +135,7 @@ function findQuote(texts: readonly string[], quote: string): Quoted | null {
     .split("...")
     .map((piece) => piece.trim())
     .filter(Boolean);
-  if (pieces.length < 2 || pieces.length > MAX_PIECES || pieces.some((piece) => piece.length < MIN_PIECE)) return null;
+  if (pieces.length < 2 || pieces.length > MAX_PIECES || pieces.some((piece) => piece.length < MIN_PIECE)) return findSentences(texts, whole);
   for (const text of texts) {
     for (let first = wholeIndex(text, pieces[0]); first !== -1; first = wholeIndex(text, pieces[0], first + 1)) {
       const spans: Quoted["spans"] = [[first, first + pieces[0].length]];
@@ -143,6 +148,29 @@ function findQuote(texts: readonly string[], quote: string): Quoted | null {
       });
       if (fits) return { text, spans };
     }
+  }
+  return findSentences(texts, whole);
+}
+
+// Models often join two sentences that sit a little apart on the page. Each has to be there word for word, close
+// together, so a sentence from another page or another part of this one, such as a fee for something else, fails.
+function findSentences(texts: readonly string[], whole: string): Quoted | null {
+  const sentences = whole
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+  if (sentences.length < 2 || sentences.length > MAX_SENTENCES || sentences.some((sentence) => sentence.length < MIN_SENTENCE)) return null;
+  for (const text of texts) {
+    const spans: Quoted["spans"] = [];
+    for (const sentence of sentences) {
+      const at = wholeIndex(text, sentence);
+      if (at === -1) break;
+      spans.push([at, at + sentence.length]);
+    }
+    if (spans.length !== sentences.length) continue;
+    const from = Math.min(...spans.map(([start]) => start));
+    const to = Math.max(...spans.map(([, end]) => end));
+    if (to - from <= MAX_SPREAD) return { text, spans: spans.sort((a, b) => a[0] - b[0]) };
   }
   return null;
 }

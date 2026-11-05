@@ -1,0 +1,1459 @@
+{
+  "case": "miami-fl-cleaning",
+  "label": "House cleaning, hiring within a year, Miami, Florida",
+  "model": "Meta Muse (muse-spark-1.3)",
+  "simulated": false,
+  "ranAt": "2026-11-05T06:50:21.798Z",
+  "timeLimitSeconds": 600,
+  "ms": {
+    "research": 208942,
+    "followUp": 152755,
+    "total": 361698
+  },
+  "cost": {
+    "usd": 1.8192,
+    "modelCalls": 9,
+    "searches": 30,
+    "inputTokens": 1556206,
+    "outputTokens": 81411,
+    "failedCalls": [
+      "requirement_claims: AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout",
+      "requirement_follow_up: AIProviderError: Meta Muse stream failed: This operation was aborted"
+    ],
+    "fallbacks": [
+      "requirement_follow_up"
+    ]
+  },
+  "calls": [
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6170,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8377,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10412,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12035,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13590,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14928,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17993,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 21205,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 23945,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 43711,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 86867,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 43062,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10661,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13297,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17217,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 19098,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_follow_up",
+      "effort": "medium",
+      "ms": 27372,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 30010,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 10330,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 23458,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7132,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7863,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8410,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8531,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10867,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11546,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11862,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13866,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13904,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16119,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18954,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 19128,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 19814,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20575,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 21528,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 26637,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 73274,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "low",
+      "ms": 23277,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: This operation was aborted"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 9240,
+      "ok": true,
+      "error": null
+    }
+  ],
+  "claimsCheckedInResearch": false,
+  "followUp": {
+    "candidates": 17,
+    "rounds": 1,
+    "confirmed": 0,
+    "rechecked": 6
+  },
+  "pages": [
+    {
+      "id": "irs-ein",
+      "title": "IRS: Get an employer identification number",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "irs-business-structures",
+      "title": "IRS: Business structures",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-structure",
+      "title": "SBA: Choose a business structure",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-name",
+      "title": "SBA: Choose your business name",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-register-business",
+      "title": "SBA: Register your business",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#register-business",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-location",
+      "title": "SBA: Pick your business location",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-licenses-permits",
+      "title": "SBA: Apply for licenses and permits",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-tax-ids",
+      "title": "SBA: Get federal and state tax ID numbers",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-hire-employees",
+      "title": "SBA: Hire and manage employees",
+      "url": "https://www.sba.gov/counseling/manage-your-business/#hire-and-manage",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "state-name-1",
+      "title": "Florida Fictitious Name Registration",
+      "url": "https://dos.fl.gov/sunbiz/start-business/efile/fl-fictitious-name-registration",
+      "level": "state",
+      "government": "State of Florida / Dept. of management Services",
+      "discovered": true
+    },
+    {
+      "id": "state-name-2",
+      "title": "Register Your Fictitious Name",
+      "url": "https://dos.fl.gov/library-archives/research/florida-information/business/starting-a-business-in-florida/small-business/dba/",
+      "level": "state",
+      "government": "State of Florida / Dept. of management Services",
+      "discovered": true
+    },
+    {
+      "id": "state-formation-1",
+      "title": "Instructions for Articles of Organization (FL LLC)",
+      "url": "https://dos.fl.gov/sunbiz/start-business/efile/fl-llc/instructions/",
+      "level": "state",
+      "government": "State of Florida / Dept. of management Services",
+      "discovered": true
+    },
+    {
+      "id": "state-formation-2",
+      "title": "Florida Limited Liability Company",
+      "url": "https://dos.fl.gov/sunbiz/start-business/efile/fl-llc/",
+      "level": "state",
+      "government": "State of Florida / Dept. of management Services",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-1",
+      "title": "Please wait",
+      "url": "https://openmyfloridabusiness.gov/business/services-to-buildings-and-dwellings/0-2/services-to-buildings-and-dwellings/",
+      "level": "state",
+      "government": "Florida Department of Business and Professional Regulation",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-2",
+      "title": "Licensing Portal - Checklist Details",
+      "url": "https://www.myfloridalicense.com/CheckListDetail.asp?SID&xactCode=1042&clientCode=4006&XACT_DEFN_ID=7037",
+      "level": "state",
+      "government": "Florida Department of Business and Professional Regulation",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-1",
+      "title": "CPSC Labeling Requirements Overview",
+      "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/CPSC-Labeling-Requirements-Overview",
+      "level": "federal",
+      "government": "Consumer Product Safety Commission",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-2",
+      "title": "What is a Pesticide?",
+      "url": "https://www.epa.gov/minimum-risk-pesticides/what-pesticide",
+      "level": "federal",
+      "government": "Environmental Protection Agency",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-1",
+      "title": "Self-employed individuals tax center",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-2",
+      "title": "Small Business Filing and Recordkeeping Requirements",
+      "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "city-license-2",
+      "title": "Guide to Opening a Business in The City of Miami",
+      "url": "https://www.miami.gov/Business-Licenses/Business-Licensing/Guide-to-Opening-a-Business-in-The-City-of-Miami?lang_update=638522879453484746",
+      "level": "city",
+      "government": "City of Miami",
+      "discovered": true
+    },
+    {
+      "id": "city-home-2",
+      "title": "Business Licensing - Miami",
+      "url": "https://www.miami.gov/Business-Licenses/Business-Licensing?lang_update=638522199149707553",
+      "level": "city",
+      "government": "City of Miami",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-1-2",
+      "title": "SUMMARY",
+      "url": "https://floridarevenue.com/TaxLaw/Documents/TAA 99A-010.pdf",
+      "level": "state",
+      "government": "Florida Department of Revenue",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-2-1",
+      "title": "What Services Require a DBPR License?",
+      "url": "https://www2.myfloridalicense.com/services-requiring-a-dbpr-license/",
+      "level": "state",
+      "government": "Florida Department of Business and Professional Regulation",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-2-2",
+      "title": "DBPR - YANIZ, PATRICIA C; Doing Business As: PATTY DOE'S POOL CLEANING SERV, Registered Pool/Spa Contractor",
+      "url": "https://www.myfloridalicense.com/portalsearches/VerifyLicensee/LicenseDetail?ID=1555692AB3B86477D919D11C29181D71",
+      "level": "state",
+      "government": "Florida Department of Business and Professional Regulation",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-3-1",
+      "title": "Determining If a Cleaning Product Is a Pesticide Under FIFRA",
+      "url": "https://www.epa.gov/pesticide-registration/determining-if-cleaning-product-pesticide-under-fifra",
+      "level": "federal",
+      "government": "Environmental Protection Agency",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-3-2",
+      "title": "Avoid Illegal Household Pesticide Products",
+      "url": "https://www.epa.gov/safepestcontrol/avoid-illegal-household-pesticide-products",
+      "level": "federal",
+      "government": "Environmental Protection Agency",
+      "discovered": true
+    },
+    {
+      "id": "fu-fictitious-name-1",
+      "title": "Register Your Fictitious Name",
+      "url": "https://dos.fl.gov/library-archives/research/florida-information/business/starting-a-business-in-florida/small-business/dba/",
+      "level": "state",
+      "government": "State of Florida / Dept. of management Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-fictitious-name-2",
+      "title": "Fictitious Name Registration Instructions",
+      "url": "https://dos.fl.gov/sunbiz/start-business/efile/fl-fictitious-name-registration/instructions/",
+      "level": "state",
+      "government": "State of Florida / Dept. of management Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-fictitious-name-3",
+      "title": "Florida Fictitious Name Registration",
+      "url": "https://dos.fl.gov/sunbiz/start-business/efile/fl-fictitious-name-registration",
+      "level": "state",
+      "government": "State of Florida / Dept. of management Services",
+      "discovered": true
+    },
+    {
+      "id": "fu-miami-city-btr-1",
+      "title": "Business Licensing - Miami",
+      "url": "https://www.miami.gov/Business-Licenses/Business-Licensing?lang_update=638522199149707553",
+      "level": "city",
+      "government": "City of Miami",
+      "discovered": true
+    },
+    {
+      "id": "fu-miami-city-btr-2",
+      "title": "Guide to Opening a Business in The City of Miami",
+      "url": "https://www.miami.gov/Business-Licenses/Business-Licensing/Guide-to-Opening-a-Business-in-The-City-of-Miami?lang_update=638522879453484746",
+      "level": "city",
+      "government": "City of Miami",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-miami-city-btr-1",
+      "title": "Get a Business Tax Receipt (BTR)",
+      "url": "https://www.miami.gov/Business/Business-Tax-Receipt-BTR?lang_update=638537820583795242",
+      "level": "city",
+      "government": "City of Miami",
+      "discovered": true
+    },
+    {
+      "id": "fu-miami-home-use-approval-3",
+      "title": "Find your Property's Zoning Category",
+      "url": "https://www.miami.gov/Planning-Zoning-Land-Use/Land-Property-Usage/Find-your-Propertys-Zoning-Category?lang_update=638838551810467666",
+      "level": "city",
+      "government": "City of Miami",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-miami-home-use-approval-2",
+      "title": "Get a Certificate of Use (CU)",
+      "url": "https://www.miami.gov/Business-Licenses/Business-Licensing/Get-a-Certificate-of-Use-CU?OC_EA_EmergencyAnnouncementList_Dismiss=c4f19a76-a844-4b1f-9678-3804252d60ab&lang_update=638538720780472184",
+      "level": "city",
+      "government": "City of Miami",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-miami-home-use-approval-3",
+      "title": "View City of Miami Zoning Code (Miami 21)",
+      "url": "https://www.miami.gov/Planning-Zoning-Land-Use/View-City-of-Miami-Zoning-Code-Miami-21?OC_EA_EmergencyAnnouncementList_Dismiss=c4f19a76-a844-4b1f-9678-3804252d60ab&lang_update=638595349513240138",
+      "level": "city",
+      "government": "City of Miami",
+      "discovered": true
+    },
+    {
+      "id": "fu-miami-city-btr-renewal-2",
+      "title": "Download Your CU, AU or BTR License",
+      "url": "https://www.miami.gov/Business-Licenses/Business-Licensing/Download-Your-CU-AU-or-BTR-License?OC_EA_EmergencyAnnouncementList_Dismiss=c4f19a76-a844-4b1f-9678-3804252d60ab&lang_update=638541322141414034",
+      "level": "city",
+      "government": "City of Miami",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-miami-city-btr-renewal-1",
+      "title": "View City of Miami Code of Ordinances (Municode)",
+      "url": "https://www.miami.gov/My-Government/View-City-of-Miami-Code-of-Ordinances-Municode?OC_EA_EmergencyAnnouncementList_Dismiss=c4f19a76-a844-4b1f-9678-3804252d60ab&lang_update=638546236915703885",
+      "level": "city",
+      "government": "City of Miami",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-miami-city-btr-renewal-2",
+      "title": "My Government - Miami",
+      "url": "https://www.miami.gov/My-Government?lang_update=638531997895129784",
+      "level": "city",
+      "government": "City of Miami",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-miami-1",
+      "title": "Guide to Getting a Permit",
+      "url": "https://www.miami.gov/Services/Guide-to-Getting-a-Permit",
+      "level": "city",
+      "government": "City of Miami",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-miami-2",
+      "title": "Opening Changing or Relocating a business",
+      "url": "https://www.miamibeachfl.gov/business-open-change-relocation/",
+      "level": "city",
+      "government": "City of Miami Beach",
+      "discovered": true
+    }
+  ],
+  "unread": [
+    {
+      "title": "Florida Dept. of Revenue -                                                    Account Management and Registration",
+      "url": "https://floridarevenue.com/taxes/registration",
+      "reason": "Redirected to a site that isn’t approved"
+    },
+    {
+      "title": "Florida Reemployment Tax",
+      "url": "https://floridarevenue.com/taxes/taxesfees/Pages/reemployment.aspx",
+      "reason": "The page had no readable text"
+    },
+    {
+      "title": "Florida Dept. of Revenue - \n                        \n            \n            New Business Start-up Kit",
+      "url": "https://floridarevenue.com/taxes/businesses/Pages/newbusiness_startup.aspx",
+      "reason": "The page had no readable text"
+    },
+    {
+      "title": "Procedure for submitting CERTIFICATE OF USE (CU) and LOCAL BUSINESS TAX LICENSE",
+      "url": "https://cityofsweetwater.fl.gov/wp-content/uploads/2022/10/UPDATED_CU_APPLICATION-4.pdf",
+      "reason": "The site answered with error 404"
+    },
+    {
+      "title": "Miami Business Solutions Guide",
+      "url": "https://www.miami.gov/files/assets/public/v/1/document-resources/pdf-docs/human-services/miami-business-solutions-guide_508.pdf",
+      "reason": "The file is too large"
+    }
+  ],
+  "requirements": [
+    {
+      "key": "structure-choice",
+      "title": "Choose sole proprietorship as your business structure",
+      "level": "federal",
+      "topic": "structure",
+      "agency": "Small Business Administration",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-structure"
+      ],
+      "evidence": "You’ll need to choose a business structure before you register your business with the state. You’re automatically considered to be a sole proprietorship if you do business activities but don’t register as any other kind of business.",
+      "why": "You are a first-time owner with one owner starting a home-based cleaning service and you chose sole proprietorship.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "fictitious-name",
+      "title": "Register Bright Nest Cleaning as a Florida fictitious name",
+      "level": "state",
+      "topic": "name_registration",
+      "agency": "Florida Department of State, Division of Corporations",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://dos.fl.gov/sunbiz/start-business/efile/fl-fictitious-name-registration"
+      ],
+      "evidence": "The Fictitious Name Act (s.865.09, F.S.) requires any person (which, by definition, includes an individual, as well as a business entity) to register their “fictitious name” or “dba” name with the Florida Department of State prior to conducting business in Florida. It is valid for 5 years and expires on December 31st of the final year.",
+      "why": "You will do business as Bright Nest Cleaning, which is not your legal personal name, from a home in Miami.",
+      "background": "You will work under Bright Nest Cleaning, which is different from your own legal name. Florida requires registration before you start under such a name.",
+      "problems": [
+        "Quote not found on the cited pages"
+      ],
+      "trail": null
+    },
+    {
+      "key": "ein",
+      "title": "Get a free federal EIN",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number"
+      ],
+      "evidence": "Businesses, organizations and some retirement trusts need an EIN to manage their taxes. You never have to pay a fee for an EIN.",
+      "why": "You are a sole proprietor who plans to hire employees in the first year and will need a federal tax ID for taxes, payroll and bank needs.",
+      "background": "Hiring workers means you need a federal tax number for payroll, hiring forms and bank needs.",
+      "problems": [
+        "Fee not found in the quote"
+      ],
+      "trail": null
+    },
+    {
+      "key": "self-employment-tax",
+      "title": "Pay federal self-employment and income taxes",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center"
+      ],
+      "evidence": "Self-employed individuals generally must pay self-employment (SE) tax as well as income tax. SE tax is a Social Security and Medicare tax primarily for individuals who work for themselves.",
+      "why": "You will run the cleaning business yourself as a sole proprietor, so your profit is subject to self-employment tax.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "estimated-tax",
+      "title": "Pay quarterly estimated taxes",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center"
+      ],
+      "evidence": "As a self-employed individual, estimated tax is the method used to pay Social Security, Medicare, and income taxes; this is because you do not have an employer withholding these taxes for you.",
+      "why": "No employer will withhold taxes from your house-cleaning income, so you pay as you earn during the year.",
+      "background": "No boss will take tax from your cleaning pay, so you must pay as you earn during the year.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote describes estimated tax as the payment method without employer withholding but does not show that payment must be quarterly."
+      ],
+      "trail": null
+    },
+    {
+      "key": "annual-filing",
+      "title": "File yearly federal return with Schedule C and Schedule SE",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center"
+      ],
+      "evidence": "To file your annual income tax return, you will need to use Schedule C (Form 1040), Profit or Loss from Business (Sole Proprietorship), to report any income or loss from a business you operated or profession you practiced as a sole proprietor, or gig work performed.",
+      "why": "Your house-cleaning income and costs must be reported each year as sole proprietor income.",
+      "background": "Your cleaning profit and loss must be reported each year as a sole owner.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote mentions using Schedule C for the annual return but does not show any requirement to file Schedule SE."
+      ],
+      "trail": null
+    },
+    {
+      "key": "payroll-setup",
+      "title": "Set up federal payroll and hiring paperwork before hiring",
+      "level": "federal",
+      "topic": "employer",
+      "agency": "Small Business Administration and Internal Revenue Service",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/manage-your-business/#hire-and-manage"
+      ],
+      "evidence": "Establish a basic payroll structure to help you hire employees. Then, manage employees properly with a general understanding of state and federal labor laws.",
+      "why": "You plan to hire employees in the first year to help with in-person cleaning jobs.",
+      "background": "You plan to bring on helpers for cleaning jobs, which requires proper hiring and pay papers before they start.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote mentions a basic payroll structure and labor laws but does not show federal payroll, hiring paperwork, or doing it before hiring."
+      ],
+      "trail": null
+    },
+    {
+      "key": "fl-reemployment-tax",
+      "title": "Register for Florida reemployment tax when you hire",
+      "level": "state",
+      "topic": "employer",
+      "agency": "Florida Department of Revenue",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You plan to hire employees in Florida in the first year, which commonly triggers state unemployment tax duties.",
+      "background": "Florida employers generally must handle state jobless tax once they start paying workers.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "fl-workers-comp",
+      "title": "Get Florida workers compensation coverage when you hire",
+      "level": "state",
+      "topic": "employer",
+      "agency": "Florida Division of Workers Compensation",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will have employees doing physical cleaning work in clients homes, which commonly requires workers compensation.",
+      "background": "Cleaning work with hired helpers brings injury risk, and Florida expects employers to carry workers cover when they have staff.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "fl-new-hire-reporting",
+      "title": "Report new hires to Florida",
+      "level": "state",
+      "topic": "employer",
+      "agency": "Florida Department of State",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You plan to hire employees in the first year and states commonly require prompt reporting of each new hire.",
+      "background": "Every Florida employer must tell the state when a new worker is hired so child support can be tracked.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "trademark",
+      "title": "Consider federal trademark protection for your name",
+      "level": "federal",
+      "topic": "name_registration",
+      "agency": "United States Patent and Trademark Office",
+      "status": "optional",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-name"
+      ],
+      "evidence": "A trademark can protect the name of your business, goods, and services at a national level. Businesses in every state are subject to trademark infringement lawsuits, which can prove costly.",
+      "why": "You will market Bright Nest Cleaning on social media and in person, so you may want national name protection.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "recordkeeping",
+      "title": "Keep business income and expense records",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Internal Revenue Service",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/"
+      ],
+      "evidence": "As a busy small business owner, it’s important to put a user-friendly recordkeeping system in place.",
+      "why": "You will earn side income from cleaning jobs with supply costs and later payroll that must be proven on tax returns.",
+      "background": "You will have job income plus supply and pay costs that must be proved on tax returns.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote only says a user-friendly recordkeeping system is important and does not mention keeping income and expense records for cleaning income, supply costs, payroll, or tax returns."
+      ],
+      "trail": null
+    },
+    {
+      "key": "miami-city-btr",
+      "title": "City of Miami business tax receipt",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Miami business licensing office",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will run your business from a home inside the City of Miami and clean houses in person. Cities like Miami commonly require a local business tax receipt before you start serving customers.",
+      "background": "You will run a service business from a home inside the city and serve local homes in person.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "miami-dade-county-btr",
+      "title": "Miami-Dade County business tax receipt",
+      "level": "county",
+      "topic": "license_permit",
+      "agency": "Miami-Dade County Tax Collector's office",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "Your home and work area are in Miami-Dade County. Counties in Florida commonly require their own local business tax receipt, separate from the city receipt.",
+      "background": "You will be based and work in the county, and the county requires its own receipt even for a home based service.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "miami-home-use-approval",
+      "title": "City home business and zoning approval for home office",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "City of Miami planning and zoning office",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will work from a home office in Miami and visit clients at their homes. Even with no customer visits, cities commonly require zoning approval for a home office.",
+      "background": "You will keep a home office for a cleaning business, and the city controls home business use through zoning.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "miami-city-btr-renewal",
+      "title": "Renew City of Miami business tax receipt yearly",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Miami business licensing office",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will keep running Bright Nest Cleaning from your Miami home. Local receipts like this commonly must be renewed each year to stay active.",
+      "background": "If you hold a city receipt to keep running, the city expects you to keep it active through renewal.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "miami-dade-county-btr-renewal",
+      "title": "Renew Miami-Dade County business tax receipt yearly",
+      "level": "county",
+      "topic": "license_permit",
+      "agency": "Miami-Dade County Tax Collector's office",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will keep running Bright Nest Cleaning in Miami-Dade County. County receipts like this commonly must be renewed each year to stay active.",
+      "background": "If you hold a county receipt to keep running, the county expects you to keep it active through renewal.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "miami-dade-tangible-property-return",
+      "title": "File county business property tax return if you own business items",
+      "level": "county",
+      "topic": "tax_registration",
+      "agency": "Miami-Dade County Property Appraiser's office",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you keep tools, machines, or other business items at your home or job sites?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will own vacuums, supplies, and other cleaning tools for house cleaning. Counties commonly ask businesses to list these items each year for property tax purposes.",
+      "background": "",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    }
+  ],
+  "plan": [
+    {
+      "key": "structure-choice",
+      "title": "Choose sole proprietorship as your business structure",
+      "status": "verified",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "fictitious-name",
+      "title": "Register Bright Nest Cleaning as a Florida fictitious name",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://dos.fl.gov/sunbiz/start-business/efile/fl-fictitious-name-registration",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "ein",
+      "title": "Get a free federal EIN",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "self-employment-tax",
+      "title": "Pay federal self-employment and income taxes",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "estimated-tax",
+      "title": "Pay quarterly estimated taxes",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "annual-filing",
+      "title": "File yearly federal return with Schedule C and Schedule SE",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "payroll-setup",
+      "title": "Set up federal payroll and hiring paperwork before hiring",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/manage-your-business/#hire-and-manage",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "fl-reemployment-tax",
+      "title": "Register for Florida reemployment tax when you hire",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "fl-workers-comp",
+      "title": "Get Florida workers compensation coverage when you hire",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "fl-new-hire-reporting",
+      "title": "Report new hires to Florida",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "trademark",
+      "title": "Consider federal trademark protection for your name",
+      "status": "optional",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "recordkeeping",
+      "title": "Keep business income and expense records",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "miami-dade-county-btr",
+      "title": "Miami-Dade County business tax receipt",
+      "status": "needs_confirmation",
+      "level": "county",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "miami-home-use-approval",
+      "title": "City home business and zoning approval for home office",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "miami-city-btr",
+      "title": "City of Miami business tax receipt",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "miami-city-btr-renewal",
+      "title": "Renew City of Miami business tax receipt yearly",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "miami-dade-county-btr-renewal",
+      "title": "Renew Miami-Dade County business tax receipt yearly",
+      "status": "needs_confirmation",
+      "level": "county",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "miami-dade-tangible-property-return",
+      "title": "File county business property tax return if you own business items",
+      "status": "conditional",
+      "level": "county",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    }
+  ],
+  "openQuestions": [
+    {
+      "question": "We couldn’t find an official page about business licenses in Miami-Dade County. That doesn’t mean nothing applies, so ask.",
+      "answer": "Yes. The county requires its own business tax receipt for home based services, separate from the city receipt. Ask the county tax office how a home cleaning service applies."
+    },
+    {
+      "question": "Does Florida sales tax or any other state tax apply to residential house cleaning services?",
+      "answer": "Routine residential cleaning is not a taxable sale for state sales tax. You still owe income tax on your profit and hiring taxes once you have workers, and you should confirm with the state if you add other services."
+    },
+    {
+      "question": "Does residential house cleaning need any Florida state license or permit?",
+      "answer": "No. The state does not issue a special license just for routine house cleaning. You still need local receipts and hiring duties, while work such as pest control or other trades would need its own state license."
+    },
+    {
+      "question": "If cleaning products make pest-killing claims, does the product need federal pesticide registration?",
+      "answer": "Yes. A cleaner that claims to kill germs or pests is treated as a pesticide and generally must be registered, with the label followed exactly. For this work use plain cleaners or properly labeled products and follow the label."
+    },
+    {
+      "question": "What are the current fees, application forms, and renewal dates for Miami-Dade County and City of Miami business tax receipts for a home-based cleaning service?",
+      "answer": "We could not settle the current form, cost and timing from the pages found. Ask the city office and the county tax office for the home business form, what to file and how renewal works."
+    },
+    {
+      "question": "Does a home office in the City of Miami with no customer visits need a Certificate of Use or home occupation approval before getting a business tax receipt?",
+      "answer": "Yes, in most cases. The city generally must clear home business use before it issues a business tax receipt, even with no customer visits. Ask the city planning office what clearance your home office needs."
+    },
+    {
+      "question": "Does Miami-Dade County or the City of Miami have any local payroll, occupational, or other business taxes for a cleaning business with employees?",
+      "answer": "Apart from the city and county business tax receipts, there is no separate local payroll tax for this kind of service business. You still must handle federal payroll duties and state hiring taxes once you have workers."
+    }
+  ],
+  "coverage": [
+    {
+      "category": "formation",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "formation",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "tax",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 5
+    },
+    {
+      "category": "tax",
+      "level": "state",
+      "state": "unreadable",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "state",
+      "state": "not_searched",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "county",
+      "state": "no_official_page",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "city",
+      "state": "read_unconfirmed",
+      "pagesRead": 1
+    },
+    {
+      "category": "zoning",
+      "level": "city",
+      "state": "read_unconfirmed",
+      "pagesRead": 1
+    }
+  ],
+  "conflicts": []
+}

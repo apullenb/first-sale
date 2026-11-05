@@ -1,11 +1,13 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
-import type { CompletionRequest, ModelProvider, WebSearchRequest } from "@/lib/ai";
+import { AIProviderError, type CompletionRequest, type ModelProvider, type WebSearchRequest } from "@/lib/ai";
 import { SOURCE_PACKS } from "@/data/source-packs";
 import { createMockProvider } from "@/lib/ai/providers/mock";
-import { retrievedPage, testProfile } from "@/test/fixtures";
+import { requirementDraft, retrievedPage, testProfile } from "@/test/fixtures";
+import { CLAIMS_SCHEMA_NAME } from "./claims";
 import type { SearchGap } from "./discover";
-import { packsFor, placeQuestions, profileKey, ResearchError, researchMessage, researchRequirements } from "./requirements";
+import { followUpCandidates } from "./follow-up";
+import { joinHalves, packsFor, placeQuestions, profileKey, ResearchError, researchMessage, researchRequirements } from "./requirements";
 import type { SourcePack } from "./source-pack";
 
 const profile = testProfile({
@@ -242,6 +244,8 @@ describe("researchRequirements", () => {
       "We haven’t searched official sites about forming an LLC or other business entity in Ohio yet.",
       "We haven’t searched official sites about registering to collect sales tax in Ohio yet.",
       "We haven’t searched official sites about selling food made at home in Ohio yet.",
+      "We haven’t searched official sites about rules in Ohio for a business that sells food you make yet.",
+      "We haven’t searched official sites about tax returns and renewals after opening in Ohio yet.",
       "We haven’t searched official sites about business licenses in Franklin County yet.",
       "We haven’t searched official sites about food permits from the Franklin County health department yet.",
       "We haven’t searched official sites about business licenses in Columbus yet.",
@@ -272,8 +276,9 @@ describe("researchRequirements", () => {
     expect(none.requirements.some((r) => r.key.endsWith("-formation"))).toBe(false);
   });
 
-  it("reads the pages search found, and lets a state page back a state requirement", async () => {
-    const stateUrl = "https://www.ohiosos.gov/businesses/trade-names";
+  const stateUrl = "https://www.ohiosos.gov/businesses/trade-names";
+  // Search finds Ohio's trade name page; the claims check answers with `claims`
+  function searchingResearch(claims: object | Error = { unsupported: [] }) {
     const fetchImpl = officialSites({
       [stateUrl]: "<h1>Trade names</h1><p>A trade name registration costs $39 and lasts five years.</p>",
     });
@@ -287,6 +292,10 @@ describe("researchRequirements", () => {
       answer: "",
     }));
     const responder = vi.fn((request: CompletionRequest) => {
+      if (request.responseFormat?.name === CLAIMS_SCHEMA_NAME) {
+        if (claims instanceof Error) throw claims;
+        return JSON.stringify(claims);
+      }
       const text = request.messages.findLast((message) => message.role === "user")?.content as string;
       expect(text).toContain('<source id="state-name-1" level="state" government="State of Ohio" title="Ohio trade names">');
       expect(text).toContain("<existing_keys>trade-name</existing_keys>");
@@ -324,6 +333,11 @@ describe("researchRequirements", () => {
       webSearch,
     };
 
+    return { model, fetchImpl, webSearch };
+  }
+
+  it("reads the pages search found, and lets a state page back a state requirement", async () => {
+    const { model, fetchImpl, webSearch } = searchingResearch();
     const result = await researchRequirements(model, profile, { fetchImpl, now: NOW, existingKeys: ["trade-name"], userKey: "u-1" });
 
     expect(result).toMatchObject({ model: "Searching model", simulated: false, searched: true });
@@ -338,7 +352,8 @@ describe("researchRequirements", () => {
     });
     expect(webSearch.mock.calls[0][0]).toMatchObject({ userKey: "u-1", location: { region: "Ohio", city: "Columbus" } });
 
-    expect(result.requirements).toMatchObject([{ key: "trade-name", verification: "sourced", feeUsd: 39, problems: [] }]);
+    expect(result.claimsChecked).toBe(true);
+    expect(result.requirements).toMatchObject([{ key: "trade-name", verification: "sourced", claimsChecked: true, status: "verified", feeUsd: 39, problems: [] }]);
     expect(result.plan).toMatchObject([
       {
         key: "trade-name",
@@ -354,6 +369,59 @@ describe("researchRequirements", () => {
     );
     expect(result.openQuestions.at(-1)).toEqual({ question: "Do you need a vendor license?", whoToCall: "Columbus city hall" });
     expect(result.openQuestions.some((q) => q.question.includes("registering a business name in Ohio"))).toBe(false);
+  });
+
+  // Regression: a failed claims check used to leave every quote labeled as verified
+  it("marks quotes the claims check never read, so they don't show as verified or as confirming the step", async () => {
+    const { model, fetchImpl } = searchingResearch(new Error("service down"));
+    const result = await researchRequirements(model, profile, { fetchImpl, now: NOW, existingKeys: ["trade-name"], userKey: "u-1" });
+
+    expect(result.claimsChecked).toBe(false);
+    expect(result.requirements).toMatchObject([{ key: "trade-name", verification: "sourced", claimsChecked: false, status: "quote_unchecked" }]);
+    expect(result.plan).toMatchObject([{ key: "trade-name", requirementStatus: "quote_unchecked", links: [{ url: stateUrl, confirms: false }] }]);
+    // The deeper look reads it again
+    expect(followUpCandidates(result.requirements).map((each) => each.key)).toEqual(["trade-name"]);
+  });
+
+  it("answers again at medium effort when the first try runs out of time, instead of failing the check", async () => {
+    const { model, fetchImpl } = searchingResearch();
+    const efforts: (string | undefined)[] = [];
+    const timing: ModelProvider = {
+      ...model,
+      async complete(request) {
+        if (request.responseFormat?.name === "research_requirements") {
+          efforts.push(request.effort);
+          if (efforts.length === 1) throw new AIProviderError("Meta Muse stream failed: The operation was aborted due to timeout", null, true, null, true);
+        }
+        return model.complete(request);
+      },
+    };
+    const result = await researchRequirements(timing, profile, { fetchImpl, now: NOW, existingKeys: ["trade-name"], userKey: "u-1" });
+    // Two halves at high effort; only the one that ran out of time gets a medium backup
+    expect(efforts).toEqual(["high", "high", "medium"]);
+    // Same checks on the second answer
+    expect(result.requirements).toMatchObject([{ key: "trade-name", verification: "sourced", claimsChecked: true, status: "verified" }]);
+  });
+
+  it("asks for federal and state rules and for county and city rules at once, each scoped, and joins them", async () => {
+    const { model, fetchImpl } = searchingResearch();
+    const scopes: string[] = [];
+    const watching: ModelProvider = {
+      ...model,
+      async complete(request) {
+        if (request.responseFormat?.name === "research_requirements") {
+          const text = request.messages.findLast((message) => message.role === "user")?.content as string;
+          scopes.push(text.match(/<scope>(.*?)<\/scope>/)?.[1] ?? "none");
+          // The scope comes last, so both halves share the pages before it
+          expect(text.trimEnd().endsWith("</scope>")).toBe(true);
+        }
+        return model.complete(request);
+      },
+    };
+    const result = await researchRequirements(watching, profile, { fetchImpl, now: NOW, existingKeys: ["trade-name"], userKey: "u-1" });
+    expect(scopes.sort()).toEqual(["county, city", "federal, state"]);
+    // The same state rule from both halves is listed once
+    expect(result.requirements.map((each) => each.key)).toEqual(["trade-name"]);
   });
 
   it("gives up with a message the owner can act on when no page can be read", async () => {
@@ -377,5 +445,24 @@ describe("profileKey", () => {
 
   it("stays the same when only the launch date changes, since requirements don't depend on it", () => {
     expect(profileKey(testProfile({ launchDate: "2027-01-15" }))).toBe(profileKey(testProfile()));
+  });
+});
+
+describe("joinHalves", () => {
+  const req = (key: string, level: "federal" | "state" | "county" | "city") => ({ ...requirementDraft({ key, level }) });
+  it("keeps each half's own levels only, once each, and merges the rest without repeats", () => {
+    const joined = joinHalves(
+      [
+        { requirements: [req("ein", "federal"), req("sales-tax", "state"), req("city-license", "city")], assumptions: ["Bakes at home"], openQuestions: [{ question: "Q1", whoToCall: "A" }], conflicts: [] },
+        { requirements: [req("sales-tax", "state"), req("city-license", "city"), req("county-health", "county")], assumptions: ["Bakes at home"], openQuestions: [{ question: "Q1", whoToCall: "A" }, { question: "Q2", whoToCall: "B" }], conflicts: [] },
+      ],
+      [
+        ["federal", "state"],
+        ["county", "city"],
+      ],
+    );
+    expect(joined.requirements.map((each) => each.key)).toEqual(["ein", "sales-tax", "city-license", "county-health"]);
+    expect(joined.assumptions).toEqual(["Bakes at home"]);
+    expect(joined.openQuestions.map((each) => each.question)).toEqual(["Q1", "Q2"]);
   });
 });
