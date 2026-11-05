@@ -77,7 +77,7 @@ Columns, in plain words:
 Conditional items (such as children's product rules, for an owner who makes no children's products) were graded against what this owner actually does, and left out when they don't apply. Grades for every item, with a one-line reason, are in [`validation/grades/`](validation/grades/).
 
 
-## Private numbers in uploaded documents
+## Sensitive data in uploaded documents
 
 SnapStart doesn't keep Social Security, ITIN, EIN, card, bank routing or account numbers, or ID document numbers, and the owner still keeps their document. Two made-up PDFs went through the exact steps a real upload takes (`uploadDocumentAction`, then `readAndSave`): checked before storage, redacted when needed, stored encrypted, read and scrubbed. The test is [`src/lib/documents/sensitive-upload.test.ts`](../src/lib/documents/sensitive-upload.test.ts), and it runs with every `npm test`.
 
