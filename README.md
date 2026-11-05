@@ -13,7 +13,7 @@ SnapStart is a startup kit that tailors itself to the user's actual business. It
 
 > **[See how SnapStart was validated across 11 businesses in 11 states →](docs/VALIDATION.md)**
 
-<sub>\* Website hosting, online payments and paid ads run as working demos for the hackathon. Going live with them takes paid services from other companies, which a SnapStart subscription would cover. [What's live today →](#whats-live-today)</sub>
+<sub><em>\* Website hosting runs as a working demo for the hackathon, and online payments and paid ads are next on the roadmap. Going live with them takes paid services from other companies, which a SnapStart subscription would cover. <a href="#whats-live-today">What's live today →</a></em></sub>
 
 **[Try the live demo →](https://snapstartkit.vercel.app/demo)**
 
