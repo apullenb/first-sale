@@ -40,7 +40,8 @@ import type {
   DraftAnswers,
   GeneratedContent,
 } from "@/lib/documents/types";
-import type { PlanLink, PlanTaskDraft } from "@/lib/rules/plan";
+import type { PlanLink, PlanNote, PlanTaskDraft } from "@/lib/rules/plan";
+import type { SearchTrail } from "@/lib/research/follow-up";
 import type { Contacts } from "@/lib/research/contacts";
 import type { CoverageCell } from "@/lib/research/coverage";
 import type { OfficeContact } from "@/lib/research/office";
@@ -204,6 +205,10 @@ export const requirements = pgTable(
     // The deeper look's decision on a rule no official page settled, and why (background)
     verdict: text("verdict", { enum: VERDICTS }),
     background: text("background").notNull().default(""),
+    // For a rule it couldn't settle: where it searched, what it read and found
+    trail: jsonb("trail").$type<SearchTrail>(),
+    // Whether the claims check read the quote and agreed; null on rows saved before this was recorded
+    claimsChecked: boolean("claims_checked"),
     // The model's read of what the owner does; stepKindOf decides
     ownerAction: text("owner_action", { enum: OWNER_ACTIONS }),
   },
@@ -258,7 +263,7 @@ export const checklistTasks = pgTable(
     // The model's condition, asked of the owner; empty when it doesn't depend on one
     question: text("question").notNull().default(""),
     // Why SnapStart decided a rule no official page spells out, and the office's contact details
-    notes: jsonb("notes").$type<{ title: string; background: string }[]>().notNull().default([]),
+    notes: jsonb("notes").$type<PlanNote[]>().notNull().default([]),
     contacts: jsonb("contacts").$type<Contacts>(),
     // The model's read of what the owner does; null on steps saved before it was asked
     ownerAction: text("owner_action", { enum: OWNER_ACTIONS }),

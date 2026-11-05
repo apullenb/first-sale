@@ -1,0 +1,1487 @@
+{
+  "case": "denver-co-candles",
+  "label": "Handmade candles, Denver, Colorado",
+  "model": "Meta Muse (muse-spark-1.3)",
+  "simulated": false,
+  "ranAt": "2026-11-05T06:50:21.814Z",
+  "timeLimitSeconds": 600,
+  "ms": {
+    "research": 194415,
+    "followUp": 188137,
+    "total": 382553
+  },
+  "cost": {
+    "usd": 1.4947,
+    "modelCalls": 8,
+    "searches": 30,
+    "inputTokens": 1128046,
+    "outputTokens": 72036,
+    "failedCalls": [
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "requirement_follow_up: AIProviderError: Meta Muse stream failed: This operation was aborted"
+    ],
+    "fallbacks": [
+      "requirement_follow_up"
+    ]
+  },
+  "calls": [
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8702,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8986,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10700,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14486,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14847,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 21385,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 22169,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 27874,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 29728,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 45003,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 92171,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 49358,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8893,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12547,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18668,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20003,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_follow_up",
+      "effort": "medium",
+      "ms": 7703,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 25648,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 5289,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6232,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6400,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7448,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8690,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 9310,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11257,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11870,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12423,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12520,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 15478,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16194,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16447,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 19666,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 39142,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 75871,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "low",
+      "ms": 25880,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: This operation was aborted"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 13837,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 19422,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 36920,
+      "ok": true,
+      "error": null
+    }
+  ],
+  "claimsCheckedInResearch": true,
+  "followUp": {
+    "candidates": 8,
+    "rounds": 2,
+    "confirmed": 1,
+    "rechecked": 0
+  },
+  "pages": [
+    {
+      "id": "irs-ein",
+      "title": "IRS: Get an employer identification number",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "irs-business-structures",
+      "title": "IRS: Business structures",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-structure",
+      "title": "SBA: Choose a business structure",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-name",
+      "title": "SBA: Choose your business name",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-register-business",
+      "title": "SBA: Register your business",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#register-business",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-location",
+      "title": "SBA: Pick your business location",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-licenses-permits",
+      "title": "SBA: Apply for licenses and permits",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-tax-ids",
+      "title": "SBA: Get federal and state tax ID numbers",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "federal-activity-1",
+      "title": "CPSC Urges Safe 4th Of July",
+      "url": "https://www.cpsc.gov/Newsroom/News-Releases/1978/CPSC-Urges-Safe-4th-Of-July",
+      "level": "federal",
+      "government": "Consumer Product Safety Commission",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-2",
+      "title": "MEETING LOG",
+      "url": "https://www.cpsc.gov/s3fs-public/ASTM-F1545-candle-making-kits-Log-of-Meeting.pdf?VersionId=LjC1TQF0Sdmp3rZ3CpeX5s5jXzcypCiV",
+      "level": "federal",
+      "government": "Consumer Product Safety Commission",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-1",
+      "title": "Self-employed individuals tax center",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-2",
+      "title": "Small Business Filing and Recordkeeping Requirements",
+      "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "city-license-1",
+      "title": "Small Businesses - City and County of Denver",
+      "url": "https://denvergov.org/My-Property/Remodeling-and-Construction/Permit-Office/Small-Business",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "city-license-2",
+      "title": "Resource center - City and County of Denver",
+      "url": "https://denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Business-Licensing/Resource-center?lang_update=638573850536794030",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "city-home-1",
+      "title": "Home Business/Home Occupation Permits",
+      "url": "https://denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Community-Planning-and-Development/Plan-Review-Permits-and-Inspections/Zoning-Permits/Apply-for-Commercial-Zoning-Permits/Home-Businesses?lang_update=638600787936363580",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "city-home-2",
+      "title": "Neighborhood Inspections - City and County of Denver",
+      "url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Community-Planning-and-Development/Plan-Review-Permits-and-Inspections/Neighborhood-Inspections",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-2-1",
+      "title": "MEETING LOG",
+      "url": "https://www.cpsc.gov/s3fs-public/2025-09-24-ASTM-F15-45-candle-task-groups-Log-of-Meeting.pdf?VersionId=NlhjeOT0RNwnfw3wC0GMf77pPsMG7JIG",
+      "level": "federal",
+      "government": "Consumer Product Safety Commission",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-4-1",
+      "title": "Residential Rental Becomes Most Issued License",
+      "url": "https://denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Business-Licensing/News/EXL/Residential-Rental-Becomes-Most-Issued-License?lang_update=638595182967744445",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-4-2",
+      "title": "Business Tax FAQs",
+      "url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Department-of-Finance/Our-Divisions/Treasury/Business-Tax-Information/Business-Tax-FAQ?lang_update=638575807439653957",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-denver-tax-license-1",
+      "title": "Business Tax FAQs",
+      "url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Department-of-Finance/Our-Divisions/Treasury/Business-Tax-Information/Business-Tax-FAQ?lang_update=638575807439653957",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-denver-tax-license-2",
+      "title": "Tax Guide Topic 47: Licenses, Fees, and Registration",
+      "url": "https://denvergov.org/content/dam/denvergov/Portals/571/documents/TaxGuide/TaxGuideTopic47_LicensesFeesAndRegistration.pdf",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-denver-tax-license-3",
+      "title": "Tax Guide Topic 22 - Engaged in Business in the City",
+      "url": "https://www.denvergov.org/files/assets/public/v/2/finance/documents/treasury/tax-guides/taxguidetopic22_engagedinbusiness.pdf",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-denver-tax-license-3",
+      "title": "City and County of Denver General Tax Information Booklet",
+      "url": "https://www.denvergov.org/files/assets/public/v/2/finance/documents/treasury/tax-guides/gnl_tax_info_booklet.pdf",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-home-occupation-zoning-1",
+      "title": "Home Business/Home Occupation Permits",
+      "url": "https://denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Community-Planning-and-Development/Plan-Review-Permits-and-Inspections/Zoning-Permits/Apply-for-Commercial-Zoning-Permits/Home-Businesses?lang_update=638600787936363580",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-home-occupation-zoning-2",
+      "title": "Neighborhood Inspections - City and County of Denver",
+      "url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Community-Planning-and-Development/Plan-Review-Permits-and-Inspections/Neighborhood-Inspections",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-home-occupation-zoning-3",
+      "title": "| 10 | Call for inspections and obtain a |  |",
+      "url": "https://www.denvergov.org/content/dam/denvergov/Portals/690/BuildYourBusiness/start-your-business/BizStartupChecklist_Eng_110716.pdf",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-home-occupation-zoning-2",
+      "title": "Reference:",
+      "url": "https://www.denvergov.org/content/dam/denvergov/Portals/696/documents/Denver_Building_Code/2011_Code_Policies/ADMIN_142_2.pdf",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-market-vendor-permission-1",
+      "title": "Cottage Foods - City and County of Denver",
+      "url": "https://denvergov.org/Community/Support/Food/Growing/Cottage-Foods?lang_update=638523509738626732",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-market-vendor-permission-2",
+      "title": "Guide for the Sale or Distribution of Hemp-Derived Products at Special Events",
+      "url": "https://qa.denvergov.org/files/assets/public/v/1/public-health-and-environment/documents/phi/hemp_specialevents.pdf",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-market-vendor-permission-3",
+      "title": "Guide for the Sale or Distribution of Hemp-Derived Products at Special Events",
+      "url": "https://test.denvergov.org/files/assets/public/v/1/special-events/documents/info/hemp_specialevents_2023.pdf",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-market-vendor-permission-1",
+      "title": "Temporary Vending Permits",
+      "url": "https://denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Parks-Recreation/Park-Permits/Temporary-Vending-Permits?OC_EA_EmergencyAnnouncementList_Dismiss=51ad31ea-d98d-478a-b95c-172c234dba45&lang_update=638575687588002567",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-market-vendor-permission-2",
+      "title": "Serving, Selling, Vendors",
+      "url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Public-Event-Film-Permitting/Public-Event-Permitting/Serving-Selling-Vendors?lang_update=638587266040142270",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-market-vendor-permission-3",
+      "title": "Peddler - City and County of Denver",
+      "url": "https://denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Business-Licensing/Business-licenses/Peddler?lang_update=638587350131795331",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-denver-sales-tax-returns-2",
+      "title": "Statewide Sales & Use Tax System (SUTS)",
+      "url": "https://denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Department-of-Finance/Our-Divisions/Treasury/Business-Tax-Information/Statewide-Sales-Use-Tax-System-SUTS?lang_update=638593115104816868",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-denver-sales-tax-returns-3",
+      "title": "Treasury Tax Rule 004 - Frequency of Tax Returns",
+      "url": "https://denvergov.org/files/assets/public/v/1/finance/documents/treasury/tax-guides/tax-update-2025/treasurytaxrule004_rulesrelatingtothefrequencyof.taxreturns.pdf",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-denver-sales-tax-returns-3",
+      "title": "Sales Tax Return - Monthly",
+      "url": "https://www.denvergov.org/files/assets/public/v/1/finance/documents/treasury/denversalestaxreturnmonthly.pdf",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-denver-1",
+      "title": "Contact us - City and County of Denver",
+      "url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Community-Planning-and-Development/Contact-CPD?OC_EA_EmergencyAnnouncementList_Dismiss=51ad31ea-d98d-478a-b95c-172c234dba45&lang_update=638594686853462230",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-denver-2",
+      "title": "E-permits Tutorial",
+      "url": "https://www.denvergov.org/content/dam/denvergov/Portals/696/documents/Other_forms_and_guides/E-PERMITS_Tutorial.pdf",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-denver-3",
+      "title": "Amusement Facility - Permanent/Temporary",
+      "url": "https://www.denvergov.org/content/denvergov/en/denver-business-licensing-center/business-licenses/amusement-facility-permanent-temporary.html",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    },
+    {
+      "id": "fu-again-market-vendor-permission-2",
+      "title": "Peddler Guidelines",
+      "url": "https://denvergov.org/files/assets/public/v/3/business-licensing/documents/peddler_guidelines.pdf",
+      "level": "city",
+      "government": "Denver (City and County of Denver)",
+      "discovered": true
+    }
+  ],
+  "unread": [
+    {
+      "title": "Business FAQs",
+      "url": "https://www.coloradosos.gov/pubs/business/FAQs/tradeNames.html",
+      "reason": "The page had no readable text"
+    },
+    {
+      "title": "Name Change - Auto Industry Division",
+      "url": "https://sbg.colorado.gov/name-change-auto-industry-division",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Standard Retail License",
+      "url": "https://tax.colorado.gov/standard-retail-license",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "MyBizColorado Registration Tool",
+      "url": "https://oedit.test.colorado.gov/MyBizColorado-Registration-Tool",
+      "reason": "The site answered with error 500"
+    },
+    {
+      "title": "Sales Tax Guide",
+      "url": "https://tax.colorado.gov/sales-tax-guide",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "PixieFly Creations LLC | Colorado Office of Economic Development and International Trade",
+      "url": "https://oedit.colorado.gov/pixiefly-creations-llc",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Checklist for New Businesses",
+      "url": "https://www.coloradosos.gov/pubs/business/businessChecklist.html",
+      "reason": "The page had no readable text"
+    },
+    {
+      "title": "Sales Tax Filing Information",
+      "url": "https://tax.colorado.gov/sales-tax-filing-information",
+      "reason": "The site answered with error 403"
+    }
+  ],
+  "requirements": [
+    {
+      "key": "state-sales-tax-permit",
+      "title": "Colorado sales tax license for selling candles",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Colorado Department of Revenue",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will sell tangible soy candles at markets, on your own website, and by shipping in-state. Sellers of goods typically must be licensed to collect sales tax before the first sale.",
+      "background": "Selling tangible candles at retail in Colorado is a taxable sale. A seller needs a state sales tax license before the first in-state sale.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "state-trade-name",
+      "title": "Colorado trade name registration for Ember & Oak Candles",
+      "level": "state",
+      "topic": "name_registration",
+      "agency": "Colorado Secretary of State",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-name"
+      ],
+      "evidence": "Registering your DBA name doesn’t provide legal protection by itself, but most states require you to register your DBA if you use one. You might need to register your DBA — also known as a trade name, fictitious name, or assumed name — with the state, county, or city your business is located in.",
+      "why": "You are a sole proprietor who will do business as Ember & Oak Candles, which is not your own legal name. Most states require you to register a DBA if you use one.",
+      "background": "You will sell as Ember and Oak Candles, not your own legal name. A sole proprietor using a shop name generally must register that trade name with the state.",
+      "problems": [
+        "Only federal pages were cited for a state requirement"
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-ein",
+      "title": "Federal EIN for bank account and taxes (optional)",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service (Department of the Treasury)",
+      "status": "optional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+        "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number"
+      ],
+      "evidence": "You need it to pay federal taxes, hire employees, open a bank account, and apply for business licenses and permits. You never have to pay a fee for an EIN.",
+      "why": "You are a sole proprietor with no employees testing a small candle idea. An EIN is free and can help open a business bank account and apply for licenses, but you can often use your Social Security number instead.",
+      "background": "",
+      "problems": [
+        "Quote not found on the cited pages"
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-income-se-tax",
+      "title": "Federal income tax and self-employment tax on profits",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service (Department of the Treasury)",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center"
+      ],
+      "evidence": "Self-employed individuals generally must pay self-employment (SE) tax as well as income tax. You have to file an income tax return if your net earnings from self-employment were $400 or more.",
+      "why": "You are self-employed as a sole proprietor making candles for side income. Profits are generally subject to income tax and Social Security and Medicare tax through self-employment tax.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "federal-estimated-tax",
+      "title": "Federal quarterly estimated tax payments",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service (Department of the Treasury)",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center"
+      ],
+      "evidence": "As a self-employed individual, generally you are required to file an annual income tax return and pay estimated taxes quarterly.",
+      "why": "You will have self-employment income with no employer withholding taxes. Self-employed people generally pay Social Security, Medicare, and income taxes through quarterly estimated payments.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "state-income-tax",
+      "title": "Colorado income tax on business profits",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Colorado Department of Revenue",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will earn side income in Colorado as a sole proprietor. Business profits typically pass to your personal state income tax return.",
+      "background": "You will earn profit in Colorado as a sole proprietor. That profit generally passes to your personal state income tax return.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-recordkeeping",
+      "title": "Keep federal tax records for sales and expenses",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Internal Revenue Service (Department of the Treasury)",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/"
+      ],
+      "evidence": "You may need to substantiate income and deductions.",
+      "why": "You will have many small sales from markets, a website, and marketplaces plus supply costs. Good records are needed to prove income and deductions.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "federal-trademark-search",
+      "title": "Federal trademark check for business name",
+      "level": "federal",
+      "topic": "name_registration",
+      "agency": "United States Patent and Trademark Office",
+      "status": "optional",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-name"
+      ],
+      "evidence": "Businesses in every state are subject to trademark infringement lawsuits, which can prove costly. That’s why you should check your prospective business, product, and service names against the official trademark database, maintained by the United States Patent and Trademark Office.",
+      "why": "You chose a brand name for handmade candles you will sell online and ship across states. A conflicting trademark could lead to a costly lawsuit even as a small seller.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "federal-employer-taxes",
+      "title": "Federal employer taxes if you hire",
+      "level": "federal",
+      "topic": "employer",
+      "agency": "Internal Revenue Service (Department of the Treasury)",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you hire employees in the future?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number"
+      ],
+      "evidence": "Businesses, organizations and some retirement trusts need an EIN to manage their taxes.",
+      "why": "You say you will not hire now. If you later hire help to make or sell candles, federal employer tax duties would begin.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote only says certain businesses need an EIN to manage taxes and does not mention hiring or federal employer tax duties."
+      ],
+      "trail": null
+    },
+    {
+      "key": "state-employer-taxes",
+      "title": "Colorado employer accounts if you hire",
+      "level": "state",
+      "topic": "employer",
+      "agency": "Colorado Department of Labor and Employment",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you hire employees in the future?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You plan no hires now and work from home alone. If that changes and you hire employees, state payroll and insurance accounts typically apply.",
+      "background": "",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "denver-tax-license",
+      "title": "Denver sales tax license",
+      "level": "city",
+      "topic": "tax_registration",
+      "agency": "City and County of Denver Department of Finance",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will sell candles in Denver and ship orders. Denver has its own local sales tax, so you need its tax license before your first sale.",
+      "background": "You will sell taxable candles at retail in Denver and ship orders. Denver requires a retail sales license for that kind of selling.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "home-occupation-zoning",
+      "title": "Denver home business zoning compliance",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "Denver Community Planning and Development",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will make candles at your Denver home and customers will not visit. Home businesses still must follow Denver zoning rules.",
+      "background": "You will make and store candles at your Denver home with no customer visits. Denver zoning rules still cover home-based work and you must stay within them.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "market-vendor-permission",
+      "title": "Permission to sell at Denver markets and events",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City and County of Denver and market organizer",
+      "status": "to_find_out",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "unclear",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You plan to sell at markets. Markets in Denver often require vendor approval and proof of your tax license.",
+      "background": "A fixed booth at a market is not roaming peddling, which must keep moving and cannot set up in one spot. For non-food retail at events Denver calls for a tax license, with the market's own approval, not a separate city vendor permit.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": {
+        "searched": [
+          {
+            "where": "Denver",
+            "what": "a page about permission to sell at denver markets and events",
+            "pages": 3
+          },
+          {
+            "where": "Denver",
+            "what": "the ordinance, code section or application form that covers it",
+            "pages": 3
+          },
+          {
+            "where": "Denver",
+            "what": "who needs it and who doesn’t, such as exemptions or answers to common questions",
+            "pages": 3
+          }
+        ],
+        "read": [
+          {
+            "title": "Cottage Foods - City and County of Denver",
+            "url": "https://denvergov.org/Community/Support/Food/Growing/Cottage-Foods?lang_update=638523509738626732"
+          },
+          {
+            "title": "Guide for the Sale or Distribution of Hemp-Derived Products at Special Events",
+            "url": "https://qa.denvergov.org/files/assets/public/v/1/public-health-and-environment/documents/phi/hemp_specialevents.pdf"
+          },
+          {
+            "title": "Guide for the Sale or Distribution of Hemp-Derived Products at Special Events",
+            "url": "https://test.denvergov.org/files/assets/public/v/1/special-events/documents/info/hemp_specialevents_2023.pdf"
+          },
+          {
+            "title": "Temporary Vending Permits",
+            "url": "https://denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Parks-Recreation/Park-Permits/Temporary-Vending-Permits?OC_EA_EmergencyAnnouncementList_Dismiss=51ad31ea-d98d-478a-b95c-172c234dba45&lang_update=638575687588002567"
+          },
+          {
+            "title": "Serving, Selling, Vendors",
+            "url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Public-Event-Film-Permitting/Public-Event-Permitting/Serving-Selling-Vendors?lang_update=638587266040142270"
+          },
+          {
+            "title": "Peddler - City and County of Denver",
+            "url": "https://denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Business-Licensing/Business-licenses/Peddler?lang_update=638587350131795331"
+          },
+          {
+            "title": "Peddler Guidelines",
+            "url": "https://denvergov.org/files/assets/public/v/3/business-licensing/documents/peddler_guidelines.pdf"
+          }
+        ],
+        "unread": [],
+        "found": "Sources describe peddlers as roaming sellers who may not stay in one spot or set up goods in one place, and describe tax licenses for retail sales at special events.",
+        "missing": "No source names a separate city market or event permit for home-made non-food goods like candles sold from a fixed booth.",
+        "worthChecking": "You will sell in person at markets and events, so confirm with each market organizer what vendor approval and tax paperwork they want to see.",
+        "leaning": "not_needed",
+        "quoteSetAside": false,
+        "rounds": 2
+      }
+    },
+    {
+      "key": "business-personal-property",
+      "title": "Denver County business personal property filing",
+      "level": "county",
+      "topic": "other",
+      "agency": "Denver County Assessor",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will own candle equipment, supplies, and inventory at your Denver home. Denver County tracks business property for tax each year.",
+      "background": "You will keep candle tools, supplies and inventory at your Denver home. Denver County taxes business furnishings and stock and asks owners to declare them.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "denver-sales-tax-returns",
+      "title": "Denver sales tax returns",
+      "level": "city",
+      "topic": "tax_registration",
+      "agency": "City and County of Denver Department of Finance",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.denvergov.org/files/assets/public/v/1/finance/documents/treasury/denversalestaxreturnmonthly.pdf"
+      ],
+      "evidence": "Sales tax returns and payment are due on the 20th of the month following the taxable period.",
+      "why": "Once you have a Denver tax license for your candle sales, you must file its regular tax returns after you open.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "denver-opt-tax",
+      "title": "Denver occupational tax if you hire",
+      "level": "city",
+      "topic": "employer",
+      "agency": "City and County of Denver Department of Finance",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you hire employees who work in Denver?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You have no hiring plans now. If you later hire people who work in Denver, Denver charges a local payroll tax.",
+      "background": "",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    }
+  ],
+  "plan": [
+    {
+      "key": "state-sales-tax-permit",
+      "title": "Colorado sales tax license for selling candles",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "state-trade-name",
+      "title": "Colorado trade name registration for Ember & Oak Candles",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-ein",
+      "title": "Federal EIN for bank account and taxes (optional)",
+      "status": "optional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+          "confirms": false
+        },
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-income-se-tax",
+      "title": "Federal income tax and self-employment tax on profits",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "federal-estimated-tax",
+      "title": "Federal quarterly estimated tax payments",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "state-income-tax",
+      "title": "Colorado income tax on business profits",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "federal-recordkeeping",
+      "title": "Keep federal tax records for sales and expenses",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "federal-trademark-search",
+      "title": "Federal trademark check for business name",
+      "status": "optional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "federal-employer-taxes",
+      "title": "Federal employer taxes if you hire",
+      "status": "conditional",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "state-employer-taxes",
+      "title": "Colorado employer accounts if you hire",
+      "status": "conditional",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "denver-tax-license",
+      "title": "Denver sales tax license",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "home-occupation-zoning",
+      "title": "Denver home business zoning compliance",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "market-vendor-permission",
+      "title": "Permission to sell at Denver markets and events",
+      "status": "to_find_out",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "business-personal-property",
+      "title": "Denver County business personal property filing",
+      "status": "needs_confirmation",
+      "level": "county",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "denver-sales-tax-returns",
+      "title": "Denver sales tax returns",
+      "status": "verified",
+      "level": "city",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.denvergov.org/files/assets/public/v/1/finance/documents/treasury/denversalestaxreturnmonthly.pdf",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "denver-opt-tax",
+      "title": "Denver occupational tax if you hire",
+      "status": "conditional",
+      "level": "city",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    }
+  ],
+  "openQuestions": [
+    {
+      "question": "Our search for official pages about forming an LLC or other business entity in Colorado didn’t finish. Re-check later, or ask.",
+      "answer": "We could not settle entity choice from the pages in hand. Check with the state business office about staying a sole proprietor or forming another entity."
+    },
+    {
+      "question": "We couldn’t find an official page about business licenses in Denver County. That doesn’t mean nothing applies, so ask.",
+      "answer": "We could not settle a county general license from the pages in hand. Ask the city licensing office whether any added license covers your home candle work."
+    },
+    {
+      "question": "For Colorado sales tax, does the marketplace collect tax on marketplace sales or must Ember & Oak collect it?",
+      "answer": "For sales made through a marketplace, the marketplace generally collects and sends the tax. You remain responsible for tax on your own website sales, market sales, and orders you ship yourself."
+    },
+    {
+      "question": "What federal labeling and safety rules apply to hand-poured soy candles sold online and shipped?",
+      "answer": "We could not settle federal candle labeling and safety rules from the pages in hand. Check federal product safety guidance before you print labels and ship."
+    },
+    {
+      "question": "Does Colorado require a separate state tax ID in addition to a federal EIN for this sole proprietorship?",
+      "answer": "Yes for sales tax purposes. Your state sales tax license is separate from any federal tax number, so you still need state registration to sell."
+    },
+    {
+      "question": "Does Denver require a general business license for a home-based online candle seller?",
+      "answer": "The pages do not show a general city business license for home sellers of non-food goods like candles. You still need the Denver tax license and zoning compliance, and you should confirm with the licensing office that no other license covers you."
+    },
+    {
+      "question": "What is the fee, approval time, and renewal rule for a Denver sales tax license?",
+      "answer": "The city tax guide sets the charge for each location and a renewal cycle that repeats on a fixed schedule. Check the current Treasury application for the present charge and timing before you apply."
+    },
+    {
+      "question": "Does making soy candles at home need a fire permit or inspection for wax and scent storage?",
+      "answer": "We could not settle a fire permit need from the pages in hand. Because you will heat wax and store scents at home, ask the fire office whether making or storage triggers a permit or check."
+    },
+    {
+      "question": "What vendor approval or temporary sales permit is needed to sell at Denver markets and fairs?",
+      "answer": "If you hold a regular Denver sales tax license, you generally do not need a separate special event tax license for market sales. Each market or fair can still require its own vendor approval and proof of your tax license."
+    }
+  ],
+  "coverage": [
+    {
+      "category": "formation",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "formation",
+      "level": "state",
+      "state": "unreadable",
+      "pagesRead": 0
+    },
+    {
+      "category": "tax",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "tax",
+      "level": "state",
+      "state": "unreadable",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "state",
+      "state": "not_searched",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "county",
+      "state": "no_official_page",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "city",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "zoning",
+      "level": "city",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    }
+  ],
+  "conflicts": [
+    {
+      "about": "Whether a sole proprietorship with no employees must get an EIN",
+      "explanation": "One source says most businesses will also need to get a tax ID number, while IRS sources list specific triggers like hiring employees or operating as a partnership or corporation that this business does not meet. It is unclear from the sources alone whether an EIN is required for this owner or only helpful.",
+      "sourceIds": [
+        "sba-business-structure",
+        "irs-ein",
+        "sba-tax-ids"
+      ]
+    },
+    {
+      "about": "Whether ASTM candle standards apply to home-poured soy candles",
+      "explanation": "The CPSC meeting log says each possible candle configuration should comply with the performance requirements in ASTM F2417 and the labeling requirements in ASTM F2058, but it describes a working group developing guidance into requirements. It does not state that compliance is currently mandatory law for this owner.",
+      "sourceIds": [
+        "federal-activity-2"
+      ]
+    },
+    {
+      "about": "Denver city pages have no readable rules",
+      "explanation": "The four Denver city pages provided only say Skip to main content, with no details on licenses, zoning, or home businesses. This leaves what Denver requires for this home candle business unclear and needs deeper city research.",
+      "sourceIds": [
+        "city-license-1",
+        "city-license-2",
+        "city-home-1",
+        "city-home-2"
+      ]
+    }
+  ]
+}

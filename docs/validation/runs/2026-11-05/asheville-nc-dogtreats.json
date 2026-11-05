@@ -1,0 +1,1706 @@
+{
+  "case": "asheville-nc-dogtreats",
+  "label": "Home-baked dog treats, Asheville, North Carolina",
+  "model": "Meta Muse (muse-spark-1.3)",
+  "simulated": false,
+  "ranAt": "2026-11-05T06:50:21.817Z",
+  "timeLimitSeconds": 600,
+  "ms": {
+    "research": 254546,
+    "followUp": 221789,
+    "total": 476337
+  },
+  "cost": {
+    "usd": 1.8698,
+    "modelCalls": 9,
+    "searches": 34,
+    "inputTokens": 1596657,
+    "outputTokens": 82202,
+    "failedCalls": [
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "research_follow_up: AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "requirement_follow_up: AIProviderError: Meta Muse stream failed: This operation was aborted",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    ],
+    "fallbacks": [
+      "requirement_follow_up"
+    ]
+  },
+  "calls": [
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10855,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10884,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11491,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11639,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14912,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 21673,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 25853,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 26143,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 27969,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 32560,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 45001,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 45001,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 122920,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 57736,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10429,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11891,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13805,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18673,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_follow_up",
+      "effort": "medium",
+      "ms": 40008,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 25489,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 16958,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 5332,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 5427,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 5808,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 5941,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6765,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7630,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8949,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13543,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13716,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20886,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 21086,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 21317,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 22759,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 24944,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 30396,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 45001,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 89762,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: This operation was aborted"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "low",
+      "ms": 39749,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 16384,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 25004,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 25004,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 42846,
+      "ok": true,
+      "error": null
+    }
+  ],
+  "claimsCheckedInResearch": true,
+  "followUp": {
+    "candidates": 10,
+    "rounds": 2,
+    "confirmed": 3,
+    "rechecked": 0
+  },
+  "pages": [
+    {
+      "id": "irs-ein",
+      "title": "IRS: Get an employer identification number",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "irs-business-structures",
+      "title": "IRS: Business structures",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-structure",
+      "title": "SBA: Choose a business structure",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-name",
+      "title": "SBA: Choose your business name",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-register-business",
+      "title": "SBA: Register your business",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#register-business",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-location",
+      "title": "SBA: Pick your business location",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-licenses-permits",
+      "title": "SBA: Apply for licenses and permits",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-tax-ids",
+      "title": "SBA: Get federal and state tax ID numbers",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "state-name-1",
+      "title": "Assumed Business Names",
+      "url": "https://www.sosnc.gov/frequently_asked_questions/by_title/_Assumed_Business_Names",
+      "level": "state",
+      "government": "North Carolina Department of Secretary of State",
+      "discovered": true
+    },
+    {
+      "id": "state-name-2",
+      "title": "Register Your Business",
+      "url": "https://www.sosnc.gov/manual/launching_a_business/register_your_business",
+      "level": "state",
+      "government": "North Carolina Department of Secretary of State",
+      "discovered": true
+    },
+    {
+      "id": "state-formation-1",
+      "title": "Preparing the Document and Attachments",
+      "url": "https://www.sosnc.gov/manual/launching_a_business/preparing_the_document_and_attachments",
+      "level": "state",
+      "government": "North Carolina Department of Secretary of State",
+      "discovered": true
+    },
+    {
+      "id": "state-formation-2",
+      "title": "Limited Liability Companies",
+      "url": "https://sosnc.gov/forms/by_title/_Business_Registration_Limited_Liability_Companies_Forms",
+      "level": "state",
+      "government": "North Carolina Department of Secretary of State",
+      "discovered": true
+    },
+    {
+      "id": "state-sales-tax-1",
+      "title": "Business Registration | NCDOR",
+      "url": "https://www.ncdor.gov/registration",
+      "level": "state",
+      "government": "Department of Information Technology",
+      "discovered": true
+    },
+    {
+      "id": "state-sales-tax-2",
+      "title": "Sales and Use Tax Registration",
+      "url": "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/sales-and-use-tax-registration",
+      "level": "state",
+      "government": "Department of Information Technology",
+      "discovered": true
+    },
+    {
+      "id": "state-food-1",
+      "title": "Food & Drug - Food Program - Home Processor | NC Agriculture",
+      "url": "https://www.ncagr.gov/divisions/food-drug-protection/food-program/food-drug-food-program-home-processor",
+      "level": "state",
+      "government": "NC Department of Agriculture",
+      "discovered": true
+    },
+    {
+      "id": "state-food-2",
+      "title": "North Carolina Home Bakery Rule Change Petition",
+      "url": "https://www.oah.nc.gov/documents/agriculture-petition-rulemaking-1-16-26/download?attachment",
+      "level": "state",
+      "government": "ITS, Executive Office of the State of North Carolina",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-1",
+      "title": "For Startups | NC Agriculture",
+      "url": "https://www.ncagr.gov/divisions/food-drug-protection/feed-program/startups",
+      "level": "state",
+      "government": "NC Department of Agriculture",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-2",
+      "title": "RRC STAFF  OPINION",
+      "url": "https://www.oah.nc.gov/follow-matters-tab-agriculture-staff-opinion/open",
+      "level": "state",
+      "government": "ITS, Executive Office of the State of North Carolina",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-1",
+      "title": "Importing - Animal Food",
+      "url": "https://www.fda.gov/animal-veterinary/import-exports/importing-animal-food",
+      "level": "federal",
+      "government": "Food and Drug Administration (Department of Health and Human Services)",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-2",
+      "title": "Importing Animal and Veterinary Products",
+      "url": "https://www.fda.gov/industry/importing-fda-regulated-products/importing-animal-and-veterinary-products",
+      "level": "federal",
+      "government": "Food and Drug Administration (Department of Health and Human Services)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-1",
+      "title": "Self-employed individuals tax center",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-2",
+      "title": "Small Business Filing and Recordkeeping Requirements",
+      "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "city-home-1",
+      "title": "minutes11/1/88",
+      "url": "https://council-minutes-archive.ashevillenc.gov/Minutes.1988-11-01.pdf",
+      "level": "city",
+      "government": "City of Asheville",
+      "discovered": true
+    },
+    {
+      "id": "city-home-2",
+      "title": "Residential Permits - The City of Asheville",
+      "url": "https://www.ashevillenc.gov/department/development-services/residential-permits-and-development/?lang=es",
+      "level": "city",
+      "government": "City of Asheville",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-1-1",
+      "title": "Sales and Use Tax Frequently Asked Questions",
+      "url": "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/sales-and-use-tax-frequently-asked-questions",
+      "level": "state",
+      "government": "Department of Information Technology",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-1-2",
+      "title": "Sales Tax Guidance for Newly Registered Taxpayers",
+      "url": "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/sales-and-use-tax-forms-and-certificates/sales-and-use-tax-registration-applications/sales-tax-guidance-newly-registered-taxpayers",
+      "level": "state",
+      "government": "Department of Information Technology",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-2-1",
+      "title": "Compliance & Enforcement",
+      "url": "https://www.fda.gov/animal-veterinary/compliance-enforcement",
+      "level": "federal",
+      "government": "Food and Drug Administration (Department of Health and Human Services)",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-3-2",
+      "title": "Instructions for Existing Firm Product Registration",
+      "url": "https://www.ncagr.gov/fdfr-existing-firm-new-product-registration-instructions/download?attachment",
+      "level": "state",
+      "government": "NC Department of Agriculture",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-4-1",
+      "title": "Pet Treat Label Example",
+      "url": "https://www.ncagr.gov/food-drug/pet-treat-label-example/download?attachment",
+      "level": "state",
+      "government": "NC Department of Agriculture",
+      "discovered": true
+    },
+    {
+      "id": "fu-nc-feed-registration-1",
+      "title": "For Startups | NC Agriculture",
+      "url": "https://www.ncagr.gov/divisions/food-drug-protection/feed-program/startups",
+      "level": "state",
+      "government": "NC Department of Agriculture",
+      "discovered": true
+    },
+    {
+      "id": "fu-nc-feed-registration-3",
+      "title": "North Carolina Home Bakery Rule Change Petition",
+      "url": "https://www.oah.nc.gov/documents/agriculture-petition-rulemaking-1-16-26/download?attachment",
+      "level": "state",
+      "government": "ITS, Executive Office of the State of North Carolina",
+      "discovered": true
+    },
+    {
+      "id": "fu-nc-assumed-name-1",
+      "title": "Assumed Business Names",
+      "url": "https://www.sosnc.gov/divisions/business_registration/assumed_business_names",
+      "level": "state",
+      "government": "North Carolina Department of Secretary of State",
+      "discovered": true
+    },
+    {
+      "id": "fu-nc-assumed-name-2",
+      "title": "Assumed Business Names Manual",
+      "url": "https://www.sosnc.gov/manual/assumed_business_names/Page7",
+      "level": "state",
+      "government": "North Carolina Department of Secretary of State",
+      "discovered": true
+    },
+    {
+      "id": "fu-nc-assumed-name-3",
+      "title": "Business Registration Manual",
+      "url": "https://www.sosnc.gov/manual/Business_Registration_Closing/page12",
+      "level": "state",
+      "government": "North Carolina Department of Secretary of State",
+      "discovered": true
+    },
+    {
+      "id": "fu-nc-sales-tax-registration-1",
+      "title": "Business Registration | NCDOR",
+      "url": "https://www.ncdor.gov/registration",
+      "level": "state",
+      "government": "Department of Information Technology",
+      "discovered": true
+    },
+    {
+      "id": "fu-nc-sales-tax-registration-2",
+      "title": "Sales and Use Tax Frequently Asked Questions",
+      "url": "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/sales-and-use-tax-frequently-asked-questions",
+      "level": "state",
+      "government": "Department of Information Technology",
+      "discovered": true
+    },
+    {
+      "id": "fu-nc-sales-tax-registration-3",
+      "title": "Sales and Use Online Filing and Payments - Online Help",
+      "url": "https://eservices.dor.nc.gov/sau/sauhelp1022.jsp",
+      "level": "state",
+      "government": "ITS, Executive Office of the State of North Carolina",
+      "discovered": true
+    },
+    {
+      "id": "fu-nc-sales-tax-filing-1",
+      "title": "Sales Tax Guidance for Newly Registered Taxpayers",
+      "url": "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/sales-and-use-tax-forms-and-certificates/sales-and-use-tax-registration-applications/sales-tax-guidance-newly-registered-taxpayers",
+      "level": "state",
+      "government": "Department of Information Technology",
+      "discovered": true
+    },
+    {
+      "id": "fu-nc-income-tax-2",
+      "title": "1  Rule 17 NCAC 06B  .3503 is amended with changes without notice or comment pursuant to G.S. 150B-1(d)(4) as",
+      "url": "https://www.oah.nc.gov/documents/rules/rrc/43191-revenue-technical-changes/open",
+      "level": "state",
+      "government": "ITS, Executive Office of the State of North Carolina",
+      "discovered": true
+    },
+    {
+      "id": "fu-nc-income-tax-3",
+      "title": "Start My Business",
+      "url": "https://www.nc.gov/working/business-nc/start-my-business",
+      "level": "state",
+      "government": "ITS, Executive Office of the State of North Carolina",
+      "discovered": true
+    },
+    {
+      "id": "fu-buncombe-assumed-name-1",
+      "title": "Buncombe County Board of Commissioners",
+      "url": "https://media.buncombenc.gov/common/Commissioners/20231017/RequestForBoardAction-MedTrust%20Franchise.pdf",
+      "level": "county",
+      "government": "Buncombe County Government",
+      "discovered": true
+    },
+    {
+      "id": "fu-buncombe-assumed-name-2",
+      "title": "State of North Carolina",
+      "url": "https://media.buncombenc.gov/common/registerOfDeeds/Assumed_Name_Corpoartion.pdf",
+      "level": "county",
+      "government": "Buncombe County Government",
+      "discovered": true
+    },
+    {
+      "id": "fu-asheville-home-occupation-1",
+      "title": "Residential Permits - The City of Asheville",
+      "url": "https://www.ashevillenc.gov/department/development-services/residential-permits-and-development/?lang=es",
+      "level": "city",
+      "government": "City of Asheville",
+      "discovered": true
+    },
+    {
+      "id": "fu-asheville-home-occupation-2",
+      "title": "Development Services Archives - The City of Asheville",
+      "url": "https://www.ashevillenc.gov/departments/parks/programs-services/development-services/",
+      "level": "city",
+      "government": "City of Asheville",
+      "discovered": true
+    },
+    {
+      "id": "fu-asheville-home-occupation-3",
+      "title": "Zoning Services - The City of Asheville",
+      "url": "https://www.ashevillenc.gov/department/planning-urban-design/zoning-administration/zoning-services/",
+      "level": "city",
+      "government": "City of Asheville",
+      "discovered": true
+    },
+    {
+      "id": "fu-asheville-market-vending-1",
+      "title": "Event Planning - The City of Asheville",
+      "url": "https://www.ashevillenc.gov/department/community-and-regional-entertainment-facilities/outdoor-special-events/public-property/event-planning/",
+      "level": "city",
+      "government": "City of Asheville",
+      "discovered": true
+    },
+    {
+      "id": "fu-asheville-market-vending-2",
+      "title": "Events and Gatherings",
+      "url": "https://www.ashevillenc.gov/service/events-and-gatherings/",
+      "level": "city",
+      "government": "City of Asheville",
+      "discovered": true
+    },
+    {
+      "id": "fu-asheville-market-vending-3",
+      "title": "Private Property - The City of Asheville",
+      "url": "https://www.ashevillenc.gov/department/community-and-regional-entertainment-facilities/outdoor-special-events/private-property/",
+      "level": "city",
+      "government": "City of Asheville",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-asheville-market-vending-1",
+      "title": "Health and Food",
+      "url": "https://www.ashevillenc.gov/department/community-and-regional-entertainment-facilities/outdoor-special-events/public-property/health-and-food/",
+      "level": "city",
+      "government": "City of Asheville",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-asheville-market-vending-2",
+      "title": "Permit Applications - The City of Asheville",
+      "url": "https://www.ashevillenc.gov/department/community-and-regional-entertainment-facilities/outdoor-special-events/public-property/permit-applications/",
+      "level": "city",
+      "government": "City of Asheville",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-asheville-1",
+      "title": "Contact DSD - The City of Asheville",
+      "url": "https://www.ashevillenc.gov/department/development-services/contact-staff/?lang=uk",
+      "level": "city",
+      "government": "City of Asheville",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-asheville-2",
+      "title": "Commercial Permits - The City of Asheville",
+      "url": "https://www.ashevillenc.gov/department/development-services/commercial-permits-and-development/?lang=es",
+      "level": "city",
+      "government": "City of Asheville",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-asheville-3",
+      "title": "Fire Marshals Division",
+      "url": "https://www.ashevillenc.gov/department/fire/fire-marshals-division/",
+      "level": "city",
+      "government": "City of Asheville",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-buncombe-county-tax-assessor-3",
+      "title": "FLOODPLAIN MANAGEMENT TROPICAL STORM FRED DAMAGE: Permitting requirements for damaged residential structures and access",
+      "url": "https://media.buncombenc.gov/common/planning/Repairs_SFHA_TSFred_Handout.pdf",
+      "level": "county",
+      "government": "Buncombe County Government",
+      "discovered": true
+    }
+  ],
+  "unread": [
+    {
+      "title": "Frequently Asked Questions",
+      "url": "https://www.buncombenc.gov/486/Frequently-Asked-Questions",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Forms & Reports  | Buncombe County, NC",
+      "url": "https://www.buncombenc.gov/441/Forms-Reports",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "STARTING A FOOD BUSINESS",
+      "url": "https://www.buncombenc.gov/DocumentCenter/View/6355/Starting-a-Food-Business-Guide-PDF?bidId=",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Application for a Mobile Food Unit or Pushcart Permit",
+      "url": "https://www.buncombenc.gov/DocumentCenter/View/1854/Mobile-Food-Unit-and-Pushcart-Application-PDF",
+      "reason": "The site answered with error 403"
+    }
+  ],
+  "requirements": [
+    {
+      "key": "nc-feed-registration",
+      "title": "Register your animal food firm and dog treats with North Carolina",
+      "level": "state",
+      "topic": "license_permit",
+      "agency": "NC Department of Agriculture and Consumer Services, Animal Feed Program",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.ncagr.gov/divisions/food-drug-protection/feed-program/startups"
+      ],
+      "evidence": "Product labels are required to accompany each product. This will include completing several forms such as, the Firm Contact Information Form, New Brand Template Form, and New NC Manufacturing/Distribution Facility Registration Form.",
+      "why": "You will make and sell baked dog treats in NC. NC lists baked pet treats as products that need registration.",
+      "background": "You will make baked dog treats at home to sell, and the state feed program covers home makers and lists baked pet treats as needing registration.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote mentions registration forms but does not say that baked dog treats are products that need registration in NC."
+      ],
+      "trail": null
+    },
+    {
+      "key": "nc-assumed-name",
+      "title": "File NC assumed business name certificate for Blue Ridge Biscuits",
+      "level": "state",
+      "topic": "name_registration",
+      "agency": "Register of Deeds in county where principal office is located",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sosnc.gov/manual/assumed_business_names/Page7"
+      ],
+      "evidence": "This form should be used by anyone, including individuals, businesses, and legal entities, seeking to do business in the State of North Carolina using a name other than their own legal name.",
+      "why": "You are a sole proprietor using Blue Ridge Biscuits, not your own legal name. NC requires that trade name to be registered.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "nc-sales-tax-registration",
+      "title": "Get NC sales and use tax account ID number",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "North Carolina Department of Revenue",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/sales-and-use-tax-frequently-asked-questions"
+      ],
+      "evidence": "You must register with the Department to obtain a sales and use tax Certificate of Registration.",
+      "why": "You will sell packaged dog treats at markets and on your website and ship orders. You need an account to file and pay sales tax.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "fda-animal-food-safety",
+      "title": "Follow federal animal food safety and labeling rules",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Food and Drug Administration, Center for Veterinary Medicine",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.fda.gov/animal-veterinary/import-exports/importing-animal-food"
+      ],
+      "evidence": "Sections 402 and 403 of the FD&C Act require that human and animal foods be safe and wholesome, contain no deleterious, harmful, or unapproved substances, and be truthfully labeled. Although there is no pre-market approval requirement for animal foods, their ingredients must be either approved food additives [21 CFR 573], generally recognized as safe (GRAS) [21 CFR 582], or the subject of an ingredient definition published in the Official Publication (OP) of the Association of American Feed Control Officials (AAFCO).",
+      "why": "Dog treats are animal food under federal law. What you sell must be safe and truthfully labeled with approved ingredients.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "choose-structure",
+      "title": "Choose your business structure",
+      "level": "federal",
+      "topic": "structure",
+      "agency": "Small Business Administration",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+        "https://www.sba.gov/counseling/launch-your-business/#business-structure"
+      ],
+      "evidence": "When beginning a business, you must decide what form of business entity to establish. You’ll need to choose a business structure before you register your business with the state.",
+      "why": "You are starting as one owner testing a side-income idea. Structure affects taxes, paperwork and liability.",
+      "background": "You are starting as one owner, and state startup guidance says structure choice controls taxes and liability, so you must settle it.",
+      "problems": [
+        "Quote not found on the cited pages"
+      ],
+      "trail": null
+    },
+    {
+      "key": "ein",
+      "title": "Get a federal employer ID number if you want one",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "optional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+        "https://www.sba.gov/counseling/launch-your-business/#tax-ids"
+      ],
+      "evidence": "You never have to pay a fee for an EIN. It’s free to apply for an EIN, and you should do it right after you register your business.",
+      "why": "You are a sole proprietor with no employees. You can often use your SSN, but an EIN is free and helps with bank and tax tasks.",
+      "background": "",
+      "problems": [
+        "Quote not found on the cited pages"
+      ],
+      "trail": null
+    },
+    {
+      "key": "fda-import-requirements",
+      "title": "Meet FDA import and USDA animal-material rules if you import",
+      "level": "federal",
+      "topic": "license_permit",
+      "agency": "Internal Revenue Service",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you bring any ingredients or supplies from outside the United States?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.fda.gov/animal-veterinary/import-exports/importing-animal-food"
+      ],
+      "evidence": "Generally, a USDA APHIS Veterinary Services (VS) permit is required for the importation of any animal food, animal drug, or component (such as livestock feed, pet food/chews/treats, aquaculture feed, or ingredients thereof) that contain animal origin material (including dairy products, rendered materials, and raw or processed meat, for example) from countries with livestock diseases exotic to the United States.",
+      "why": "It depends on where you get supplies. If you bring ingredients from outside the U.S., import notice and animal-material rules would apply.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote only describes a USDA permit for animal-origin material and does not show FDA import requirements."
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-self-employment-taxes",
+      "title": "Pay federal self-employment tax and file yearly business return",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+        "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/"
+      ],
+      "evidence": "As a self-employed individual, generally you are required to file an annual income tax return and pay estimated taxes quarterly. Self-employed individuals generally must pay self-employment (SE) tax as well as income tax.",
+      "why": "You are self-employed as a sole proprietor. Profits count for Social Security, Medicare and income tax.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "federal-recordkeeping",
+      "title": "Keep business income and expense records",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/"
+      ],
+      "evidence": "You may need to substantiate income and deductions. Good records can assist you in preparing financial records, keeping track of property and deductions and so much more.",
+      "why": "You will have sales, ingredient costs and market fees. Good records support your tax returns.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "nc-sales-tax-filing",
+      "title": "File NC sales and use tax returns",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "North Carolina Department of Revenue",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/sales-and-use-tax-forms-and-certificates/sales-and-use-tax-registration-applications/sales-tax-guidance-newly-registered-taxpayers"
+      ],
+      "evidence": "File your tax returns on or before the due date of the return. You must file a return even if you do not owe tax unless you have registered solely as a wholesale merchant.",
+      "why": "Once you have an NC sales tax account for market and website sales, you must file and pay on schedule.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "nc-income-tax",
+      "title": "File North Carolina income tax on business profits",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "North Carolina Department of Revenue",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will earn side income in NC as a sole proprietor. NC taxes individual income from the business.",
+      "background": "Side income you earn in North Carolina as a sole owner is taxed as part of your individual income, so you must report and pay it.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "trademark",
+      "title": "Consider federal trademark for business name",
+      "level": "federal",
+      "topic": "name_registration",
+      "agency": "United States Patent and Trademark Office",
+      "status": "optional",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-name"
+      ],
+      "evidence": "A trademark can protect the name of your business, goods, and services at a national level.",
+      "why": "You want to use Blue Ridge Biscuits online and at markets. A trademark can protect the name across the U.S.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "buncombe-assumed-name",
+      "title": "Buncombe County assumed business name certificate (DBA)",
+      "level": "county",
+      "topic": "name_registration",
+      "agency": "Buncombe County Register of Deeds",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sosnc.gov/frequently_asked_questions/by_title/_Assumed_Business_Names",
+        "https://www.ncagr.gov/divisions/food-drug-protection/feed-program/startups"
+      ],
+      "evidence": "For example, if John Smith, as a sole proprietor, operates a lawn care business under the name “Smith Lawn Maintenance”, he must file an assumed business name certificate to register the name “Smith Lawn Maintenance” as his assumed business name. A Certificate of Assumed Name for sole proprietorships and partnerships must be filed with the Register of Deeds in the county or counties where businesses plan to operate.",
+      "why": "You are a sole proprietor and will not use your own legal name. You will use Blue Ridge Biscuits, so the county DBA filing applies to you.",
+      "background": "You will use Blue Ridge Biscuits in Buncombe County, and the state directs that county filing to the local register of deeds.",
+      "problems": [
+        "Only state pages were cited for a county requirement"
+      ],
+      "trail": null
+    },
+    {
+      "key": "asheville-home-occupation",
+      "title": "City of Asheville home business zoning clearance (home occupancy)",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "City of Asheville Development Services",
+      "status": "to_find_out",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "unclear",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-location"
+      ],
+      "evidence": "If you buy, rent, build, or plan to work out of a physical property for your business, make sure it conforms to local zoning requirements. Zoning laws are typically controlled at the local level, so check with your department of city planning, or similar office, to find out about the zoning laws in your area.",
+      "why": "You will bake and pack dog treats in your home in Asheville inside city limits. City zoning rules for home businesses therefore apply to you.",
+      "background": "The city names home occupancy help but does not say when it is required or what it allows.",
+      "problems": [
+        "Only federal pages were cited for a city requirement"
+      ],
+      "trail": {
+        "searched": [
+          {
+            "where": "Asheville",
+            "what": "a page about city of asheville home business zoning clearance (home occupancy)",
+            "pages": 3
+          },
+          {
+            "where": "Asheville",
+            "what": "the ordinance, code section or application form that covers it",
+            "pages": 0,
+            "failed": true
+          },
+          {
+            "where": "Asheville",
+            "what": "who needs it and who doesn’t, such as exemptions or answers to common questions",
+            "pages": 0,
+            "failed": true
+          }
+        ],
+        "read": [
+          {
+            "title": "Residential Permits - The City of Asheville",
+            "url": "https://www.ashevillenc.gov/department/development-services/residential-permits-and-development/?lang=es"
+          },
+          {
+            "title": "Development Services Archives - The City of Asheville",
+            "url": "https://www.ashevillenc.gov/departments/parks/programs-services/development-services/"
+          },
+          {
+            "title": "Zoning Services - The City of Asheville",
+            "url": "https://www.ashevillenc.gov/department/planning-urban-design/zoning-administration/zoning-services/"
+          }
+        ],
+        "unread": [],
+        "found": "The city says its permit center helps with permitting for home based business projects.",
+        "missing": "No page here says who must get clearance or what home baking with no visitors must meet.",
+        "worthChecking": "You will make dog treats at home to sell, and cities often limit making food to sell at homes.",
+        "officialQuote": "The Permit Application Center (PAC) assists with permitting home projects, such as:",
+        "leaning": null,
+        "quoteSetAside": false,
+        "rounds": 2
+      }
+    },
+    {
+      "key": "asheville-market-vending",
+      "title": "Permission to sell at Asheville-area markets and events",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Asheville and market organizer",
+      "status": "to_find_out",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "unclear",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You plan to sell in person at markets, so each market site and any city event rules for that site apply to you.",
+      "background": "Market selling can need market approval, event approval, or health approval depending on site and setup.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": {
+        "searched": [
+          {
+            "where": "Asheville",
+            "what": "a page about permission to sell at asheville-area markets and events",
+            "pages": 3
+          },
+          {
+            "where": "Asheville",
+            "what": "the ordinance, code section or application form that covers it",
+            "pages": 3
+          },
+          {
+            "where": "Asheville",
+            "what": "who needs it and who doesn’t, such as exemptions or answers to common questions",
+            "pages": 0,
+            "failed": true
+          }
+        ],
+        "read": [
+          {
+            "title": "Event Planning - The City of Asheville",
+            "url": "https://www.ashevillenc.gov/department/community-and-regional-entertainment-facilities/outdoor-special-events/public-property/event-planning/"
+          },
+          {
+            "title": "Events and Gatherings",
+            "url": "https://www.ashevillenc.gov/service/events-and-gatherings/"
+          },
+          {
+            "title": "Private Property - The City of Asheville",
+            "url": "https://www.ashevillenc.gov/department/community-and-regional-entertainment-facilities/outdoor-special-events/private-property/"
+          },
+          {
+            "title": "Health and Food",
+            "url": "https://www.ashevillenc.gov/department/community-and-regional-entertainment-facilities/outdoor-special-events/public-property/health-and-food/"
+          },
+          {
+            "title": "Permit Applications - The City of Asheville",
+            "url": "https://www.ashevillenc.gov/department/community-and-regional-entertainment-facilities/outdoor-special-events/public-property/permit-applications/"
+          }
+        ],
+        "unread": [],
+        "found": "The city says permits cover markets on public property and some private property events may need city review.",
+        "missing": "No page here says what a seller of prepackaged pet treats needs for a regular market stall.",
+        "worthChecking": "You plan to sell in person at markets, and each market can have its own vendor and site rules.",
+        "officialQuote": "Permits are available for festivals, markets, parades, block parties, performances, and other organized events on public property. This includes public streets, sidewalks, parks, plazas or other City-managed outdoor spaces.",
+        "leaning": null,
+        "quoteSetAside": false,
+        "rounds": 2
+      }
+    },
+    {
+      "key": "buncombe-personal-property",
+      "title": "Buncombe County business personal property listing",
+      "level": "county",
+      "topic": "other",
+      "agency": "Buncombe County Tax Assessor",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "Businesses that keep equipment, supplies, and stock at an Asheville home commonly must list that business property with Buncombe County each year.",
+      "background": "Counties in this state generally require yearly listing of business equipment and stock, including items kept at home.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    }
+  ],
+  "plan": [
+    {
+      "key": "nc-sales-tax-registration",
+      "title": "Get NC sales and use tax account ID number",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/sales-and-use-tax-frequently-asked-questions",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "choose-structure",
+      "title": "Choose your business structure",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+          "confirms": false
+        },
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "nc-assumed-name",
+      "title": "File NC assumed business name certificate for Blue Ridge Biscuits",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sosnc.gov/manual/assumed_business_names/Page7",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "nc-feed-registration",
+      "title": "Register your animal food firm and dog treats with North Carolina",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.ncagr.gov/divisions/food-drug-protection/feed-program/startups",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "fda-animal-food-safety",
+      "title": "Follow federal animal food safety and labeling rules",
+      "status": "verified",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.fda.gov/animal-veterinary/import-exports/importing-animal-food",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "ein",
+      "title": "Get a federal employer ID number if you want one",
+      "status": "optional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+          "confirms": false
+        },
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "fda-import-requirements",
+      "title": "Meet FDA import and USDA animal-material rules if you import",
+      "status": "conditional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.fda.gov/animal-veterinary/import-exports/importing-animal-food",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-self-employment-taxes",
+      "title": "Pay federal self-employment tax and file yearly business return",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": true
+        },
+        {
+          "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-recordkeeping",
+      "title": "Keep business income and expense records",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "nc-sales-tax-filing",
+      "title": "File NC sales and use tax returns",
+      "status": "verified",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.ncdor.gov/taxes-forms/sales-and-use-tax/sales-and-use-tax-forms-and-certificates/sales-and-use-tax-registration-applications/sales-tax-guidance-newly-registered-taxpayers",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "nc-income-tax",
+      "title": "File North Carolina income tax on business profits",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "trademark",
+      "title": "Consider federal trademark for business name",
+      "status": "optional",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "buncombe-assumed-name",
+      "title": "Buncombe County assumed business name certificate (DBA)",
+      "status": "needs_confirmation",
+      "level": "county",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sosnc.gov/frequently_asked_questions/by_title/_Assumed_Business_Names",
+          "confirms": false
+        },
+        {
+          "url": "https://www.ncagr.gov/divisions/food-drug-protection/feed-program/startups",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "ask-city-of-asheville",
+      "title": "Ask the City of Asheville about 2 requirements",
+      "status": "to_find_out",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.ashevillenc.gov/department/development-services/contact-staff/?lang=uk",
+          "confirms": false
+        },
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "buncombe-personal-property",
+      "title": "Buncombe County business personal property listing",
+      "status": "needs_confirmation",
+      "level": "county",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    }
+  ],
+  "openQuestions": [
+    {
+      "question": "Our search for official pages about tax returns and renewals after opening in North Carolina didn’t finish. Re-check later, or ask.",
+      "answer": "We could not finish the search on returns and renewals, so recheck official state pages or ask the state business office what applies after you open."
+    },
+    {
+      "question": "Our search for official pages about business licenses in Asheville didn’t finish. Re-check later, or ask.",
+      "answer": "We could not finish the search on Asheville licenses, so recheck city pages or ask the city permit center what license you need before you open."
+    },
+    {
+      "question": "Does North Carolina charge sales tax on dog treats and how often must I file?",
+      "answer": "Packaged dog treats sold at retail are generally taxable goods in North Carolina, and the revenue department assigns your filing schedule after you register and tells you of any change by mail."
+    },
+    {
+      "question": "Must a home-based pet treat maker register its facility with FDA?",
+      "answer": "We cannot settle this from the pages here, and federal food facility rules turn on your exact activity, so check current federal guidance for animal food or ask the federal and state feed offices."
+    },
+    {
+      "question": "When I ship treats to buyers in other states, must I register there too?",
+      "answer": "We cannot settle this from the pages here, as each receiving state sets its own feed registration rules, so check with that state feed office before you ship there for sale."
+    },
+    {
+      "question": "What exactly must my dog treat label show under NC feed law?",
+      "answer": "North Carolina requires labels to travel with each product and to meet state feed labeling rules, and you must send copies of your labels with your registration papers for review."
+    },
+    {
+      "question": "What home-occupation application, fee, inspections, and operating rules apply to this Asheville home address with no customer visits?",
+      "answer": "We cannot settle the exact form, inspections, and home rules from the pages here for this address with no visits, so ask the city permit center and zoning staff what clearance you need."
+    },
+    {
+      "question": "When inside Asheville city limits, does Buncombe County add any separate zoning, licensing, or market-vendor requirement for home-made dog treats?",
+      "answer": "The pages here show no separate county zoning or vendor license that adds on inside city limits for homemade treats, so follow city rules and confirm with the county only if it directs city residents to it."
+    },
+    {
+      "question": "Do Asheville farmers markets, pop-ups, or special events need a city temporary vendor or event permit for prepackaged dog treats?",
+      "answer": "It depends on the market site and event setup, as some city events need event approval and vendor lists while the market itself handles spaces, so ask the market manager and the city special events office for your dates."
+    }
+  ],
+  "coverage": [
+    {
+      "category": "formation",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "formation",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "tax",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "tax",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "state",
+      "state": "not_searched",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "county",
+      "state": "unreadable",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "city",
+      "state": "search_failed",
+      "pagesRead": 0
+    },
+    {
+      "category": "zoning",
+      "level": "city",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "food",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "food",
+      "level": "county",
+      "state": "unreadable",
+      "pagesRead": 0
+    }
+  ],
+  "conflicts": [
+    {
+      "about": "Whether the home pet ban applies to dog treats",
+      "explanation": "The human home-processor page bans any pet in the home, while the animal-food startup page allows home manufacture with no pet ban stated and no pre-opening inspection. A petition to allow pets for home bakeries is only a proposal, not law. This matters if you have pets.",
+      "sourceIds": [
+        "state-food-1",
+        "state-activity-1",
+        "state-food-2"
+      ]
+    },
+    {
+      "about": "Whether FDA facility registration is needed for a home pet-treat kitchen",
+      "explanation": "The state startup page says to check federal facility registration if applicable but does not say when it applies. Federal pages describe registration and prior notice mainly for imports. These pages do not clearly say if a small domestic home kitchen must register.",
+      "sourceIds": [
+        "state-activity-1",
+        "federal-activity-1"
+      ]
+    },
+    {
+      "about": "Whether Asheville requires a home-occupancy permit for a no-visitor home kitchen",
+      "explanation": "One city page says the Permit Application Center assists with permitting home projects such as a home-based business (home occupancy), but it does not state when a permit is required, the standards, fee, or renewal. An older city minutes page shows home occupations were permitted in residential districts, but it does not give current citywide rules. It is unclear if you need a permit or only zoning compliance.",
+      "sourceIds": [
+        "city-home-1",
+        "city-home-2"
+      ]
+    }
+  ]
+}

@@ -41,6 +41,10 @@ describe("searchTopics", () => {
       "state-sales-tax",
       "state-food",
       "state-employer",
+      "state-activity",
+      "federal-activity",
+      "state-ongoing",
+      "federal-ongoing",
       "county-license",
       "county-food",
       "city-license",
@@ -52,6 +56,10 @@ describe("searchTopics", () => {
       "state",
       "state",
       "state",
+      "state",
+      "federal",
+      "state",
+      "federal",
       "county",
       "county",
       "city",
@@ -69,10 +77,18 @@ describe("searchTopics", () => {
   });
 
   it("skips sales tax for services only, and food topics when there's no food", () => {
+    const always = ["state-activity", "federal-activity", "state-ongoing", "federal-ongoing"];
     const services = testProfile({ offeringKinds: ["services"], location: { county: "Franklin" } });
-    expect(ids(services)).toEqual(["state-name", "state-formation", "county-license"]);
+    expect(ids(services)).toEqual(["state-name", "state-formation", ...always, "county-license"]);
     const crafts = testProfile({ offeringKinds: ["handmade", "services"] });
-    expect(ids(crafts)).toEqual(["state-name", "state-formation", "state-sales-tax"]);
+    expect(ids(crafts)).toEqual(["state-name", "state-formation", "state-sales-tax", ...always]);
+  });
+
+  it("asks about rules for what the owner sells, in their own words, and about duties once open", () => {
+    const topics = new Map(searchTopics(testProfile({ firstItems: "Dog treats", location: { state: "NC" } })).map((topic) => [topic.id, topic]));
+    expect(topics.get("state-activity")?.question).toMatch(/official North Carolina state government web page.*small business that sells Dog treats/);
+    expect(topics.get("federal-activity")).toMatchObject({ level: "federal", category: "activity" });
+    expect(topics.get("federal-ongoing")?.question).toMatch(/self-employment tax and estimated tax/);
   });
 
   it("asks about employers only for owners hiring this year", () => {
@@ -174,7 +190,7 @@ describe("discoverOfficialPages", () => {
   it("turns a topic with nothing kept into a gap", async () => {
     const { model } = searchingModel({ "state-name": [hit("https://www.ohiosos.gov/a")] });
     const { gaps } = await discoverOfficialPages(model, columbus);
-    expect(gaps).toHaveLength(searchTopics(columbus).length - 1);
+    expect(gaps).toHaveLength(searchTopics(columbus).filter((topic) => topic.level !== "federal").length - 1);
     expect(gaps[0]).toEqual({ level: "state", category: "formation", about: "forming an LLC or other business entity in Ohio", failed: false });
     expect(gaps.at(-1)).toEqual({ level: "city", category: "zoning", about: "running a business from home in Columbus", failed: false });
   });
@@ -198,7 +214,8 @@ describe("discoverOfficialPages", () => {
   it("makes every topic a gap, not a failure, for a model that can't search", async () => {
     const { sources, gaps } = await discoverOfficialPages(createMockProvider(), columbus);
     expect(sources).toEqual([]);
-    expect(gaps).toEqual(searchTopics(columbus).map(({ level, category, about }) => ({ level, category, about, failed: false })));
+    // Federal topics aren't gaps: federal pages also come from the built-in pack
+    expect(gaps).toEqual(searchTopics(columbus).flatMap(({ level, category, about }) => (level === "federal" ? [] : [{ level, category, about, failed: false }])));
   });
 
   it("searches without a city when the owner has none", async () => {

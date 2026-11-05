@@ -1,0 +1,1696 @@
+{
+  "case": "chicago-il-sneakers",
+  "label": "Sneaker resale online only, Chicago, Illinois",
+  "model": "Meta Muse (muse-spark-1.3)",
+  "simulated": false,
+  "ranAt": "2026-11-05T06:50:21.803Z",
+  "timeLimitSeconds": 600,
+  "ms": {
+    "research": 251273,
+    "followUp": 229733,
+    "total": 481007
+  },
+  "cost": {
+    "usd": 1.5976,
+    "modelCalls": 10,
+    "searches": 34,
+    "inputTokens": 1062515,
+    "outputTokens": 93724,
+    "failedCalls": [
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "research_follow_up: AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout",
+      "requirement_follow_up: AIProviderError: Meta Muse stream failed: This operation was aborted"
+    ],
+    "fallbacks": [
+      "requirement_follow_up"
+    ]
+  },
+  "calls": [
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7112,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7503,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7711,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10843,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10864,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12811,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13606,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17299,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 36434,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 45003,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 122857,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 72457,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6611,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12370,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18719,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20005,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_follow_up",
+      "effort": "medium",
+      "ms": 40003,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 17577,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 14881,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6637,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7091,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7532,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7840,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 7993,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8040,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8454,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 9738,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10816,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10992,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11018,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12515,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12747,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13305,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 15704,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16244,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 22755,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 91084,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "low",
+      "ms": 41081,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: This operation was aborted"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 17639,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 10419,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18919,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 21755,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 64773,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 8197,
+      "ok": true,
+      "error": null
+    }
+  ],
+  "claimsCheckedInResearch": true,
+  "followUp": {
+    "candidates": 10,
+    "rounds": 2,
+    "confirmed": 0,
+    "rechecked": 0
+  },
+  "pages": [
+    {
+      "id": "irs-ein",
+      "title": "IRS: Get an employer identification number",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "irs-business-structures",
+      "title": "IRS: Business structures",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-structure",
+      "title": "SBA: Choose a business structure",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-name",
+      "title": "SBA: Choose your business name",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-register-business",
+      "title": "SBA: Register your business",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#register-business",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-location",
+      "title": "SBA: Pick your business location",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-licenses-permits",
+      "title": "SBA: Apply for licenses and permits",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-tax-ids",
+      "title": "SBA: Get federal and state tax ID numbers",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "state-name-1",
+      "title": "Step by Step Guide",
+      "url": "https://dceo.illinois.gov/smallbizassistance/beginhere/stepbystepguide.html",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "state-name-2",
+      "title": "Adopting an Assumed LLC Name",
+      "url": "https://www.ilsos.gov/departments/business-services/assumed-name-adoptions/llcinstructions.html",
+      "level": "state",
+      "government": "Illinois Secretary of State",
+      "discovered": true
+    },
+    {
+      "id": "state-formation-1",
+      "title": "Limited Liability Company",
+      "url": "https://www.ilsos.gov/publications/business-services/llc.html",
+      "level": "state",
+      "government": "Illinois Secretary of State",
+      "discovered": true
+    },
+    {
+      "id": "state-formation-2",
+      "title": "'\\*'\"'?T\"\\[",
+      "url": "https://icc.illinois.gov/downloads/public/edocket/86773.PDF",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "state-sales-tax-1",
+      "title": "Do I need to register with the Illinois Department of Revenue?",
+      "url": "https://tax.illinois.gov/questionsandanswers/286?utm_source=openai",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "state-sales-tax-2",
+      "title": "PIO-117 How to Register your Illinois Business",
+      "url": "https://tax.illinois.gov/content/dam/soi/en/web/tax/businesses/documents/pio-117.pdf",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-2",
+      "title": "IPG Quick Start Guide",
+      "url": "https://cpo.illinois.gov/content/dam/soi/en/web/cpo/documents/ipg-quick-start-guide.pdf",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-1",
+      "title": "Apparel and Labeling",
+      "url": "https://www.ftc.gov/news-events/topics/tools-consumers/apparel-labeling",
+      "level": "federal",
+      "government": "Federal Trade Commission",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-2",
+      "title": "Clothing Business Guidance",
+      "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/Clothing-OLD",
+      "level": "federal",
+      "government": "Consumer Product Safety Commission",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-1",
+      "title": "Self-employed individuals tax center",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-2",
+      "title": "Making Estimated Tax Payments - TAS",
+      "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/estimated-payments/2026/01/",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "county-license-1",
+      "title": "General Business License",
+      "url": "https://www.cookcountyil.gov/service/general-business-license",
+      "level": "county",
+      "government": "Cook County Government - Bureau of Technology",
+      "discovered": true
+    },
+    {
+      "id": "county-license-2",
+      "title": "General Business License FAQ’S",
+      "url": "https://www.cookcountyil.gov/sites/g/files/ywwepo161/files/documents/2025-01/General Business License FAQ.pdf",
+      "level": "county",
+      "government": "Cook County Government - Bureau of Technology",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-1-1",
+      "title": "Sales and Use Tax Definitions",
+      "url": "https://tax.illinois.gov/research/taxinformation/sales/sales-and-use-tax-definitions.html",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-1-2",
+      "title": "Out-of-State Sales Resource Page",
+      "url": "https://tax.illinois.gov/research/taxinformation/sales/level-the-playing-field.html",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-3-2",
+      "title": "How to Comply with the Fur Products Labeling Act",
+      "url": "https://www.ftc.gov/business-guidance/resources/how-comply-fur-products-labeling-act",
+      "level": "federal",
+      "government": "Federal Trade Commission",
+      "discovered": true
+    },
+    {
+      "id": "fu-illinois-sales-tax-registration-1",
+      "title": "Do I need to register with the Illinois Department of Revenue?",
+      "url": "https://tax.illinois.gov/questionsandanswers/286?utm_source=openai",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "fu-illinois-sales-tax-registration-2",
+      "title": "PIO-117 How to Register your Illinois Business",
+      "url": "https://tax.illinois.gov/content/dam/soi/en/web/tax/businesses/documents/pio-117.pdf",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "fu-illinois-sales-tax-registration-3",
+      "title": "Registering your Business",
+      "url": "https://tax.Illinois.gov/research/publications/pubs/county-motor-fuel-tax/registering-your-business.html",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "fu-illinois-sales-tax-filing-1",
+      "title": "Sales & Use Taxes",
+      "url": "https://tax.illinois.gov/research/taxinformation/sales/rot.html?utm_source=ppc&utm_medium=google&utm_term=keyword&utm_campaign=campaign.name&gclid=EAIaIQobChMIteuxp5i6iwMV811_AB0mHSxTEAAYAiAAEgKGHfD_BwE",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "fu-illinois-sales-tax-filing-2",
+      "title": "ST-1-X Instructions for reporting periods January 2026 and after",
+      "url": "https://tax.illinois.gov/forms/sales/salesandusetax/st-1-x-instructions.html",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "fu-illinois-sales-tax-filing-3",
+      "title": "Use Tax and \"Local\" Use Tax",
+      "url": "https://tax.illinois.gov/localgovernments/usetax.html",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "fu-illinois-income-tax-1",
+      "title": "Answer",
+      "url": "https://tax.illinois.gov/questionsandanswers/answer.93.html",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "fu-illinois-income-tax-2",
+      "title": "Who must file Form IL-1120-ST and when is its due date?",
+      "url": "https://tax.illinois.gov/questionsandanswers/answer.93.html",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "fu-illinois-income-tax-3",
+      "title": "Subchapter S (Small Business) Corporation",
+      "url": "https://tax.Illinois.gov/research/taxinformation/income/subchapters.html",
+      "level": "state",
+      "government": "State of Illinois",
+      "discovered": true
+    },
+    {
+      "id": "fu-cook-assumed-name-1",
+      "title": "Assumed Business Name Registration",
+      "url": "https://www.cookcountyil.gov/service/assumed-business-name-registration",
+      "level": "county",
+      "government": "Cook County Government - Bureau of Technology",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-chicago-business-license-2",
+      "title": "City of Chicago :: Retail Establishments",
+      "url": "https://www.chicago.gov/city/en/ofinterest/bus/retail.html",
+      "level": "city",
+      "government": "City of Chicago",
+      "discovered": true
+    },
+    {
+      "id": "fu-chicago-secondhand-rules-1",
+      "title": "Used Merchandise",
+      "url": "https://www.chicago.gov/city/en/sites/chicago-business-licensing/home/usedmerchandise.html",
+      "level": "city",
+      "government": "City of Chicago",
+      "discovered": true
+    },
+    {
+      "id": "fu-chicago-secondhand-rules-2",
+      "title": "General Merchandise",
+      "url": "https://www.chicago.gov/city/en/sites/chicago-business-licensing/home/generalmerchandise.html",
+      "level": "city",
+      "government": "City of Chicago",
+      "discovered": true
+    },
+    {
+      "id": "fu-chicago-business-license-renewal-3",
+      "title": "Renewing a Business License",
+      "url": "https://www.chicago.gov/city/en/sites/chicago-business-licensing/home/renewingabusinesslicense.html",
+      "level": "city",
+      "government": "City of Chicago",
+      "discovered": true
+    },
+    {
+      "id": "fu-cook-assumed-name-renewal-2",
+      "title": "Contractor - Home | Cook County Government, Illinois",
+      "url": "https://bzpermits.cookcountyil.gov/contractor",
+      "level": "county",
+      "government": "Cook County Government - Bureau of Technology",
+      "discovered": true
+    },
+    {
+      "id": "fu-cook-assumed-name-renewal-3",
+      "title": "VOLUNTARY DISCLOSURE PROGRAM",
+      "url": "https://drupal9-stage.cookcountyil.gov/sites/g/files/ywwepo161/files/voluntary_disclosure_program_application.pdf",
+      "level": "county",
+      "government": "Cook County Government - Bureau of Technology",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-cook-assumed-name-renewal-1",
+      "title": "Contract Nc. 13-84697 Vendor Name: VALDES, LLC",
+      "url": "https://opendocs.cookcountyil.gov/procurement/modifications/13-84-037-A2.pdf",
+      "level": "county",
+      "government": "Cook County Government - Bureau of Technology",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-cook-assumed-name-renewal-3",
+      "title": "AMENDMENT NO.2",
+      "url": "https://opendocs.cookcountyil.gov/procurement/modifications/1328-13008-A2.pdf",
+      "level": "county",
+      "government": "Cook County Government - Bureau of Technology",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-cook-county-clerk-1",
+      "title": "Contact Department of Revenue",
+      "url": "https://www.cookcountyil.gov/content/contact-department-revenue",
+      "level": "county",
+      "government": "Cook County Government - Bureau of Technology",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-cook-county-clerk-3",
+      "title": "Building and Zoning Payments",
+      "url": "https://www.cookcountyil.gov/service/payments",
+      "level": "county",
+      "government": "Cook County Government - Bureau of Technology",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-chicago-2",
+      "title": "Residential Real Estate Developer",
+      "url": "https://www.chicago.gov/city/en/sites/chicago-business-licensing/home/residentialrealestatedeveloper.html",
+      "level": "city",
+      "government": "City of Chicago",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-chicago-3",
+      "title": "City of Chicago Department of Transporation Commercial Refuse Container Permitting System",
+      "url": "https://webapps1.chicago.gov/crcps/help/faq",
+      "level": "city",
+      "government": "City of Chicago",
+      "discovered": true
+    }
+  ],
+  "unread": [
+    {
+      "title": "License Application Requirements Information",
+      "url": "https://Www.chicago.gov/content/city/en/depts/bacp/supp_info/license_applicationrequirementsinformation.html",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "COMMUNITY DEVELOPMENT GRANT (CDG-S) FINALIST ORIENTATION",
+      "url": "https://www.chicago.gov/content/dam/city/sites/dpd-recovery-plan/CRPFinalistResources/CDG-S_Spring_2025_Orientation_Presentation.pdf",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Home Based Businesses (Home Occupation)",
+      "url": "https://www.chicago.gov/city/en/depts/bacp/supp_info/homebasedbusiness.html",
+      "reason": "The site answered with error 404"
+    },
+    {
+      "title": "Home Based Business",
+      "url": "https://www.chicago.gov/content/city/en/sites/chicago-business-licensing/home/homebasedbusiness.html",
+      "reason": "The site answered with error 403"
+    }
+  ],
+  "requirements": [
+    {
+      "key": "illinois-sales-tax-registration",
+      "title": "Register with Illinois Department of Revenue for sales tax",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Illinois Department of Revenue",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://tax.illinois.gov/content/dam/soi/en/web/tax/businesses/documents/pio-117.pdf",
+        "https://tax.illinois.gov/questionsandanswers/286?utm_source=openai"
+      ],
+      "evidence": "If you plan to sell, lease, or rent tangible personal property (TPP) to the general public, you will need to register to collect and remit both State and locally imposed Retailers’ Occupation Taxes and Use Taxes from each individual sale, lease, or rental of tangible products. Note: If you are starting a new business or have a business new to the state of Illinois, you should register with IDOR before you make any sales or hire an employee.",
+      "why": "You will sell sneakers online and ship to Illinois customers. Sneakers are tangible goods sold at retail, so you must register to collect and send sales taxes.",
+      "background": "You sell sneakers to Illinois customers, which are taxable goods sold at retail, so you must register before you sell.",
+      "problems": [
+        "Quote not found on the cited pages"
+      ],
+      "trail": null
+    },
+    {
+      "key": "illinois-assumed-name",
+      "title": "Register assumed business name with county clerk",
+      "level": "state",
+      "topic": "name_registration",
+      "agency": "Local county clerk's office",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://dceo.illinois.gov/smallbizassistance/beginhere/stepbystepguide.html"
+      ],
+      "evidence": "When a business name is different from the owner(s) full legal name(s), the Illinois Assumed Name Act requires sole proprietorships and general partnerships to register with their local county clerk's office for registration under the Assumed Name Act.",
+      "why": "You will do business as Lakeshore Kicks, which is not your own legal name. As a sole proprietor in Illinois, you must register that assumed name with the county clerk.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "choose-business-structure",
+      "title": "Choose sole proprietorship as business structure",
+      "level": "federal",
+      "topic": "structure",
+      "agency": "No filing agency — owner decision",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+        "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures"
+      ],
+      "evidence": "You’ll need to choose a business structure before you register your business with the state. When beginning a business, you must decide what form of business entity to establish.",
+      "why": "You are one owner starting a side-income idea and chose sole proprietorship. You must pick a structure before you register names and tax accounts.",
+      "background": "You must pick a business type before you can register for taxes and names, and you plan to work as a sole owner.",
+      "problems": [
+        "Quote not found on the cited pages"
+      ],
+      "trail": null
+    },
+    {
+      "key": "ftc-textile-label-compliance",
+      "title": "Keep required fiber, origin, and care labels on sneakers",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Federal Trade Commission",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will the sneakers you sell include fabric, wool, fur, or leather?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.ftc.gov/news-events/topics/tools-consumers/apparel-labeling"
+      ],
+      "evidence": "Federal law requires that most textile and wool products have a label that lists the fiber content, the country of origin, and the identity of the manufacturer or another business responsible for marketing or handling the product. Under the Care Labeling Rule, manufacturers and importers must provide instructions so consumers know how to clean the products they buy.",
+      "why": "You will resell sneakers. If they contain fabric, wool, fur, or leather, federal labeling rules may cover them and the labels must stay with the goods.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote covers only textile and wool products and manufacturer and importer care instructions, not fur or leather or a reseller duty to keep labels on sneakers."
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-ein",
+      "title": "Get a federal Employer Identification Number (EIN)",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service (Department of the Treasury)",
+      "status": "optional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number"
+      ],
+      "evidence": "Beware of websites that charge for an EIN. You never have to pay a fee for an EIN.",
+      "why": "You are a sole proprietor with no employees and can often use your Social Security number. A free EIN is useful to open a business bank account and keep business identity separate.",
+      "background": "",
+      "problems": [
+        "Fee not found in the quote"
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-self-employment-tax",
+      "title": "Pay federal income and self-employment tax and file annual return",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service (Department of the Treasury)",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center"
+      ],
+      "evidence": "Self-employed individuals generally must pay self-employment (SE) tax as well as income tax. You have to file an income tax return if your net earnings from self-employment were $400 or more.",
+      "why": "As a sole proprietor reselling sneakers, your profit is self-employment income subject to income tax and Social Security and Medicare tax.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "federal-estimated-tax",
+      "title": "Make federal quarterly estimated tax payments if you owe enough",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service (Department of the Treasury)",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Do you expect to owe $1,000 or more in federal tax for the year?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.taxpayeradvocate.irs.gov/news/tax-tips/estimated-payments/2026/01/"
+      ],
+      "evidence": "Individuals, including sole proprietors, partners, and S corporation shareholders, generally must make estimated tax payments if they expect to owe tax of $1,000 or more when their return is filed.",
+      "why": "No boss withholds tax from your sneaker profits. Whether you must pay in quarters depends on how much federal tax you expect to owe.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote mentions estimated payments when expecting to owe $1,000 or more but does not show that payments must be made quarterly."
+      ],
+      "trail": null
+    },
+    {
+      "key": "illinois-sales-tax-filing",
+      "title": "File Illinois sales and use tax returns and pay tax collected",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Illinois Department of Revenue",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://tax.illinois.gov/content/dam/soi/en/web/tax/businesses/documents/pio-117.pdf"
+      ],
+      "evidence": "If you plan to sell, lease, or rent tangible personal property (TPP) to the general public, you will need to register to collect and remit both State and locally imposed Retailers’ Occupation Taxes and Use Taxes from each individual sale, lease, or rental of tangible products.",
+      "why": "Once you register to sell sneakers in Illinois, you must keep collecting the tax and send it in with regular returns.",
+      "background": "Once registered to sell sneakers in Illinois, you must keep collecting tax and send it in with regular returns.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote requires registration to collect and remit tax on each sale but does not show filing sales tax returns or sending tax in with regular returns."
+      ],
+      "trail": null
+    },
+    {
+      "key": "illinois-income-tax",
+      "title": "File Illinois income tax on business profits",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Illinois Department of Revenue",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will earn side income from sneaker resale as a sole proprietor. Illinois taxes that profit through your personal income tax return.",
+      "background": "Illinois taxes profit from a side business, and a sole owner reports that profit through personal income tax.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-hiring-obligations",
+      "title": "Meet federal hiring requirements if you hire",
+      "level": "federal",
+      "topic": "employer",
+      "agency": "Internal Revenue Service (Department of the Treasury)",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you hire employees?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#tax-ids"
+      ],
+      "evidence": "Your Employer Identification Number (EIN) is your business’s federal tax ID number. You need it to pay federal taxes, hire employees, open a bank account, and apply for business licenses and permits.",
+      "why": "You said you will not hire now. If you later hire help to list, pack, or ship sneakers, federal employer tax rules would begin.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote only describes uses for an EIN and does not show federal hiring requirements or employer tax rules that begin upon hiring."
+      ],
+      "trail": null
+    },
+    {
+      "key": "illinois-hiring-taxes",
+      "title": "Register for Illinois withholding and unemployment insurance if you hire",
+      "level": "state",
+      "topic": "employer",
+      "agency": "Illinois Department of Revenue and Illinois Department of Employment Security",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you hire employees?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://tax.illinois.gov/content/dam/soi/en/web/tax/businesses/documents/pio-117.pdf"
+      ],
+      "evidence": "Withholding Income Tax — If you plan to have employees you may need Withholding taxes and/or Unemployment Insurance collected from your employee’s paycheck.",
+      "why": "You said you will not hire now. If you later hire, Illinois may require withholding from pay and unemployment contributions.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not mention Illinois or registering and says withholding taxes and/or unemployment insurance, not that both are required."
+      ],
+      "trail": null
+    },
+    {
+      "key": "cook-assumed-name",
+      "title": "Register assumed business name with Cook County Clerk",
+      "level": "county",
+      "topic": "name_registration",
+      "agency": "Cook County Clerk",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://dceo.illinois.gov/smallbizassistance/beginhere/stepbystepguide.html"
+      ],
+      "evidence": "When a business name is different from the owner(s) full legal name(s), the Illinois Assumed Name Act requires sole proprietorships and general partnerships to register with their local county clerk's office for registration under the Assumed Name Act.",
+      "why": "You chose sole proprietorship and will use Lakeshore Kicks, which is not your own legal name. Illinois requires sole owners using a different name to register that name in their county.",
+      "background": "You are a sole owner using Lakeshore Kicks, which is not your own legal name, so you must register that name in your county.",
+      "problems": [
+        "Only state pages were cited for a county requirement"
+      ],
+      "trail": null
+    },
+    {
+      "key": "chicago-business-license",
+      "title": "Get City of Chicago business license for retail sales",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Chicago Department of Business Affairs and Consumer Protection",
+      "status": "to_find_out",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "unclear",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will run an online sneaker resale business from your home in Chicago. Chicago commonly requires a business license to sell goods from a Chicago address, even when sales are online only and customers never visit.",
+      "background": "Chicago asks most shops that sell goods at retail to hold a license, but the pages do not say how that fits an online seller working from home with no visits.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": {
+        "searched": [
+          {
+            "where": "Chicago",
+            "what": "a page about get city of chicago business license for retail sales",
+            "pages": 3
+          },
+          {
+            "where": "Chicago",
+            "what": "the ordinance, code section or application form that covers it",
+            "pages": 3
+          },
+          {
+            "where": "Chicago",
+            "what": "who needs it and who doesn’t, such as exemptions or answers to common questions",
+            "pages": 3
+          }
+        ],
+        "read": [
+          {
+            "title": "City of Chicago :: Retail Establishments",
+            "url": "https://www.chicago.gov/city/en/ofinterest/bus/retail.html"
+          },
+          {
+            "title": "Renewing a Business License",
+            "url": "https://www.chicago.gov/city/en/sites/chicago-business-licensing/home/renewingabusinesslicense.html"
+          }
+        ],
+        "unread": [
+          {
+            "title": "Home Based Business",
+            "url": "https://www.chicago.gov/content/city/en/sites/chicago-business-licensing/home/homebasedbusiness.html",
+            "reason": "The site answered with error 403"
+          },
+          {
+            "title": "Brick-and-Mortar Store",
+            "url": "https://www.chicago.gov/content/city/en/sites/chicago-business-licensing/home/brickandmortarstore.html",
+            "reason": "The site answered with error 403"
+          },
+          {
+            "title": "Pop-Up Frequently Asked Questions",
+            "url": "https://Www.chicago.gov/content/city/en/depts/bacp/supp_info/popupusefaq.html",
+            "reason": "The site answered with error 403"
+          },
+          {
+            "title": "Pop Up Businesses at Retail Locations (not shows or events)",
+            "url": "https://www.chicago.gov/content/city/en/sites/chicago-business-licensing/home/popupbusinessesatretailslocations.html",
+            "reason": "The site answered with error 403"
+          },
+          {
+            "title": "Renewing a Business License",
+            "url": "https://Www.chicago.gov/content/city/en/depts/bacp/supp_info/renewbusinesslicense.html",
+            "reason": "The site answered with error 403"
+          },
+          {
+            "title": "Business License Renewal",
+            "url": "https://www.chicago.gov/city/en/depts/bacp/provdrs/bus/svcs/renew_your_businesslicenseonline.html",
+            "reason": "The site answered with error 404"
+          },
+          {
+            "title": "License Application Requirements Information",
+            "url": "https://Www.chicago.gov/content/city/en/depts/bacp/supp_info/license_applicationrequirementsinformation.html",
+            "reason": "The site answered with error 403"
+          }
+        ],
+        "found": "The city pages say retail sale of general goods from a shop needs a Limited Business License.",
+        "missing": "None of the pages says whether an online seller who only stores and ships from home counts as a shop or needs that license.",
+        "officialQuote": "In the City of Chicago the majority of retail establishments will be required to have a City of Chicago Limited Business License.",
+        "leaning": null,
+        "quoteSetAside": false,
+        "rounds": 2
+      }
+    },
+    {
+      "key": "chicago-home-zoning",
+      "title": "Follow Chicago home business and zoning rules",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "Chicago Department of Planning and Development",
+      "status": "to_find_out",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "unclear",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will store sneakers at home and ship orders from home in Chicago, with no customer visits. Chicago zoning limits what you can do from a home, like storing inventory and running deliveries.",
+      "background": "Whether you can keep stock at home and ship orders from home depends on Chicago home business and zoning limits.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": {
+        "searched": [
+          {
+            "where": "Chicago",
+            "what": "a page about follow chicago home business and zoning rules",
+            "pages": 3
+          },
+          {
+            "where": "Chicago",
+            "what": "the ordinance, code section or application form that covers it",
+            "pages": 3
+          },
+          {
+            "where": "Chicago",
+            "what": "who needs it and who doesn’t, such as exemptions or answers to common questions",
+            "pages": 3
+          }
+        ],
+        "read": [],
+        "unread": [
+          {
+            "title": "Home Based Businesses (Home Occupation)",
+            "url": "https://www.chicago.gov/city/en/depts/bacp/supp_info/homebasedbusiness.html",
+            "reason": "The site answered with error 404"
+          },
+          {
+            "title": "Home-Based Businesses in Chicago: What you need to know",
+            "url": "https://www.chicago.gov/content/dam/city/depts/bacp/Small Business Center/sbcfactsheets/Home_Based_Business_Fact_Sheet_10-12-17.pdf",
+            "reason": "The site answered with error 403"
+          }
+        ],
+        "found": "",
+        "missing": "No source describes what Chicago allows for inventory storage and shipping from a home.",
+        "worthChecking": "You will store sneakers at home and ship orders from home with carrier pickups at the house.",
+        "leaning": null,
+        "quoteSetAside": false,
+        "rounds": 2
+      }
+    },
+    {
+      "key": "chicago-secondhand-rules",
+      "title": "Meet City rules for selling secondhand sneakers",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Chicago Department of Business Affairs and Consumer Protection",
+      "status": "unlikely",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "unlikely",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You plan to buy secondhand sneakers and resell them. Many cities have extra license, record, or inspection rules for secondhand dealers.",
+      "background": "Chicago asks for a secondhand dealer license only for certain used goods like audio gear and jewelry, and sneakers are not in that list.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": {
+        "searched": [
+          {
+            "where": "Chicago",
+            "what": "a page about meet city rules for selling secondhand sneakers",
+            "pages": 3
+          },
+          {
+            "where": "Chicago",
+            "what": "the ordinance, code section or application form that covers it",
+            "pages": 3
+          },
+          {
+            "where": "Chicago",
+            "what": "who needs it and who doesn’t, such as exemptions or answers to common questions",
+            "pages": 3
+          }
+        ],
+        "read": [
+          {
+            "title": "Used Merchandise",
+            "url": "https://www.chicago.gov/city/en/sites/chicago-business-licensing/home/usedmerchandise.html"
+          },
+          {
+            "title": "General Merchandise",
+            "url": "https://www.chicago.gov/city/en/sites/chicago-business-licensing/home/generalmerchandise.html"
+          }
+        ],
+        "unread": [
+          {
+            "title": "| ARTICLE XX. RECYCLING FACILITY PERMITS |  |",
+            "url": "https://www.chicago.gov/dam/city/depts/doe/general/PermittingAndEnforcement_PDFs/RecyclingFacilityPermits/ArticleXXRecyclingFacilityPermitsOrdinance.pdf",
+            "reason": "The site answered with error 403"
+          },
+          {
+            "title": "SO2012-8555 - SO2012-8555.pdf",
+            "url": "https://www.chicago.gov/content/dam/city/depts/bacp/ordinances/Debt_Collector_Ordinance.pdf",
+            "reason": "The site answered with error 403"
+          }
+        ],
+        "found": "",
+        "missing": "",
+        "leaning": "not_needed",
+        "quoteSetAside": true,
+        "rounds": 2
+      }
+    },
+    {
+      "key": "chicago-business-license-renewal",
+      "title": "Renew City of Chicago business license",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Chicago Department of Business Affairs and Consumer Protection",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "Once you hold a Chicago business license, it must stay active while you keep selling. Licenses like this commonly expire and need renewal.",
+      "background": "Once you hold a Chicago business license, you must keep it active while you keep selling.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "cook-assumed-name-renewal",
+      "title": "Renew Cook County assumed name registration",
+      "level": "county",
+      "topic": "name_registration",
+      "agency": "Cook County Clerk",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "Your Lakeshore Kicks county registration will not last forever. You must keep it active while you use that name.",
+      "background": "County assumed name registrations do not last forever and must stay active while you use the name.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    }
+  ],
+  "plan": [
+    {
+      "key": "illinois-sales-tax-registration",
+      "title": "Register with Illinois Department of Revenue for sales tax",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://tax.illinois.gov/content/dam/soi/en/web/tax/businesses/documents/pio-117.pdf",
+          "confirms": false
+        },
+        {
+          "url": "https://tax.illinois.gov/questionsandanswers/286?utm_source=openai",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "illinois-assumed-name",
+      "title": "Register assumed business name with county clerk",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://dceo.illinois.gov/smallbizassistance/beginhere/stepbystepguide.html",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "choose-business-structure",
+      "title": "Choose sole proprietorship as business structure",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+          "confirms": false
+        },
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "ftc-textile-label-compliance",
+      "title": "Keep required fiber, origin, and care labels on sneakers",
+      "status": "conditional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.ftc.gov/news-events/topics/tools-consumers/apparel-labeling",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-ein",
+      "title": "Get a federal Employer Identification Number (EIN)",
+      "status": "optional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-self-employment-tax",
+      "title": "Pay federal income and self-employment tax and file annual return",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "federal-estimated-tax",
+      "title": "Make federal quarterly estimated tax payments if you owe enough",
+      "status": "conditional",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/estimated-payments/2026/01/",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "illinois-sales-tax-filing",
+      "title": "File Illinois sales and use tax returns and pay tax collected",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://tax.illinois.gov/content/dam/soi/en/web/tax/businesses/documents/pio-117.pdf",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "illinois-income-tax",
+      "title": "File Illinois income tax on business profits",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "federal-hiring-obligations",
+      "title": "Meet federal hiring requirements if you hire",
+      "status": "conditional",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "illinois-hiring-taxes",
+      "title": "Register for Illinois withholding and unemployment insurance if you hire",
+      "status": "conditional",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://tax.illinois.gov/content/dam/soi/en/web/tax/businesses/documents/pio-117.pdf",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "cook-assumed-name",
+      "title": "Register assumed business name with Cook County Clerk",
+      "status": "needs_confirmation",
+      "level": "county",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://dceo.illinois.gov/smallbizassistance/beginhere/stepbystepguide.html",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "ask-city-of-chicago",
+      "title": "Ask the City of Chicago about 2 requirements",
+      "status": "to_find_out",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.chicago.gov/city/en/sites/chicago-business-licensing/home/residentialrealestatedeveloper.html",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "chicago-business-license-renewal",
+      "title": "Renew City of Chicago business license",
+      "status": "needs_confirmation",
+      "level": "city",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "cook-assumed-name-renewal",
+      "title": "Renew Cook County assumed name registration",
+      "status": "needs_confirmation",
+      "level": "county",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    }
+  ],
+  "openQuestions": [
+    {
+      "question": "Our search for official pages about tax returns and renewals after opening in Illinois didn’t finish. Re-check later, or ask.",
+      "answer": "We could not settle tax return and renewal details from the pages found so far, so check official state guidance or ask the revenue office before you sell."
+    },
+    {
+      "question": "For online sneaker sales, when does a marketplace collect Illinois sales tax for you and when must you collect on your own website sales?",
+      "answer": "When you sell through a large marketplace, the marketplace often collects and sends Illinois tax for you, while sales on your own website are your duty to collect and send."
+    },
+    {
+      "question": "Does reselling new and secondhand sneakers require any Illinois secondhand dealer registration, license, or purchase records?",
+      "answer": "No Illinois secondhand dealer sign up was shown for sneaker resellers, and you handle sneakers as normal retail sales for tax."
+    },
+    {
+      "question": "Do the sneakers you plan to resell contain fabric, wool, fur, or leather that triggers federal fiber, origin, and care label rules for a reseller?",
+      "answer": "If the sneakers still have their original fiber and care labels, you do not need to add new labels as a reseller, but leave labels on and do not give false fiber or origin claims."
+    },
+    {
+      "question": "Which Chicago business license type, fee, and approval time apply to home-based online sneaker resale with no customer visits?",
+      "answer": "Pages found do not settle which Chicago license type fits home based online resale with no visits, so ask the city business office which type fits before you open."
+    },
+    {
+      "question": "Does Chicago require a secondhand dealer license or purchase records for reselling secondhand sneakers online?",
+      "answer": "No, Chicago pages list secondhand dealer rules only for certain used goods such as audio gear and jewelry, which does not include sneakers."
+    },
+    {
+      "question": "Does Chicago zoning allow storing resale inventory and shipping orders from a home, and are there limits on storage or deliveries?",
+      "answer": "Pages found do not say whether you may store inventory and ship from a Chicago home or what limits apply, so check with city planning or zoning before storing stock at home."
+    },
+    {
+      "question": "What is the Cook County Clerk filing fee, validity period, and renewal process for a sole proprietor assumed name?",
+      "answer": "Pages found do not give the filing cost, how long the name lasts, or how to renew it, so ask the county clerk for current filing and renewal steps."
+    }
+  ],
+  "coverage": [
+    {
+      "category": "formation",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "formation",
+      "level": "state",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "tax",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "tax",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "state",
+      "state": "not_searched",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "county",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "city",
+      "state": "unreadable",
+      "pagesRead": 0
+    },
+    {
+      "category": "zoning",
+      "level": "city",
+      "state": "unreadable",
+      "pagesRead": 0
+    },
+    {
+      "category": "activity",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "activity",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 1
+    }
+  ],
+  "conflicts": []
+}

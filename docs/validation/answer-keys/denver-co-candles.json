@@ -1,0 +1,441 @@
+{
+  "case": "denver-co-candles",
+  "checked": "2026-11-04",
+  "requirements": [
+    {
+      "id": "co-trade-name",
+      "title": "Statement of Trade Name of an Individual for \"Ember & Oak Candles\"",
+      "level": "state",
+      "agency": "Colorado Secretary of State",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.sos.state.co.us/pubs/business/FAQs/tradeNames.html",
+      "domain_is_gov": false,
+      "quote": "A for-profit business not using the entity’s true name or an individual not using their legal first and last name to conduct business in Colorado is required to file a trade name.",
+      "notes": "Filed and paid online only; the SOS fee schedule lists $20.00 for a Trade Name Statement."
+    },
+    {
+      "id": "co-trade-name-renewal",
+      "title": "Annual trade name renewal",
+      "level": "state",
+      "agency": "Colorado Secretary of State",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.sos.state.co.us/pubs/business/FAQs/tradeNames.html",
+      "domain_is_gov": false,
+      "quote": "A trade name for one of these entity types is effective for one year.",
+      "notes": "An individual's trade name expires the first day after the anniversary month unless renewed in the three months before; the fee schedule lists $5.00 for renewal."
+    },
+    {
+      "id": "co-sales-tax-license",
+      "title": "Colorado retail sales tax license",
+      "level": "state",
+      "agency": "Colorado Department of Revenue",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://tax.colorado.gov/sales-tax-guide",
+      "domain_is_gov": true,
+      "quote": "Any person or entity that will engage in the business of selling at retail must first obtain a sales tax license, unless that person or entity is specifically exempted from licensing requirements.",
+      "notes": "Apply through MyBizColorado; tax.colorado.gov/standard-retail-license lists a $12.00 fee for applications July-December of an even year plus a $50 deposit for new accounts, refunded after $50 in state sales tax is paid."
+    },
+    {
+      "id": "co-destination-sourcing",
+      "title": "Collect state and state-administered local sales tax based on the delivery address",
+      "level": "state",
+      "agency": "Colorado Department of Revenue",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://tax.colorado.gov/sales-tax-guide",
+      "domain_is_gov": true,
+      "quote": "If the purchased property or taxable service is delivered to the purchaser at a location in Colorado, the retailer must collect all state and state-administered local sales taxes applicable to the point of delivery.",
+      "notes": "Applies to website orders shipped within Colorado; no small-retailer origin-sourcing exception remains for retailers with a Colorado location (it ended Oct. 1, 2022 under HB22-1027)."
+    },
+    {
+      "id": "co-sales-tax-returns",
+      "title": "Colorado sales tax returns",
+      "level": "state",
+      "agency": "Colorado Department of Revenue",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://tax.colorado.gov/sales-tax-guide",
+      "domain_is_gov": true,
+      "quote": "In general, retailers must file monthly sales tax returns reporting and remitting all tax due.",
+      "notes": "The department may assign quarterly filing (under $1,100 average monthly tax) or annual filing ($50 or less); returns are due even after a license is issued."
+    },
+    {
+      "id": "co-special-event-license",
+      "title": "Colorado special event sales tax license for craft fairs",
+      "level": "state",
+      "agency": "Colorado Department of Revenue",
+      "verdict": "conditional",
+      "condition": "For each craft fair that is a special sales event, unless the organizer holds a license and collects tax for its vendors.",
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://tax.colorado.gov/special-event-license",
+      "domain_is_gov": true,
+      "quote": "Anyone making retail sales at one or more special sales events must obtain a special event license unless the event organizer has obtained a license to collect tax on behalf of sellers participating in the event.",
+      "notes": "A special sales event has more than three sellers at a location other than their normal business location; the fee table lists $0.00 for a special event license when the business already has a standard license."
+    },
+    {
+      "id": "co-marketplace-etsy",
+      "title": "Collecting state sales tax on Etsy orders",
+      "level": "state",
+      "agency": "Colorado Department of Revenue",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://tax.colorado.gov/marketplace-facilitators",
+      "domain_is_gov": true,
+      "quote": "In general, a marketplace facilitator must collect and remit all applicable state and state administered local sales taxes for any sales made in Colorado through its marketplace.",
+      "notes": "Etsy, not the owner, collects state and state-administered local tax on Etsy sales; the owner still needs its own license for website and craft fair sales (see hard calls on reporting)."
+    },
+    {
+      "id": "co-retail-delivery-fee",
+      "title": "Colorado retail delivery fee",
+      "level": "state",
+      "agency": "Colorado Department of Revenue",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://tax.colorado.gov/retail-delivery-fee-retailers",
+      "domain_is_gov": true,
+      "quote": "In general, a retailer is not liable for the fee if the retailer’s total retail sales in Colorado in the prior year were $500,000 or less.",
+      "notes": "A business with no Colorado retail sales in the prior year is also a qualified business until current-year sales pass $500,000; any fee actually collected from customers must still be remitted."
+    },
+    {
+      "id": "denver-sales-tax-license",
+      "title": "Denver sales tax license",
+      "level": "city",
+      "agency": "City and County of Denver, Department of Finance (Treasury)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Department-of-Finance/Our-Divisions/Treasury/Business-Tax-Information/Business-Tax-FAQ",
+      "domain_is_gov": false,
+      "quote": "Yes. Any business located in Denver (even those operating out of a residence) that makes retail sales, leases, or rentals of tangible personal property or certain services needs a Denver sales tax license.",
+      "notes": "Denver is a self-collecting home-rule city, so its tax is not covered by the state license; the FAQ says the biennial license has no fee; apply and file through denvergov.org/ebiztax (or SUTS)."
+    },
+    {
+      "id": "denver-special-event-license",
+      "title": "Separate Denver special event license for Denver craft fairs",
+      "level": "city",
+      "agency": "City and County of Denver, Department of Finance (Treasury)",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Department-of-Finance/Our-Divisions/Treasury/Business-Tax-Information/Business-Tax-FAQ",
+      "domain_is_gov": false,
+      "quote": "If you are already a regularly licensed Denver vendor with a current Denver sales tax license, no additional license or fee is required.",
+      "notes": "Sales at Denver special events go on the regular Denver sales tax return for that period."
+    },
+    {
+      "id": "denver-occupational-privilege-tax",
+      "title": "Denver Business Occupational Privilege Tax (OPT) for the owner",
+      "level": "city",
+      "agency": "City and County of Denver, Department of Finance (Treasury)",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": "$4.00 a month",
+      "url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Department-of-Finance/Our-Divisions/Treasury/Business-Tax-Information/Business-Tax-FAQ",
+      "domain_is_gov": false,
+      "quote": "If the business is a sole proprietor or a partnership, remit only the Business OPT portion at the rate of $4.00 a month for each owner or partner.",
+      "notes": "Owners have no $500 earnings test; register with the Denver tax account; a sole proprietor without employees may pay the year in advance by January 31."
+    },
+    {
+      "id": "denver-home-occupation-permit",
+      "title": "Denver home occupation zoning permit",
+      "level": "city",
+      "agency": "City and County of Denver, Community Planning and Development",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Community-Planning-and-Development/Zoning-Permits/Apply-for-Commercial-Zoning-Permits/Home-Businesses",
+      "domain_is_gov": false,
+      "quote": "if you intend on doing business from your home and using your home address as a business address, you must obtain a zoning permit for a home occupation.",
+      "notes": "Likely category is Online Retail Sales (handmade goods made at home, no handoff to buyers at the home), which is not allowed in Former Chapter 59 districts; check the zone district first (see hard calls)."
+    },
+    {
+      "id": "denver-business-license",
+      "title": "Denver business license from Licensing and Consumer Protection",
+      "level": "city",
+      "agency": "Denver Department of Licensing and Consumer Protection",
+      "verdict": "unconfirmed",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Community-Planning-and-Development/Zoning-Permits/Apply-for-Commercial-Zoning-Permits/Home-Businesses",
+      "domain_is_gov": false,
+      "quote": "Note: Some businesses will also require a business license. To see if your business requires a license, check the Denver Business Licensing Center's business index.",
+      "notes": "Likely not required: no general business license was found and the license directory's visible entries do not cover candle making; searched denvergov.org licensing FAQ, About page, license directory (68 types, only page 1 retrievable) and Tax Guide 47."
+    },
+    {
+      "id": "other-home-rule-city-tax-licenses",
+      "title": "Sales tax licenses from other self-collecting home-rule cities",
+      "level": "city",
+      "agency": "Self-collecting Colorado home-rule cities (e.g., Aurora, Boulder, Colorado Springs)",
+      "verdict": "conditional",
+      "condition": "Only if the owner ships to or sells at craft fairs in a self-collecting home-rule city where it is engaged in business or meets that city's nexus threshold.",
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Department-of-Finance/Our-Divisions/Treasury/Business-Tax-Information/Business-Tax-FAQ",
+      "domain_is_gov": false,
+      "quote": "You need to charge the appropriate tax that applies to the location to which you are delivering the item, but to do so, you may need to have a tax license with other taxing jurisdictions",
+      "notes": "Each self-collecting home-rule city sets its own licensing and nexus rules; registration and filing can be done through the state SUTS portal."
+    },
+    {
+      "id": "co-business-personal-property-declaration",
+      "title": "Business personal property declaration to the Denver Assessor",
+      "level": "county",
+      "agency": "Colorado Division of Property Taxation / Denver Assessor",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://dpt.colorado.gov/property-valuation-and-taxation-for-business-and-industry-in-colorado",
+      "domain_is_gov": true,
+      "quote": "For tax years 2025 and 2026, personal property under common ownership with a combined total actual value of $56,000 or less per county is exempt.",
+      "notes": "Declaration schedules (due April 15) are required only above the exemption; Denver asks new businesses to file a first listing to confirm exempt status (see hard calls)."
+    },
+    {
+      "id": "co-estimated-income-tax",
+      "title": "Colorado individual estimated income tax payments",
+      "level": "state",
+      "agency": "Colorado Department of Revenue",
+      "verdict": "conditional",
+      "condition": "Only if the owner's net Colorado income tax liability after credits and withholding will be $1,000 or more.",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://tax.colorado.gov/individual-income-tax-guide",
+      "domain_is_gov": true,
+      "quote": "The taxpayer's net Colorado tax liability minus all credits, withholding, and any sales tax refund is less than $1,000.",
+      "notes": "Quoted text is the exception: no estimated payments are owed when net Colorado liability is under $1,000; installments are due April 15, June 15, Sept. 15 and Jan. 15."
+    },
+    {
+      "id": "irs-ein",
+      "title": "Federal Employer Identification Number (EIN)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.irs.gov/pub/irs-pdf/fss4.pdf",
+      "domain_is_gov": true,
+      "quote": "For example, a sole proprietorship or self-employed farmer who establishes a qualified retirement plan, or is required to file excise, employment, alcohol, tobacco, or firearms returns, must have an EIN.",
+      "notes": "With no employees, no excise returns and no retirement plan, the owner can use their SSN (including on Etsy tax forms); an EIN is optional."
+    },
+    {
+      "id": "fincen-boi-report",
+      "title": "FinCEN beneficial ownership information (BOI) report",
+      "level": "federal",
+      "agency": "Financial Crimes Enforcement Network",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.fincen.gov/boi-faqs",
+      "domain_is_gov": true,
+      "quote": "No, unless a sole proprietorship was created (or, if a foreign sole proprietorship, registered to do business) in the United States by filing a document with a secretary of state or similar office.",
+      "notes": "A trade name filing does not create an entity; since March 2025 FinCEN also exempts all U.S.-created companies from BOI reporting."
+    },
+    {
+      "id": "irs-self-employment-tax",
+      "title": "Federal income tax on Schedule C and self-employment tax (Schedule SE)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employment-tax-social-security-and-medicare-taxes",
+      "domain_is_gov": true,
+      "quote": "You must pay self-employment tax and file Schedule SE (Form 1040) if either of the following applies. Your net earnings from self-employment (excluding church employee income) were $400 or more.",
+      "notes": "Business profit is reported on Schedule C with the owner's Form 1040 for the year."
+    },
+    {
+      "id": "irs-estimated-tax",
+      "title": "Federal quarterly estimated tax payments",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "conditional",
+      "condition": "Only if the owner expects to owe $1,000 or more in federal tax for the year after withholding and credits.",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/estimated-taxes",
+      "domain_is_gov": true,
+      "quote": "Individuals, including sole proprietors, partners, and S corporation shareholders, generally have to make estimated tax payments if they expect to owe tax of $1,000 or more when their return is filed.",
+      "notes": "Paid with Form 1040-ES; depends on the owner's whole tax picture, including any wage withholding."
+    },
+    {
+      "id": "ftc-mail-order-rule",
+      "title": "FTC Mail, Internet, or Telephone Order Merchandise Rule (shipping times)",
+      "level": "federal",
+      "agency": "Federal Trade Commission",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.ftc.gov/business-guidance/resources/business-guide-ftcs-mail-internet-or-telephone-order-merchandise-rule",
+      "domain_is_gov": true,
+      "quote": "If you make no shipment statement, you must have a reasonable basis for believing that you can ship within 30 days.",
+      "notes": "Applies to website and Etsy orders: stated shipping times need a reasonable basis, delays need the buyer's consent, and unshipped orders must be promptly refunded."
+    },
+    {
+      "id": "ftc-fpla-labeling",
+      "title": "Fair Packaging and Labeling Act label (product identity, maker's name and place of business, net quantity)",
+      "level": "federal",
+      "agency": "Federal Trade Commission",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.ftc.gov/legal-library/browse/rules/fair-packaging-labeling-act-regulations-under-section-4-fair-packaging-labeling-act",
+      "domain_is_gov": true,
+      "quote": "The FPLA requires each package of household \"consumer commodities\" that is included in the coverage of the FPLA to bear a label on which there is:",
+      "notes": "Candles are covered (16 CFR 501.7 sets a candle-specific net quantity rule); net quantity must be in both metric and inch/pound units (see hard calls on scope)."
+    },
+    {
+      "id": "cpsc-metal-core-wick-lead-limit",
+      "title": "Lead limit and certificate for metal-cored candle wicks",
+      "level": "federal",
+      "agency": "U.S. Consumer Product Safety Commission",
+      "verdict": "conditional",
+      "condition": "Only if the candles use metal-cored wicks.",
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/Candles",
+      "domain_is_gov": true,
+      "quote": "Metal-cored candlewicks and candles that use such wicks must not contain lead in the metal core in excess of 0.06% by weight per 16 CFR § 1500.17(a)(13).",
+      "notes": "CPSC directs makers of metal-cored wick candles to cite 16 CFR 1500.17(a)(13) in a General Certificate of Conformity; shipping cartons must say \"Conforms to 16 CFR 1500.17(a)(13).\""
+    },
+    {
+      "id": "cpsc-certificate-nonmetal-wicks",
+      "title": "CPSC certificate or lab testing for cotton or wood wick candles",
+      "level": "federal",
+      "agency": "U.S. Consumer Product Safety Commission",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/Candles",
+      "domain_is_gov": true,
+      "quote": "There is no certification requirement for candlewicks that use nonmetal cores or candles that use nonmetal-cored wicks.",
+      "notes": "Typical soy candles with cotton, paper or wood wicks need no General Certificate of Conformity."
+    },
+    {
+      "id": "cpsc-fhsa-cautionary-label",
+      "title": "FHSA cautionary labeling",
+      "level": "federal",
+      "agency": "U.S. Consumer Product Safety Commission",
+      "verdict": "conditional",
+      "condition": "Only if a candle contains a hazardous substance as defined under the Federal Hazardous Substances Act.",
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/Candles",
+      "domain_is_gov": true,
+      "quote": "Candles that contain a hazardous substance as defined under the FHSA must bear cautionary labeling.",
+      "notes": "Whether a finished scented soy candle is a hazardous substance depends on its ingredients; ordinary candles generally are not."
+    },
+    {
+      "id": "astm-candle-warning-label",
+      "title": "Candle fire-safety warning label (ASTM F2058)",
+      "level": "federal",
+      "agency": "U.S. Consumer Product Safety Commission",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/Candles",
+      "domain_is_gov": true,
+      "quote": "There are also several industry consensus standards (also known as voluntary standards) for candles.",
+      "notes": "ASTM F2058 fire-safety labeling is a voluntary standard, not a federal requirement; retailers may still ask for it."
+    },
+    {
+      "id": "ftc-green-guides",
+      "title": "FTC Green Guides for environmental claims",
+      "level": "federal",
+      "agency": "Federal Trade Commission",
+      "verdict": "conditional",
+      "condition": "Only if listings or labels make environmental benefit claims.",
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.ftc.gov/news-events/topics/truth-advertising/green-guides",
+      "domain_is_gov": true,
+      "quote": "designed to help marketers avoid making environmental claims that mislead consumers.",
+      "notes": "Claims like \"eco-friendly\", \"natural\" or \"non-toxic\" soy wax must be truthful and substantiated."
+    }
+  ],
+  "hard_calls": [
+    {
+      "about": "Which Denver home occupation category fits home candle making",
+      "explanation": "Denver requires a home occupation zoning permit, but candle making is not named in the Craft Work list (ceramics, woodwork, etc.), and Craft Work bars retail sales from the home. Online Retail Sales allows handmade goods made at home and fits a no-visit business, but it is not allowed in Former Chapter 59 districts, and craft fair sales are not online. Unlisted uses need ZPIN review and cannot include manufacturing or retail sales. The permit fee is only in a separate fee schedule.",
+      "urls": [
+        "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Community-Planning-and-Development/Zoning-Permits/Apply-for-Commercial-Zoning-Permits/Home-Businesses"
+      ]
+    },
+    {
+      "about": "State special event license when the seller already has a standard license",
+      "explanation": "CDOR says anyone selling at special sales events must obtain a special event license unless the organizer collects, and its fee table has a $0.00 row for businesses that already hold a standard license. It does not plainly say whether a standard licensee may instead report fair sales on its regular return. Denver, by contrast, says regular Denver licensees need nothing more.",
+      "urls": [
+        "https://tax.colorado.gov/special-event-license",
+        "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Department-of-Finance/Our-Divisions/Treasury/Business-Tax-Information/Business-Tax-FAQ"
+      ]
+    },
+    {
+      "about": "Shipping to and selling in other self-collecting home-rule cities",
+      "explanation": "Denver says sellers must charge the tax of the delivery location but 'may need' licenses with other jurisdictions. Each self-collecting home-rule city sets its own nexus and licensing rules, so whether a small Denver seller shipping a few orders into Boulder or Aurora must register there is not settled by state pages. Craft fairs held in those cities usually bring their own event license rules.",
+      "urls": [
+        "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Department-of-Finance/Our-Divisions/Treasury/Business-Tax-Information/Business-Tax-FAQ",
+        "https://tax.colorado.gov/sales-tax-guide"
+      ]
+    },
+    {
+      "about": "Reporting Etsy sales on the owner's own returns",
+      "explanation": "CDOR says the marketplace facilitator collects state and state-administered local tax, and Denver adopted the Colorado Municipal League model marketplace ordinance in 2021, but neither page reviewed says whether a seller that also has its own license must report marketplace sales as gross sales and deduct them on state or Denver returns.",
+      "urls": [
+        "https://tax.colorado.gov/marketplace-facilitators",
+        "https://www.denvergov.org/files/assets/public/v/1/finance/documents/treasury/tax-guides/taxguidetopic101_marketplacefacilitators_1.pdf"
+      ]
+    },
+    {
+      "about": "Business personal property threshold and first-year listing in Denver",
+      "explanation": "The state Division of Property Taxation sets the exemption at $56,000 for 2025-2026. The Denver Assessor page cites both $56,000 and $52,000 and asks a business new to Denver to file a listing of its property so the office can confirm exempt status, which statute does not appear to require for exempt property.",
+      "urls": [
+        "https://dpt.colorado.gov/property-valuation-and-taxation-for-business-and-industry-in-colorado",
+        "https://denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Department-of-Finance/Our-Divisions/Assessors-Office/Business-Personal-Property"
+      ]
+    },
+    {
+      "about": "Denver general business license",
+      "explanation": "Denver tax licenses are expressly not licenses to do business, and the home business page says some businesses also need a business license. No official page found says Denver has no general business license, and the license directory could only be read one page at a time. Candle making does not appear among the visible license types.",
+      "urls": [
+        "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Business-Licensing/Business-licenses",
+        "https://www.denvergov.org/files/assets/public/v/1/finance/documents/treasury/tax-guides/taxguidetopic47_licensesandregistration.pdf"
+      ]
+    },
+    {
+      "about": "Scope of FPLA labeling for a small candle maker",
+      "explanation": "FTC's FPLA rules cover household consumer commodities and 16 CFR 501.7 shows candles are covered, but the Act reaches goods distributed in commerce (interstate). Etsy and website orders shipped out of state clearly fall in; Colorado-only craft fair sales arguably do not. Container candles are usually labeled by net weight, while 501.7 speaks of count and size for tapers and molded candles.",
+      "urls": [
+        "https://www.ftc.gov/legal-library/browse/rules/fair-packaging-labeling-act-regulations-under-section-4-fair-packaging-labeling-act",
+        "https://www.ecfr.gov/current/title-16/chapter-I/subchapter-E/part-501/section-501.7"
+      ]
+    }
+  ]
+}

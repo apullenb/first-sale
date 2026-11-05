@@ -4,11 +4,13 @@ import { type RequirementStatus, STATUS_LABELS } from "@/lib/research/applicabil
 
 const LOOK: Record<RequirementStatus, { tone: "accent" | "gray" | "warn" | "plain"; icon: IconName }> = {
   verified: { tone: "accent", icon: "check" },
+  quote_unchecked: { tone: "accent", icon: "check" },
   conditional: { tone: "gray", icon: "branch" },
   optional: { tone: "plain", icon: "plus" },
   needs_confirmation: { tone: "accent", icon: "check" },
   outside_coverage: { tone: "plain", icon: "external" },
   not_needed: { tone: "plain", icon: "minus" },
+  unlikely: { tone: "plain", icon: "minus" },
   to_find_out: { tone: "warn", icon: "question" },
 };
 

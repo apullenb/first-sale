@@ -1,6 +1,6 @@
 import { AIProviderError, type ModelProvider, type WebSearchHit, type WebSearchRequest } from "@/lib/ai";
 import type { BusinessProfile, JurisdictionLevel } from "@/lib/domain";
-import { STATE_NAMES } from "@/lib/intake/options";
+import { OFFERING_KIND_LABELS, STATE_NAMES } from "@/lib/intake/options";
 import type { ResearchCategory } from "./coverage";
 import { governmentFor, governsPlace } from "./official-sites";
 import type { SourceToRead } from "./retrieve";
@@ -10,7 +10,7 @@ import type { SourceToRead } from "./retrieve";
 
 export interface SearchTopic {
   id: string;
-  level: Exclude<JurisdictionLevel, "federal">;
+  level: JurisdictionLevel;
   category: ResearchCategory;
   // Owner-facing, as in "We couldn't find an official page about …"
   about: string;
@@ -18,7 +18,7 @@ export interface SearchTopic {
 }
 
 export interface SearchGap {
-  level: SearchTopic["level"];
+  level: Exclude<JurisdictionLevel, "federal">;
   category: ResearchCategory;
   about: string;
   // The search itself failed, rather than finding nothing official
@@ -38,7 +38,7 @@ export interface Discovery {
 
 const PAGES_PER_TOPIC = 2;
 // All at once: the whole search step has one time limit
-const CONCURRENCY = 12;
+const CONCURRENCY = 16;
 
 // One narrow question per topic: search grounding is most reliable on focused questions
 export function searchTopics(profile: BusinessProfile): SearchTopic[] {
@@ -51,6 +51,8 @@ export function searchTopics(profile: BusinessProfile): SearchTopic[] {
   const space = profile.premises === "rented_space" || profile.channels.includes("storefront");
   const official = (government: string, subject: string) =>
     `Find the official ${government} government web page that explains ${subject}. Use only official government websites, and give the page's address.`;
+  // What they sell, in their words when they gave them, for rules about that product or activity
+  const sells = profile.firstItems.trim().slice(0, 80) || new Intl.ListFormat("en-US", { type: "conjunction" }).format(profile.offeringKinds.map((kind) => OFFERING_KIND_LABELS[kind].toLowerCase()));
 
   const topics: SearchTopic[] = [
     {
@@ -95,6 +97,37 @@ export function searchTopics(profile: BusinessProfile): SearchTopic[] {
       question: official(`${state} state`, "how a new employer registers for state payroll taxes and unemployment insurance"),
     });
   }
+  // Rules about what it sells or does, and what a business owes once it's open, which are easy to miss
+  topics.push(
+    {
+      id: "state-activity",
+      level: "state",
+      category: "activity",
+      about: `rules in ${state} for a business that sells ${sells}`,
+      question: official(`${state} state`, `any license, registration, inspection, record-keeping or labeling rule for a small business that sells ${sells}`),
+    },
+    {
+      id: "federal-activity",
+      level: "federal",
+      category: "activity",
+      about: `federal rules for selling ${sells}`,
+      question: official("United States federal", `federal product safety, labeling or registration rules for a small business that sells ${sells}`),
+    },
+    {
+      id: "state-ongoing",
+      level: "state",
+      category: "tax",
+      about: `tax returns and renewals after opening in ${state}`,
+      question: official(`${state} state`, "the tax returns and yearly renewals a new small business must file after it opens"),
+    },
+    {
+      id: "federal-ongoing",
+      level: "federal",
+      category: "tax",
+      about: "federal taxes for self-employed owners",
+      question: official("United States federal", "self-employment tax and estimated tax payments for a sole proprietor or partner"),
+    },
+  );
   if (county) {
     topics.push({
       id: "county-license",
@@ -150,7 +183,10 @@ export async function discoverOfficialPages(
 ): Promise<Discovery> {
   const topics = searchTopics(profile);
   if (!model.webSearch) {
-    return { sources: [], gaps: topics.map(({ level, category, about }) => ({ level, category, about, failed: false })) };
+    return {
+      sources: [],
+      gaps: topics.flatMap(({ level, category, about }) => (level === "federal" ? [] : [{ level, category, about, failed: false }])),
+    };
   }
   const search = model.webSearch;
   const location = { region: STATE_NAMES[profile.location.state], city: profile.location.city.trim() || undefined };
@@ -203,7 +239,8 @@ export async function discoverOfficialPages(
         categories: [topic.category],
       });
     }
-    if (kept === 0) gaps.push({ level: topic.level, category: topic.category, about: topic.about, failed });
+    // Federal pages also come from the built-in federal pack, so a federal search that finds none isn't a gap
+    if (kept === 0 && topic.level !== "federal") gaps.push({ level: topic.level, category: topic.category, about: topic.about, failed });
   }
   return { sources, gaps };
 }

@@ -32,6 +32,7 @@ function research(title: string, checkedAt = new Date("2026-10-26T15:00:00Z")): 
     model: "Mock",
     simulated: true,
     searched: false,
+    claimsChecked: true,
     pages,
     unread: [{ id: "sba-x", title: "SBA: X", url: "https://www.sba.gov/x", reason: "The site answered with error 503" }],
     requirements: reqs,
@@ -182,7 +183,7 @@ describe("follow-up", () => {
 
   const office = officeOf({ level: "city", agency: "" }, place);
 
-  it("confirms what a new page backs, decides the rest with a reason, and leaves out what isn't needed", async () => {
+  it("confirms what a new page backs, decides the rest with a reason, and leaves out only what a checked quote shows isn't needed", async () => {
     await saveOpenRules();
     const page = retrievedPage({ id: "fu-license-1", text: "A license is required.", url: "https://www.example.gov/license" });
     const outcome = await saveFollowUpForOwner(
@@ -191,13 +192,15 @@ describe("follow-up", () => {
       checkedAt,
       {
         pages: [page],
-        confirmed: [{ ...open("license"), sourceIds: ["fu-license-1"], evidence: "A license is required.", verification: "sourced", problems: [] }],
+        confirmed: [{ ...open("license"), sourceIds: ["fu-license-1"], evidence: "A license is required.", verification: "sourced", problems: [], claimsChecked: true }],
+        rechecked: [],
         notes: [
-          { key: "home", verdict: "applies", background: "Home bakeries here usually need this.", sourceIds: [], evidence: null, questions: [] },
-          { key: "sign", verdict: "not_needed", background: "Small home businesses without a sign don’t need this.", sourceIds: [], evidence: null, questions: [] },
+          { key: "home", verdict: "applies", background: "Home bakeries here usually need this.", sourceIds: [], evidence: null, questions: [], trail: null },
+          { key: "sign", verdict: "not_needed", background: "Small home businesses without a sign don’t need this.", sourceIds: ["fu-license-1"], evidence: "A license is required.", questions: [], trail: null },
         ],
         answers: [],
         offices: [{ ...office, contacts: { emails: [{ value: "clerk@example.gov", url: page.url }], phones: [] }, site: null }],
+        rounds: 1,
       },
       cityProfile,
       [],
@@ -208,21 +211,65 @@ describe("follow-up", () => {
     expect(saved?.followedUpAt).toBeInstanceOf(Date);
     expect(saved?.sources.map((source) => source.key)).toContain("fu-license-1");
     const byKey = new Map(saved!.requirements.map((row) => [row.key, row]));
-    expect(byKey.get("license")).toMatchObject({ verification: "sourced", evidence: "A license is required.", background: "", verdict: "applies" });
+    expect(byKey.get("license")).toMatchObject({ verification: "sourced", claimsChecked: true, evidence: "A license is required.", background: "", verdict: "applies" });
     expect(byKey.get("home")).toMatchObject({ verdict: "applies", background: "Home bakeries here usually need this." });
-    expect(byKey.get("sign")).toMatchObject({ verdict: "not_needed", status: "not_needed" });
+    expect(byKey.get("sign")).toMatchObject({ verdict: "not_needed", status: "not_needed", verification: "sourced", claimsChecked: true });
 
     // What applies is a step with its reason and the office's contacts; what isn't needed leaves the plan
     const tasks = await db.select().from(checklistTasks);
     expect(tasks.map((task) => task.key).sort()).toEqual(["home", "license"]);
     const home = tasks.find((task) => task.key === "home")!;
-    expect(home.notes).toEqual([{ title: "Rule home", background: "Home bakeries here usually need this." }]);
+    expect(home.notes).toEqual([{ title: "Rule home", background: "Home bakeries here usually need this.", why: "Why" }]);
     expect(home.contacts).toEqual({ emails: [{ value: "clerk@example.gov", url: page.url }], phones: [] });
+  });
+
+  it("never treats a decision without a quote as 'not needed': it's listed as likely not applying, and an open rule stays a step", async () => {
+    await saveOpenRules();
+    const trail = {
+      searched: [{ where: "Aubrey", what: "a page about rule sign", pages: 0 }],
+      read: [],
+      unread: [],
+      found: "",
+      missing: "No Aubrey page says whether home businesses need a sign permit.",
+      leaning: "not_needed" as const,
+      quoteSetAside: true,
+      rounds: 2,
+    };
+    await saveFollowUpForOwner(
+      db,
+      "owner-a",
+      checkedAt,
+      {
+        pages: [],
+        confirmed: [],
+        rechecked: [],
+        notes: [
+          // Never written by the deeper look now; a guard in case one is
+          { key: "sign", verdict: "not_needed", background: "Small home businesses without a sign don’t need this.", sourceIds: [], evidence: null, questions: [], trail: null },
+          { key: "home", verdict: "unclear", background: "Aubrey doesn’t publish how it handles home businesses.", sourceIds: [], evidence: null, questions: ["Do I need a permit?"], trail },
+        ],
+        answers: [],
+        offices: [],
+        rounds: 2,
+      },
+      cityProfile,
+      [],
+    );
+    const byKey = new Map((await getResearchForOwner(db, "owner-a"))!.requirements.map((row) => [row.key, row]));
+    expect(byKey.get("sign")).toMatchObject({ verdict: "not_needed", status: "unlikely" });
+    expect(byKey.get("home")).toMatchObject({ verdict: "unclear", status: "to_find_out", trail });
+
+    // The open rule is a step with what SnapStart found; the other is listed, not a step
+    const tasks = await db.select().from(checklistTasks);
+    expect(tasks.map((task) => task.key).sort()).toEqual(["home", "license"]);
+    const home = tasks.find((task) => task.key === "home")!;
+    expect(home.requirementStatus).toBe("to_find_out");
+    expect(home.notes[0]?.trail).toEqual(trail);
   });
 
   it("does nothing when a newer check replaced the one it followed", async () => {
     await saveOpenRules();
-    const outcome = await saveFollowUpForOwner(db, "owner-a", new Date("2026-10-25T00:00:00Z"), { pages: [], confirmed: [], notes: [], answers: [], offices: [] }, cityProfile, []);
+    const outcome = await saveFollowUpForOwner(db, "owner-a", new Date("2026-10-25T00:00:00Z"), { pages: [], confirmed: [], rechecked: [], notes: [], answers: [], offices: [], rounds: 1 }, cityProfile, []);
     expect(outcome).toBe("stale");
     expect((await getResearchForOwner(db, "owner-a"))?.followedUpAt).toBeNull();
   });

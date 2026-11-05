@@ -1,0 +1,48 @@
+{
+  "case": "bozeman-mt-jam",
+  "items": [
+    { "key_id": "mt-assumed-business-name", "key_verdict": "required", "before_first_sale": true, "app_keys": ["mt-assumed-business-name", "montana-assumed-name"], "app_status": "verified", "grade": "found", "note": "Listed twice as two separate verified steps citing the same funding.mt.gov line; $20 fee not shown." },
+    { "key_id": "bozeman-business-license", "key_verdict": "required", "before_first_sale": true, "app_keys": ["bozeman-business-license", "bozeman-license-renewal"], "app_status": "needs_confirmation", "grade": "found", "note": "In plan before selling with a renewal step, but no source cited (city pages unreadable)." },
+    { "key_id": "bozeman-home-based-business", "key_verdict": "required", "before_first_sale": true, "app_keys": ["bozeman-home-business-zoning"], "app_status": "needs_confirmation", "grade": "found", "note": "Covered without a source; doesn't name the signed acknowledgement form or the 25% floor-area limit." },
+    { "key_id": "gallatin-cottage-food-registration", "key_verdict": "conditional", "before_first_sale": true, "app_keys": ["cottage-food-registration", "cottage-food-county-registration"], "app_status": "conditional", "grade": "found", "note": "Condition true for this owner; app's question (selling beyond farmers' markets?) matches the key's market carve-out but omits the MLFCA alternative. Two overlapping steps; $40 fee only in evidence." },
+    { "key_id": "mt-cottage-food-labeling", "key_verdict": "conditional", "before_first_sale": true, "app_keys": ["cottage-food-labeling"], "app_status": "verified", "grade": "found", "note": "Condition true on the cottage food route; app makes it unconditional, which fits this owner; MLFCA exception not mentioned." },
+    { "key_id": "mt-cottage-food-sales-limits", "key_verdict": "conditional", "before_first_sale": true, "app_keys": ["cottage-direct-sale-limits"], "app_status": "verified", "grade": "found", "note": "Matches the key: direct, in-state, no mail order or wholesale." },
+    { "key_id": "mt-local-food-choice-act", "key_verdict": "conditional", "before_first_sale": true, "app_keys": [], "app_status": null, "grade": "missed", "note": "No step or option; the MLFCA route shows up only in the conflicts note, never as a choice the owner can make." },
+    { "key_id": "gallatin-farmers-market-registration", "key_verdict": "conditional", "before_first_sale": true, "app_keys": [], "app_status": null, "grade": "missed", "note": "If the owner answers 'only farmers markets', the app drops registration but gives no Gallatin vendor application step. Borderline: owner also sells outside markets." },
+    { "key_id": "gallatin-temporary-event-license", "key_verdict": "conditional", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "missed", "note": "Sampling at markets isn't ruled out by the profile; app never asks about it." },
+    { "key_id": "mt-retail-wholesale-food-license", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "Not listed; open question on recipe eligibility is appropriate." },
+    { "key_id": "mt-food-safety-training", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "No training or certificate step." },
+    { "key_id": "mt-sales-tax", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "Not listed." },
+    { "key_id": "mt-resort-tax", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "Not listed." },
+    { "key_id": "mt-business-equipment-tax", "key_verdict": "not_required", "before_first_sale": false, "app_keys": ["gallatin-personal-property"], "app_status": "needs_confirmation", "grade": "unneeded_step", "note": "In plan with no source; kitchen tools are far under the $1 million exemption." },
+    { "key_id": "mt-scale-license", "key_verdict": "conditional", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "not_applicable", "note": "Jars and baked goods sold by the unit; no point-of-sale scale." },
+    { "key_id": "bozeman-mobile-vending", "key_verdict": "conditional", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "not_applicable", "note": "Sells at market booths and in-person handoff, not from a vehicle or cart." },
+    { "key_id": "irs-ein", "key_verdict": "not_required", "before_first_sale": false, "app_keys": ["federal-ein"], "app_status": "optional", "grade": "correctly_omitted", "note": "Shown as optional with the right reason (no employees)." },
+    { "key_id": "mt-workers-comp", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "Not listed." },
+    { "key_id": "fda-food-facility-registration", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "No registration step (but see fda-food-records extra)." },
+    { "key_id": "fda-acidified-foods", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "Not listed." },
+    { "key_id": "fda-nutrition-facts", "key_verdict": "not_required", "before_first_sale": false, "app_keys": ["fda-food-labeling"], "app_status": "needs_confirmation", "grade": "unneeded_step", "note": "Step says federal law requires nutrition facts on these packages; owner is under the $500,000 direct-sales exemption. Open question hedges, the step doesn't." },
+    { "key_id": "mt-income-tax-estimated", "key_verdict": "required_later", "before_first_sale": false, "app_keys": ["montana-income-tax"], "app_status": "needs_confirmation", "grade": "found", "note": "Yearly return covered without a source; Montana estimated payments not mentioned." },
+    { "key_id": "federal-self-employment-estimated-tax", "key_verdict": "required_later", "before_first_sale": false, "app_keys": ["federal-self-employment-taxes", "federal-schedule-c-se"], "app_status": "verified / conditional", "grade": "found", "note": "Quarterly estimates, Schedule C and SE all covered with IRS quotes." }
+  ],
+  "unconfirmed": [],
+  "extras": [
+    { "app_key": "choose-sole-proprietorship", "title": "Choose sole proprietorship structure", "status": "needs_confirmation", "grade": "reasonable", "note": "Sensible structure step for a single owner." },
+    { "app_key": "federal-trademark", "title": "Consider federal trademark protection", "status": "optional", "grade": "reasonable", "note": "Correctly optional." },
+    { "app_key": "fda-food-safety-gmp", "title": "Make food under safe and sanitary conditions", "status": "verified", "grade": "reasonable", "note": "Sanitary production is sound advice, but framing federal cGMP as binding on an in-state home kitchen is a stretch." },
+    { "app_key": "fda-food-records", "title": "Keep federal food source and sales records", "status": "verified", "grade": "unneeded", "note": "FDA traceability records exclude small retail food establishments (21 CFR 1.327(f)) and private residences aren't facilities; not a step for this owner." }
+  ],
+  "confirm_steps": [],
+  "fees": [],
+  "verified_wrong": ["fda-food-records"],
+  "not_needed_wrong": [],
+  "summary": {
+    "items": { "found": 8, "missed": 3, "not_applicable": 2, "unneeded_step": 2, "correctly_omitted": 8 },
+    "extras": { "reasonable": 3, "unneeded": 1 },
+    "confirm_steps": {},
+    "fees": {},
+    "verified_wrong": 1,
+    "not_needed_wrong": 0,
+    "notes": "No app item has feeUsd or deadline set (the $40 cottage fee appears only in evidence). No to_find_out or not_needed items. Assumed-name registration appears twice. fda-food-records is judged wrong from 21 CFR 1.327(f), not from the key."
+  }
+}

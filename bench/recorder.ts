@@ -52,6 +52,8 @@ export class Recorder {
   private calls: CallRecord[] = [];
   private replies = new Map<string, string[]>();
   private retries = 0;
+  // Calls that ran out of time and were tried again at a lower effort, by schema name
+  private fallbacks: string[] = [];
   private readonly inFlight = new Set<CallRecord>();
   private readonly stop: () => void;
 
@@ -66,11 +68,12 @@ export class Recorder {
     this.calls = [];
     this.replies = new Map();
     this.retries = 0;
+    this.fallbacks = [];
   }
 
   // Calls so far in the current run
-  current(): { calls: CallRecord[]; retries: number } {
-    return { calls: this.calls, retries: this.retries };
+  current(): { calls: CallRecord[]; retries: number; fallbacks: string[] } {
+    return { calls: this.calls, retries: this.retries, fallbacks: this.fallbacks };
   }
 
   // Raw replies for one schema in this run, oldest first
@@ -118,6 +121,10 @@ export class Recorder {
     if (event.type === "retry") {
       this.retries++;
       if (this.inFlight.size === 1) [...this.inFlight][0].retries++;
+      return;
+    }
+    if (event.type === "fallback") {
+      this.fallbacks.push(event.name);
       return;
     }
     const cost = searchCost(event.queries, event.usage, this.prices);

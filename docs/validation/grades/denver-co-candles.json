@@ -1,0 +1,330 @@
+{
+  "case": "denver-co-candles",
+  "items": [
+    {
+      "key_id": "co-trade-name",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "state-trade-name"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Trade name step present, but sourced only to SBA, no Colorado page or $20 fee."
+    },
+    {
+      "key_id": "co-trade-name-renewal",
+      "key_verdict": "required_later",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "No step for the annual trade name renewal."
+    },
+    {
+      "key_id": "co-sales-tax-license",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "state-sales-tax-permit"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "State license step present with no source cited."
+    },
+    {
+      "key_id": "co-destination-sourcing",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "No step or note on charging tax by delivery address for in-state shipped orders."
+    },
+    {
+      "key_id": "co-sales-tax-returns",
+      "key_verdict": "required_later",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "Only Denver returns are listed; no state sales tax return step."
+    },
+    {
+      "key_id": "co-special-event-license",
+      "key_verdict": "conditional",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "Condition plausibly true (sells at markets); the market step is about Denver/organizer permission, not the state special event license."
+    },
+    {
+      "key_id": "co-marketplace-etsy",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "co-retail-delivery-fee",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "denver-sales-tax-license",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "denver-tax-license"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Denver license step present, no source cited."
+    },
+    {
+      "key_id": "denver-special-event-license",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [
+        "market-vendor-permission"
+      ],
+      "app_status": "to_find_out",
+      "grade": "unneeded_question",
+      "note": "Denver FAQ settles it (regular licensees need nothing more); the app's own trail found that but still made it a confirm step."
+    },
+    {
+      "key_id": "denver-occupational-privilege-tax",
+      "key_verdict": "required_later",
+      "before_first_sale": false,
+      "app_keys": [
+        "denver-opt-tax"
+      ],
+      "app_status": "conditional",
+      "grade": "missed",
+      "note": "App asks only about hiring; the owner's own $4/month OPT is due without employees, so a no-hire owner skips it."
+    },
+    {
+      "key_id": "denver-home-occupation-permit",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "home-occupation-zoning"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Step says 'zoning compliance' and never names the home occupation permit or the right category."
+    },
+    {
+      "key_id": "other-home-rule-city-tax-licenses",
+      "key_verdict": "conditional",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "Condition plausible (ships in state, sells at fairs); no mention of other home-rule city licenses."
+    },
+    {
+      "key_id": "co-business-personal-property-declaration",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [
+        "business-personal-property"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "unneeded_step",
+      "note": "Shown as 'Applies to you' with no source; key says declaration is only needed above the $56,000 exemption."
+    },
+    {
+      "key_id": "co-estimated-income-tax",
+      "key_verdict": "conditional",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "Condition not clearly false; state-income-tax covers the annual return, not Colorado estimated payments."
+    },
+    {
+      "key_id": "irs-ein",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [
+        "federal-ein"
+      ],
+      "app_status": "optional",
+      "grade": "correctly_omitted",
+      "note": "Listed as optional, matching the key."
+    },
+    {
+      "key_id": "fincen-boi-report",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "irs-self-employment-tax",
+      "key_verdict": "required_later",
+      "before_first_sale": false,
+      "app_keys": [
+        "federal-income-se-tax"
+      ],
+      "app_status": "verified",
+      "grade": "found",
+      "note": "Verified with an IRS quote."
+    },
+    {
+      "key_id": "irs-estimated-tax",
+      "key_verdict": "conditional",
+      "before_first_sale": false,
+      "app_keys": [
+        "federal-estimated-tax"
+      ],
+      "app_status": "verified",
+      "grade": "found",
+      "note": "Listed unconditionally; app condition does not match the key's $1,000 threshold."
+    },
+    {
+      "key_id": "ftc-mail-order-rule",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "No shipping-time rule step despite website and Etsy orders."
+    },
+    {
+      "key_id": "ftc-fpla-labeling",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "No product labeling step for candles."
+    },
+    {
+      "key_id": "cpsc-metal-core-wick-lead-limit",
+      "key_verdict": "conditional",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "Wick type unknown, so condition not clearly false; not mentioned."
+    },
+    {
+      "key_id": "cpsc-certificate-nonmetal-wicks",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "cpsc-fhsa-cautionary-label",
+      "key_verdict": "conditional",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "Scented candles may contain hazardous ingredients; condition not clearly false; not mentioned."
+    },
+    {
+      "key_id": "astm-candle-warning-label",
+      "key_verdict": "not_required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "ftc-green-guides",
+      "key_verdict": "conditional",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "Soy candle listings often make 'natural/eco' claims; condition not clearly false; not mentioned."
+    }
+  ],
+  "unconfirmed": [
+    "denver-business-license"
+  ],
+  "extras": [
+    {
+      "app_key": "state-income-tax",
+      "title": "Colorado income tax on business profits",
+      "status": "needs_confirmation",
+      "grade": "reasonable",
+      "note": "Sole proprietor profit goes on the Colorado return; correct though unsourced."
+    },
+    {
+      "app_key": "federal-recordkeeping",
+      "title": "Keep federal tax records for sales and expenses",
+      "status": "verified",
+      "grade": "reasonable",
+      "note": "Sound general IRS recordkeeping step."
+    },
+    {
+      "app_key": "federal-trademark-search",
+      "title": "Federal trademark check for business name",
+      "status": "optional",
+      "grade": "reasonable",
+      "note": "Optional name check, fine as 'Your choice'."
+    },
+    {
+      "app_key": "federal-employer-taxes",
+      "title": "Federal employer taxes if you hire",
+      "status": "conditional",
+      "grade": "reasonable",
+      "note": "Correctly conditional on hiring."
+    },
+    {
+      "app_key": "state-employer-taxes",
+      "title": "Colorado employer accounts if you hire",
+      "status": "conditional",
+      "grade": "reasonable",
+      "note": "Correctly conditional on hiring."
+    },
+    {
+      "app_key": "denver-sales-tax-returns",
+      "title": "Denver sales tax returns",
+      "status": "verified",
+      "grade": "reasonable",
+      "note": "Follows from the Denver license; quote gives the 20th-of-month due date."
+    }
+  ],
+  "confirm_steps": [
+    {
+      "app_key": "market-vendor-permission",
+      "title": "Permission to sell at Denver markets and events",
+      "grade": "irrelevant",
+      "note": "Denver's FAQ (and the app's own trail) says regular Denver licensees need no separate event license; the open state special event question is not what it asks."
+    }
+  ],
+  "fees": [],
+  "verified_wrong": [],
+  "not_needed_wrong": [],
+  "summary": {
+    "found": 6,
+    "missed": 12,
+    "correctly_omitted": 6,
+    "unneeded_question": 1,
+    "unneeded_step": 1,
+    "extras_reasonable": 6,
+    "confirm_irrelevant": 1,
+    "fees_checked": 0,
+    "verified_wrong": 0,
+    "not_needed_wrong": 0,
+    "needs_confirmation_unsourced_steps": 6
+  }
+}

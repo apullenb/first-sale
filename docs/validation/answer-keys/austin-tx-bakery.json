@@ -1,0 +1,345 @@
+{
+  "case": "austin-tx-bakery",
+  "checked": "2026-11-04",
+  "requirements": [
+    {
+      "id": "assumed-name-certificate",
+      "title": "Assumed name (DBA) certificate for \"Rise & Crumb\"",
+      "level": "county",
+      "agency": "Travis County Clerk (Recording Division)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.sos.state.tx.us/corp/namefilingsfaqs.shtml",
+      "domain_is_gov": false,
+      "quote": "The following types of persons are required to file an assumed name certificate with the county clerk in each county in which a business office is or will be maintained.",
+      "notes": "Sole proprietorship is the first type listed; file with the Travis County Clerk (not the Secretary of State), notarized, $23.00 for the name and one owner per countyclerk.traviscountytx.gov/departments/recording/dbas/; valid up to 10 years."
+    },
+    {
+      "id": "cottage-food-food-handler-training",
+      "title": "Accredited food handler training for the cottage food operator",
+      "level": "state",
+      "agency": "Texas Department of State Health Services (DSHS)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+      "domain_is_gov": true,
+      "quote": "An individual who operates a cottage food production operation must successfully complete a basic food safety education or training program for food handlers accredited under Health and Safety Code, Chapter 438(D).",
+      "notes": "A food manager certification from an accredited program is accepted in place of the food handler certificate; household members may help without their own training (Health & Safety Code 437.0195)."
+    },
+    {
+      "id": "cottage-food-packaging-labeling",
+      "title": "Cottage food packaging and label (name, address or DSHS ID, product name, allergens, home-kitchen disclosure)",
+      "level": "state",
+      "agency": "Texas DSHS",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+      "domain_is_gov": true,
+      "quote": "Foods sold by a cottage food production operation must be packaged and labeled. The food must be packaged in a manner that prevents product contamination, except for foods that are too large and or bulky for conventional packaging.",
+      "notes": "Label must show the operation's name, address (or DSHS ID number), common name of the food, any major food allergens, and \"THIS PRODUCT WAS PRODUCED IN A PRIVATE RESIDENCE THAT IS NOT SUBJECT TO GOVERNMENTAL LICENSING OR INSPECTION.\"; unpackaged items get the information on an invoice or receipt."
+    },
+    {
+      "id": "cottage-food-sales-limit",
+      "title": "Stay within the cottage food annual gross income limit",
+      "level": "state",
+      "agency": "Texas Legislature / DSHS (Health & Safety Code 437.001)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://tcss.legis.texas.gov/resources/HS/htm/HS.437.htm",
+      "domain_is_gov": true,
+      "quote": "has an annual gross income of $150,000 or less from the sale of food described by Paragraph (A), as the department annually adjusts for inflation",
+      "notes": "Ongoing condition of cottage food status (raised from $50,000 by SB 541, effective Sept. 1, 2025); the case's under-$25,000 sales are well inside it."
+    },
+    {
+      "id": "dshs-cottage-food-registration",
+      "title": "DSHS cottage food registration",
+      "level": "state",
+      "agency": "Texas DSHS",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+      "domain_is_gov": true,
+      "quote": "Cottage food production operations (CFPO) that sell time and temperature control for safety (TCS) foods must register on the DSHS Online Licensing Registry.",
+      "notes": "Shelf-stable cookies, breads and cakes are not TCS foods, so registration is optional; registering only lets the operator print a DSHS ID number instead of the home address on labels."
+    },
+    {
+      "id": "texas-food-establishment-permit",
+      "title": "State retail food establishment permit / Texas Food Establishment Rules",
+      "level": "state",
+      "agency": "Texas DSHS",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+      "domain_is_gov": true,
+      "quote": "A cottage food production operation is exempt from the requirements of a food service establishment and does not have to comply with the Texas Food Establishment Rules.",
+      "notes": "No food permit, inspection or commercial kitchen is needed for a qualifying home cottage food operation."
+    },
+    {
+      "id": "local-health-permit",
+      "title": "City or county health permit or fee (Austin Public Health / Travis County)",
+      "level": "city",
+      "agency": "Austin Public Health (barred by state law)",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production",
+      "domain_is_gov": true,
+      "quote": "Local public health entities may NOT regulate the production of food at a cottage food production operation; NOR require a cottage operation to: obtain any type of license or permit;",
+      "notes": "State law also bars local fees to produce, sell directly to consumers, or give samples; applies to the City of Austin and Travis County."
+    },
+    {
+      "id": "austin-farmers-market-permit",
+      "title": "Austin Public Health Farmers Market Permit",
+      "level": "city",
+      "agency": "Austin Public Health, Environmental Health Services Division",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.austintexas.gov/health/farmers-markets",
+      "domain_is_gov": true,
+      "quote": "You do NOT need a permit if you: [...] Operate under the Cottage Food Law (no open samples; must follow labeling rules).",
+      "notes": "Cottage food vendors at certified farmers markets in Austin and unincorporated Travis County need no APH farmers market permit; APH conditions this on no open samples (see hard calls)."
+    },
+    {
+      "id": "austin-home-occupation-permit",
+      "title": "Austin home occupation / home-based business permit or rezoning",
+      "level": "city",
+      "agency": "City of Austin Development Services Department",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.austintexas.gov/development-services/small-business-permitting",
+      "domain_is_gov": true,
+      "quote": "The City of Austin cannot prohibit or require permits for home-based businesses that do not exceed occupancy limits, generate significant traffic, or create visible or noise disturbances.",
+      "notes": "Based on HB 2464 (Local Government Code 229.902, 2025); applies if customer pickups do not create on-street parking or a substantial traffic increase; HOA or deed restrictions can still apply."
+    },
+    {
+      "id": "texas-general-business-license",
+      "title": "General state business license",
+      "level": "state",
+      "agency": "State of Texas",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.austintexas.gov/economic-development/projects/start-business",
+      "domain_is_gov": true,
+      "quote": "the State of Texas does not require a general \"business\" license; however, there are a number of regulatory agencies that have licensing and permitting requirements based on the type of service, or products associated with your business.",
+      "notes": "City of Austin page citing the Texas Economic Development & Tourism Office; Austin likewise has no general business license, only activity-specific permits."
+    },
+    {
+      "id": "texas-sales-tax-permit",
+      "title": "Texas sales and use tax permit",
+      "level": "state",
+      "agency": "Texas Comptroller of Public Accounts",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://comptroller.texas.gov/taxes/publications/96-211.php",
+      "domain_is_gov": true,
+      "quote": "Sellers at fairs, festivals, markets and shows, including sellers from outside Texas participating at these events, are engaged in business in Texas and must have a Texas Sales and Use Tax Permit if they: Sell taxable items or services;",
+      "notes": "Not needed while only nontaxable bakery items are sold (Tax Code 151.008 defines a seller as one selling taxable items); a free permit becomes required if the owner adds taxable items such as candy, soft drinks, or heated items or items served with utensils (see hard calls)."
+    },
+    {
+      "id": "sales-tax-on-baked-goods",
+      "title": "Collecting sales tax on cookies, breads and cakes",
+      "level": "state",
+      "agency": "Texas Comptroller of Public Accounts",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://comptroller.texas.gov/taxes/publications/96-280.php",
+      "domain_is_gov": true,
+      "quote": "Bakery items sold by a business that does not qualify as a bakery are taxable when sold with eating utensils (plates, knives, forks, spoons) or when heated.",
+      "notes": "Packaged bakery items sold without eating utensils and not heated are exempt food products (Tax Code 151.314), so no state or Austin local sales tax is collected on them."
+    },
+    {
+      "id": "texas-franchise-tax",
+      "title": "Texas franchise tax report",
+      "level": "state",
+      "agency": "Texas Comptroller of Public Accounts",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://comptroller.texas.gov/taxes/publications/96-211.php",
+      "domain_is_gov": true,
+      "quote": "Taxable entities engaged in business in Texas have franchise tax responsibilities. Examples of nontaxable entities include sole owners and general partnerships of individuals.",
+      "notes": "A sole proprietorship owes no franchise tax and files no franchise tax report."
+    },
+    {
+      "id": "texas-state-income-tax",
+      "title": "Texas state income tax",
+      "level": "state",
+      "agency": "Texas Comptroller of Public Accounts",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://comptroller.texas.gov/economy/fiscal-notes/archive/2016/february/starting.php",
+      "domain_is_gov": true,
+      "quote": "Texas does not have a personal income tax, and sole proprietorships, the state’s most common form of new business, are completely exempt from the franchise tax, its main business tax.",
+      "notes": "No state income tax return or estimated payments for the business income (federal tax still applies)."
+    },
+    {
+      "id": "business-personal-property-rendition",
+      "title": "Business personal property rendition / $125,000 exemption certification",
+      "level": "county",
+      "agency": "Travis Central Appraisal District (Texas Tax Code 22.01)",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://tcss.legis.texas.gov/resources/TX/htm/TX.22.htm",
+      "domain_is_gov": true,
+      "quote": "A person who elects not to render property for taxation as authorized by Subsection (j-1) must file a rendition statement or property report that includes a certification",
+      "notes": "Income-producing personal property worth $125,000 or less per location is exempt from 2026 (Tax Code 11.145, HB 9), but a one-time rendition or report certifying value at or under the exemption is due to the appraisal district by April 15 after the first Jan. 1 the business owns such property (see hard calls)."
+    },
+    {
+      "id": "fda-food-facility-registration",
+      "title": "FDA food facility registration",
+      "level": "federal",
+      "agency": "U.S. Food and Drug Administration",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.fda.gov/food/food-industry/how-start-food-business",
+      "domain_is_gov": true,
+      "quote": "Under federal regulations at Title 21, Code of Federal Regulations (CFR), section 1.227 (21 CFR 1.227), a private residence is not a “facility” and as a result, is not required to register with FDA.",
+      "notes": "Home kitchens and retail food establishments selling mainly direct to consumers are exempt from FDA registration."
+    },
+    {
+      "id": "fda-nutrition-facts",
+      "title": "FDA Nutrition Facts panel",
+      "level": "federal",
+      "agency": "U.S. Food and Drug Administration",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.fda.gov/food/labeling-nutrition-guidance-documents-regulatory-information/small-business-nutrition-labeling-exemption",
+      "domain_is_gov": true,
+      "quote": "Another type of exemption applies to retailers with annual gross sales of not more than $500,000, or with annual gross sales of foods or dietary supplements to consumers of not more than $50,000.",
+      "notes": "No notice to FDA is needed for this retailer exemption; it is lost if labels make nutrient content or health claims; Texas cottage food label rules still apply."
+    },
+    {
+      "id": "irs-ein",
+      "title": "Federal Employer Identification Number (EIN)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.irs.gov/pub/irs-pdf/fss4.pdf",
+      "domain_is_gov": true,
+      "quote": "For example, a sole proprietorship or self-employed farmer who establishes a qualified retirement plan, or is required to file excise, employment, alcohol, tobacco, or firearms returns, must have an EIN.",
+      "notes": "With no employees, no excise returns and no retirement plan, the owner can use their SSN; an EIN is optional."
+    },
+    {
+      "id": "fincen-boi-report",
+      "title": "FinCEN beneficial ownership information (BOI) report",
+      "level": "federal",
+      "agency": "Financial Crimes Enforcement Network",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.fincen.gov/boi-faqs",
+      "domain_is_gov": true,
+      "quote": "No, unless a sole proprietorship was created (or, if a foreign sole proprietorship, registered to do business) in the United States by filing a document with a secretary of state or similar office.",
+      "notes": "Filing an assumed name certificate does not create an entity; since March 2025 FinCEN also exempts all U.S.-created companies from BOI reporting."
+    },
+    {
+      "id": "irs-self-employment-tax",
+      "title": "Federal income tax on Schedule C and self-employment tax (Schedule SE)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employment-tax-social-security-and-medicare-taxes",
+      "domain_is_gov": true,
+      "quote": "You must pay self-employment tax and file Schedule SE (Form 1040) if either of the following applies. Your net earnings from self-employment (excluding church employee income) were $400 or more.",
+      "notes": "Business profit is reported on Schedule C with the owner's Form 1040 for the year."
+    },
+    {
+      "id": "irs-estimated-tax",
+      "title": "Federal quarterly estimated tax payments",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "conditional",
+      "condition": "Only if the owner expects to owe $1,000 or more in federal tax for the year after withholding and credits.",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/estimated-taxes",
+      "domain_is_gov": true,
+      "quote": "Individuals, including sole proprietors, partners, and S corporation shareholders, generally have to make estimated tax payments if they expect to owe tax of $1,000 or more when their return is filed.",
+      "notes": "Paid with Form 1040-ES; depends on the owner's whole tax picture, including any wage withholding."
+    }
+  ],
+  "hard_calls": [
+    {
+      "about": "Texas sales tax permit for a seller of only nontaxable baked goods",
+      "explanation": "The Comptroller's registration page says to apply if you are engaged in business and sell tangible personal property in Texas, which reads broadly enough to cover food. But Tax Code 151.008 defines a seller as one selling taxable items, and the fairs and markets publication requires a permit only for those selling taxable items. Market promoters are liable for vendors without permits, so some markets may still ask for one. Items become taxable if sold heated or with plates or forks, or if candy or drinks are added.",
+      "urls": [
+        "https://comptroller.texas.gov/taxes/permit/",
+        "https://tcss.legis.texas.gov/resources/TX/htm/TX.151.htm",
+        "https://comptroller.texas.gov/taxes/publications/96-211.php",
+        "https://comptroller.texas.gov/taxes/publications/96-280.php"
+      ]
+    },
+    {
+      "about": "Customer pickups at the home and the 'no-impact' home business test",
+      "explanation": "HB 2464 bars permits only for no-impact home businesses, meaning no on-street parking, no substantial traffic increase, and nothing visible from the street. Whether regular customer pickups stay within that is a judgment call. Austin says it updated its rules to match 'in the coming months' and does not publish a revised home occupation section; older Land Development Code 25-2-900 limits on customer trips may no longer be enforceable. HOA and deed restrictions still apply.",
+      "urls": [
+        "https://www.austintexas.gov/development-services/small-business-permitting",
+        "https://capitol.texas.gov/tlodocs/89R/billtext/html/HB02464F.htm"
+      ]
+    },
+    {
+      "about": "Free samples at Austin farmers markets",
+      "explanation": "Austin Public Health's farmers market page conditions the cottage food permit exemption on 'no open samples'. DSHS's SB 541 summary says cottage food operations may provide samples at any location and that local entities may not require a permit or fee to provide samples. The city page and state law conflict on open sampling.",
+      "urls": [
+        "https://www.austintexas.gov/health/farmers-markets",
+        "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production"
+      ]
+    },
+    {
+      "about": "Cottage food income limit and pending DSHS rules",
+      "explanation": "Statute sets the cap at $150,000 'as the department annually adjusts for inflation', but DSHS's page does not publish an adjusted figure, and DSHS says it 'will adopt rules' to implement SB 541. The case is far below the cap, so this matters only as a number the app might misstate (the old $50,000 figure is outdated).",
+      "urls": [
+        "https://tcss.legis.texas.gov/resources/HS/htm/HS.437.htm",
+        "https://www.dshs.texas.gov/retail-food-establishments/permits-retail-food-establishments/texas-cottage-food-production"
+      ]
+    },
+    {
+      "about": "Business personal property rendition for a home kitchen",
+      "explanation": "Tax Code 22.01(j-1) frees owners at or under the $125,000 exemption from rendering, but (j-3) says an owner who elects not to render must file a rendition statement or report with a certification, effective from the following tax year. That implies a one-time filing. Whether household appliances also used for the business count as income-producing property is unclear, and Travis CAD's rendition page predates HB 9 (2021 text).",
+      "urls": [
+        "https://tcss.legis.texas.gov/resources/TX/htm/TX.22.htm",
+        "https://tcss.legis.texas.gov/resources/TX/htm/TX.11.htm",
+        "https://traviscad.org/renditions"
+      ]
+    }
+  ]
+}

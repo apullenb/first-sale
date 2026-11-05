@@ -1,0 +1,354 @@
+{
+  "case": "phoenix-az-tshirts",
+  "checked": "2026-11-04",
+  "requirements": [
+    {
+      "id": "az-tpt-license",
+      "title": "Arizona transaction privilege tax (TPT) license",
+      "level": "state",
+      "agency": "Arizona Department of Revenue",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": "$12",
+      "url": "https://www.azleg.gov/ars/42/05005.htm",
+      "domain_is_gov": true,
+      "quote": "shall apply to the department for an annual transaction privilege tax license accompanied by a fee of $12. A person shall not engage or continue in business until the person has obtained a transaction privilege tax license.",
+      "notes": "Retail sales of t-shirts are taxable, so the license (applied for on AZTaxes.gov or Form JT-1 using the home address) is needed before selling; there is no small-seller exemption."
+    },
+    {
+      "id": "phoenix-municipal-tpt-license",
+      "title": "City of Phoenix transaction privilege (sales) tax license",
+      "level": "city",
+      "agency": "City of Phoenix Finance Department (issued through the Arizona Department of Revenue)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": "$50.00",
+      "url": "https://www.phoenix.gov/administration/departments/finance/privilege-sales-use-tax/privilege-tax-license/tax-license-fees.html",
+      "domain_is_gov": true,
+      "quote": "A non-refundable $50.00 license fee is due within 30 days of your business’s start date in the first year of application. If the fee isn’t paid on time, a 50% late fee ($25.00) will be added.",
+      "notes": "Since 2017 the city license is added to the same ADOR application; A.R.S. 42-5005(B) bars doing business in the city until it is obtained."
+    },
+    {
+      "id": "tpt-annual-renewal",
+      "title": "Renew the state and Phoenix TPT licenses by January 1",
+      "level": "state",
+      "agency": "Arizona Department of Revenue",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://azdor.gov/transaction-privilege-tax/tpt-license/renewing-tpt-license",
+      "domain_is_gov": true,
+      "quote": "The license is valid for one calendar year, from January 1 through December 31 and businesses must renew annually by January 1. Even if you get licensed late in the year, you still must renew your license in January.",
+      "notes": "The state renewal is free (A.R.S. 42-5005(C)) but Phoenix charges a $50.00 renewal fee due January 1, late after the last business day of January."
+    },
+    {
+      "id": "tpt-returns",
+      "title": "File and pay TPT returns (state, Maricopa County and Phoenix) to ADOR",
+      "level": "state",
+      "agency": "Arizona Department of Revenue",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.phoenix.gov/administration/departments/finance/privilege-sales-use-tax.html",
+      "domain_is_gov": true,
+      "quote": "Taxpayers are required to file and pay for all tax jurisdictions, including the City of Phoenix, to the State.",
+      "notes": "One TPT return to ADOR covers state, county and city tax on the filing schedule ADOR assigns."
+    },
+    {
+      "id": "event-city-tpt-licenses",
+      "title": "Add each other Arizona city where the owner sells at an event",
+      "level": "state",
+      "agency": "Arizona Department of Revenue (city license fees)",
+      "verdict": "conditional",
+      "condition": "When selling at a special event or market in an Arizona city or town other than Phoenix where the business is not already licensed.",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://azdor.gov/business/transaction-privilege-tax/tpt-license",
+      "domain_is_gov": true,
+      "quote": "However, a separate city license fee is required for each city unless a vendor is currently licensed for the city in which an event will be held.",
+      "notes": "Must be done before selling at that event; the state $12 fee is not charged again, and each city's fee is on ADOR's license fee worksheet."
+    },
+    {
+      "id": "az-trade-name-registration",
+      "title": "Arizona trade name registration with the Secretary of State",
+      "level": "state",
+      "agency": "Arizona Secretary of State",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.azleg.gov/ars/44/01460.htm",
+      "domain_is_gov": true,
+      "quote": "may register with the secretary of state, on a form to be furnished by the secretary of state, the name, title or designation under which the applicant is operating",
+      "notes": "A.R.S. 44-1460 makes trade name registration optional ('may register'), though a bank may ask for it."
+    },
+    {
+      "id": "phoenix-general-business-license",
+      "title": "City of Phoenix general business license",
+      "level": "city",
+      "agency": "City of Phoenix City Clerk, License Services",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.phoenix.gov/administration/departments/cityclerk/programs-services/license-services.html",
+      "domain_is_gov": true,
+      "quote": "The City of Phoenix does not have or issue a general business license. Only certain activities are regulated and require a license or require a recommendation/ approval from the City.",
+      "notes": "Screen printing and selling t-shirts are not among Phoenix's regulated business license activities."
+    },
+    {
+      "id": "maricopa-county-business-license",
+      "title": "Maricopa County general business license",
+      "level": "county",
+      "agency": "Maricopa County",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.maricopa.gov/694/Licenses-Permits",
+      "domain_is_gov": true,
+      "quote": "Maricopa County does not issue or require a General Business license for unincorporated areas of the County. If you are located in an incorporated city or town, check with your municipality.",
+      "notes": "County excise tax is reported on the ADOR TPT return, with no separate county license."
+    },
+    {
+      "id": "phoenix-home-occupation-use-permit",
+      "title": "Phoenix home occupation Use Permit",
+      "level": "city",
+      "agency": "City of Phoenix Planning and Development Department, Zoning",
+      "verdict": "conditional",
+      "condition": "Only if customers or other non-household traffic come to the home, the printing is done in a detached accessory building or outdoors, or a variation from the home occupation standards is needed.",
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.phoenix.gov/content/dam/phoenix/pddsite/documents/pz/pdd_pz_pdf_00273.pdf",
+      "domain_is_gov": true,
+      "quote": "Home occupations shall obtain a Use Permit in accordance with Section 307 of the Zoning Ordinance",
+      "notes": "Otherwise no permit is filed, but the Section 608.C.9 standards still apply (no outside employees, no odor or fumes off the lot, 7 a.m.-10 p.m., at most 25% of the area under roof)."
+    },
+    {
+      "id": "phoenix-mobile-vending-license",
+      "title": "Phoenix Mobile Vending License",
+      "level": "city",
+      "agency": "City of Phoenix City Clerk, License Services",
+      "verdict": "conditional",
+      "condition": "Only if selling outdoors on private property in Phoenix (for example a parking lot) that is not covered by an event's Temporary Use Permit, Administrative TUP or Promotional Event Permit.",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.phoenix.gov/content/dam/phoenix/cityclerksite/documents/license-services/vending_snapshot_10.13.26.pdf",
+      "domain_is_gov": true,
+      "quote": "License Required: Persons conducting a mobile vending operation require a Mobile Vending License from License Services.",
+      "notes": "Selling inside a building is not mobile vending, and events holding a TUP or promotional event permit are exempt."
+    },
+    {
+      "id": "maricopa-air-permit",
+      "title": "Maricopa County air quality permit for screen printing",
+      "level": "county",
+      "agency": "Maricopa County Air Quality Department",
+      "verdict": "conditional",
+      "condition": "Only if the operation's potential to emit reaches a Rule 200 permitting threshold (0.5 tons per year of VOC).",
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.maricopa.gov/7655/Operating-in-a-City-or-Town",
+      "domain_is_gov": true,
+      "quote": "Most manufacturers and other businesses that generate facility emissions require an air permit.",
+      "notes": "Rule 200 Section 301 requires a permit before operating a source at or above the Section 303.1 thresholds; a small home plastisol operation is likely below them."
+    },
+    {
+      "id": "maricopa-rule-337-records",
+      "title": "Rule 337 graphic arts work practices and VOC records",
+      "level": "county",
+      "agency": "Maricopa County Air Quality Department",
+      "verdict": "conditional",
+      "condition": "If inks, emulsions or cleanup solvents used in the screen printing contain VOCs.",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.maricopa.gov/7056/Rule-337---Graphic-Arts",
+      "domain_is_gov": true,
+      "quote": "The following are exempt from the VOC limitations of this rule but shall comply with the work practices listed in Section 306 of this rule and the recordkeeping requirements in Section 502.5 of this rule.",
+      "notes": "Rule 337 covers screen printing; operations under 225 pounds of VOC a month skip the VOC limits but must label solvent containers and keep records of VOC materials used."
+    },
+    {
+      "id": "ftc-textile-labels",
+      "title": "FTC Textile Act care/content labels if the blank's label is replaced",
+      "level": "federal",
+      "agency": "Federal Trade Commission",
+      "verdict": "conditional",
+      "condition": "If the owner removes or replaces the blank manufacturer's label, for example with a custom printed neck label.",
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.ftc.gov/business-guidance/resources/threading-your-way-through-labeling-requirements-under-textile-wool-acts",
+      "domain_is_gov": true,
+      "quote": "If you remove a label that has required information, the label you substitute also must have the required information.",
+      "notes": "Required information is fiber content, country of origin and the name or RN of the responsible company."
+    },
+    {
+      "id": "cpsc-childrens-apparel",
+      "title": "CPSC children's product certificate, testing and tracking labels",
+      "level": "federal",
+      "agency": "U.S. Consumer Product Safety Commission",
+      "verdict": "conditional",
+      "condition": "If any shirts are designed or intended mainly for children 12 or younger.",
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.cpsc.gov/FAQ/Clothing",
+      "domain_is_gov": true,
+      "quote": "Domestic manufacturers or importers of children's products must generate a Children's Product Certificate (CPC).",
+      "notes": "Children's apparel also needs permanent tracking marks and must meet lead limits for surface coatings such as printed ink (0.009 percent) and total lead (100 ppm)."
+    },
+    {
+      "id": "cpsc-adult-apparel-gcc",
+      "title": "CPSC flammability General Certificate of Conformity for adult shirts",
+      "level": "federal",
+      "agency": "U.S. Consumer Product Safety Commission",
+      "verdict": "conditional",
+      "condition": "Only if a garment's fabric is not exempt from flammability testing (plain surface fabrics weighing 2.6 ounces per square yard or more are exempt).",
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.cpsc.gov/FAQ/Clothing",
+      "domain_is_gov": true,
+      "quote": "Adult and general use wearing apparel that are not exempt from flammability testing will need to have a GCC.",
+      "notes": "Typical plain cotton tees are exempt from testing and CPSC does not enforce a GCC for exempt adult apparel, though the 16 CFR 1610 standard still applies."
+    },
+    {
+      "id": "federal-ein",
+      "title": "Federal Employer Identification Number (EIN)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/employer-identification-number",
+      "domain_is_gov": true,
+      "quote": "You need an EIN if you: Have employees Will need to pay employment, excise or alcohol, tobacco, and firearms taxes",
+      "notes": "A sole proprietor with no employees can use an SSN; ADOR's JT-1 accepts FEIN or SSN."
+    },
+    {
+      "id": "az-unemployment-insurance",
+      "title": "Arizona unemployment insurance employer registration",
+      "level": "state",
+      "agency": "Arizona Department of Economic Security",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.azleg.gov/ars/23/00613.htm",
+      "domain_is_gov": true,
+      "quote": "That after December 31, 1971 in any calendar quarter in either the current or preceding calendar year, paid for service in employment wages of one thousand five hundred dollars or more.",
+      "notes": "No employees are planned, so neither the $1,500 quarterly wage test nor the 20-week test is met."
+    },
+    {
+      "id": "az-workers-comp",
+      "title": "Arizona workers' compensation insurance",
+      "level": "state",
+      "agency": "Industrial Commission of Arizona",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.azleg.gov/ars/23/00902.htm",
+      "domain_is_gov": true,
+      "quote": "every person who employs any workers or operatives regularly employed in the same business or establishment under contract of hire",
+      "notes": "Coverage applies to employers; a sole proprietor with no employees is not one."
+    },
+    {
+      "id": "federal-self-employment-tax",
+      "title": "Self-employment tax (Schedule SE)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "conditional",
+      "condition": "If the owner's net earnings from self-employment are $400 or more for the year.",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employment-tax-social-security-and-medicare-taxes",
+      "domain_is_gov": true,
+      "quote": "You must pay self-employment tax and file Schedule SE (Form 1040) if either of the following applies. Your net earnings from self-employment (excluding church employee income) were $400 or more.",
+      "notes": "Reported with the owner's Form 1040 and Schedule C for the first tax year."
+    },
+    {
+      "id": "federal-estimated-tax",
+      "title": "Federal quarterly estimated tax payments (Form 1040-ES)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "conditional",
+      "condition": "If the owner expects to owe $1,000 or more in tax for the year.",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/estimated-taxes",
+      "domain_is_gov": true,
+      "quote": "Individuals, including sole proprietors, partners, and S corporation shareholders, generally have to make estimated tax payments if they expect to owe tax of $1,000 or more when their return is filed.",
+      "notes": "Arizona individual income tax obligations were not researched for this key."
+    }
+  ],
+  "hard_calls": [
+    {
+      "about": "Phoenix city tax rate: two official pages disagree",
+      "explanation": "Phoenix's TPT license page still says the city rate 'is 2.3% on most activities', while its main privilege tax page says 2.8% on most activities after Ordinance G-7369 raised rates 0.5% effective July 1, 2025. The 2.8% page is the newer one.",
+      "urls": [
+        "https://www.phoenix.gov/administration/departments/finance/privilege-sales-use-tax/privilege-tax-license.html",
+        "https://www.phoenix.gov/administration/departments/finance/privilege-sales-use-tax.html"
+      ]
+    },
+    {
+      "about": "When the Phoenix license must be in hand",
+      "explanation": "A.R.S. 42-5005(B) says a person may not engage in business in the city until the municipal license is obtained, but Phoenix's pages say 'License fees are due 30 days after starting your business.' The key treats the license as needed before the first sale.",
+      "urls": [
+        "https://www.azleg.gov/ars/42/05005.htm",
+        "https://www.phoenix.gov/administration/departments/finance/privilege-sales-use-tax/privilege-tax-license.html"
+      ]
+    },
+    {
+      "about": "Is screen printing allowed as a Phoenix home occupation?",
+      "explanation": "Phoenix's home occupation standards bar mechanical equipment beyond what is 'normally used for domestic, hobby, standard office, or household purposes' and any odor or fumes beyond the lot. Whether a screen press and flash/conveyor dryer qualify is not addressed, and the summary sheet dates from 2013 and says it does not replace the ordinance.",
+      "urls": [
+        "https://www.phoenix.gov/content/dam/phoenix/pddsite/documents/pz/pdd_pz_pdf_00273.pdf"
+      ]
+    },
+    {
+      "about": "Air permit for a home screen printer",
+      "explanation": "Maricopa County requires a permit at 0.5 tons per year potential VOC emissions and Rule 337 covers all screen printing, but no county page addresses a small home textile printer using plastisol inks. Whether a permit or Rule 337 records apply depends on the inks and solvents used.",
+      "urls": [
+        "https://www.maricopa.gov/7012/Rule-200---Permit-Requirements",
+        "https://www.maricopa.gov/7056/Rule-337---Graphic-Arts"
+      ]
+    },
+    {
+      "about": "Booths at outdoor markets and Phoenix mobile vending",
+      "explanation": "Phoenix requires a Mobile Vending License for selling outdoors on private property, defined around a 'mobile vending unit', with exemptions when the event holds a Temporary Use or Promotional Event Permit. Whether a tent booth at a market without such a permit counts is unclear.",
+      "urls": [
+        "https://www.phoenix.gov/content/dam/phoenix/cityclerksite/documents/license-services/vending_snapshot_10.13.26.pdf",
+        "https://www.phoenix.gov/administration/departments/cityclerk/programs-services/license-services/vending/mobile-vending.html"
+      ]
+    },
+    {
+      "about": "Other cities' own vendor permits at events",
+      "explanation": "ADOR only covers each city's TPT license fee; individual Arizona cities hosting events may have separate regulatory or special-event vendor permits, which were not researched city by city.",
+      "urls": [
+        "https://azdor.gov/business/transaction-privilege-tax/tpt-license"
+      ]
+    },
+    {
+      "about": "EIN for sales tax",
+      "explanation": "The IRS 'Get an EIN' page says 'Generally, you need an EIN to: ... Pay sales and excise taxes', but its EIN page lists only employment, excise and ATF taxes, and ADOR's JT-1 accepts a FEIN or SSN. The key treats an EIN as not required.",
+      "urls": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+        "https://www.irs.gov/businesses/employer-identification-number"
+      ]
+    },
+    {
+      "about": "Labels on decorated blanks",
+      "explanation": "FTC guidance covers replacing or removing labels but says nothing specific about a printer who decorates already-labeled blanks and leaves the original label on, so the owner is treated as having no labeling duty unless the label is changed.",
+      "urls": [
+        "https://www.ftc.gov/business-guidance/resources/threading-your-way-through-labeling-requirements-under-textile-wool-acts"
+      ]
+    },
+    {
+      "about": "Sales shipped to other states",
+      "explanation": "Other states' sales tax registration duties for remote sellers depend on each state's thresholds and were not researched; a new small seller is unlikely to meet them in year one.",
+      "urls": []
+    }
+  ]
+}

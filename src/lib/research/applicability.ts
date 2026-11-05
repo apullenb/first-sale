@@ -4,27 +4,31 @@ import { STATE_NAMES } from "@/lib/intake/options";
 // Plain rules over a checked requirement and the owner's confirmed answers: does it apply, and on what.
 // "Unsure" and unanswered are unknowns, never "no". The owner's place comes from their answers, never a ZIP code.
 
-export const REQUIREMENT_STATUSES = ["verified", "conditional", "optional", "needs_confirmation", "outside_coverage", "not_needed", "to_find_out"] as const;
+export const REQUIREMENT_STATUSES = ["verified", "quote_unchecked", "conditional", "optional", "needs_confirmation", "outside_coverage", "not_needed", "unlikely", "to_find_out"] as const;
 export type RequirementStatus = (typeof REQUIREMENT_STATUSES)[number];
 
 export const STATUS_LABELS: Record<RequirementStatus, string> = {
   verified: "Applies to you",
+  quote_unchecked: "Applies to you",
   conditional: "Depends on something",
   optional: "Your choice",
   needs_confirmation: "Applies to you",
   outside_coverage: "Outside what we check",
   not_needed: "Not needed",
-  to_find_out: "To find out",
+  unlikely: "Likely doesn’t apply",
+  to_find_out: "Confirm with the office",
 };
 
 export const STATUS_HELP: Record<RequirementStatus, string> = {
   verified: "An official page confirms this, and it fits your answers.",
+  quote_unchecked: "An official page has the words SnapStart quotes. Its last check of what they mean hadn’t finished, so give the official page a read before you file.",
   conditional: "It applies only if something is true. Each one says what.",
   optional: "Not required, but worth knowing about.",
   needs_confirmation: "Official pages don’t spell this out for your area, so SnapStart decided from how it works for businesses like yours. Each one says why.",
   outside_coverage: "SnapStart doesn’t research this kind of requirement. Each one links to who does.",
-  not_needed: "SnapStart looked into it, and it doesn’t apply to a business like yours. Each one says why.",
-  to_find_out: "SnapStart searched the office’s own site and still couldn’t say for sure. Each one says how to find out.",
+  not_needed: "An official page shows it doesn’t apply to a business like yours. Each one quotes it.",
+  unlikely: "SnapStart looked into these and decided, from what you’ve told it about your business, that they don’t fit it, so they aren’t steps. Each says why, in case you want to check.",
+  to_find_out: "The office’s own pages show this rule exists but don’t say whether it covers a business like yours, or SnapStart couldn’t reach them. Each one says what it found and who can tell you.",
 };
 
 export interface Place {
@@ -87,11 +91,14 @@ export const STRUCTURE_NAMES: Record<BusinessStructure, string> = {
 
 type Checked = Pick<RequirementDraft, "key" | "title" | "topic" | "level" | "applicability" | "condition" | "forStructures"> & {
   verification: VerificationState;
+  // Whether the claims check read the quote; null on rows saved before this was recorded
+  claimsChecked?: boolean | null;
   // The deeper look's decision on a rule no official page settled
   verdict?: Verdict | null;
 };
 
-export const VERDICTS = ["applies", "not_needed", "unclear"] as const;
+// "unlikely": probably doesn't apply, but no official page says so; shown as a note, never a step
+export const VERDICTS = ["applies", "not_needed", "unclear", "unlikely"] as const;
 export type Verdict = (typeof VERDICTS)[number];
 
 // The owner's answer to a question about their own plans; "unsure" plans on the step, so they're covered
@@ -142,19 +149,25 @@ export function classify(requirement: Checked, profile: BusinessProfile, place: 
   }
   conditions.push(...placeConditions(requirement.level, place));
 
+  // "Not needed" needs a quote both checks passed; without one it's only "likely doesn't apply"
+  const verdict = requirement.verdict === "not_needed" && (requirement.verification !== "sourced" || requirement.claimsChecked === false) ? "unlikely" : requirement.verdict;
   const status: RequirementStatus =
-    requirement.verdict === "not_needed"
+    verdict === "not_needed"
       ? "not_needed"
-      : requirement.applicability === "outside_coverage" && !requirement.verdict
+      : verdict === "unlikely"
+        ? "unlikely"
+      : requirement.applicability === "outside_coverage" && !verdict
         ? "outside_coverage"
         : requirement.applicability === "optional"
           ? "optional"
           : conditions.length
             ? "conditional"
-            : requirement.verdict === "unclear"
+            : verdict === "unclear"
               ? "to_find_out"
               : requirement.verification === "sourced"
-                ? "verified"
+                ? requirement.claimsChecked === false
+                  ? "quote_unchecked"
+                  : "verified"
                 : "needs_confirmation";
   return { status, conditions, fitsStructure, alreadyHave: alreadyHave(requirement, profile), question, answer: answered };
 }

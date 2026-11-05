@@ -1,0 +1,41 @@
+{
+  "case": "phoenix-az-tshirts",
+  "items": [
+    {"key_id": "az-tpt-license", "key_verdict": "required", "before_first_sale": true, "app_keys": ["az-tpt-license"], "app_status": "needs_confirmation", "grade": "found", "note": "Right agency and ADOR quote, but left needs_confirmation and the $12 state fee is not shown."},
+    {"key_id": "phoenix-municipal-tpt-license", "key_verdict": "required", "before_first_sale": true, "app_keys": ["phx-privilege-tax-license"], "app_status": "verified", "grade": "found", "note": "Verified with a phoenix.gov quote; $50 city fee not shown and app does not say it is added on the same ADOR application."},
+    {"key_id": "tpt-annual-renewal", "key_verdict": "required_later", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "missed", "note": "No step for the January 1 renewal or Phoenix's $50 renewal fee; only an open-question answer vaguely mentions yearly renewal."},
+    {"key_id": "tpt-returns", "key_verdict": "required_later", "before_first_sale": false, "app_keys": ["az-tpt-returns", "phx-privilege-tax-returns"], "app_status": "needs_confirmation / verified", "grade": "found", "note": "Covered, but split into two steps; the separate Phoenix returns step can read as a second filing when one ADOR return covers state, county and city."},
+    {"key_id": "event-city-tpt-licenses", "key_verdict": "conditional", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "missed", "note": "Owner sells at markets, which may be outside Phoenix; no step or question about adding other cities' TPT licenses."},
+    {"key_id": "az-trade-name-registration", "key_verdict": "not_required", "before_first_sale": false, "app_keys": ["az-trade-name"], "app_status": "needs_confirmation", "grade": "unneeded_step", "note": "Plan says Arizona requires trade name registration, citing a generic SBA page; A.R.S. 44-1460 makes it optional."},
+    {"key_id": "phoenix-general-business-license", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "Not listed."},
+    {"key_id": "maricopa-county-business-license", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "Not listed."},
+    {"key_id": "phoenix-home-occupation-use-permit", "key_verdict": "conditional", "before_first_sale": true, "app_keys": ["phx-home-use-permit"], "app_status": "conditional", "grade": "found", "note": "Conditional on visitors/traffic or working outside the main house, matching the key's condition, with the Phoenix home occupation quote."},
+    {"key_id": "phoenix-mobile-vending-license", "key_verdict": "conditional", "before_first_sale": false, "app_keys": ["phx-market-vending-license"], "app_status": "conditional", "grade": "found", "note": "Asks about selling at markets; condition broader than the key (no TUP/promotional event exemption) and the step has no source or quote."},
+    {"key_id": "maricopa-air-permit", "key_verdict": "conditional", "before_first_sale": true, "app_keys": [], "app_status": null, "grade": "missed", "note": "No county air quality item for home screen printing; key expects a small operation to be below the 0.5 tpy threshold, so low impact."},
+    {"key_id": "maricopa-rule-337-records", "key_verdict": "conditional", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "missed", "note": "Rule 337 container labeling and VOC records for screen printing not mentioned; plausibly applies if inks or cleanup solvents contain VOCs."},
+    {"key_id": "ftc-textile-labels", "key_verdict": "conditional", "before_first_sale": true, "app_keys": ["ftc-textile-labeling"], "app_status": "needs_confirmation", "grade": "found", "note": "Condition does not match: app says all shirts must be labeled before sale, citing a CPSC page; key applies it only if the blank's label is replaced."},
+    {"key_id": "cpsc-childrens-apparel", "key_verdict": "conditional", "before_first_sale": true, "app_keys": [], "app_status": null, "grade": "missed", "note": "Profile doesn't rule out kids' sizes; app assumes adult shirts and never asks, so children's certificate, testing and tracking labels are absent."},
+    {"key_id": "cpsc-adult-apparel-gcc", "key_verdict": "conditional", "before_first_sale": true, "app_keys": ["gcc-certificate", "cpsc-flammability"], "app_status": "needs_confirmation", "grade": "found", "note": "Condition does not match: app says a GCC is needed for all adult shirts (from a page titled Clothing-OLD); key says plain tees of 2.6 oz/sq yd or more are exempt."},
+    {"key_id": "federal-ein", "key_verdict": "not_required", "before_first_sale": false, "app_keys": ["ein"], "app_status": "optional", "grade": "correctly_omitted", "note": "Shown as Your choice, with a correct note that a sole proprietor with no employees may not need one."},
+    {"key_id": "az-unemployment-insurance", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "Not listed."},
+    {"key_id": "az-workers-comp", "key_verdict": "not_required", "before_first_sale": false, "app_keys": [], "app_status": null, "grade": "correctly_omitted", "note": "Not listed."},
+    {"key_id": "federal-self-employment-tax", "key_verdict": "conditional", "before_first_sale": false, "app_keys": ["federal-se-tax", "federal-annual-filing"], "app_status": "needs_confirmation / verified", "grade": "found", "note": "Condition plausibly true at $5k-25k sales; annual filing step quotes the $400 threshold, SE tax step itself is unconditional."},
+    {"key_id": "federal-estimated-tax", "key_verdict": "conditional", "before_first_sale": false, "app_keys": ["federal-se-tax"], "app_status": "needs_confirmation", "grade": "found", "note": "Quarterly estimated taxes covered in the SE tax step, without the $1,000 threshold."}
+  ],
+  "unconfirmed": [],
+  "extras": [
+    {"app_key": "choose-structure", "title": "Choose business structure - sole proprietorship", "status": "needs_confirmation", "grade": "reasonable", "note": "Sensible setup step with an SBA quote."},
+    {"app_key": "ftc-advertising-truth", "title": "Truthful online advertising", "status": "verified", "grade": "reasonable", "note": "Accurate FTC Act quote; general guidance rather than a filing."},
+    {"app_key": "az-income-tax", "title": "Arizona state income tax", "status": "needs_confirmation", "grade": "reasonable", "note": "Accurate in general (key did not research it), but shown as Applies to you with no source."},
+    {"app_key": "federal-recordkeeping", "title": "Keep business tax records", "status": "verified", "grade": "reasonable", "note": "Sound recordkeeping step with an IRS (Taxpayer Advocate) quote."},
+    {"app_key": "az-home-business-check", "title": "Check home business and zoning rules", "status": "verified", "grade": "reasonable", "note": "ADOR quote on checking zoning; overlaps the Phoenix home occupation steps."},
+    {"app_key": "phx-home-occupation-standards", "title": "Follow Phoenix home occupation rules", "status": "verified", "grade": "reasonable", "note": "Key notes the Section 608 standards still apply without a permit; correct quote."},
+    {"app_key": "trademark-search", "title": "Federal trademark search and protection", "status": "unlikely", "grade": "reasonable", "note": "Correctly framed as not legally required."},
+    {"app_key": "maricopa-personal-property", "title": "Maricopa County business personal property reporting", "status": "needs_confirmation", "grade": "unneeded", "note": "Unsourced Applies to you step; Arizona exempts business personal property under a large statutory threshold, far above a home print setup (not in the key)."}
+  ],
+  "confirm_steps": [],
+  "fees": [],
+  "verified_wrong": [],
+  "not_needed_wrong": [],
+  "summary": {"found": 9, "found_unresolved": 0, "found_optional": 0, "noted_unlikely": 0, "missed": 5, "wrongly_not_needed": 0, "not_applicable": 0, "correctly_omitted": 5, "unneeded_step": 1, "unneeded_question": 0, "extras_reasonable": 7, "extras_unneeded": 1, "extras_wrong": 0, "confirm_steps": 0, "fees_checked": 0, "verified_wrong": 0, "not_needed_wrong": 0}
+}

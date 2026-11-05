@@ -1,0 +1,431 @@
+{
+  "case": "decorah-ia-honey",
+  "items": [
+    {
+      "key_id": "trade-name-county-recorder",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "trade-name-registration"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Step routes to county recorder, but cites a 1925 session law and its quote was not found on the page."
+    },
+    {
+      "key_id": "sos-trade-name-registration",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "No Secretary of State filing listed for the sole proprietor."
+    },
+    {
+      "key_id": "iowa-sales-tax-permit",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "iowa-sales-tax-permit"
+      ],
+      "app_status": "verified",
+      "grade": "found",
+      "note": "Verified with Iowa Admin Code 701.201 quote; no fee shown (key: free)."
+    },
+    {
+      "key_id": "iowa-sales-tax-on-honey",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "No step to collect tax on honey, but the permit step's reason and an open-question answer say honey jars are generally taxable, which is wrong (food is exempt)."
+    },
+    {
+      "key_id": "iowa-sales-tax-returns",
+      "key_verdict": "required_later",
+      "before_first_sale": false,
+      "app_keys": [
+        "iowa-sales-tax-filing"
+      ],
+      "app_status": "verified",
+      "grade": "found",
+      "note": "Verified; does not mention annual filing for under $1,200 tax."
+    },
+    {
+      "key_id": "iowa-transient-merchant-license",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "decorah-home-occupation-permit",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [
+        "decorah-home-zoning"
+      ],
+      "app_status": "to_find_out",
+      "grade": "unneeded_question",
+      "note": "Iowa Code 414.33 bars city permits for no-impact home businesses; app never read it and asks the city."
+    },
+    {
+      "key_id": "winneshiek-county-zoning",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "No county zoning item."
+    },
+    {
+      "key_id": "iowa-food-license-honey",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "No state food license step; app treats honey as exempt cottage food."
+    },
+    {
+      "key_id": "iowa-home-food-processing-license",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "cottage-food-label-honey",
+      "key_verdict": "conditional",
+      "before_first_sale": true,
+      "app_keys": [
+        "cottage-food-labeling",
+        "cottage-direct-sale-ia"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Listed as applying outright; app never weighs the 137F.1 honey-residence exclusion, so the key's condition is not reflected."
+    },
+    {
+      "key_id": "iowa-farmers-market-food-license",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [
+        "winneshiek-market-permit"
+      ],
+      "app_status": "unlikely",
+      "grade": "correctly_omitted",
+      "note": "Market food clearance shown only as 'likely doesn't apply' (county-level), consistent with key."
+    },
+    {
+      "key_id": "iowa-honey-labeling-purity",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "honey-purity-labeling"
+      ],
+      "app_status": "verified",
+      "grade": "found",
+      "note": "Verified with Iowa Code 189.14 quote."
+    },
+    {
+      "key_id": "iowa-packaged-goods-label",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "No step mentions net quantity; generic lip balm labeling and cottage label steps only partly overlap."
+    },
+    {
+      "key_id": "iowa-scale-license",
+      "key_verdict": "conditional",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "Jars likely filled to a labeled net weight; no scale licensing item."
+    },
+    {
+      "key_id": "iowa-apiary-registration",
+      "key_verdict": "conditional",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "Backyard hives; no beecheck/apiary registration item."
+    },
+    {
+      "key_id": "iowa-bee-entry-permit",
+      "key_verdict": "conditional",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "Condition not ruled out by profile; no item."
+    },
+    {
+      "key_id": "fda-honey-name",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "honey-purity-labeling"
+      ],
+      "app_status": "verified",
+      "grade": "found",
+      "note": "Covered by the state 'label honey honestly' step; FDA honey guidance was read but not made its own step."
+    },
+    {
+      "key_id": "fda-food-facility-registration",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "fda-nutrition-facts",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "national-honey-board-assessment",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "lip-balm-name-and-address-label",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "fda-cosmetic-compliance"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Only via one generic 'make and label lip balm safely' step; specific label elements not named."
+    },
+    {
+      "key_id": "lip-balm-ingredient-list",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "fda-cosmetic-compliance"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Generic labeling step; ingredient declaration not named."
+    },
+    {
+      "key_id": "mocra-label-contact",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "fda-cosmetic-compliance"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Generic labeling step; MoCRA adverse-event contact line not named."
+    },
+    {
+      "key_id": "mocra-safety-substantiation",
+      "key_verdict": "required",
+      "before_first_sale": true,
+      "app_keys": [
+        "fda-cosmetic-compliance"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Step says safety is the maker's legal responsibility; record-keeping not named."
+    },
+    {
+      "key_id": "mocra-adverse-event-reporting",
+      "key_verdict": "conditional",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "Condition cannot be ruled out; no item."
+    },
+    {
+      "key_id": "mocra-registration-listing",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [
+        "fda-cosmetic-facility-listing"
+      ],
+      "app_status": "conditional",
+      "grade": "correctly_omitted",
+      "note": "Conditional on staying a small business, the right exemption trigger; question is easy for a sub-$25k seller."
+    },
+    {
+      "key_id": "mocra-gmp",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "fda-cosmetic-approval",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "Not listed."
+    },
+    {
+      "key_id": "lip-balm-drug-claims",
+      "key_verdict": "conditional",
+      "before_first_sale": true,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "No warning that SPF or healing claims make lip balm an OTC drug."
+    },
+    {
+      "key_id": "ftc-mail-order-rule",
+      "key_verdict": "required_later",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "Website orders shipped in state; no shipping-time rule item."
+    },
+    {
+      "key_id": "federal-income-tax-schedule-c",
+      "key_verdict": "required_later",
+      "before_first_sale": false,
+      "app_keys": [
+        "federal-income-self-employment-tax"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Quote only shows the April 15 due date."
+    },
+    {
+      "key_id": "federal-self-employment-tax",
+      "key_verdict": "conditional",
+      "before_first_sale": false,
+      "app_keys": [
+        "federal-income-self-employment-tax"
+      ],
+      "app_status": "needs_confirmation",
+      "grade": "found",
+      "note": "Listed as applying outright; $400 threshold not stated."
+    },
+    {
+      "key_id": "federal-estimated-tax",
+      "key_verdict": "conditional",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "No estimated tax item."
+    },
+    {
+      "key_id": "iowa-income-tax-return",
+      "key_verdict": "conditional",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "No Iowa income tax item."
+    },
+    {
+      "key_id": "iowa-estimated-tax",
+      "key_verdict": "conditional",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "missed",
+      "note": "No Iowa estimated tax item."
+    },
+    {
+      "key_id": "ein",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [
+        "ein"
+      ],
+      "app_status": "optional",
+      "grade": "correctly_omitted",
+      "note": "Shown as 'Your choice'."
+    },
+    {
+      "key_id": "employer-registrations",
+      "key_verdict": "not_required",
+      "before_first_sale": false,
+      "app_keys": [],
+      "app_status": null,
+      "grade": "correctly_omitted",
+      "note": "No employees; not listed."
+    }
+  ],
+  "unconfirmed": [
+    "decorah-business-or-vendor-license",
+    "decorah-beekeeping-rules",
+    "iowa-cosmetic-license"
+  ],
+  "extras": [
+    {
+      "app_key": "choose-structure",
+      "title": "Choose a business structure",
+      "status": "needs_confirmation",
+      "grade": "reasonable",
+      "note": "Sensible first step; quote is generic SBA text."
+    },
+    {
+      "app_key": "decorah-business-license",
+      "title": "Decorah city business license or registration",
+      "status": "unlikely",
+      "grade": "reasonable",
+      "note": "Matches unconfirmed key item decorah-business-or-vendor-license; 'likely doesn't apply' rests on no source."
+    },
+    {
+      "app_key": "decorah-license-renewal",
+      "title": "Keep Decorah license and home approval current",
+      "status": "unlikely",
+      "grade": "reasonable",
+      "note": "Harmless note about renewing a license the app thinks doesn't exist; adds noise."
+    }
+  ],
+  "confirm_steps": [
+    {
+      "app_key": "decorah-home-zoning",
+      "title": "Decorah home-occupation and zoning approval for your home workshop",
+      "grade": "sensible",
+      "note": "Decorah code unreadable and hives may be visible, but Iowa Code 414.33 largely settles the permit question; city search failed."
+    }
+  ],
+  "fees": [],
+  "verified_wrong": [],
+  "not_needed_wrong": [],
+  "summary": {
+    "found": 12,
+    "correctly_omitted": 15,
+    "unneeded_question": 1,
+    "missed": 10,
+    "unconfirmed": 3,
+    "extras_reasonable": 3,
+    "confirm_sensible": 1,
+    "fees_checked": 0,
+    "verified_wrong": 0,
+    "not_needed_wrong": 0
+  }
+}

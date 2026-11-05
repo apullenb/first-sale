@@ -97,6 +97,33 @@ describe("verifyRequirements", () => {
     expect(result).toMatchObject({ verification: "sourced", problems: [], feeUsd: 0 });
   });
 
+  describe("whole sentences quoted together", () => {
+    const faq = [
+      "Do I need a permit? As a seller, you must have a tax permit for each active place of business.",
+      "Can I sell from home? Yes, if your home is your place of business.",
+      "What does it cost? There is no fee for the permit, but you may be required to post a security bond.",
+    ].join(" ");
+    const page = () => ({ ...pages[1], text: faq });
+    const quote = (evidence: string, extra: Partial<RequirementDraft> = {}) => verifyRequirements([draft({ ...sos, evidence, ...extra })], [page()], hosts)[0];
+
+    it("accepts sentences that are each on the page word for word, near each other, and keeps a fee one of them states", () => {
+      const result = quote("As a seller, you must have a tax permit for each active place of business. There is no fee for the permit, but you may be required to post a security bond.", { feeUsd: 0 });
+      expect(result).toMatchObject({ verification: "sourced", feeUsd: 0, problems: [] });
+    });
+
+    it("rejects a sentence that isn't on the page, such as a fee from somewhere else", () => {
+      const result = quote("As a seller, you must have a tax permit for each active place of business. Filing fee is $23.00 for business names.", { feeUsd: 23 });
+      expect(result).toMatchObject({ verification: "needs_verification", feeUsd: null });
+      expect(result.problems).toContain("Quote not found on the cited pages");
+    });
+
+    it("rejects sentences from far apart on the page, and too many, or too short to mean anything", () => {
+      const far = { ...pages[1], text: `As a seller, you must have a tax permit for each active place of business. ${"Other text. ".repeat(250)}There is no fee for the permit, but you may be required to post a security bond.` };
+      expect(verifyRequirements([draft({ ...sos, evidence: "As a seller, you must have a tax permit for each active place of business. There is no fee for the permit, but you may be required to post a security bond." })], [far], hosts)[0].verification).toBe("needs_verification");
+      expect(quote("Yes. As a seller, you must have a tax permit for each active place of business.").verification).toBe("needs_verification");
+    });
+  });
+
   it("matches quotes despite case and spacing, and joins pieces around an ellipsis", () => {
     const [result] = verifyRequirements([draft({ evidence: "use this TOOL to get an EIN …  in minutes for free." })], pages, hosts);
     expect(result.verification).toBe("sourced");

@@ -1,0 +1,276 @@
+{
+  "case": "chicago-il-sneakers",
+  "checked": "2026-11-04",
+  "requirements": [
+    {
+      "id": "cook-county-assumed-name",
+      "title": "Register the assumed business name (Lakeshore Kicks) with the Cook County Clerk",
+      "level": "county",
+      "agency": "Cook County Clerk",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": "$50",
+      "url": "https://www.cookcountyclerkil.gov/vital-records/business-notary/assumed-business-name-registration",
+      "domain_is_gov": true,
+      "quote": "Under state law, three classes of businesses are required to register assumed names with the local county clerk's office. ... You can pay the $50 registration fee by credit card or e-check",
+      "notes": "Sole proprietorships are one of the three classes; 805 ILCS 405/1 bars doing business under an assumed name until the certificate is filed with the clerk of the county where business is conducted."
+    },
+    {
+      "id": "assumed-name-newspaper-publication",
+      "title": "Publish the assumed-name notice in a Cook County newspaper and file proof with the clerk",
+      "level": "state",
+      "agency": "Cook County Clerk (under the Illinois Assumed Business Name Act, 805 ILCS 405)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.ilga.gov/Documents/legislation/ilcs/documents/080504050K1.htm",
+      "domain_is_gov": true,
+      "quote": "Notice of the filing of such certificate shall be published in a newspaper of general circulation published within the county in which the certificate is filed. Such notice shall be published once a week for 3 consecutive weeks.",
+      "notes": "First publication within 15 days of filing and proof of publication within 50 days, or the registration is void; newspaper charges are separate from the clerk fee."
+    },
+    {
+      "id": "il-sos-assumed-name",
+      "title": "Assumed name filing with the Illinois Secretary of State",
+      "level": "state",
+      "agency": "Illinois Secretary of State",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.ilsos.gov/departments/business-services/howdoi.html",
+      "domain_is_gov": true,
+      "quote": "Sole proprietorships are filed only at the county level. Check with your County Recorder's office to determine filing requirements.",
+      "notes": "State-level assumed names are for corporations and LLCs; a sole proprietor files only with the county clerk."
+    },
+    {
+      "id": "il-sales-tax-registration",
+      "title": "Register with the Illinois Department of Revenue (Form REG-1 via MyTax Illinois) for a sales tax Certificate of Registration",
+      "level": "state",
+      "agency": "Illinois Department of Revenue (IDOR)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://tax.illinois.gov/research/publications/pubs/retailers-overview-of-sales-and-use-tax/registering-your-business.html",
+      "domain_is_gov": true,
+      "quote": "You must register as a retailer and remit Retailers’ Occupation Tax (ROT) and any applicable local taxes administered by IDOR (sales tax) if you are engaged in the business of selling ... at retail tangible personal property in Illinois",
+      "notes": "Needed because the owner sells from an Illinois location through its own website; sole proprietors register with Form REG-1 and then file Form ST-1 returns, and no registration fee is stated."
+    },
+    {
+      "id": "il-own-website-sales-tax",
+      "title": "Collect and report Illinois sales tax on own-website sales at the Chicago (origin) rate",
+      "level": "state",
+      "agency": "Illinois Department of Revenue (IDOR)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://tax.illinois.gov/content/dam/soi/en/web/tax/research/taxinformation/sales/documents/pio-111-il-retailer-flowchart.pdf",
+      "domain_is_gov": true,
+      "quote": "or an Illinois retailer’s own website. Taxes for sales made at an IL location are incurred at the tax rate in effect at the Illinois location at which the sales are determined to occur (origin rate).",
+      "notes": "Own-website sales to Illinois buyers go on the owner's Form ST-1; the marketplace facilitator rules do not cover them."
+    },
+    {
+      "id": "il-marketplace-facilitator-sales",
+      "title": "Collect and remit Illinois tax on eBay and StockX sales yourself",
+      "level": "state",
+      "agency": "Illinois Department of Revenue (IDOR)",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://tax.illinois.gov/content/dam/soi/en/web/tax/research/taxinformation/sales/documents/pio-111-il-retailer-flowchart.pdf",
+      "domain_is_gov": true,
+      "quote": "The marketplace facilitator is the retailer and is required to register with IDOR, file returns, and remit tax for all sales made through the marketplace to Illinois purchasers on behalf of marketplace sellers.",
+      "notes": "Applies when the marketplace meets IDOR's tax remittance threshold (assumed for eBay and StockX); those sales are left off the seller's ST-1."
+    },
+    {
+      "id": "chicago-city-sales-tax-account",
+      "title": "Separate City of Chicago sales tax registration",
+      "level": "city",
+      "agency": "City of Chicago",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.chicago.gov/city/en/depts/obm/supp_info/glossary-of-terms.html",
+      "domain_is_gov": true,
+      "quote": "The tax is administered and collected by the Illinois Department of Revenue and disbursed monthly to the City.",
+      "notes": "The Chicago Home Rule Municipal Retailers' Occupation Tax is reported on the IDOR return, not to the city."
+    },
+    {
+      "id": "chicago-home-occupation-license",
+      "title": "City of Chicago home occupation business license (Regulated Business License – Home Occupation)",
+      "level": "city",
+      "agency": "Chicago Department of Business Affairs and Consumer Protection (BACP)",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": "$1,000 (two-year license)",
+      "url": "https://www.chicago.gov/city/en/sites/chicago-business-licensing/home/homebasedbusiness.html",
+      "domain_is_gov": true,
+      "quote": "A City of Chicago business license is required to operate a business out of your home. ... $1,000 license fee",
+      "notes": "Applies even though the business is online-only with no customer visits; the process includes city zoning approval, and the license runs two years."
+    },
+    {
+      "id": "chicago-limited-business-license",
+      "title": "Chicago Limited Business License (storefront retail license)",
+      "level": "city",
+      "agency": "Chicago Department of Business Affairs and Consumer Protection (BACP)",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.chicago.gov/city/en/sites/chicago-business-licensing/home/generalmerchandise.html",
+      "domain_is_gov": true,
+      "quote": "Sale of general retail merchandise such as clothes, cosmetic products or gifts at a brick-and-mortar location requires a Limited Business License.",
+      "notes": "There is no brick-and-mortar location; the home occupation license covers the home-based business instead."
+    },
+    {
+      "id": "chicago-secondhand-dealer-license",
+      "title": "Chicago Secondhand Dealer license for reselling used sneakers",
+      "level": "city",
+      "agency": "Chicago Department of Business Affairs and Consumer Protection (BACP)",
+      "verdict": "unconfirmed",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": "$1,100",
+      "url": "https://www.chicago.gov/city/en/sites/chicago-business-licensing/home/usedmerchandise.html",
+      "domain_is_gov": true,
+      "quote": "Sale of previously owned audio-video equipment, construction materials, sporting or athletic equipment, currency, or anything made of precious metal, stone or gem such as jewelry or watches requires a Secondhand Dealer license. ... $1,100 License Fee",
+      "notes": "Unconfirmed whether used sneakers count as 'sporting or athletic gear or equipment' (MCC 4-264-005); searched chicago.gov BACP license pages and the Chicago code and found no guidance on footwear. Deadstock bought new at retail is not 'previously owned' in this sense."
+    },
+    {
+      "id": "cook-county-general-business-license",
+      "title": "Cook County General Business License",
+      "level": "county",
+      "agency": "Cook County Department of Revenue",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.cookcountyil.gov/service/general-business-license",
+      "domain_is_gov": true,
+      "quote": "In order to effectively protect the public health, general welfare, and safety of the citizens of Cook County, businesses operating in Unincorporated Cook County are required to obtain a Cook County General Business License.",
+      "notes": "The business is inside Chicago city limits, not in unincorporated Cook County."
+    },
+    {
+      "id": "federal-ein",
+      "title": "Federal Employer Identification Number (EIN)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/employer-identification-number",
+      "domain_is_gov": true,
+      "quote": "You need an EIN if you: Have employees Will need to pay employment, excise or alcohol, tobacco, and firearms taxes Withhold taxes on income, other than wages, paid to a non-resident alien",
+      "notes": "A sole proprietor with no employees and no excise taxes can use their SSN; an EIN is optional for banking."
+    },
+    {
+      "id": "fincen-boi-report",
+      "title": "FinCEN beneficial ownership information (BOI) report",
+      "level": "federal",
+      "agency": "Financial Crimes Enforcement Network (FinCEN)",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.fincen.gov/boi",
+      "domain_is_gov": true,
+      "quote": "U.S. companies are exempt from the Beneficial Ownership Information (BOI) reporting requirements and therefore, are no longer required to file BOI reports.",
+      "notes": "A sole proprietorship is not a registered entity, and U.S. companies are now exempt in any case."
+    },
+    {
+      "id": "ftc-mail-order-rule",
+      "title": "Follow the FTC Mail, Internet, or Telephone Order Merchandise Rule (shipping times, delay notices, refunds)",
+      "level": "federal",
+      "agency": "Federal Trade Commission",
+      "verdict": "required",
+      "condition": null,
+      "before_first_sale": true,
+      "fee": null,
+      "url": "https://www.ftc.gov/business-guidance/resources/business-guide-ftcs-mail-internet-or-telephone-order-merchandise-rule",
+      "domain_is_gov": true,
+      "quote": "It applies to most goods a customer orders from the seller by mail, telephone, fax, or on the Internet.",
+      "notes": "No filing; ship within the stated time, or within 30 days if none is stated, or get consent to the delay or refund."
+    },
+    {
+      "id": "federal-income-tax-self-employment",
+      "title": "Report business profit and self-employment tax on the federal return (Schedule C / SE)",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "required_later",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+      "domain_is_gov": true,
+      "quote": "You have to file an income tax return if your net earnings from self-employment were $400 or more.",
+      "notes": "Due with the owner's first-year individual return."
+    },
+    {
+      "id": "federal-estimated-tax",
+      "title": "Quarterly federal estimated tax payments",
+      "level": "federal",
+      "agency": "Internal Revenue Service",
+      "verdict": "conditional",
+      "condition": "If the owner expects to owe $1,000 or more of federal tax for the year",
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/estimated-taxes",
+      "domain_is_gov": true,
+      "quote": "Individuals, including sole proprietors, partners, and S corporation shareholders, generally have to make estimated tax payments if they expect to owe tax of $1,000 or more when their return is filed.",
+      "notes": "Depends on first-year profit; not a pre-sale step."
+    },
+    {
+      "id": "uspto-trademark",
+      "title": "Federal trademark registration for the trade name",
+      "level": "federal",
+      "agency": "U.S. Patent and Trademark Office",
+      "verdict": "not_required",
+      "condition": null,
+      "before_first_sale": false,
+      "fee": null,
+      "url": "https://www.uspto.gov/trademarks/basics/what-trademark",
+      "domain_is_gov": true,
+      "quote": "You’re not required to register your trademark. However, a registered trademark provides broader rights and protections than an unregistered one.",
+      "notes": "Optional; the county assumed-name filing is the required name step."
+    }
+  ],
+  "hard_calls": [
+    {
+      "about": "Chicago Secondhand Dealer license for used sneakers",
+      "explanation": "BACP says previously owned 'sporting or athletic equipment' needs a Secondhand Dealer license, and MCC 4-264-005 defines secondhand property to include 'sporting or athletic gear or equipment, including a bicycle'. Neither says whether worn sneakers (footwear) are athletic gear. The license is also per 'place, premises or location', and BACP has published no guidance for online-only sellers. If it applies, it adds a $1,100 license, fingerprinting and daily LeadsOnline reporting. The code text is hosted by American Legal Publishing, which is not a government domain.",
+      "urls": [
+        "https://www.chicago.gov/city/en/sites/chicago-business-licensing/home/usedmerchandise.html",
+        "https://codelibrary.amlegal.com/codes/chicago/latest/chicago_il/0-0-0-2636315"
+      ]
+    },
+    {
+      "about": "Home occupation license for an online-only seller, and its fee",
+      "explanation": "BACP states that a city license is required to operate any business out of a home, and lists no exemption for e-commerce sellers without customer visits, so the key treats it as required. The fee is in flux: the page and BACP's 1/1/2026 fee notice give $1,000 per two years for Regulated Business Licenses, while the 2017 fact sheet said $250. Ordinance O2026-0026292, introduced June 17, 2026, would set separate home occupation fees; its outcome was not found on an official site (the tracker below is not a government site). Excluded home occupations include 'any warehousing ... uses'. Storing resale inventory at home is probably not warehousing, but BACP does not say.",
+      "urls": [
+        "https://www.chicago.gov/city/en/sites/chicago-business-licensing/home/homebasedbusiness.html",
+        "https://www.chicago.gov/content/dam/city/depts/bacp/Small%20Business%20Center/20260127newfees.pdf",
+        "https://www.chicago.gov/content/dam/city/depts/bacp/Small%20Business%20Center/sbcfactsheets/Home_Based_Business_Fact_Sheet_10-12-17.pdf",
+        "https://chicago.councilmatic.org/legislation/o2026-0026292/"
+      ]
+    },
+    {
+      "about": "Whether marketplace facilitators cover the eBay and StockX sales",
+      "explanation": "IDOR's in-state retailer flowchart shifts marketplace sales to the facilitator only when the facilitator meets the tax remittance threshold. The seller cannot verify this from official sources, though large marketplaces almost certainly meet it. Own-website sales stay with the seller at the origin rate. IDOR does not plainly say whether an Illinois retailer selling only through marketplaces would still need its own account. That question doesn't arise here, because the website sales require registration.",
+      "urls": [
+        "https://tax.illinois.gov/content/dam/soi/en/web/tax/research/taxinformation/sales/documents/pio-111-il-retailer-flowchart.pdf"
+      ]
+    },
+    {
+      "about": "Sales tax in other states for own-website shipments",
+      "explanation": "Website sales shipped to other states may trigger registration there only once that state's economic-nexus threshold is met. Thresholds differ by state (often $100,000), and they were not researched state by state. A first-year home seller is unlikely to meet them, but this is not confirmed.",
+      "urls": []
+    }
+  ]
+}

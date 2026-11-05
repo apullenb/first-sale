@@ -1,0 +1,1486 @@
+{
+  "case": "decorah-ia-honey",
+  "label": "Backyard honey and beeswax lip balm, small town, Decorah, Iowa",
+  "model": "Meta Muse (muse-spark-1.3)",
+  "simulated": false,
+  "ranAt": "2026-11-05T06:56:53.020Z",
+  "timeLimitSeconds": 600,
+  "ms": {
+    "research": 303233,
+    "followUp": 164513,
+    "total": 467748
+  },
+  "cost": {
+    "usd": 2.7983,
+    "modelCalls": 9,
+    "searches": 35,
+    "inputTokens": 3206012,
+    "outputTokens": 89680,
+    "failedCalls": [
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout",
+      "web_search: AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    ],
+    "fallbacks": []
+  },
+  "calls": [
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8228,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 9134,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12724,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17019,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 21340,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 23389,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 29538,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 30564,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 37806,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 41531,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 42212,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 45002,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 155586,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 64086,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 28263,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 15305,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17685,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20003,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20004,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "research_follow_up",
+      "effort": "medium",
+      "ms": 32079,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 18149,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 5279,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8851,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 13093,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16798,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 17830,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 18201,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 26329,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 30329,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 30940,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 34824,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 36253,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 40270,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 40775,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 44046,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 45003,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 45003,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 56392,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 15051,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 25009,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 25010,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 25010,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 25010,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse search failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 22014,
+      "ok": true,
+      "error": null
+    }
+  ],
+  "claimsCheckedInResearch": true,
+  "followUp": {
+    "candidates": 12,
+    "rounds": 2,
+    "confirmed": 3,
+    "rechecked": 0
+  },
+  "followUpError": null,
+  "pages": [
+    {
+      "id": "irs-ein",
+      "title": "IRS: Get an employer identification number",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "irs-business-structures",
+      "title": "IRS: Business structures",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-structure",
+      "title": "SBA: Choose a business structure",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-name",
+      "title": "SBA: Choose your business name",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-register-business",
+      "title": "SBA: Register your business",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#register-business",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-location",
+      "title": "SBA: Pick your business location",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-licenses-permits",
+      "title": "SBA: Apply for licenses and permits",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-tax-ids",
+      "title": "SBA: Get federal and state tax ID numbers",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "state-name-2",
+      "title": "168 LAWS OF THE FORTY-FIRST GENERAL ASSEMBLY  \\[CR. 181 CHAPTER 181",
+      "url": "https://www.legis.iowa.gov/docs/publications/iactc/41.1/CH0182.pdf",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "state-formation-1",
+      "title": "489.201  Formation  of  limited  liability  company  —  certificate  of  organization.",
+      "url": "https://www.Legis.Iowa.gov/docs/code/2010/489.201.pdf",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "state-sales-tax-1",
+      "title": "Business Permit Registration",
+      "url": "https://revenue.iowa.gov/taxes/business-permit-registration",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "state-sales-tax-2",
+      "title": "423.48 Responsibilities and rights of sellers registered under the agreement.",
+      "url": "https://www.legis.iowa.gov/docs/code/2008/423.48.pdf",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "state-food-1",
+      "title": "Cottage Food Law",
+      "url": "https://dial.iowa.gov/licenses/food-establishments-hotels/cottage-food-law",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "state-food-2",
+      "title": "1  FOOD  ESTABLISHMENTS  AND  FOOD  PROCESSING  PLANTS, §137F.20",
+      "url": "https://www.legis.iowa.gov/docs/code/2026/137F.20.pdf",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-1",
+      "title": "ARC 7810C - Iowa Administrative Rules",
+      "url": "https://rules.iowa.gov/Notice/Details/7810C",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-2",
+      "title": "CHAPTER 1155",
+      "url": "https://www.legis.iowa.gov/docs/publications/iactc/65.2/CH1156.pdf",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-1",
+      "title": "Guidance for Industry: Proper Labeling of Honey and Honey Products | FDA",
+      "url": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/guidance-industry-proper-labeling-honey-and-honey-products",
+      "level": "federal",
+      "government": "Food and Drug Administration (Department of Health and Human Services)",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-2",
+      "title": "Small Businesses & Homemade Cosmetics: Fact Sheet",
+      "url": "https://www.fda.gov/cosmetics/resources-industry-cosmetics/small-businesses-homemade-cosmetics-fact-sheet",
+      "level": "federal",
+      "government": "Food and Drug Administration (Department of Health and Human Services)",
+      "discovered": true
+    },
+    {
+      "id": "state-ongoing-1",
+      "title": "Starting a Business",
+      "url": "https://revenue.iowa.gov/taxes/file-my-taxes/business-taxes/starting-business",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "state-ongoing-2",
+      "title": "Iowa Business Tax Permit Registration, 78-005",
+      "url": "https://revenue.iowa.gov/media/2337/download?inline",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-1",
+      "title": "Small Business Filing and Recordkeeping Requirements",
+      "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-2",
+      "title": "FAQs for Indian tribal governments regarding individuals: Filing requirements",
+      "url": "https://www.irs.gov/government-entities/indian-tribal-governments/faqs-for-indian-tribal-governments-regarding-individuals-filing-requirements",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-2-2",
+      "title": "Food Establishments & Hotels",
+      "url": "https://dial.iowa.gov/licenses/food-establishments-hotels",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-3-1",
+      "title": "Modernization of Cosmetics Regulation Act of 2022",
+      "url": "https://www.fda.gov/cosmetics/cosmetics-laws-regulations/modernization-cosmetics-regulation-act-2022-mocra",
+      "level": "federal",
+      "government": "Food and Drug Administration (Department of Health and Human Services)",
+      "discovered": true
+    },
+    {
+      "id": "fu-iowa-sales-tax-permit-1",
+      "title": "Business Permit Registration",
+      "url": "https://revenue.iowa.gov/taxes/business-permit-registration",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "fu-iowa-sales-tax-permit-2",
+      "title": "Iowa Administrative Code  Chapter 701.201",
+      "url": "https://www.legis.iowa.gov/docs/iac/chapter/09-30-2026.701.201.pdf",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "fu-iowa-sales-tax-permit-3",
+      "title": "Iowa Administrative Code",
+      "url": "https://www.Legis.iowa.gov:443/docs/iac/chapter/04-15-2026.701.201.pdf",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "fu-cottage-food-labeling-1",
+      "title": "DIA-Fact-Sheet-Cottage-Foods-Farmers-Markets-2025-05",
+      "url": "https://dial.iowa.gov/media/7351/download?inline=",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "fu-cottage-food-labeling-2",
+      "title": "Cottage Food Law",
+      "url": "https://dial.iowa.gov/licenses/food-establishments-hotels/cottage-food-law",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "fu-cottage-food-labeling-3",
+      "title": "Iowa Rulemaking Document",
+      "url": "https://www.legis.iowa.gov/docs/aco/arc/0059D.pdf",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "fu-honey-purity-labeling-1",
+      "title": "GENERAL PROVISIONS",
+      "url": "https://www.legis.iowa.gov/docs/code/2007/189.pdf",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "fu-honey-purity-labeling-2",
+      "title": "1  AGRICULTURE  —  GENERAL  PROVISIONS, §189.14",
+      "url": "https://www.legis.iowa.gov/docs/code/2026/189.14.pdf",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "fu-honey-purity-labeling-3",
+      "title": "Iowa Code 2003: Section 189.14",
+      "url": "https://www.legis.iowa.gov/DOCS/IACODE/2003/189/14.html",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "fu-iowa-sales-tax-filing-1",
+      "title": "Combined Sales and Use Return (32-028)",
+      "url": "https://revenue.iowa.gov/media/2654/download",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "fu-iowa-sales-tax-filing-2",
+      "title": "Taxes | Iowa.gov",
+      "url": "https://www.iowa.gov/taxes",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    },
+    {
+      "id": "fu-iowa-sales-tax-filing-3",
+      "title": "Combined Sales and Use Return (32-028)",
+      "url": "https://revenue.iowa.gov/media/2654/download?inline",
+      "level": "state",
+      "government": "State of Iowa - OCIO",
+      "discovered": true
+    }
+  ],
+  "unread": [
+    {
+      "title": "Business Entity Forms and Fees",
+      "url": "https://sos.iowa.gov/businesses/business-entity-forms-and-fees",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "635_08_3.p65",
+      "url": "https://sos.iowa.gov/business/pdf/635_08_3.pdf",
+      "reason": "The site answered with error 403"
+    }
+  ],
+  "requirements": [
+    {
+      "key": "choose-structure",
+      "title": "Choose a business structure",
+      "level": "federal",
+      "topic": "structure",
+      "agency": "Small Business Administration",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-structure"
+      ],
+      "evidence": "You’ll need to choose a business structure before you register your business with the state.",
+      "why": "You have one owner and chose sole proprietorship. Structure affects taxes and liability.",
+      "background": "Every business operates under a legal form, and you plan to operate alone as a sole proprietor, so you should settle that choice in your plan.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not mention sole proprietorship, one owner, taxes, or liability."
+      ],
+      "trail": null
+    },
+    {
+      "key": "trade-name-registration",
+      "title": "Register trade name Oneota Hive & Balm",
+      "level": "state",
+      "topic": "name_registration",
+      "agency": "county recorder",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.legis.iowa.gov/docs/publications/iactc/41.1/CH0182.pdf"
+      ],
+      "evidence": "It shall be unlawful for any person or copartnership to engage in or conduct a business under any trade name, or any assumed name of any character other than the true surname of each person or persons owning or having any interest in such business, unless such person or persons shall first file with the county recorder of the county in which the business is to be conducted a verified statement showing the name, postoffice address, and residence address of each person owning or having any interest in the business, and the address where the business is to be conducted.",
+      "why": "You will use Oneota Hive & Balm, not your legal name, in Winneshiek County.",
+      "background": "Iowa businesses that sell under a name other than the owner's legal name generally register that name where they do business, and you will use a separate brand name.",
+      "problems": [
+        "Quote not found on the cited pages"
+      ],
+      "trail": null
+    },
+    {
+      "key": "iowa-sales-tax-permit",
+      "title": "Get Iowa sales and use tax permit",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Iowa Department of Revenue",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.legis.iowa.gov/docs/iac/chapter/09-30-2026.701.201.pdf"
+      ],
+      "evidence": "A person shall not make taxable sales of tangible property, specified digital products, or services until the person has received a permit from the department.",
+      "why": "You sell honey jars and balm at markets and by in-state shipment.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "cottage-food-labeling",
+      "title": "Follow Iowa cottage food rules for raw honey",
+      "level": "state",
+      "topic": "other",
+      "agency": "Iowa Department of Inspections, Appeals, and Licensing",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.legis.iowa.gov/docs/code/2026/137F.20.pdf"
+      ],
+      "evidence": "Cottage food is exempt from all licensing, permitting, inspection, packaging, and labeling laws of the state if the food is sold and delivered by the producer directly to the consumer, or delivered by mail or an agent of the producer such as an employee.",
+      "why": "You make shelf-stable honey at home for direct sale in person and by mail.",
+      "background": "You prepare shelf stable honey at home and sell it direct to buyers, which fits the home cottage food path, so you must meet its labeling and direct sale rules.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote discusses cottage food generally and does not mention raw honey."
+      ],
+      "trail": null
+    },
+    {
+      "key": "honey-purity-labeling",
+      "title": "Label honey honestly",
+      "level": "state",
+      "topic": "other",
+      "agency": "Iowa Department of Agriculture and Land Stewardship",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.legis.iowa.gov/DOCS/IACODE/2003/189/14.html"
+      ],
+      "evidence": "No person shall package any liquid or semisolid product or label any such product as honey, imitation honey or honey blend, or use the word \"honey\" in any prominent location on the label of such product or sell or offer for sale any such product which is labeled as honey, imitation honey or honey blend or which contains a label with the word \"honey\" prominently displayed thereon, unless the entire product is honey as defined in section 190.1, subsection 4.",
+      "why": "You sell raw honey using the word honey on jars and ads.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "fda-cosmetic-compliance",
+      "title": "Make and label lip balm safely",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Food and Drug Administration",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.fda.gov/cosmetics/resources-industry-cosmetics/small-businesses-homemade-cosmetics-fact-sheet"
+      ],
+      "evidence": "If you manufacture or market cosmetics, you have a legal responsibility for the safety and labeling of your products.",
+      "why": "You make beeswax lip balm at home to sell.",
+      "background": "Lip balm sold to customers counts as a cosmetic under long standing federal law, which requires safe making and truthful labeling.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote discusses cosmetics generally and does not mention lip balm or beeswax."
+      ],
+      "trail": null
+    },
+    {
+      "key": "fda-cosmetic-facility-listing",
+      "title": "Check cosmetic facility registration",
+      "level": "federal",
+      "topic": "license_permit",
+      "agency": "Food and Drug Administration",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will your cosmetic sales stay small enough to count as a small business?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.fda.gov/cosmetics/resources-industry-cosmetics/small-businesses-homemade-cosmetics-fact-sheet"
+      ],
+      "evidence": "MoCRA exempts certain small businesses from facility registration and product listing.",
+      "why": "It depends on your sales size whether home balm site must be registered.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not mention sales size or a home balm site."
+      ],
+      "trail": null
+    },
+    {
+      "key": "ein",
+      "title": "Get federal tax ID (EIN) if you want one",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "optional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#tax-ids"
+      ],
+      "evidence": "It’s free to apply for an EIN, and you should do it right after you register your business.",
+      "why": "You are a sole proprietor with no employees and may use SSN but EIN helps.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not mention sole proprietors with no employees, SSN use, or that EIN use is optional."
+      ],
+      "trail": null
+    },
+    {
+      "key": "iowa-sales-tax-filing",
+      "title": "File Iowa sales and use tax returns",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Iowa Department of Revenue",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://revenue.iowa.gov/media/2654/download"
+      ],
+      "evidence": "IMPORTANT: You must file even if you had no activity. If you have no tax to report, enter zeros on Lines 5, 9, and 18.",
+      "why": "Once permitted, you must file returns for market and website sales.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "federal-income-self-employment-tax",
+      "title": "File yearly federal income and self-employment taxes",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/government-entities/indian-tribal-governments/faqs-for-indian-tribal-governments-regarding-individuals-filing-requirements"
+      ],
+      "evidence": "April 15th each year is the due date for filing your federal individual income tax return.",
+      "why": "As sole proprietor you report honey and balm profit and pay Social Security and Medicare tax.",
+      "background": "A sole proprietor generally reports business profit on the yearly personal return and pays self employment tax on that profit.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote only mentions the due date for the federal individual income tax return and does not show self-employment, Social Security, or Medicare tax obligations."
+      ],
+      "trail": null
+    },
+    {
+      "key": "decorah-home-zoning",
+      "title": "Decorah home-occupation and zoning approval for your home workshop",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "City of Decorah planning and zoning office",
+      "status": "to_find_out",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "unclear",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will make honey and lip balm at your home in Decorah and you live inside city limits. The city controls what businesses can operate in residential areas.",
+      "background": "No city page shows Decorah requires a separate home approval for a quiet home workshop like yours.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": {
+        "searched": [
+          {
+            "where": "Decorah",
+            "what": "a page about decorah home-occupation and zoning approval for your home workshop",
+            "pages": 0,
+            "failed": true
+          },
+          {
+            "where": "Decorah",
+            "what": "the ordinance, code section or application form that covers it",
+            "pages": 0
+          },
+          {
+            "where": "Decorah",
+            "what": "who needs it and who doesn’t, such as exemptions or answers to common questions",
+            "pages": 0,
+            "failed": true
+          }
+        ],
+        "read": [],
+        "unread": [],
+        "found": "",
+        "missing": "No source describes Decorah zoning or home business rules for houses.",
+        "worthChecking": "You will make honey and lip balm at home, and cities often limit making food and goods in homes.",
+        "leaning": "not_needed",
+        "quoteSetAside": false,
+        "rounds": 2
+      }
+    },
+    {
+      "key": "decorah-business-license",
+      "title": "Decorah city business license or registration",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Decorah city clerk",
+      "status": "unlikely",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "unlikely",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will run a sole proprietorship from your home in Decorah and sell in person and online. Many cities require a local business license before you open.",
+      "background": "No city page shows Decorah requires a general business license for this kind of home seller.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": {
+        "searched": [
+          {
+            "where": "Decorah",
+            "what": "a page about decorah city business license or registration",
+            "pages": 0
+          },
+          {
+            "where": "Decorah",
+            "what": "the ordinance, code section or application form that covers it",
+            "pages": 0
+          },
+          {
+            "where": "Decorah",
+            "what": "who needs it and who doesn’t, such as exemptions or answers to common questions",
+            "pages": 0,
+            "failed": true
+          }
+        ],
+        "read": [],
+        "unread": [],
+        "found": "",
+        "missing": "No source says Decorah requires a general city license for home sellers.",
+        "leaning": "not_needed",
+        "quoteSetAside": false,
+        "rounds": 2
+      }
+    },
+    {
+      "key": "winneshiek-market-permit",
+      "title": "Winneshiek County vendor and health clearance for farmers markets",
+      "level": "county",
+      "topic": "license_permit",
+      "agency": "Winneshiek County public health office",
+      "status": "unlikely",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "unlikely",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You plan to sell raw honey at markets. Counties often require a temporary vendor or health clearance for food sold at markets.",
+      "background": "State rules say these home foods need no license or inspection, which covers your market honey.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": {
+        "searched": [
+          {
+            "where": "Winneshiek County",
+            "what": "a page about winneshiek county vendor and health clearance for farmers markets",
+            "pages": 0
+          },
+          {
+            "where": "Winneshiek County",
+            "what": "the ordinance, code section or application form that covers it",
+            "pages": 0
+          },
+          {
+            "where": "Winneshiek County",
+            "what": "who needs it and who doesn’t, such as exemptions or answers to common questions",
+            "pages": 0,
+            "failed": true
+          }
+        ],
+        "read": [
+          {
+            "title": "Cottage Food Law",
+            "url": "https://dial.iowa.gov/licenses/food-establishments-hotels/cottage-food-law"
+          }
+        ],
+        "unread": [],
+        "found": "",
+        "missing": "",
+        "leaning": "not_needed",
+        "quoteSetAside": true,
+        "rounds": 2
+      }
+    },
+    {
+      "key": "decorah-license-renewal",
+      "title": "Keep Decorah license and home approval current",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Decorah city clerk",
+      "status": "unlikely",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "unlikely",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "Once you open, city licenses and home approvals usually expire. You will keep selling honey and lip balm, so renewals keep you legal.",
+      "background": "Since no city license or home approval was shown, there is nothing shown to renew to keep selling.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": {
+        "searched": [
+          {
+            "where": "Decorah",
+            "what": "a page about keep decorah license and home approval current",
+            "pages": 0,
+            "failed": true
+          },
+          {
+            "where": "Decorah",
+            "what": "the ordinance, code section or application form that covers it",
+            "pages": 0
+          },
+          {
+            "where": "Decorah",
+            "what": "who needs it and who doesn’t, such as exemptions or answers to common questions",
+            "pages": 0,
+            "failed": true
+          }
+        ],
+        "read": [],
+        "unread": [],
+        "found": "",
+        "missing": "No source describes a Decorah license term or renewal duty for this kind of business.",
+        "leaning": "not_needed",
+        "quoteSetAside": false,
+        "rounds": 2
+      }
+    },
+    {
+      "key": "cottage-direct-sale-ia",
+      "title": "Sell cottage food only by direct sale, in person or by mail or internet",
+      "level": "state",
+      "topic": "license_permit",
+      "agency": "State of Iowa - OCIO",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.legis.iowa.gov/docs/code/2026/137F.20.pdf"
+      ],
+      "evidence": "Cottage food is exempt from all licensing, permitting, inspection, packaging, and labeling laws of the state if the food is sold and delivered by the producer directly to the consumer, or delivered by mail or an agent of the producer such as an employee. A producer may sell food to the consumer in person, remotely, by telephone, by internet, or by an agent of the producer.",
+      "why": "You plan to sell home-made food (raw honey) at markets and through your own website with in-state shipping. Iowa allows the cottage-food exemption only for direct producer-to-consumer sales.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    }
+  ],
+  "plan": [
+    {
+      "key": "choose-structure",
+      "title": "Choose a business structure",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "trade-name-registration",
+      "title": "Register trade name Oneota Hive & Balm",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.legis.iowa.gov/docs/publications/iactc/41.1/CH0182.pdf",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "iowa-sales-tax-permit",
+      "title": "Get Iowa sales and use tax permit",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.legis.iowa.gov/docs/iac/chapter/09-30-2026.701.201.pdf",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "cottage-food-labeling",
+      "title": "Follow Iowa cottage food rules for raw honey",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.legis.iowa.gov/docs/code/2026/137F.20.pdf",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "honey-purity-labeling",
+      "title": "Label honey honestly",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.legis.iowa.gov/DOCS/IACODE/2003/189/14.html",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "fda-cosmetic-compliance",
+      "title": "Make and label lip balm safely",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.fda.gov/cosmetics/resources-industry-cosmetics/small-businesses-homemade-cosmetics-fact-sheet",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "fda-cosmetic-facility-listing",
+      "title": "Check cosmetic facility registration",
+      "status": "conditional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.fda.gov/cosmetics/resources-industry-cosmetics/small-businesses-homemade-cosmetics-fact-sheet",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "ein",
+      "title": "Get federal tax ID (EIN) if you want one",
+      "status": "optional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "iowa-sales-tax-filing",
+      "title": "File Iowa sales and use tax returns",
+      "status": "verified",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://revenue.iowa.gov/media/2654/download",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-income-self-employment-tax",
+      "title": "File yearly federal income and self-employment taxes",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/government-entities/indian-tribal-governments/faqs-for-indian-tribal-governments-regarding-individuals-filing-requirements",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "decorah-home-zoning",
+      "title": "Decorah home-occupation and zoning approval for your home workshop",
+      "status": "to_find_out",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "cottage-direct-sale-ia",
+      "title": "Sell cottage food only by direct sale, in person or by mail or internet",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.legis.iowa.gov/docs/code/2026/137F.20.pdf",
+          "confirms": true
+        }
+      ]
+    }
+  ],
+  "openQuestions": [
+    {
+      "question": "We couldn’t find an official page about business licenses in Winneshiek County. That doesn’t mean nothing applies, so ask.",
+      "answer": "No county page was found to settle this, so ask the county auditor or recorder whether a home seller at markets and online needs any general county license."
+    },
+    {
+      "question": "We couldn’t find an official page about food permits from the Winneshiek County health department. That doesn’t mean nothing applies, so ask.",
+      "answer": "State rules treat home cottage foods as not subject to licensing or inspection, but to be safe ask the county health office to confirm that no market clearance is needed for raw honey."
+    },
+    {
+      "question": "Our search for official pages about business licenses in Decorah didn’t finish. Re-check later, or ask.",
+      "answer": "Our search of city pages did not finish, so ask the city clerk whether Decorah requires any local business license or registration before you open."
+    },
+    {
+      "question": "We couldn’t find an official page about running a business from home in Decorah. That doesn’t mean nothing applies, so ask.",
+      "answer": "No city home business page was found, so ask city zoning or the clerk what home occupation rules apply to your address and activities."
+    },
+    {
+      "question": "Are raw honey and lip balm taxable and what local tax applies in Decorah?",
+      "answer": "Jars of honey and lip balm sold in state are generally taxable retail sales. Most local areas also add a local option sales tax on top of state tax, which you collect where the sale takes place and report by county on the state return."
+    },
+    {
+      "question": "Does small-business exemption cover home lip-balm registration and listing?",
+      "answer": "This cannot be settled from the pages found. Federal cosmetic law still requires safe making and truthful labeling even for a very small home maker, so check current federal guidance or ask the agency whether any facility filing duty applies to you."
+    },
+    {
+      "question": "Does Decorah require a general business license or registration for a home-based sole proprietorship like this?",
+      "answer": "No city page was found to settle this, so ask the city clerk whether a home based sole proprietor with no shop and no customer visits needs a Decorah license or registration."
+    },
+    {
+      "question": "What home-occupation and residential zoning rules apply to making and storing honey and lip balm at a home in Decorah with no customer visits?",
+      "answer": "No city zoning page was found, so ask city zoning whether making, packing and storing honey and balm at your house is allowed in your neighborhood and whether any home occupation approval or limits apply."
+    },
+    {
+      "question": "Do I need a county temporary food or market vendor clearance to sell raw honey at farmers markets, given Iowa cottage-food rules?",
+      "answer": "Under state pages, honey and cottage foods sold direct are treated as not subject to licensing and as allowed at farmers markets without a market license, so a separate county market clearance does not appear needed. Confirm with the market manager and county health office before your first market."
+    }
+  ],
+  "coverage": [
+    {
+      "category": "formation",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "formation",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "tax",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "tax",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "licenses",
+      "level": "federal",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "state",
+      "state": "not_searched",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "county",
+      "state": "no_official_page",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "city",
+      "state": "search_failed",
+      "pagesRead": 0
+    },
+    {
+      "category": "zoning",
+      "level": "city",
+      "state": "no_official_page",
+      "pagesRead": 0
+    },
+    {
+      "category": "food",
+      "level": "state",
+      "state": "confirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "food",
+      "level": "county",
+      "state": "no_official_page",
+      "pagesRead": 0
+    }
+  ],
+  "conflicts": [
+    {
+      "about": "Whether FDA honey guidance is mandatory",
+      "explanation": "FDA honey page says guidances do not establish legally enforceable responsibilities and should be viewed only as recommendations, so mandatory labeling is unclear.",
+      "sourceIds": [
+        "federal-activity-1"
+      ]
+    },
+    {
+      "about": "How to file Iowa trade name",
+      "explanation": "1925 Iowa law says file verified statement with county recorder, while SBA says DBA rules vary by state, county and city, leaving current form and fee unclear.",
+      "sourceIds": [
+        "state-name-2",
+        "sba-business-name"
+      ]
+    }
+  ]
+}

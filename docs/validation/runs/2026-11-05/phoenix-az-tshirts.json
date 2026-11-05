@@ -1,0 +1,1753 @@
+{
+  "case": "phoenix-az-tshirts",
+  "label": "Screen-printed t-shirts, Phoenix, Arizona",
+  "model": "Meta Muse (muse-spark-1.3)",
+  "simulated": false,
+  "ranAt": "2026-11-05T06:50:21.787Z",
+  "timeLimitSeconds": 600,
+  "ms": {
+    "research": 230895,
+    "followUp": 187329,
+    "total": 418225
+  },
+  "cost": {
+    "usd": 1.8663,
+    "modelCalls": 13,
+    "searches": 27,
+    "inputTokens": 1759254,
+    "outputTokens": 80787,
+    "failedCalls": [
+      "research_follow_up: AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout",
+      "requirement_claims: AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout",
+      "requirement_claims: AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout",
+      "requirement_follow_up: AIProviderError: Meta Muse stream failed: This operation was aborted"
+    ],
+    "fallbacks": [
+      "requirement_follow_up"
+    ]
+  },
+  "calls": [
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8317,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8356,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12540,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14780,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 15052,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 15160,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 20883,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 31421,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 38553,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 43667,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 99924,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_requirements",
+      "effort": "high",
+      "ms": 63895,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 5364,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6327,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14939,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 15357,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "research_follow_up",
+      "effort": "medium",
+      "ms": 40008,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 30001,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 30003,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: The operation was aborted due to timeout"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 6246,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 31228,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 21406,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6682,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 6955,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 8987,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11290,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11778,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12890,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 12950,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 14264,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 16017,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 19328,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 21113,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 23603,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 76644,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "low",
+      "ms": 26645,
+      "ok": false,
+      "error": "AIProviderError: Meta Muse stream failed: This operation was aborted"
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 19282,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "search",
+      "name": "web_search",
+      "effort": null,
+      "ms": 11594,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_follow_up",
+      "effort": "medium",
+      "ms": 16928,
+      "ok": true,
+      "error": null
+    },
+    {
+      "kind": "completion",
+      "name": "requirement_claims",
+      "effort": "low",
+      "ms": 4818,
+      "ok": true,
+      "error": null
+    }
+  ],
+  "claimsCheckedInResearch": false,
+  "followUp": {
+    "candidates": 18,
+    "rounds": 2,
+    "confirmed": 2,
+    "rechecked": 12
+  },
+  "pages": [
+    {
+      "id": "irs-ein",
+      "title": "IRS: Get an employer identification number",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "irs-business-structures",
+      "title": "IRS: Business structures",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/business-structures",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-structure",
+      "title": "SBA: Choose a business structure",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-name",
+      "title": "SBA: Choose your business name",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-register-business",
+      "title": "SBA: Register your business",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#register-business",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-business-location",
+      "title": "SBA: Pick your business location",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#business-location",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-licenses-permits",
+      "title": "SBA: Apply for licenses and permits",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#licenses-permits",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "sba-tax-ids",
+      "title": "SBA: Get federal and state tax ID numbers",
+      "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+      "level": "federal",
+      "government": "Small Business Administration",
+      "discovered": false
+    },
+    {
+      "id": "state-formation-1",
+      "title": "General Information",
+      "url": "https://www.azcc.gov/docs/default-source/corps-files/instructions/l010i-instructions-articles-of-organization88bf60ed7df74158a58145c66f72aa90.pdf?sfvrsn=fb0a9180_8",
+      "level": "state",
+      "government": "Arizona Corporation Commission",
+      "discovered": true
+    },
+    {
+      "id": "state-formation-2",
+      "title": "Corporation Division | Arizona Corporation Commission",
+      "url": "https://www.azcc.gov/corporations",
+      "level": "state",
+      "government": "Arizona Corporation Commission",
+      "discovered": true
+    },
+    {
+      "id": "state-sales-tax-1",
+      "title": "Applying for a TPT License",
+      "url": "https://azdor.gov/transaction-privilege-tax/tpt-license/applying-tpt-license?gclid=CjwKCAiAm-67BhBlEiwAEVftNuzgFRYVrr6xx27I443Yqq_vVwZ1W6HzQc4U-JT6wHjdiVGm9cIQ8RoCzgIQAvD_BwE",
+      "level": "state",
+      "government": "Arizona Department of Revenue (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "state-sales-tax-2",
+      "title": "Finance Department | Thatcher AZ",
+      "url": "https://www.thatcher.az.gov/departments/finance-department",
+      "level": "state",
+      "government": "Department of Administration (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-1",
+      "title": "TPT License | Arizona Department of Revenue",
+      "url": "https://azdor.gov/business/transaction-privilege-tax/tpt-license",
+      "level": "state",
+      "government": "Arizona Department of Revenue (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "state-activity-2",
+      "title": "Business Licenses | City of Flagstaff Official Website",
+      "url": "https://www.flagstaff.az.gov/3513/Business-Licenses",
+      "level": "state",
+      "government": "Department of Administration (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-1",
+      "title": "Clothing Business Guidance",
+      "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/Clothing-OLD",
+      "level": "federal",
+      "government": "Consumer Product Safety Commission",
+      "discovered": true
+    },
+    {
+      "id": "federal-activity-2",
+      "title": "Advertising and Marketing on the Internet: Rules of the Road",
+      "url": "https://www.ftc.gov/system/files/ftc_gov/pdf/bus28-rulesroad-012025_508.pdf",
+      "level": "federal",
+      "government": "Federal Trade Commission",
+      "discovered": true
+    },
+    {
+      "id": "state-ongoing-1",
+      "title": "Business | Arizona Department of Revenue",
+      "url": "https://azdor.gov/business",
+      "level": "state",
+      "government": "Arizona Department of Revenue (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-1",
+      "title": "Self-employed individuals tax center",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "federal-ongoing-2",
+      "title": "Small Business Filing and Recordkeeping Requirements",
+      "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+      "level": "federal",
+      "government": "Internal Revenue Service (Department of the Treasury)",
+      "discovered": true
+    },
+    {
+      "id": "county-license-1",
+      "title": "About Us | Maricopa County, AZ",
+      "url": "https://www.wrr.maricopa.gov/323/About-the-Clerks-Office",
+      "level": "county",
+      "government": "Maricopa County",
+      "discovered": true
+    },
+    {
+      "id": "county-license-2",
+      "title": "FIND COUNTY CONTACTS | Maricopa County, AZ",
+      "url": "https://www.maricopa.gov/5342/Staff-by-Common-Requests",
+      "level": "county",
+      "government": "Maricopa County",
+      "discovered": true
+    },
+    {
+      "id": "city-license-1",
+      "title": "License Services | City of Phoenix",
+      "url": "https://www.phoenix.gov/administration/departments/cityclerk/programs-services/license-services.html",
+      "level": "city",
+      "government": "City Of Phoenix",
+      "discovered": true
+    },
+    {
+      "id": "city-home-1",
+      "title": "Group Homes for the Handicapped",
+      "url": "https://www.phoenix.gov/content/dam/phoenix/pddsite/documents/pz/pdd_pz_pdf_00273.pdf",
+      "level": "city",
+      "government": "City Of Phoenix",
+      "discovered": true
+    },
+    {
+      "id": "city-home-2",
+      "title": "Zoning Adjustment Hearing",
+      "url": "https://web-dev.phoenix.gov/calendar/planning-development-events/zoning-adjustment-hearing0.html",
+      "level": "city",
+      "government": "City Of Phoenix",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-1-1",
+      "title": "TPT Filing Frequency",
+      "url": "https://azdor.gov/transaction-privilege-tax/tpt-license/tpt-filing-frequency",
+      "level": "state",
+      "government": "Arizona Department of Revenue (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-1-2",
+      "title": "TPT Update and Rate Feed | Arizona Department of Revenue",
+      "url": "https://azdor.gov/news-center/latest-press-releases/tpt-newsletters/tpt-updates/archive/202603",
+      "level": "state",
+      "government": "Arizona Department of Revenue (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-2-1",
+      "title": "Renewing a TPT License",
+      "url": "https://azdor.gov/transaction-privilege-tax/tpt-license/renewing-tpt-license",
+      "level": "state",
+      "government": "Arizona Department of Revenue (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-2-2",
+      "title": "Licensing and Renewal Requirements",
+      "url": "https://azdor.gov/business/transaction-privilege-tax/retail-sales-subject-tpt/out-state-sellers/licensing-and-renewal",
+      "level": "state",
+      "government": "Arizona Department of Revenue (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "follow-up-4-2",
+      "title": "SB1457 - 542R - House Bill Summary",
+      "url": "https://www.azleg.gov/legtext/54leg/2R/summary/H.SB1457_031220_WM.DOCX.htm",
+      "level": "state",
+      "government": "Arizona Legislative Council - Computer Services Division",
+      "discovered": true
+    },
+    {
+      "id": "fu-az-income-tax-1",
+      "title": "Individual Income Tax Information",
+      "url": "https://azdor.gov/individuals",
+      "level": "state",
+      "government": "Arizona Department of Revenue (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "fu-az-income-tax-2",
+      "title": "Small Business Income Forms",
+      "url": "https://azdor.gov/forms/small-business-income-forms",
+      "level": "state",
+      "government": "Arizona Department of Revenue (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "fu-phx-privilege-tax-license-1",
+      "title": "Privilege (Sales) Use Tax",
+      "url": "https://www.phoenix.gov/administration/departments/finance/privilege-sales-use-tax.html",
+      "level": "city",
+      "government": "City Of Phoenix",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-phx-privilege-tax-license-3",
+      "title": "City of Phoenix - Special Event Permitting",
+      "url": "https://web-test.phoenix.gov/content/dam/phoenix/conventioncentersite/documents/2025_special_event_permitting_resource_guide%20(1).pdf",
+      "level": "city",
+      "government": "City Of Phoenix",
+      "discovered": true
+    },
+    {
+      "id": "fu-maricopa-personal-property-1",
+      "title": "Business Personal Property - Maricopa County Assessor's Office",
+      "url": "https://mcassessor.maricopa.gov/page/business_property/",
+      "level": "county",
+      "government": "Maricopa County",
+      "discovered": true
+    },
+    {
+      "id": "fu-maricopa-personal-property-2",
+      "title": "Maricopa County Assessor's Office",
+      "url": "https://mcassessor.maricopa.gov/faq/business_property/",
+      "level": "county",
+      "government": "Maricopa County",
+      "discovered": true
+    },
+    {
+      "id": "fu-maricopa-personal-property-3",
+      "title": "Business Personal Property FAQs - Maricopa County Assessor's Office",
+      "url": "https://mcassessor.maricopa.gov/page/business_property/faq/",
+      "level": "county",
+      "government": "Maricopa County",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-maricopa-personal-property-3",
+      "title": "About Us - Maricopa County Assessor's Office",
+      "url": "https://mcassessor.maricopa.gov/home/about_us",
+      "level": "county",
+      "government": "Maricopa County",
+      "discovered": true
+    },
+    {
+      "id": "fu-phx-privilege-tax-returns-1",
+      "title": "What is Transaction Privilege and Use Tax?",
+      "url": "https://web-prod.phoenix.gov/administration/departments/finance/privilege-sales-use-tax/about-tpt-use-tax.html",
+      "level": "city",
+      "government": "City Of Phoenix",
+      "discovered": true
+    },
+    {
+      "id": "fu-phx-privilege-tax-returns-2",
+      "title": "Privilege (Sales) Use Tax",
+      "url": "https://web-prod.phoenix.gov/administration/departments/finance/privilege-sales-use-tax.html",
+      "level": "city",
+      "government": "City Of Phoenix",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-phx-privilege-tax-returns-2",
+      "title": "Privilege (Sales) Use Tax",
+      "url": "https://web-test.phoenix.gov/administration/departments/finance/privilege-sales-use-tax.html",
+      "level": "city",
+      "government": "City Of Phoenix",
+      "discovered": true
+    },
+    {
+      "id": "fu-code-phx-privilege-tax-returns-3",
+      "title": "Microsoft Word - Rental of TPP 0116.docx",
+      "url": "https://www.phoenix.gov/content/dam/phoenix/financesite/documents/privilege-use-tax/rental%20of%20tpp%200116.pdf",
+      "level": "city",
+      "government": "City Of Phoenix",
+      "discovered": true
+    },
+    {
+      "id": "fu-az-tpt-license-1",
+      "title": "TPT License | Arizona Department of Revenue",
+      "url": "https://azdor.gov/business/transaction-privilege-tax/tpt-license",
+      "level": "state",
+      "government": "Arizona Department of Revenue (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "fu-az-tpt-license-2",
+      "title": "Residential Rental Requirements",
+      "url": "https://jerome.az.gov/residential-rental-requirements",
+      "level": "state",
+      "government": "Department of Administration (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "fu-az-tpt-license-3",
+      "title": "STR Frequently Asked Questions",
+      "url": "https://www.flagstaff.az.gov/4539/STR-Frequently-Asked-Questions",
+      "level": "state",
+      "government": "Department of Administration (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "fu-az-tpt-returns-2",
+      "title": "Rental TPT",
+      "url": "https://www.flagstaff.az.gov/DocumentCenter/View/95815/Flagstaff-Short-Term-Rentals-TPT-Information-Sheet?bidId=",
+      "level": "state",
+      "government": "Department of Administration (State of Arizona, Executive Branch)",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-city-of-phoenix-1",
+      "title": "Contact License Services",
+      "url": "https://www.phoenix.gov/administration/departments/cityclerk/programs-services/license-services/contact-us.html",
+      "level": "city",
+      "government": "City Of Phoenix",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-maricopa-county-assessor-s-office-1",
+      "title": "Mobile Food Establishments",
+      "url": "https://swm.maricopa.gov/3977/Mobile-Food-Establishments",
+      "level": "county",
+      "government": "Maricopa County",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-maricopa-county-assessor-s-office-2",
+      "title": "About Us | Maricopa County, AZ",
+      "url": "https://www.wrr.maricopa.gov/323/About-the-Clerks-Office",
+      "level": "county",
+      "government": "Maricopa County",
+      "discovered": true
+    },
+    {
+      "id": "fu-contact-maricopa-county-assessor-s-office-3",
+      "title": "ATC Application Packet",
+      "url": "https://mcid.maricopa.gov/DocumentCenter/View/38290/Planning-and-Development-Plan-Review-Instructions-PDF?bidId=",
+      "level": "county",
+      "government": "Maricopa County",
+      "discovered": true
+    },
+    {
+      "id": "fu-again-trademark-search-1",
+      "title": "Why register your trademark?",
+      "url": "https://www.uspto.gov/trademarks/basics/why-register-your-trademark",
+      "level": "federal",
+      "government": "U.S. Patent and Trademark Office (Department of Commerce)",
+      "discovered": true
+    },
+    {
+      "id": "fu-again-trademark-search-2",
+      "title": "Federal trademark searching",
+      "url": "https://www.uspto.gov/trademarks/search/federal-trademark-searching",
+      "level": "federal",
+      "government": "U.S. Patent and Trademark Office (Department of Commerce)",
+      "discovered": true
+    }
+  ],
+  "unread": [
+    {
+      "title": "TNT",
+      "url": "https://apps.azsos.gov/Business_Services/WEB_TN_INSTRUCT.HTM",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "Rental Car Agent License Compliance",
+      "url": "https://difi.az.gov/producers/rental-car-agent/rental-car-agent-license-compliance",
+      "reason": "The site answered with error 403"
+    },
+    {
+      "title": "DocuSign Envelope ID: 7E435486-9AB7-43C1-8BE3-14B532A42F46",
+      "url": "https://online.asbcs.az.gov/forms/file/forms/new-application/20533/applicant_entity_nlvboardresolutionsdoc-11524504117.pdf",
+      "reason": "Couldn’t reach the site"
+    },
+    {
+      "title": "Microsoft Word - Fact Sheet Who Pays Transaction Prvilege Sales Tax.docx",
+      "url": "https://www.phoenix.gov:443/financesite/Documents/Fact%20Sheet%20Who%20Pays%20Transaction%20Prvilege%20Sales%20Tax.pdf",
+      "reason": "The site answered with error 404"
+    }
+  ],
+  "requirements": [
+    {
+      "key": "choose-structure",
+      "title": "Choose business structure - sole proprietorship",
+      "level": "federal",
+      "topic": "structure",
+      "agency": "Small Business Administration",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-structure"
+      ],
+      "evidence": "You’ll need to choose a business structure before you register your business with the state. You’re automatically considered to be a sole proprietorship if you do business activities but don’t register as any other kind of business.",
+      "why": "You have 1 owner and chose sole proprietorship for Desert Ink Tees. Structure controls taxes and paperwork.",
+      "background": "With a single owner operating as a sole proprietorship, your structure sets how taxes and liability work, so confirm this choice before other filings.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not show that structure controls taxes and paperwork or that one owner means sole proprietorship."
+      ],
+      "trail": null
+    },
+    {
+      "key": "az-tpt-license",
+      "title": "Arizona Transaction Privilege Tax (TPT) license",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Arizona Department of Revenue",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://azdor.gov/business/transaction-privilege-tax/tpt-license",
+        "https://azdor.gov/transaction-privilege-tax/tpt-license/applying-tpt-license?gclid=CjwKCAiAm-67BhBlEiwAEVftNuzgFRYVrr6xx27I443Yqq_vVwZ1W6HzQc4U-JT6wHjdiVGm9cIQ8RoCzgIQAvD_BwE"
+      ],
+      "evidence": "If a business is selling a product or engaging in a service subject to TPT, that business will likely need a license from the Arizona Department of Revenue (ADOR) and a TPT, or business/occupational license, from the city or cities in which the business has a base or operation. The cost for each license per location is $12.",
+      "why": "You will sell screen-printed t-shirts in Arizona in person and by shipping. Arizona taxes vendors for the privilege of doing business in the state.",
+      "background": "Selling shirts at retail in Arizona is vending for the privilege of doing business in the state, which calls for a state sales tax license.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not show that Arizona taxes vendors for the privilege of doing business or that t-shirts are subject to TPT."
+      ],
+      "trail": null
+    },
+    {
+      "key": "az-trade-name",
+      "title": "Arizona trade name / DBA registration",
+      "level": "state",
+      "topic": "name_registration",
+      "agency": "Arizona Secretary of State",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-name"
+      ],
+      "evidence": "You might need to register your DBA — also known as a trade name, fictitious name, or assumed name — with the state, county, or city your business is located in. Registering your DBA name doesn’t provide legal protection by itself, but most states require you to register your DBA if you use one.",
+      "why": "You will use Desert Ink Tees, not your own legal name. Most states require registration when you use a trade name.",
+      "background": "You will sell as Desert Ink Tees rather than your own legal name, and Arizona requires registration when a business uses such a trade name.",
+      "problems": [
+        "Only federal pages were cited for a state requirement"
+      ],
+      "trail": null
+    },
+    {
+      "key": "cpsc-flammability",
+      "title": "Federal clothing flammability compliance",
+      "level": "federal",
+      "topic": "license_permit",
+      "agency": "U.S. Consumer Product Safety Commission",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/Clothing-OLD"
+      ],
+      "evidence": "The purpose of this regulation is to keep dangerously flammable textiles and garments out of commerce. Class 3 textiles are plain surface and raised surface fabrics that are dangerously flammable and shall not be used in wearing apparel.",
+      "why": "You sell screen-printed t-shirts. Federal rules ban dangerously flammable clothing textiles.",
+      "background": "Shirts sold as clothing must meet federal flammability limits, so your blank shirts and printed shirts must be made from compliant fabric.",
+      "problems": [
+        "Quote not found on the cited pages"
+      ],
+      "trail": null
+    },
+    {
+      "key": "gcc-certificate",
+      "title": "General Certificate of Conformity for adult apparel",
+      "level": "federal",
+      "topic": "license_permit",
+      "agency": "U.S. Consumer Product Safety Commission",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/Clothing-OLD"
+      ],
+      "evidence": "Adult wearing apparel is required to have a General Certificate of Conformity, also known as a GCC. Adult wearing apparel does not need to be tested at a third party, CPSC-accepted lab.",
+      "why": "You sell adult t-shirts. Federal guidance requires a written certificate showing they meet flammability rules.",
+      "background": "Adult shirts are general wearing apparel that must meet flammability rules, so you need a written certificate showing compliance for your products.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not show that the certificate must show compliance with flammability rules."
+      ],
+      "trail": null
+    },
+    {
+      "key": "ftc-textile-labeling",
+      "title": "Federal textile and care labeling",
+      "level": "federal",
+      "topic": "license_permit",
+      "agency": "Federal Trade Commission",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/Clothing-OLD"
+      ],
+      "evidence": "Apparel may be subject to additional regulatory requirements by the Federal Trade Commission (FTC) and, for imported goods, by U.S. Customs and Border Protection Agency (CBP).",
+      "why": "You sell clothing online and at markets. Federal rules cover textile labeling for apparel.",
+      "background": "Clothing sold online and at markets must carry proper fiber, maker, and care information, so your shirts must be labeled before sale.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not mention textile labeling or care labeling, only additional regulatory requirements."
+      ],
+      "trail": null
+    },
+    {
+      "key": "ftc-advertising-truth",
+      "title": "Truthful online advertising",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Federal Trade Commission",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.ftc.gov/system/files/ftc_gov/pdf/bus28-rulesroad-012025_508.pdf"
+      ],
+      "evidence": "The FTC Act prohibits unfair or deceptive advertising in any medium. That is, advertising must tell the truth and not mislead consumers.",
+      "why": "You will advertise and take orders on your own website. Online ads must be truthful.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "ein",
+      "title": "Federal Employer Identification Number (EIN)",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "optional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+        "https://www.sba.gov/counseling/launch-your-business/#tax-ids"
+      ],
+      "evidence": "You never have to pay a fee for an EIN. You need it to pay federal taxes, hire employees, open a bank account, and apply for business licenses and permits.",
+      "why": "You are a sole proprietor with no employees, so federal rules may not require an EIN, but banks and Arizona licensing often ask for one.",
+      "background": "",
+      "problems": [
+        "Quote not found on the cited pages"
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-se-tax",
+      "title": "Federal self-employment and estimated taxes",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center"
+      ],
+      "evidence": "Self-employed individuals generally must pay self-employment (SE) tax as well as income tax. As a self-employed individual, generally you are required to file an annual income tax return and pay estimated taxes quarterly.",
+      "why": "You are self-employed as a sole proprietor. Self-employment tax covers Social Security and Medicare.",
+      "background": "As a sole proprietor with self employment earnings, you owe Social Security and Medicare taxes and should pay during the year as you earn.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote does not show that self-employment tax covers Social Security and Medicare."
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-annual-filing",
+      "title": "Federal annual business income filing",
+      "level": "federal",
+      "topic": "tax_registration",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+        "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/"
+      ],
+      "evidence": "You have to file an income tax return if your net earnings from self-employment were $400 or more.",
+      "why": "You expect $5,000 to $25,000 in first-year sales. Sole proprietors report profit or loss yearly.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "az-tpt-returns",
+      "title": "Arizona TPT returns and payments",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Arizona Department of Revenue",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://azdor.gov/transaction-privilege-tax/tpt-license/applying-tpt-license?gclid=CjwKCAiAm-67BhBlEiwAEVftNuzgFRYVrr6xx27I443Yqq_vVwZ1W6HzQc4U-JT6wHjdiVGm9cIQ8RoCzgIQAvD_BwE"
+      ],
+      "evidence": "TPT filings, payments, and renewals are only available at AZTaxes.gov at this time.",
+      "why": "Once licensed for Arizona sales tax, you must file returns and pay on retail sales.",
+      "background": "Once licensed for state sales tax, you must send returns and payment to the state for retail sales including city amounts.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote only says where TPT filings and payments are available and does not show a requirement to file returns and pay on retail sales."
+      ],
+      "trail": null
+    },
+    {
+      "key": "az-income-tax",
+      "title": "Arizona state income tax",
+      "level": "state",
+      "topic": "tax_registration",
+      "agency": "Arizona Department of Revenue",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will earn side income in Arizona. Arizona taxes business income passed to the owner.",
+      "background": "Arizona taxes residents on all business income passed to the owner, so your side income from shirts must be reported on the state return.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "federal-recordkeeping",
+      "title": "Keep business tax records",
+      "level": "federal",
+      "topic": "other",
+      "agency": "Internal Revenue Service",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/"
+      ],
+      "evidence": "You may need to substantiate income and deductions. Good records can assist you in preparing financial records, keeping track of property and deductions and so much more.",
+      "why": "You will have many small sales online and at markets. Good records prove income and deductions.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "az-home-business-check",
+      "title": "Check home business and zoning rules",
+      "level": "state",
+      "topic": "location_zoning",
+      "agency": "Arizona Department of Revenue",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://azdor.gov/business/transaction-privilege-tax/tpt-license"
+      ],
+      "evidence": "Please note that it is the responsibility of the business owner to research the legality of operating a business in a home and to comply with county and city zoning requirements.",
+      "why": "You will print at home with no customer visits. State guidance says home vendors must check local legality.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "trademark-search",
+      "title": "Federal trademark search and protection",
+      "level": "federal",
+      "topic": "name_registration",
+      "agency": "United States Patent and Trademark Office",
+      "status": "unlikely",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": "unlikely",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.sba.gov/counseling/launch-your-business/#business-name"
+      ],
+      "evidence": "That’s why you should check your prospective business, product, and service names against the official trademark database, maintained by the United States Patent and Trademark Office.",
+      "why": "You use your own designs and brand name online. A search helps avoid costly infringement fights.",
+      "background": "No law requires you to search or register your brand to sell shirts. Registration is your choice and only affects how far your rights reach.",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote only says to check names against the USPTO database and does not show protection or avoiding costly infringement fights."
+      ],
+      "trail": {
+        "searched": [
+          {
+            "where": "United States",
+            "what": "who needs it and who doesn’t, such as exemptions or answers to common questions",
+            "pages": 3
+          }
+        ],
+        "read": [
+          {
+            "title": "Why register your trademark?",
+            "url": "https://www.uspto.gov/trademarks/basics/why-register-your-trademark"
+          },
+          {
+            "title": "Federal trademark searching",
+            "url": "https://www.uspto.gov/trademarks/search/federal-trademark-searching"
+          }
+        ],
+        "unread": [
+          {
+            "title": "Trademark Trial and Appeal Board Electronic Filing System. http://estta.uspto.gov",
+            "url": "https://ttabvue.uspto.gov/ttabvue/ttabvue-85447797-EXA-9.pdf",
+            "reason": "The file is too large"
+          }
+        ],
+        "found": "",
+        "missing": "",
+        "leaning": "not_needed",
+        "quoteSetAside": true,
+        "rounds": 2
+      }
+    },
+    {
+      "key": "phx-privilege-tax-license",
+      "title": "Phoenix privilege (sales) tax license",
+      "level": "city",
+      "topic": "tax_registration",
+      "agency": "City of Phoenix Finance Department",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.phoenix.gov/administration/departments/finance/privilege-sales-use-tax.html"
+      ],
+      "evidence": "A business engaged in taxable activity will need to obtain a transaction privilege (sales) tax license to report their Phoenix Transaction Privilege Tax (TPT) liability.",
+      "why": "You will sell shirts from a home base in Phoenix, in person and by shipping, so the city sales-tax license for a Phoenix-based seller likely applies.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "phx-home-occupation-standards",
+      "title": "Follow Phoenix home occupation rules",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "Planning and Development Department - Zoning Division",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.phoenix.gov/content/dam/phoenix/pddsite/documents/pz/pdd_pz_pdf_00273.pdf"
+      ],
+      "evidence": "Home occupation is a professional activity, or use which is clearly a secondary use of a residential dwelling unit, and which does not alter the exterior of the property or affect the residential character of the neighborhood. No one outside the family residing in the dwelling unit shall be employed in the home occupation.",
+      "why": "You will print shirts at your home inside Phoenix with no customer visits, so your work must stay secondary and keep the home looking residential.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    },
+    {
+      "key": "phx-home-use-permit",
+      "title": "Phoenix home occupation Use Permit if triggers met",
+      "level": "city",
+      "topic": "location_zoning",
+      "agency": "Planning and Development Department - Zoning Division",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": true,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will business visitors, deliveries, or extra traffic come to your home, or will you work outside the main house?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://www.phoenix.gov/content/dam/phoenix/pddsite/documents/pz/pdd_pz_pdf_00273.pdf"
+      ],
+      "evidence": "Home occupations shall obtain a Use Permit in accordance with Section 307 of the Zoning Ordinance when:",
+      "why": "It depends on your own setup. Phoenix requires a Use Permit only in certain cases, such as when the home work creates traffic or is done in an accessory building or outside.",
+      "background": "",
+      "problems": [
+        "The quote doesn’t show this requirement: The quote ends at 'when:' and does not show the specific triggers like traffic or work in an accessory building or outside."
+      ],
+      "trail": null
+    },
+    {
+      "key": "phx-market-vending-license",
+      "title": "Phoenix license for selling at markets or temporary sites",
+      "level": "city",
+      "topic": "license_permit",
+      "agency": "City of Phoenix License Services",
+      "status": "conditional",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": null,
+      "timing": "before_selling",
+      "fitsStructure": true,
+      "conditions": [
+        "Will you sell at farmers markets or fairs?"
+      ],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You plan to sell at markets. If you set up a booth at a Phoenix market or other temporary site, a city vending or temporary activity approval may apply.",
+      "background": "",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "maricopa-personal-property",
+      "title": "Maricopa County business personal property reporting",
+      "level": "county",
+      "topic": "tax_registration",
+      "agency": "Maricopa County Assessor's Office",
+      "status": "needs_confirmation",
+      "verification": "needs_verification",
+      "claimsChecked": null,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [],
+      "evidence": null,
+      "why": "You will own screen-printing gear at your home. Home businesses with equipment commonly must list business equipment with the county.",
+      "background": "You keep screen printing gear at home for the business, and the county asks owners to report active business assets each year.",
+      "problems": [
+        "No source cited"
+      ],
+      "trail": null
+    },
+    {
+      "key": "phx-privilege-tax-returns",
+      "title": "File Phoenix privilege tax returns",
+      "level": "city",
+      "topic": "tax_registration",
+      "agency": "City of Phoenix Finance Department",
+      "status": "verified",
+      "verification": "sourced",
+      "claimsChecked": true,
+      "verdict": "applies",
+      "timing": "later",
+      "fitsStructure": true,
+      "conditions": [],
+      "feeUsd": null,
+      "deadline": null,
+      "sources": [
+        "https://web-prod.phoenix.gov/administration/departments/finance/privilege-sales-use-tax/about-tpt-use-tax.html"
+      ],
+      "evidence": "Businesses are required to report and pay Phoenix privilege sales tax on their taxable business activity on a monthly, quarterly, or annual frequency.",
+      "why": "Once you hold the city sales-tax license for shirt sales, you must file its tax returns going forward.",
+      "background": "",
+      "problems": [],
+      "trail": null
+    }
+  ],
+  "plan": [
+    {
+      "key": "choose-structure",
+      "title": "Choose business structure - sole proprietorship",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-structure",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "az-trade-name",
+      "title": "Arizona trade name / DBA registration",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#business-name",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "cpsc-flammability",
+      "title": "Federal clothing flammability compliance",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/Clothing-OLD",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "gcc-certificate",
+      "title": "General Certificate of Conformity for adult apparel",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/Clothing-OLD",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "ftc-textile-labeling",
+      "title": "Federal textile and care labeling",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/Clothing-OLD",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "ftc-advertising-truth",
+      "title": "Truthful online advertising",
+      "status": "verified",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.ftc.gov/system/files/ftc_gov/pdf/bus28-rulesroad-012025_508.pdf",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "ein",
+      "title": "Federal Employer Identification Number (EIN)",
+      "status": "optional",
+      "level": "federal",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number",
+          "confirms": false
+        },
+        {
+          "url": "https://www.sba.gov/counseling/launch-your-business/#tax-ids",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "az-tpt-license",
+      "title": "Arizona Transaction Privilege Tax (TPT) license",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://azdor.gov/business/transaction-privilege-tax/tpt-license",
+          "confirms": false
+        },
+        {
+          "url": "https://azdor.gov/transaction-privilege-tax/tpt-license/applying-tpt-license?gclid=CjwKCAiAm-67BhBlEiwAEVftNuzgFRYVrr6xx27I443Yqq_vVwZ1W6HzQc4U-JT6wHjdiVGm9cIQ8RoCzgIQAvD_BwE",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-se-tax",
+      "title": "Federal self-employment and estimated taxes",
+      "status": "needs_confirmation",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "federal-annual-filing",
+      "title": "Federal annual business income filing",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.irs.gov/businesses/small-businesses-self-employed/self-employed-individuals-tax-center",
+          "confirms": true
+        },
+        {
+          "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "az-tpt-returns",
+      "title": "Arizona TPT returns and payments",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://azdor.gov/transaction-privilege-tax/tpt-license/applying-tpt-license?gclid=CjwKCAiAm-67BhBlEiwAEVftNuzgFRYVrr6xx27I443Yqq_vVwZ1W6HzQc4U-JT6wHjdiVGm9cIQ8RoCzgIQAvD_BwE",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "az-income-tax",
+      "title": "Arizona state income tax",
+      "status": "needs_confirmation",
+      "level": "state",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "federal-recordkeeping",
+      "title": "Keep business tax records",
+      "status": "verified",
+      "level": "federal",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.taxpayeradvocate.irs.gov/news/tax-tips/tas-tax-tip-small-business-filing-and-recordkeeping-requirements/2026/05/",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "az-home-business-check",
+      "title": "Check home business and zoning rules",
+      "status": "verified",
+      "level": "state",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://azdor.gov/business/transaction-privilege-tax/tpt-license",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "phx-privilege-tax-license",
+      "title": "Phoenix privilege (sales) tax license",
+      "status": "verified",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.phoenix.gov/administration/departments/finance/privilege-sales-use-tax.html",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "phx-home-occupation-standards",
+      "title": "Follow Phoenix home occupation rules",
+      "status": "verified",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.phoenix.gov/content/dam/phoenix/pddsite/documents/pz/pdd_pz_pdf_00273.pdf",
+          "confirms": true
+        }
+      ]
+    },
+    {
+      "key": "phx-home-use-permit",
+      "title": "Phoenix home occupation Use Permit if triggers met",
+      "status": "conditional",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://www.phoenix.gov/content/dam/phoenix/pddsite/documents/pz/pdd_pz_pdf_00273.pdf",
+          "confirms": false
+        }
+      ]
+    },
+    {
+      "key": "phx-market-vending-license",
+      "title": "Phoenix license for selling at markets or temporary sites",
+      "status": "conditional",
+      "level": "city",
+      "timing": "before_selling",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "maricopa-personal-property",
+      "title": "Maricopa County business personal property reporting",
+      "status": "needs_confirmation",
+      "level": "county",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": []
+    },
+    {
+      "key": "phx-privilege-tax-returns",
+      "title": "File Phoenix privilege tax returns",
+      "status": "verified",
+      "level": "city",
+      "timing": "later",
+      "feeCents": null,
+      "deadline": null,
+      "links": [
+        {
+          "url": "https://web-prod.phoenix.gov/administration/departments/finance/privilege-sales-use-tax/about-tpt-use-tax.html",
+          "confirms": false
+        }
+      ]
+    }
+  ],
+  "openQuestions": [
+    {
+      "question": "What filing frequency will Arizona assign for TPT returns for online and market sales?",
+      "answer": "Your filing schedule is assigned after you register and is based on your taxable sales history, so check your state tax account for the schedule assigned to you and file as directed."
+    },
+    {
+      "question": "What is the current renewal rule and fee for the Arizona TPT license?",
+      "answer": "The state license must be kept active with yearly renewal through the state tax system, so confirm the current renewal timing and fee inside your license account before it lapses."
+    },
+    {
+      "question": "Do home screen-printing inks or processes need any Arizona state environmental permit?",
+      "answer": "None of the pages show an Arizona environmental permit for home screen printing with standard inks, so no state environmental permit is in your plan, but ask the state environmental office if your process or waste handling changes."
+    },
+    {
+      "question": "Do shipments to buyers outside Arizona create tax registration duties in other states?",
+      "answer": "Shipping to buyers in other states can create registration or collection duties under those states own tax rules, so check the rules for each state where you ship before you sell there."
+    },
+    {
+      "question": "What is the current fee, application method, and renewal period for a Phoenix privilege tax license for a home-based seller?",
+      "answer": "Phoenix coverage is handled together with the state license through the state joint application and online tax system, so apply there for a Phoenix location and keep the license renewed each year."
+    },
+    {
+      "question": "Does home screen-printing with inks, screens, and heat equipment need any fire, building, or environmental approval?",
+      "answer": "None of the pages show a fire, building, or environmental approval for home screen printing, so none is in your plan, but confirm with city planning and fire staff about inks, screens, and heat equipment at home."
+    },
+    {
+      "question": "Does a market booth in Phoenix count as vending or temporary sales that needs a city license?",
+      "answer": "Yes, in person sales at Phoenix markets fall under your Phoenix sales tax coverage, and separate vending rules can depend on location and activity, so confirm booth rules with city License Services."
+    },
+    {
+      "question": "Does Maricopa County require a business personal property listing for home equipment, and what is the deadline and threshold?",
+      "answer": "Yes, home business equipment must be listed with the county assessor each year by the spring filing deadline, and a statewide exemption may excuse lower value accounts, so confirm the current deadline and exemption with the assessor."
+    }
+  ],
+  "coverage": [
+    {
+      "category": "formation",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "formation",
+      "level": "state",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "tax",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 4
+    },
+    {
+      "category": "tax",
+      "level": "state",
+      "state": "confirmed",
+      "pagesRead": 3
+    },
+    {
+      "category": "licenses",
+      "level": "federal",
+      "state": "confirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "state",
+      "state": "not_searched",
+      "pagesRead": 0
+    },
+    {
+      "category": "licenses",
+      "level": "county",
+      "state": "read_unconfirmed",
+      "pagesRead": 2
+    },
+    {
+      "category": "licenses",
+      "level": "city",
+      "state": "read_unconfirmed",
+      "pagesRead": 1
+    },
+    {
+      "category": "zoning",
+      "level": "city",
+      "state": "confirmed",
+      "pagesRead": 2
+    }
+  ],
+  "conflicts": [
+    {
+      "about": "Whether a sole proprietor needs an EIN for an Arizona TPT license",
+      "explanation": "One state page says a business is required to have an EIN to get a TPT license, but the same page says sole proprietors with no employees can use their SSN and leave the EIN section blank. It is unclear if you must get an EIN or can use your SSN.",
+      "sourceIds": [
+        "state-sales-tax-1"
+      ]
+    }
+  ]
+}

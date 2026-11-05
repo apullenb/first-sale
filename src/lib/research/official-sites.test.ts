@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BusinessProfile } from "@/lib/domain";
-import { type Government, governmentFor, governsPlace, REGISTRY_AS_OF } from "./official-sites";
+import { type Government, governmentFor, governsPlace, REGISTRY_AS_OF, VETTED_SITES } from "./official-sites";
 
 const place = (state: BusinessProfile["location"]["state"], county = "", city = ""): BusinessProfile["location"] => ({
   state,
@@ -112,5 +112,32 @@ describe("governsPlace", () => {
   it("doesn't take a same-named township in another county for the owner's city", () => {
     // Franklin Township, Columbiana County, for an owner in the City of Franklin (Warren County)
     expect(governsPlace(gov("https://franklintwpcoloh.gov"), place("OH", "Warren", "Franklin"))).toBe(false);
+  });
+});
+
+describe("vetted sites outside .gov", () => {
+  it("counts a vetted government site and its subdomains as official, for its own place only", () => {
+    expect(governmentFor("https://www.denvergov.org/Government/Agencies-Departments-Offices/Business-Licensing")).toMatchObject({ domain: "denvergov.org", level: "city", state: "CO" });
+    expect(governmentFor("https://efile.sunbiz.org/fict_filing.html")).toMatchObject({ domain: "sunbiz.org", level: "state", state: "FL" });
+    const denver = governmentFor("https://www.denvergov.org/x")!;
+    expect(governsPlace(denver, { state: "CO", county: "Denver County", city: "Denver", insideCityLimits: "yes" })).toBe(true);
+    expect(governsPlace(denver, { state: "CO", county: "Arapahoe County", city: "Aurora", insideCityLimits: "yes" })).toBe(false);
+    const gallatin = governmentFor("https://www.healthygallatin.org/environmental-health/")!;
+    expect(governsPlace(gallatin, { state: "MT", county: "Gallatin County", city: "Bozeman", insideCityLimits: "yes" })).toBe(true);
+    expect(governsPlace(governmentFor("https://multco.us/assessment-taxation")!, { state: "OR", county: "Multnomah County", city: "Portland", insideCityLimits: "yes" })).toBe(true);
+  });
+
+  it("never counts a lookalike, a plain-http link, or a site off the list", () => {
+    expect(governmentFor("https://denvergov.org.example.com/")).toBeNull();
+    expect(governmentFor("https://notdenvergov.org/")).toBeNull();
+    expect(governmentFor("http://www.denvergov.org/")).toBeNull();
+    expect(governmentFor("https://www.flrules.org/")).toBeNull();
+  });
+
+  it("records a .gov page as proof for every vetted site", () => {
+    for (const site of VETTED_SITES) {
+      expect(governmentFor(site.proof)?.domain, site.domain).toMatch(/\.gov$/);
+      expect(site.checked).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
   });
 });
