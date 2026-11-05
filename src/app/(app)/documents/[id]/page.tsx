@@ -6,6 +6,7 @@ import { FormStatus } from "@/components/documents/form-status";
 import { FormView } from "@/components/documents/form-view";
 import { GeneratedView } from "@/components/documents/generated-view";
 import { ReceivedView } from "@/components/documents/received-view";
+import { RemovedNote } from "@/components/documents/removed-note";
 import { Icon } from "@/components/icons";
 import { PRIMARY_LINK } from "@/components/styles";
 import { PageHead } from "@/components/ui";
@@ -34,7 +35,12 @@ async function DocumentView({ params }: { params: Promise<{ id: string }> }) {
   const doc = id.length <= 60 ? await getMyDocument(id) : null;
   if (!doc) return <Missing />;
   if (doc.origin === "generated") return <Generated doc={doc} />;
-  return isKept(doc) ? <Received doc={doc} /> : <Form doc={doc} />;
+  return (
+    <>
+      <RemovedNote content={doc.content} />
+      {isKept(doc) ? <Received doc={doc} /> : <Form doc={doc} />}
+    </>
+  );
 }
 
 function Missing() {

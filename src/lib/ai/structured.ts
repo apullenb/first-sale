@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { addCounts, countOf, redactSensitive, type SensitiveCounts } from "@/lib/privacy/sensitive";
 import { emitAIEvent } from "./telemetry";
 import type { ChatMessage, CompletionResult, Effort, ModelProvider } from "./types";
 
@@ -40,7 +41,11 @@ export async function generateObject<T>(
     throw new Error(`Schema name "${options.name}" must be 1–64 letters, digits, "_" or "-"`);
   }
   const jsonSchema = toJsonSchema(options.schema);
-  const messages: ChatMessage[] = [...options.messages];
+  // Last line of defense: numbers SnapStart never sends are taken out of every message's text, in code.
+  // Images and PDFs can't be scrubbed here; uploads say so before they're read.
+  const { messages: scrubbed, counts } = scrubMessages(options.messages);
+  if (countOf(counts)) console.info(`AI ${options.name}: removed ${countOf(counts)} sensitive numbers before sending`);
+  const messages: ChatMessage[] = [...scrubbed];
   if (!model.capabilities.jsonSchema) {
     messages.push({
       role: "user",
@@ -122,4 +127,19 @@ function validate<T>(schema: z.ZodType<T>, text: string): Validation<T> {
 function stripCodeFence(text: string): string {
   const match = text.trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
   return match ? match[1] : text.trim();
+}
+
+export function scrubMessages(messages: readonly ChatMessage[]): { messages: ChatMessage[]; counts: SensitiveCounts } {
+  let counts: SensitiveCounts = {};
+  const clean = (text: string) => {
+    const result = redactSensitive(text);
+    counts = addCounts(counts, result.counts);
+    return result.text;
+  };
+  const out = messages.map((message): ChatMessage => {
+    if (message.role !== "user") return { ...message, content: clean(message.content) };
+    if (typeof message.content === "string") return { ...message, content: clean(message.content) };
+    return { ...message, content: message.content.map((part) => (part.type === "text" ? { ...part, text: clean(part.text) } : part)) };
+  });
+  return { messages: out, counts };
 }
