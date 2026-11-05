@@ -4,8 +4,9 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   cacheComponents: true,
   partialPrefetching: true,
-  // PGlite loads its WebAssembly files from disk, which breaks when bundled
-  serverExternalPackages: ["@electric-sql/pglite"],
+  // PGlite loads its WebAssembly files from disk, and the canvas that draws redacted pages is a native addon:
+  // neither can be bundled
+  serverExternalPackages: ["@electric-sql/pglite", "@napi-rs/canvas"],
   // PDF fonts are read from disk at run time
   outputFileTracingIncludes: { "/**": ["src/lib/documents/fonts/*.ttf"] },
   experimental: {
